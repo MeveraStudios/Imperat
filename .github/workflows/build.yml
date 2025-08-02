@@ -43,7 +43,7 @@ jobs:
           chmod +x ./gradlew
 
           # Fetch latest release tag from public API
-          TAG_JSON=$(curl -s https://api.github.com/repos/VelixDevelopments/Imperat/tags)
+          TAG_JSON=$(curl -s https://api.github.com/repos/MeveraStudios/Imperat/tags)
   
           # Check if jq can parse the tag
           TAG=$(echo "$TAG_JSON" | jq -r '.[0].name' 2>/dev/null)
@@ -148,24 +148,3 @@ jobs:
         with:
           name: test-reports
           path: '**/build/reports/tests/test'
-
-      - name: ℹ️ Update Endpoint
-        if: ${{ steps.publish_snapshot.outcome == 'success' }}
-        run: |
-          rm -rf *
-          git config --global user.name "VelixDevelopments System"
-          git config --global user.email "github@velix.dev"
-          git clone https://github.com/VelixDevelopments/endpoint.git
-          cd endpoint
-          mkdir -p imperat && cd imperat
-          echo "{
-            \"release\": \"$LATEST_RELEASE\",
-            \"snapshot\": \"${VERSION}-SNAPSHOT\"
-          }" > info.json
-          git add .
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "Update imperat version"
-            git push https://x-access-token:${{ secrets.VELIX_SYSTEM_TOKEN }}@github.com/VelixDevelopments/endpoint.git
-          fi
