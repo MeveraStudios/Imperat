@@ -4,7 +4,7 @@ import dev.velix.imperat.Imperat;
 import dev.velix.imperat.command.Command;
 import dev.velix.imperat.command.CommandUsage;
 import dev.velix.imperat.command.suggestions.CompletionArg;
-import dev.velix.imperat.command.tree.CommandDispatch;
+import dev.velix.imperat.command.tree.CommandPathSearch;
 import dev.velix.imperat.context.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +64,7 @@ public abstract class ContextFactory<S extends Source> {
      */
     public abstract ExecutionContext<S> createExecutionContext(
             @NotNull Context<S> plainContext,
-            @NotNull CommandDispatch<S> dispatch
+            @NotNull CommandPathSearch<S> dispatch
     );
     
     /**

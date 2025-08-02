@@ -22,7 +22,7 @@ final class InternalMinestomCommand extends Command {
 
         this.setDefaultExecutor(
             (commandSender, commandContext) ->
-                imperat.dispatch(imperat.wrapSender(commandSender),
+                imperat.executeSafely(imperat.wrapSender(commandSender),
                     commandContext.getCommandName(), commandContext.getInput())
         );
 

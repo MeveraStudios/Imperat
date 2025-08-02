@@ -9,15 +9,35 @@ dependencies {
     api 'org.ow2.asm:asm:9.6'
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.2")
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
+    testImplementation("org.assertj:assertj-core:3.24.2")
+    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.8.0")
 
     testImplementation("org.jetbrains:annotations:24.1.0")
     testAnnotationProcessor("org.jetbrains:annotations:24.1.0")
 }
 
+dependencies {
+
+}
+
 test {
     useJUnitPlatform()
+
+    // Test execution settings
+    maxParallelForks = Runtime.getRuntime().availableProcessors()
+
+    // System properties for tests
+    systemProperty("imperat.test.mode", "true")
+    systemProperty("imperat.debug.enabled", "false")
+
+    // Test filtering
+    filter {
+        excludeTestsMatching("*PerformanceTest*")
+        excludeTestsMatching("*SlowTest*")
+    }
 }
 
 java {

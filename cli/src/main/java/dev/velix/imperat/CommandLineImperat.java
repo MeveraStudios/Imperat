@@ -1,7 +1,5 @@
 package dev.velix.imperat;
 
-import dev.velix.imperat.command.tree.CommandDispatch;
-
 import java.io.*;
 
 public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
@@ -47,13 +45,12 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
      * Dispatches the command-line from the input stream provided
      *
      * @param outputStream the output stream/command-source origin
-     * @return the usage match setResult
      */
-    public CommandDispatch.Result dispatch(OutputStream outputStream) {
+    public void dispatch(OutputStream outputStream) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
             String line = reader.readLine();
             ConsoleSource prompt = wrapSender(outputStream);
-            return super.dispatch(prompt, line);
+            super.executeSafely(prompt, line);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -63,10 +60,9 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
      * Dispatches the command-line from the input stream provided
      * while using {@link System#out} as an {@link OutputStream}
      *
-     * @return the usage match setResult
      */
-    public CommandDispatch.Result dispatch() {
-        return dispatch(System.out);
+    public void dispatch() {
+        dispatch(System.out);
     }
 
 }

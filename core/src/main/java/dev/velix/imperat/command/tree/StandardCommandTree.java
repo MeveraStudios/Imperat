@@ -451,14 +451,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Optimized contextMatch with early termination for invalid commands
      */
     @Override
-    public @NotNull CommandDispatch<S> contextMatch(
+    public @NotNull CommandPathSearch<S> contextMatch(
             @NotNull ArgumentInput input
     ) {
-        final var dispatch = CommandDispatch.<S>unknown();
+        final var dispatch = CommandPathSearch.<S>unknown();
         dispatch.append(root);
         
         if (input.isEmpty()) {
-            dispatch.setResult(CommandDispatch.Result.COMPLETE);
+            dispatch.setResult(CommandPathSearch.Result.COMPLETE);
             dispatch.setDirectUsage(root.getExecutableUsage());
             return dispatch;
         }
@@ -491,14 +491,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         
         // Process children efficiently
-        CommandDispatch<S> bestMatch = dispatch;
+        CommandPathSearch<S> bestMatch = dispatch;
         int bestDepth = 0;
         
         for (var child : rootChildren) {
-            final var result = dispatchNode(CommandDispatch.unknown(), input, child, 0);
+            final var result = dispatchNode(CommandPathSearch.unknown(), input, child, 0);
             
             // Track the best (deepest) match
-            if (result.getResult() == CommandDispatch.Result.COMPLETE) {
+            if (result.getResult() == CommandPathSearch.Result.COMPLETE) {
                 return result; // Return immediately on complete match
             } else if (result.getLastNode() != null && result.getLastNode().getDepth() > bestDepth) {
                 bestMatch = result;
@@ -512,8 +512,8 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     /**
      * Optimized dispatchNode with better early termination - BACK TO RECURSIVE
      */
-    private @NotNull CommandDispatch<S> dispatchNode(
-            CommandDispatch<S> commandDispatch,
+    private @NotNull CommandPathSearch<S> dispatchNode(
+            CommandPathSearch<S> commandPathSearch,
             ArgumentInput input,
             @NotNull ParameterNode<S, ?> currentNode,
             int depth
@@ -522,20 +522,20 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final boolean isLastDepth = (depth == inputSize - 1);
         
         if (isLastDepth) {
-            return handleLastDepth(imperatConfig, commandDispatch, currentNode, input.getOr(depth, null));
+            return handleLastDepth(imperatConfig, commandPathSearch, currentNode, input.getOr(depth, null));
         }
         else if(depth >= inputSize) {
-            return commandDispatch;
+            return commandPathSearch;
         }
         
         final String rawInput = input.get(depth);
         
         // Greedy parameter check
         if (currentNode.isGreedyParam()) {
-            commandDispatch.append(currentNode);
-            commandDispatch.setResult(CommandDispatch.Result.COMPLETE);
-            commandDispatch.setDirectUsage(currentNode.getExecutableUsage());
-            return commandDispatch;
+            commandPathSearch.append(currentNode);
+            commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
+            commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
+            return commandPathSearch;
         }
         
         // Input matching loop with reduced overhead
@@ -544,18 +544,18 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         while (!matchesInput(workingNode, rawInput, strictMode)) {
             if (workingNode.isOptional()) {
-                commandDispatch.append(workingNode);
+                commandPathSearch.append(workingNode);
                 var nextWorkingNode = workingNode.getNextParameterChild();
                 if (nextWorkingNode == null) {
                     if (workingNode.isExecutable()) {
-                        commandDispatch.setResult(CommandDispatch.Result.COMPLETE);
-                        commandDispatch.setDirectUsage(workingNode.executableUsage);
+                        commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
+                        commandPathSearch.setDirectUsage(workingNode.executableUsage);
                     }
-                    return commandDispatch;
+                    return commandPathSearch;
                 }
                 workingNode = nextWorkingNode;
             } else {
-                return commandDispatch;
+                return commandPathSearch;
             }
         }
         
@@ -563,28 +563,28 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (!workingNode.isFlag() && isFlag(rawInput)) {
             final var flagData = flagCache.get(rawInput.substring(1));
             if (flagData == null) {
-                return commandDispatch;
+                return commandPathSearch;
             }
             final int depthIncrease = flagData.isSwitch() ? 1 : 2;
-            return dispatchNode(commandDispatch, input, workingNode, depth + depthIncrease);
+            return dispatchNode(commandPathSearch, input, workingNode, depth + depthIncrease);
         }
         
-        commandDispatch.append(workingNode);
+        commandPathSearch.append(workingNode);
         
         if(workingNode.isTrueFlag()) {
             depth++;
         }
         
         if(workingNode.isExecutable() && depth == inputSize-1) {
-            commandDispatch.setResult(CommandDispatch.Result.COMPLETE);
-            commandDispatch.setDirectUsage(workingNode.getExecutableUsage());
-            return commandDispatch;
+            commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
+            commandPathSearch.setDirectUsage(workingNode.getExecutableUsage());
+            return commandPathSearch;
         }
         
         // Process children with early termination
         final var children = workingNode.getChildren();
         if (children.isEmpty()) {
-            return commandDispatch; // No children to process
+            return commandPathSearch; // No children to process
         }
         
         // SAFE OPTIMIZATION: More efficient validation for next input
@@ -602,24 +602,24 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
             
             if (!hasValidChild) {
-                return commandDispatch; // No valid path forward, terminate early
+                return commandPathSearch; // No valid path forward, terminate early
             }
         }
         
         for (var child : children) {
-            final var result = dispatchNode(commandDispatch, input, child, depth + 1);
-            if (result.getResult() == CommandDispatch.Result.COMPLETE) {
+            final var result = dispatchNode(commandPathSearch, input, child, depth + 1);
+            if (result.getResult() == CommandPathSearch.Result.COMPLETE) {
                 return result;
             }
         }
         
-        return commandDispatch;
+        return commandPathSearch;
     }
     
     /**
      * Optimized last depth handling
      */
-    private CommandDispatch<S> handleLastDepth(ImperatConfig<S> cfg, CommandDispatch<S> dispatch, ParameterNode<S, ?> node, String lastArg) {
+    private CommandPathSearch<S> handleLastDepth(ImperatConfig<S> cfg, CommandPathSearch<S> dispatch, ParameterNode<S, ?> node, String lastArg) {
         
         if(!matchesInput(node, lastArg, cfg.strictCommandTree())) {
             return dispatch;
@@ -630,13 +630,13 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if(!node.isExecutable()) {
             if (node.isCommand()) {
                 dispatch.setDirectUsage(node.data.asCommand().getDefaultUsage());
-                dispatch.setResult(CommandDispatch.Result.COMPLETE);
+                dispatch.setResult(CommandPathSearch.Result.COMPLETE);
             }
             return dispatch;
         }
         
         dispatch.setDirectUsage(node.getExecutableUsage());
-        dispatch.setResult(CommandDispatch.Result.COMPLETE);
+        dispatch.setResult(CommandPathSearch.Result.COMPLETE);
         
         return dispatch;
     }

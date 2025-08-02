@@ -9,8 +9,6 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collections;
 import java.util.List;
 
 @ApiStatus.Internal
@@ -67,7 +65,7 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
 
         try {
             BukkitSource source = dispatcher.wrapSender(sender);
-            dispatcher.dispatch(source, this.imperatCommand, label, raw);
+            dispatcher.executeSafely(source, this.imperatCommand, label, raw);
             return true;
         } catch (Exception ex) {
             ImperatDebugger.error(InternalBukkitCommand.class, "execute", ex);
@@ -87,12 +85,7 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
         for(String arg : args) {
             builder.append(arg).append(" ");
         }
-        try {
-            return dispatcher.autoComplete(source, builder.toString()).join();
-        } catch (Exception ex) {
-            ImperatDebugger.error(InternalBukkitCommand.class, "tabComplete", ex);
-            return Collections.emptyList();
-        }
+        return dispatcher.autoComplete(source, builder.toString()).join();
     }
 
 

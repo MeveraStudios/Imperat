@@ -3,7 +3,7 @@ package dev.velix.imperat;
 
 import dev.velix.imperat.command.Command;
 import dev.velix.imperat.command.CommandUsage;
-import dev.velix.imperat.command.tree.CommandDispatch;
+import dev.velix.imperat.command.tree.CommandPathSearch;
 import dev.velix.imperat.commands.annotations.examples.BanCommand;
 import dev.velix.imperat.components.TestSource;
 import dev.velix.imperat.context.ArgumentInput;
@@ -39,7 +39,7 @@ public class TestSmartUsageResolve {
         Assertions.assertNotNull(cmd);
 
         Context<TestSource> context = FACTORY.createContext(IMPERAT, SOURCE, cmd, command, queue);
-        CommandDispatch<TestSource> res = cmd.contextMatch(context);
+        CommandPathSearch<TestSource> res = cmd.contextMatch(context);
 
         CommandUsage<TestSource> usage = res.getFoundUsage();
 

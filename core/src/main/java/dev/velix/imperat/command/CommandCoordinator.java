@@ -3,6 +3,7 @@ package dev.velix.imperat.command;
 import dev.velix.imperat.Imperat;
 import dev.velix.imperat.context.ExecutionContext;
 import dev.velix.imperat.context.Source;
+import dev.velix.imperat.exception.ImperatException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +38,7 @@ public interface CommandCoordinator<S extends Source> {
         @NotNull S source,
         @NotNull ExecutionContext<S> context,
         @NotNull CommandExecution<S> execution
-    ) throws Throwable;
+    ) throws ImperatException;
 
     @FunctionalInterface
     interface UnsafeRunnable extends Runnable {

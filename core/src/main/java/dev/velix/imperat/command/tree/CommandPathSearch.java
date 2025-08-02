@@ -5,7 +5,7 @@ import dev.velix.imperat.command.CommandUsage;
 import dev.velix.imperat.context.Source;
 import org.jetbrains.annotations.Nullable;
 
-public final class CommandDispatch<S extends Source> {
+public final class CommandPathSearch<S extends Source> {
     
     private ParameterNode<S, ?> lastNode;
     private ParameterNode<S, ?> lastCommandNode;
@@ -14,26 +14,26 @@ public final class CommandDispatch<S extends Source> {
 
     private Result result;
     
-    private CommandDispatch(Result result) {
+    private CommandPathSearch(Result result) {
         this.result = result;
     }
     
-    private CommandDispatch(Result result, ParameterNode<S, ?> lastNode, CommandUsage<S> directUsage) {
+    private CommandPathSearch(Result result, ParameterNode<S, ?> lastNode, CommandUsage<S> directUsage) {
         this.result = result;
         this.lastNode = lastNode;
         this.directUsage = directUsage;
     }
     
-    public static <S extends Source> CommandDispatch<S> of(final Result result) {
-        return new CommandDispatch<>(result);
+    public static <S extends Source> CommandPathSearch<S> of(final Result result) {
+        return new CommandPathSearch<>(result);
     }
 
-    public static <S extends Source> CommandDispatch<S> unknown() {
+    public static <S extends Source> CommandPathSearch<S> unknown() {
         return of(Result.UNKNOWN);
     }
     
-    public static <S extends Source> CommandDispatch<S> freshlyNew(Command<S> command) {
-        CommandDispatch<S> dispatch = of(Result.UNKNOWN);
+    public static <S extends Source> CommandPathSearch<S> freshlyNew(Command<S> command) {
+        CommandPathSearch<S> dispatch = of(Result.UNKNOWN);
         dispatch.append(command.tree().rootNode());
         dispatch.setDirectUsage(command.getDefaultUsage());
         return dispatch;
@@ -115,8 +115,8 @@ public final class CommandDispatch<S extends Source> {
         return closestUsage;
     }
     
-    public CommandDispatch<S> copy() {
-        return new CommandDispatch<>(result, lastNode, directUsage);
+    public CommandPathSearch<S> copy() {
+        return new CommandPathSearch<>(result, lastNode, directUsage);
     }
     
     public CommandNode<S> getLastCommandNode() {

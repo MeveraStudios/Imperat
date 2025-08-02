@@ -12,8 +12,8 @@ public class GiveCmd {
     public void sword(
             TestSource sender,
             @NotNull @Named("item") @Suggest("lightning") String item,
-            @Named("player") @Optional TestPlayer player,
-            @Named("amount") @Optional Integer amount
+            @Named("amount") @Optional Integer amount,
+            @Named("player") @Optional TestPlayer player
     ) {
         sender.reply("item=" + item + ", target=" + (player == null ? "null" : player.toString()) + ", " + "amount= " + amount) ;
     }

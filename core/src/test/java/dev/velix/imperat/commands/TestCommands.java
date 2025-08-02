@@ -122,7 +122,18 @@ public final class TestCommands {
                         CommandParameter.requiredText("r2"),
                         CommandParameter.optionalText("o2")
                     )
-
+                        .execute((src, ctx)-> {
+                            
+                            var r1 = ctx.getArgument("r1");
+                            var o1 = ctx.getArgument("o1");
+                            var r2 = ctx.getArgument("r2");
+                            var o2 = ctx.getArgument("o2");
+                            
+                            System.out.println("R1= " + r1);
+                            System.out.println("O1= " + o1);
+                            System.out.println("R2= " + r2);
+                            System.out.println("O2= " + o2);
+                        })
             )
             .build();
 

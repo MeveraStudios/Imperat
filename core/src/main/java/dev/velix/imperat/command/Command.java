@@ -9,7 +9,7 @@ import dev.velix.imperat.command.parameters.type.ParameterTypes;
 import dev.velix.imperat.command.processors.CommandPostProcessor;
 import dev.velix.imperat.command.processors.CommandPreProcessor;
 import dev.velix.imperat.command.suggestions.AutoCompleter;
-import dev.velix.imperat.command.tree.CommandDispatch;
+import dev.velix.imperat.command.tree.CommandPathSearch;
 import dev.velix.imperat.command.tree.CommandTree;
 import dev.velix.imperat.context.Context;
 import dev.velix.imperat.context.ExecutionContext;
@@ -116,7 +116,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
      * @param context the context of the execution
      */
     @NotNull
-    CommandDispatch<S> contextMatch(Context<S> context);
+    CommandPathSearch<S> contextMatch(Context<S> context);
 
 
     /**
@@ -200,7 +200,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
      * @param context the context
      * @param usage   the usage detected being used
      */
-    boolean preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) throws ImperatException;
+    void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) throws ImperatException;
 
     /**
      * Sets a post-processor for the command
@@ -216,7 +216,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
      * @param context the context
      * @param usage   the usage detected being used
      */
-    boolean postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) throws ImperatException;
+    void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) throws ImperatException;
 
     /**
      * Retrieves a usage with no args for this command

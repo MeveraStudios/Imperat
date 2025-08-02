@@ -26,7 +26,7 @@ final class SyntaxDataLoader {
 
     static CommandExecutor loadExecutor(MinestomImperat imperat) {
         return (sender, context) -> {
-            imperat.dispatch(imperat.wrapSender(sender), context.getCommandName(), context.getInput());
+            imperat.execute(imperat.wrapSender(sender), context.getCommandName(), context.getInput());
         };
     }
 

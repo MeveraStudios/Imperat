@@ -351,6 +351,17 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     }
     
     /**
+     * Refer to {@link ImperatConfig#setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean)}
+     * @param toggle the toggle for this option
+     * @return whether this option is enabled or not.
+     */
+    public B handleExecutionConsecutiveOptionalArguments(boolean toggle) {
+        config.setHandleExecutionConsecutiveOptionalArgumentsSkip(toggle);
+        return (B)this;
+    }
+    
+    
+    /**
      * Builds and returns the final configuration object based on the provided settings and definitions
      * within the builder. This method finalizes the configuration and ensures all dependencies
      * are properly resolved before returning the result.

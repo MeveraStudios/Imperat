@@ -8,6 +8,7 @@ import dev.velix.imperat.command.parameters.CommandParameter;
 import dev.velix.imperat.context.ExecutionContext;
 import dev.velix.imperat.context.FlagData;
 import dev.velix.imperat.context.Source;
+import dev.velix.imperat.exception.ImperatException;
 import dev.velix.imperat.util.Patterns;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -329,7 +330,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      * @param context the context of the command
      */
     @Override
-    public void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws Throwable {
+    public void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws ImperatException {
         commandCoordinator.coordinate(imperat, source, context, this.execution);
     }
 

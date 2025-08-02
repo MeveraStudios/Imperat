@@ -5,7 +5,7 @@ import dev.velix.imperat.command.CommandUsage;
 import dev.velix.imperat.command.parameters.CommandParameter;
 import dev.velix.imperat.command.parameters.NumericParameter;
 import dev.velix.imperat.command.parameters.NumericRange;
-import dev.velix.imperat.command.tree.CommandDispatch;
+import dev.velix.imperat.command.tree.CommandPathSearch;
 import dev.velix.imperat.context.Context;
 import dev.velix.imperat.context.ExecutionContext;
 import dev.velix.imperat.context.FlagData;
@@ -46,7 +46,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     
     ExecutionContextImpl(
         Context<S> context,
-        CommandDispatch<S> result
+        CommandPathSearch<S> result
     ) {
         super(context.imperat(), context.command(), context.source(), context.label(), context.arguments());
         var lastCmdNode = result.getLastCommandNode();

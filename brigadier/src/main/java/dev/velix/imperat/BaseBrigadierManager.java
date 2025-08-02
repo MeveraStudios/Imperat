@@ -142,7 +142,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
         builder.executes((context) -> {
             String input = context.getInput();
             S sender = this.wrapCommandSource(context.getSource());
-            dispatcher.dispatch(sender, input);
+            dispatcher.execute(sender, input);
             return com.mojang.brigadier.Command.SINGLE_SUCCESS;
         });
     }

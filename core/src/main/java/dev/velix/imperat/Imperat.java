@@ -2,9 +2,11 @@ package dev.velix.imperat;
 
 
 import dev.velix.imperat.command.Command;
-import dev.velix.imperat.command.tree.CommandDispatch;
 import dev.velix.imperat.context.Context;
+import dev.velix.imperat.context.ExecutionResult;
 import dev.velix.imperat.context.Source;
+import dev.velix.imperat.exception.ImperatException;
+import dev.velix.imperat.exception.ThrowableResolver;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,16 +41,24 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      *
      * @return the config holding all variables.
      */
-    ImperatConfig<S> config();
-
+    @NotNull ImperatConfig<S> config();
+    
+    /**
+     * Executes the context safely with automated handling of exceptions.
+     * However, Exceptions that are thrown and do not have a {@link ThrowableResolver}
+     * registered for it, it will disrupt the runtime flow.
+     *
+     * @param context the context to execute based on.
+     */
+    void executeSafely(@NotNull Context<S> context);
+    
     /**
      * Dispatches and executes a command using {@link Context} only
      *
      * @param context the context
      * @return the usage match setResult
      */
-    @NotNull
-    CommandDispatch.Result dispatch(Context<S> context);
+    @NotNull ExecutionResult<S> execute(@NotNull Context<S> context) throws Throwable;
 
     /**
      * Dispatches and executes a command with certain raw arguments
@@ -59,8 +69,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @param rawInput the command's args input
      * @return the usage match setResult
      */
-    @NotNull
-    CommandDispatch.Result dispatch(S source, Command<S> command, String commandName, String... rawInput);
+    @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, @NotNull String... rawInput) throws ImperatException;
 
     /**
      * Dispatches and executes a command with certain raw arguments
@@ -70,7 +79,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @param rawInput    the command's args input
      * @return the usage match setResult
      */
-    CommandDispatch.Result dispatch(S sender, String commandName, String[] rawInput);
+    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String[] rawInput) throws ImperatException;
 
     /**
      * Dispatches and executes a command with certain raw arguments
@@ -80,7 +89,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @param rawArgsOneLine the command's args input on ONE LINE
      * @return the usage match setResult
      */
-    CommandDispatch.Result dispatch(S sender, String commandName, String rawArgsOneLine);
+    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String rawArgsOneLine) throws ImperatException;
 
     /**
      * Dispatches the full command-line
@@ -89,14 +98,22 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @param commandLine the command line to dispatch
      * @return the usage match setResult
      */
-    CommandDispatch.Result dispatch(S sender, String commandLine);
-
+    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandLine) throws ImperatException;
+    
+    void executeSafely(S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput);
+    
+    void executeSafely(S source, @NotNull String commandName, String[] rawInput);
+    
+    void executeSafely(S sender, @NotNull String commandName, @NotNull String rawArgsOneLine);
+    
+    void executeSafely(S sender, @NotNull String line);
+    
     /**
      * @param sender          the sender writing the command
      * @param fullCommandLine the full command line
      * @return the suggestions at the current position
      */
-    CompletableFuture<List<String>> autoComplete(S sender, String fullCommandLine);
+    CompletableFuture<List<String>> autoComplete(@NotNull S sender, @NotNull String fullCommandLine);
 
     /**
      * Debugs all registered commands and their usages.

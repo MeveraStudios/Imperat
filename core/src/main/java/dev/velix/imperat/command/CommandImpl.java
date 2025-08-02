@@ -7,7 +7,7 @@ import dev.velix.imperat.command.processors.CommandPostProcessor;
 import dev.velix.imperat.command.processors.CommandPreProcessor;
 import dev.velix.imperat.command.processors.CommandProcessingChain;
 import dev.velix.imperat.command.suggestions.AutoCompleter;
-import dev.velix.imperat.command.tree.CommandDispatch;
+import dev.velix.imperat.command.tree.CommandPathSearch;
 import dev.velix.imperat.command.tree.CommandTree;
 import dev.velix.imperat.command.tree.CommandTreeVisualizer;
 import dev.velix.imperat.context.Context;
@@ -15,6 +15,7 @@ import dev.velix.imperat.context.ExecutionContext;
 import dev.velix.imperat.context.FlagData;
 import dev.velix.imperat.context.Source;
 import dev.velix.imperat.exception.ImperatException;
+import dev.velix.imperat.exception.ProcessorException;
 import dev.velix.imperat.help.HelpProvider;
 import dev.velix.imperat.help.PaginatedHelpTemplate;
 import dev.velix.imperat.resolvers.SuggestionResolver;
@@ -163,7 +164,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public @NotNull CommandDispatch<S> contextMatch(Context<S> context) {
+    public @NotNull CommandPathSearch<S> contextMatch(Context<S> context) {
         if (tree != null) {
             var copy = context.arguments().copy();
             copy.removeIf(String::isBlank);
@@ -197,17 +198,14 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param usage   the usage detected being used
      */
     @Override
-    public boolean preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) {
+    public void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) throws ProcessorException {
         for(var processor : preProcessors) {
             try {
                 processor.process(api, context, usage);
             } catch (ImperatException e) {
-                api.config().handleExecutionThrowable(e, context, processor.getClass(), "Command#preProcess");
-                return false;
+                throw new ProcessorException(ProcessorException.Type.PRE, this, e);
             }
         }
-
-        return true;
     }
 
     /**
@@ -228,17 +226,15 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param usage   the usage detected being used
      */
     @Override
-    public boolean postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) {
+    public void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) throws ProcessorException {
         for(var processor : postProcessors) {
             try {
                 processor.process(api, context);
             } catch (ImperatException e) {
-                api.config().handleExecutionThrowable(e, context, processor.getClass(), "Command#postProcess");
-                return false;
+                throw new ProcessorException(ProcessorException.Type.POST, this, e);
             }
 
         }
-        return true;
     }
 
     /**

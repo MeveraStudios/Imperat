@@ -5,8 +5,6 @@ import dev.velix.imperat.command.parameters.OptionalValueSupplier;
 import dev.velix.imperat.context.ExecutionContext;
 import dev.velix.imperat.context.Source;
 import dev.velix.imperat.context.internal.CommandInputStream;
-import dev.velix.imperat.context.internal.ExtractedInputFlag;
-import dev.velix.imperat.context.internal.ShiftTarget;
 import dev.velix.imperat.context.internal.sur.HandleResult;
 import dev.velix.imperat.exception.ImperatException;
 import org.jetbrains.annotations.NotNull;
@@ -23,118 +21,54 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         }
         
         try {
-            var value = currentParameter.type().resolve(context, stream, stream.readInput());
-            
-            if (value instanceof ExtractedInputFlag extractedInputFlag) {
-                context.resolveFlag(extractedInputFlag);
-                stream.skip();
-            } else {
-                resolveOptional(currentRaw, currentParameter, context, stream, value);
-            }
-            
+            resolveOptional(currentRaw, currentParameter, context, stream);
             return HandleResult.NEXT_ITERATION;
         } catch (ImperatException e) {
             return HandleResult.failure(e);
         }
     }
     
-    private void resolveOptional(String currentRaw, CommandParameter<S> currentParameter, ExecutionContext<S> context,
-                               CommandInputStream<S> stream, Object resolveResult) throws ImperatException {
-        int currentParameterPosition = stream.currentParameterPosition();
-        int lengthWithoutFlags = context.getDetectedUsage().getParametersWithoutFlags().size();
-
-        if (lengthWithoutFlags > stream.rawsLength()) {
-            int diff = lengthWithoutFlags - stream.rawsLength();
-            boolean isLastParameter = stream.position().isLast(ShiftTarget.PARAMETER_ONLY);
-            if (!isLastParameter) {
-                if (diff > 1) {
-                    CommandParameter<S> nextParam = stream.peekParameter().filter(CommandParameter::isRequired).orElse(null);
-                    if (nextParam != null) {
-                        context.resolveArgument(
-                                context.getLastUsedCommand(),
-                                currentRaw,
-                                currentParameterPosition,
-                                currentParameter,
-                                getDefaultValue(context, stream, currentParameter)
-                        );
-                        
-                        context.resolveArgument(
-                                context.getLastUsedCommand(), currentRaw,
-                                currentParameterPosition + 1,
-                                nextParam, resolveResult
-                        );
-                        
-                        stream.skipParameter();
-                    } else {
-                        context.resolveArgument(
-                                context.getLastUsedCommand(), currentRaw,
-                                currentParameterPosition,
-                                currentParameter,
-                                resolveResult
-                        );
-                        stream.skip();
-                    }
-                } else {
-                    CommandParameter<S> nextOptionalArg = stream.peekParameter().filter(CommandParameter::isOptional).orElse(null);
-                    if (nextOptionalArg != null) {
-                        var n = currentParameter;
-                        while (n != null) {
-                            if (n.type().matchesInput(currentRaw, n)) {
-                                context.resolveArgument(
-                                        context.getLastUsedCommand(),
-                                        currentRaw,
-                                        n.position(),
-                                        n,
-                                        n.type().resolve(context, stream, currentRaw)
-                                );
-                                stream.skip();
-                                break;
-                            }
-                            
-                            Object def = getDefaultValue(context, stream, n);
-                            context.resolveArgument(
-                                    context.getLastUsedCommand(),
-                                    n.getDefaultValueSupplier().isEmpty() ? null : n.getDefaultValueSupplier().supply(context.source(), n),
-                                    n.position(), n, def
-                            );
-                            
-                            n = stream.popParameter().filter(CommandParameter::isOptional).orElse(null);
-                        }
-                        
-                        if (n == null || n.isRequired()) {
-                            stream.skipRaw();
-                        }
-                    } else {
-                        context.resolveArgument(
-                                context.getLastUsedCommand(),
-                                currentRaw,
-                                currentParameterPosition,
-                                currentParameter,
-                                resolveResult
-                        );
-                        stream.skip();
-                    }
-                }
-            } else {
-                context.resolveArgument(
-                    context.getLastUsedCommand(),
-                    currentRaw,
-                    currentParameterPosition,
-                    currentParameter,
-                    getDefaultValue(context, stream, currentParameter)
-                );
-                stream.skipParameter();
-            }
+    private void resolveOptional(
+            String currentRaw,
+            CommandParameter<S> currentParameter,
+            ExecutionContext<S> context,
+            CommandInputStream<S> stream
+    ) throws ImperatException {
+        
+        int distanceFromNextOptional = calculateDistanceFromNextOptional(context, currentParameter);
+        if(distanceFromNextOptional >= 2 && (stream.parametersLength()-stream.rawsLength()) >= 2) {
+            //there's middle required args
+            //shift parameter only, we resolve current as its default or null
+            context.resolveArgument(stream, getDefaultValue(context, stream, currentParameter));
+            stream.skipParameter();
             return;
         }
         
-        context.resolveArgument(
-            context.getLastUsedCommand(), currentRaw,
-            currentParameterPosition,
-            currentParameter,
-            resolveResult
-        );
+        if(     distanceFromNextOptional == 1 && // means there is next optional argument, while current is optional too, lets check if there's matching with input for smart switching of values
+                context.imperatConfig().handleExecutionMiddleOptionalSkipping() &&
+                !currentParameter.type().matchesInput(currentRaw, currentParameter)
+        ) {
+            //if it doesn't match the input while having a next optional arg, let's resolve the current for its default value,
+            // then go after the next optional arg WHILE maintaining the same index/cursor on the raw input.
+            context.resolveArgument(stream, getDefaultValue(context, stream, currentParameter));
+            stream.skipParameter();
+            return;
+        }
+        var value = currentParameter.type().resolve(context, stream, stream.readInput());
+        context.resolveArgument(stream, value);
         stream.skip();
+    }
+    
+    private int calculateDistanceFromNextOptional(ExecutionContext<S> context, CommandParameter<S> curr) {
+        var usage = context.getDetectedUsage();
+        for(int i = curr.position()+1; i < usage.getParameters().size(); i++) {
+            var other = usage.getParameter(i);
+            if(other != null && other.isOptional()) {
+                return i-curr.position();
+            }
+        }
+        
+        return -1;
     }
     
     @SuppressWarnings("unchecked")

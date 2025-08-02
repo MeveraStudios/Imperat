@@ -64,6 +64,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     private boolean strictCommandTree = false;
     private boolean overlapOptionalParameterSuggestions = false;
+    private boolean handleExecutionConsecutiveOptionalArgumentsSkip = false;
     
     private String commandPrefix = "/";
 
@@ -540,6 +541,16 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @Override
     public void setOptionalParameterSuggestionOverlap(boolean enabled) {
         this.overlapOptionalParameterSuggestions = enabled;
+    }
+    
+    @Override
+    public boolean handleExecutionMiddleOptionalSkipping() {
+        return handleExecutionConsecutiveOptionalArgumentsSkip;
+    }
+    
+    @Override
+    public void setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean toggle) {
+        this.handleExecutionConsecutiveOptionalArgumentsSkip = toggle;
     }
     
     /**

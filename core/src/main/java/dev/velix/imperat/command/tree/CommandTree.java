@@ -52,7 +52,7 @@ public interface CommandTree<S extends Source> {
      * @param input the argument input to match against
      * @return a command dispatch context containing matching results, never null
      */
-    @NotNull CommandDispatch<S> contextMatch(@NotNull ArgumentInput input);
+    @NotNull CommandPathSearch<S> contextMatch(@NotNull ArgumentInput input);
     
     /**
      * Generates tab-completion suggestions based on the current command context.

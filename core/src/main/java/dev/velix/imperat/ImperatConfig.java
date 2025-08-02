@@ -11,6 +11,7 @@ import dev.velix.imperat.context.ExecutionContext;
 import dev.velix.imperat.context.Source;
 import dev.velix.imperat.context.internal.CommandInputStream;
 import dev.velix.imperat.context.internal.ContextFactory;
+import dev.velix.imperat.context.internal.sur.ParameterValueAssigner;
 import dev.velix.imperat.exception.ThrowableResolver;
 import dev.velix.imperat.placeholders.Placeholder;
 import dev.velix.imperat.placeholders.PlaceholderResolver;
@@ -118,6 +119,30 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @see #isOptionalParameterSuggestionOverlappingEnabled()
      */
     void setOptionalParameterSuggestionOverlap(boolean enabled);
+    
+    /**
+     * <p>
+     * Whether to handle the skipping of consecutive optional argument <b>during execution</b>
+     * For example if you have `/test [a] [b]` where parameter 'a' is of type String
+     * and parameter 'b' is of type Integer.
+     * if you enter `/test 1` while this option is enabled, it would handle this and assign
+     * the parameter 'b' to the value that suits its type.
+     * with no respect for the order of optional arguments.
+     * <p>
+     * Else if the option is disabled, then Imperat's {@link ParameterValueAssigner}
+     * will respect the order of the optional arguments, and will resolve the arguments in order.
+     *
+     *
+     * @return Whether to handle the skipping of consecutive optional argument
+     * <b>DURING EXECUTION</b>.
+     */
+    boolean handleExecutionMiddleOptionalSkipping();
+    
+    /**
+     * Refer to {@link #handleExecutionMiddleOptionalSkipping()} to know about this option.
+     * @param toggle whether to toggle the handling of middle optional skipping
+     */
+    void setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean toggle);
     
     
     /**
@@ -297,7 +322,18 @@ public sealed interface ImperatConfig<S extends Source> extends
         final ThrowableResolver<T, S> handler
     );
     
+    /**
+     * @return The global/centralized default usage of EVERY command
+     * its empty by default.
+     */
     @NotNull CommandUsage.Builder<S> getGlobalDefaultUsage();
     
+    /**
+     * Sets the usual default usage if the user doesn't set
+     * the default-usage for a {@link dev.velix.imperat.command.Command}
+     * @param globalDefaultUsage the global default usage BUILDER.
+     */
     void setGlobalDefaultUsage(@NotNull CommandUsage.Builder<S> globalDefaultUsage);
+    
+
 }

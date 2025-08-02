@@ -6,6 +6,7 @@ import dev.velix.imperat.command.Command;
 import dev.velix.imperat.command.CommandUsage;
 import dev.velix.imperat.command.parameters.CommandParameter;
 import dev.velix.imperat.context.internal.Argument;
+import dev.velix.imperat.context.internal.CommandInputStream;
 import dev.velix.imperat.context.internal.ExtractedInputFlag;
 import dev.velix.imperat.exception.ImperatException;
 import dev.velix.imperat.util.ImperatDebugger;
@@ -151,6 +152,28 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
             CommandParameter<S> parameter,
             @Nullable T value
     ) throws ImperatException;
+    
+    /**
+     * Resolves and registers a command argument.
+     *
+     * @param <T> the type of the argument value
+     * @param stream the stream having the current input's data.
+     * @param value the resolved value.
+     * @throws ImperatException if resolution fails.
+     */
+    default <T> void resolveArgument(
+            CommandInputStream<S> stream,
+            @Nullable T value
+    ) throws ImperatException {
+        resolveArgument(
+            getLastUsedCommand(),
+            stream.currentRawFast(),
+            stream.currentRawPosition(),
+            stream.currentParameterFast(),
+            value
+        );
+    }
+    
     
     /**
      * Resolves a command flag from its raw components.

@@ -9,6 +9,7 @@ import dev.velix.imperat.command.parameters.ParameterBuilder;
 import dev.velix.imperat.context.ExecutionContext;
 import dev.velix.imperat.context.FlagData;
 import dev.velix.imperat.context.Source;
+import dev.velix.imperat.exception.ImperatException;
 import dev.velix.imperat.exception.UnknownFlagException;
 import dev.velix.imperat.util.Preconditions;
 import org.jetbrains.annotations.NotNull;
@@ -246,7 +247,7 @@ public sealed interface CommandUsage<S extends Source> extends PermissionHolder,
      * @param source  the command source/sender
      * @param context the context of the command
      */
-    void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws Throwable;
+    void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws ImperatException;
 
     /**
      * @return Whether this usage is a help-subcommand usage

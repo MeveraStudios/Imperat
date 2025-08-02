@@ -10,7 +10,7 @@ import dev.velix.imperat.command.parameters.CommandParameter;
 import dev.velix.imperat.command.parameters.type.BaseParameterType;
 import dev.velix.imperat.command.parameters.type.ParameterType;
 import dev.velix.imperat.command.parameters.type.ParameterTypes;
-import dev.velix.imperat.command.tree.CommandDispatch;
+import dev.velix.imperat.command.tree.CommandPathSearch;
 import dev.velix.imperat.commands.*;
 import dev.velix.imperat.commands.annotations.FirstOptionalArgumentCmd;
 import dev.velix.imperat.commands.annotations.KitCommand;
@@ -81,6 +81,7 @@ public class TestRun {
                 .parameterType(Duration.class, new DurationParameterType())
                 .parameterType(TestPlayer.class, new TestPlayerParamType())
                 .parameterType(dev.velix.imperat.commands.Duration.class, new ParameterDuration<>())
+                .handleExecutionConsecutiveOptionalArguments(true)
                 .build();
 
         IMPERAT.registerAnnotationReplacer(MyCustomAnnotation.class,(element, ann)-> {
@@ -103,8 +104,8 @@ public class TestRun {
         
     }
 
-    private static CommandDispatch.Result testCmdTreeExecution(String cmdName, String input) {
-        return IMPERAT.dispatch(SOURCE, cmdName, input);
+    private static CommandPathSearch.Result testCmdTreeExecution(String cmdName, String input) {
+        return IMPERAT.execute(SOURCE, cmdName, input);
     }
 
     private static void debugCommand(Command<TestSource> command) {
@@ -132,7 +133,7 @@ public class TestRun {
 
         for(String usage : usages) {
             System.out.println("Executing '/" + name + " " + usage + "'");
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution(name, usage));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution(name, usage));
             System.out.println("----------------");
         }
 
@@ -165,27 +166,27 @@ public class TestRun {
     @Test
     public void testHelp() {
         debugCommand(Objects.requireNonNull(IMPERAT.getCommand("test")));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "help"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "help"));
     }
 
     @Test
     public void testIncompleteSubCommand() {
         //syntax -> /group <group> setperm <permission> [value]
         var result = testCmdTreeExecution("group", "member setperm");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, result);
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, result);
     }
 
     @Test
     public void testCompleteSubCommand() {
         var result = testCmdTreeExecution("group", "member setperm command.group");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, result);
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, result);
     }
 
     @Test
     public void testHelpSubCommand() {
         //syntax -> /group help [page]
         var result = testCmdTreeExecution("group", "help");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, result);
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, result);
     }
     
     /*@Test
@@ -217,16 +218,16 @@ public class TestRun {
         debugCommand(Objects.requireNonNull(IMPERAT.getCommand("embedded")));
 
         var result = testCmdTreeExecution("test", "first-value secondValue first a1 second a3");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, result);
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, result);
     }
 
     @Test
     public void testExec() {
         debugCommand(Objects.requireNonNull(IMPERAT.getCommand("test")));
         Assertions.assertDoesNotThrow(() -> {
-            var result = IMPERAT.dispatch(SOURCE, "test");
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, result);
-            Assertions.assertEquals(CommandDispatch.Result.UNKNOWN, IMPERAT.dispatch(SOURCE, "test hi bye invalid"));
+            var result = IMPERAT.execute(SOURCE, "test");
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, result);
+            Assertions.assertEquals(CommandPathSearch.Result.UNKNOWN, IMPERAT.execute(SOURCE, "test hi bye invalid"));
         });
         
         
@@ -234,7 +235,7 @@ public class TestRun {
 
     @Test
     public void tempo() {
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "otherText1 otherText2 sub1"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "otherText1 otherText2 sub1"));
     }
     @Test
     public void testInnerClassParsing() {
@@ -244,19 +245,19 @@ public class TestRun {
         debugCommand(Objects.requireNonNull(IMPERAT.getCommand("test")));
         //debugCommand(Objects.requireNonNull(IMPERAT.getCommand("embedded")));
 
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", ""));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi sub2"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi sub2 bye"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi sub2 bye sub3"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi sub2 bye sub3 hello"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", ""));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi sub2"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi sub2 bye"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi sub2 bye sub3"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub1 hi sub2 bye sub3 hello"));
 
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi sub5"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi sub5 bye"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi sub5 bye sub6"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi sub5 bye sub6 hello"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi sub5"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi sub5 bye"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi sub5 bye sub6"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test", "text text2 sub4 hi sub5 bye sub6 hello"));
 
     }
     
@@ -313,7 +314,7 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("opt");
         assert cmd != null;
         debugCommand(cmd);
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("opt", "hi"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("opt", "hi"));
     }
 
     @Test
@@ -322,7 +323,7 @@ public class TestRun {
         assert cmd != null;
         debugCommand(cmd);
 
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen"));
     }
 
     @Test
@@ -330,7 +331,7 @@ public class TestRun {
         IMPERAT.registerCommand(Command.create(IMPERAT, "UPPER_CAsE")
             .defaultExecution((src, ctx) -> src.reply("Worked !"))
             .build());
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("upper_case", ""));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("upper_case", ""));
     }
 
     @Test
@@ -338,7 +339,7 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("kit");
         assert cmd != null;
         debugCommand(cmd);
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("kit", "create test"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("kit", "create test"));
     }
 
     @Test
@@ -346,7 +347,7 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("ban");
         assert cmd != null;
         debugCommand(cmd);
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -s 1d"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -s 1d"));
     }
 
     @Test
@@ -354,7 +355,7 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("test2");
         assert cmd != null;
         debugCommand(cmd);
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test2", "array member mod srmod owner"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test2", "array member mod srmod owner"));
         // /test2 hi, hello man
         // /test2 <myList>
     }
@@ -364,7 +365,7 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("test2");
         assert cmd != null;
         debugCommand(cmd);
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test2", "collection hi bro hello man"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test2", "collection hi bro hello man"));
         // /test2 hi, hello man
         // /test2 <myList>
     }
@@ -374,7 +375,7 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("test2");
         assert cmd != null;
         debugCommand(cmd);
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test2", "map hi,hello hey,man"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test2", "map hi,hello hey,man"));
         // /test2 hi, hello man
         // /test2 <myList>
     }
@@ -385,17 +386,28 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("testreplacer");
         assert cmd != null;
         debugCommand(cmd);
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("testreplacer", ""));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("testreplacer", ""));
     }
 
     @Test
-    public void testOT() {
+    public void testMiddleOptionals() {
+        
+        Assertions.assertDoesNotThrow(()-> {
+            IMPERAT.registerCommand(new TestMiddleOptionals());
+        });
+        
+        var moCmd = IMPERAT.getCommand("mo");
+        Assertions.assertNotNull(moCmd);
+        
+        //TODO test after finishing best design for dispatch.
+        
         var cmd = IMPERAT.getCommand("ot");
         Assertions.assertNotNull(cmd);
         debugCommand(cmd);
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ot","myr1 myr2"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ot","myr1 myo1 myr2"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ot","myr1 myo1 myr2 myo2"));
+        Assertions.assertEquals(CommandPathSearch.Result.UNKNOWN, testCmdTreeExecution("ot", "myr1"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ot","myr1 myr2"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ot","myr1 myo1 myr2"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ot","myr1 myo1 myr2 myo2"));
     }
 
     @Test
@@ -410,7 +422,7 @@ public class TestRun {
             testCmdTreeExecution("ctx", "");
         });
 
-        Assertions.assertEquals(CommandDispatch.Result.FAILURE, testCmdTreeExecution("ctx", "sub"));
+        Assertions.assertEquals(CommandPathSearch.Result.FAILURE, testCmdTreeExecution("ctx", "sub"));
     }
 
     @Test
@@ -422,17 +434,17 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("foa");
         Assertions.assertNotNull(cmd);
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("foa", ""));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("foa", ""));
         });
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("foa", "1"));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("foa", "1"));
         });
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("foa", "1 sub"));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("foa", "1 sub"));
         });
 
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("foa", "1 sub 2"));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("foa", "1 sub 2"));
         });
     }
 
@@ -445,26 +457,26 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("test3");
         Assertions.assertNotNull(cmd);
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test3", ""));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test3", ""));
         });
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test3", "hello-world"));
-        });
-
-
-        Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.UNKNOWN, testCmdTreeExecution("test3", "hello-world sub"));
-        });
-        Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.UNKNOWN, testCmdTreeExecution("test3", "hello-world sub HI_BRO"));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test3", "hello-world"));
         });
 
+
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test3", "sub"));
+            Assertions.assertEquals(CommandPathSearch.Result.UNKNOWN, testCmdTreeExecution("test3", "hello-world sub"));
+        });
+        Assertions.assertDoesNotThrow(()-> {
+            Assertions.assertEquals(CommandPathSearch.Result.UNKNOWN, testCmdTreeExecution("test3", "hello-world sub HI_BRO"));
         });
 
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test3", "sub HI_BRO"));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test3", "sub"));
+        });
+
+        Assertions.assertDoesNotThrow(()-> {
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test3", "sub HI_BRO"));
         });
     }
 
@@ -478,13 +490,13 @@ public class TestRun {
         var cmd = IMPERAT.getCommand("test4");
         Assertions.assertNotNull(cmd);
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test4", "VALUE_1"));
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test4", "VALUE_2"));
-            Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("test4", "VALUE_3"));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test4", "VALUE_1"));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test4", "VALUE_2"));
+            Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("test4", "VALUE_3"));
         });
 
         Assertions.assertDoesNotThrow(()-> {
-            Assertions.assertEquals(CommandDispatch.Result.FAILURE, testCmdTreeExecution("test4", "HELLO"));
+            Assertions.assertEquals(CommandPathSearch.Result.FAILURE, testCmdTreeExecution("test4", "HELLO"));
         });
     }
     @Test
@@ -497,10 +509,10 @@ public class TestRun {
         Assertions.assertNotNull(cmd);
         debugCommand(cmd);
 
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("kingdomchat", ""));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("kingdomchat", "hello world"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("kingdomchat", "hello world hi"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("kingdomchat", "hello world hi bro"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("kingdomchat", ""));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("kingdomchat", "hello world"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("kingdomchat", "hello world hi"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("kingdomchat", "hello world hi bro"));
     }
 
     @Test
@@ -515,22 +527,22 @@ public class TestRun {
         debugCommand(cmd);
 
         System.out.println("Executing '/ban mqzen -s'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -s"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -s"));
 
         System.out.println("----------------");
 
         System.out.println("Executing '/ban mqzen -s -ip'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -s -ip"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -s -ip"));
 
         System.out.println("----------------");
 
         System.out.println("Executing '/ban mqzen -ip'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -ip"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -ip"));
 
         System.out.println("----------------");
 
         System.out.println("Executing '/ban mqzen -ip -s'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -ip -s"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ban", "mqzen -ip -s"));
 
 
     }
@@ -557,22 +569,22 @@ public class TestRun {
         debugCommand(cmd);
 
         System.out.println("Executing '/rank addperm mod server.fly'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("rank", "addperm mod server.fly"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("rank", "addperm mod server.fly"));
 
         System.out.println("----------------");
 
         System.out.println("Executing '/rank addperm mod server.fly -duration 1d -force'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("rank", "addperm mod server.fly -duration 1d -force"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("rank", "addperm mod server.fly -duration 1d -force"));
 
         System.out.println("----------------");
 
         System.out.println("Executing '/rank addperm mod server.fly -duration 1d'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("rank", "addperm mod server.fly -duration 1d"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("rank", "addperm mod server.fly -duration 1d"));
 
         System.out.println("----------------");
 
         System.out.println("Executing '/rank addperm mod server.fly -force'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("rank", "addperm mod server.fly -force"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("rank", "addperm mod server.fly -force"));
     }
 
 
@@ -608,8 +620,8 @@ public class TestRun {
         var testOpt = IMPERAT.getCommand("testoptional");
         Assertions.assertNotNull(testOpt);
 
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("testcf", "Thor is the best hero"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("testoptional", "Hulk is always angry"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("testcf", "Thor is the best hero"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("testoptional", "Hulk is always angry"));
     }
 
     @Test
@@ -669,8 +681,8 @@ public class TestRun {
             IMPERAT.registerCommand(new Ban2Command());
         });
         
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ban2", "mqzen -t 7d Cheating"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("ban2", "mqzen -t 7d Cheating is not good !"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ban2", "mqzen -t 7d Cheating"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("ban2", "mqzen -t 7d Cheating is not good !"));
         
     }
     
@@ -690,7 +702,7 @@ public class TestRun {
             IMPERAT.registerCommand(cmd);
         });
         
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("plain", ""));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("plain", ""));
     }
     
     @Test
@@ -722,9 +734,9 @@ public class TestRun {
             IMPERAT.registerCommand(new SomeClass());
         });
         
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("root", "i1"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("root", "i1 i1.1"));
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("root", "i1 i1.1 i1.1.1"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("root", "i1"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("root", "i1 i1.1"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("root", "i1 i1.1 i1.1.1"));
     }
     
     @Test
@@ -737,11 +749,11 @@ public class TestRun {
         Assertions.assertNotNull(cmd);
         
         cmd.visualizeTree();
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("party", "invite mqzen"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("party", "invite mqzen"));
         System.out.println("-------------");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("party", "invite"));
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("party", "invite"));
         System.out.println("-------------");
-        Assertions.assertEquals(CommandDispatch.Result.UNKNOWN, testCmdTreeExecution("party", "invite hello world damn"));
+        Assertions.assertEquals(CommandPathSearch.Result.UNKNOWN, testCmdTreeExecution("party", "invite hello world damn"));
     }
     
     @Test
@@ -751,13 +763,13 @@ public class TestRun {
         });
         
         var res = testCmdTreeExecution("setrank", "Mqzen undead permanent Giveaway Winner");
-        Assertions.assertEquals(CommandDispatch.Result.FAILURE, res);
+        Assertions.assertEquals(CommandPathSearch.Result.FAILURE, res);
     }
     
     @Test
     public void testTwoOptionals() {
-        System.out.println("Running '/give apple 2'");
-        Assertions.assertEquals(CommandDispatch.Result.COMPLETE, testCmdTreeExecution("give", "Apple 2"));
+        System.out.println("Running '/give Apple mqzen'");
+        Assertions.assertEquals(CommandPathSearch.Result.COMPLETE, testCmdTreeExecution("give", "Apple mqzen"));
     }
     
     @Test
