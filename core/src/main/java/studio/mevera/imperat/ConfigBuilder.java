@@ -2,6 +2,7 @@ package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
+import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
@@ -360,6 +361,15 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         return (B)this;
     }
     
+    /**
+     * The default attachment mode.
+     * @param attachmentMode the default attachment mode
+     * @return the default value.
+     */
+    public B defaultAttachmentMode(AttachmentMode attachmentMode) {
+        config.setDefaultAttachmentMode(attachmentMode);
+        return (B) this;
+    }
     
     /**
      * Builds and returns the final configuration object based on the provided settings and definitions

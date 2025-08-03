@@ -72,6 +72,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     
     private CommandUsage.Builder<S> globalDefaultUsage = CommandUsage.builder();
     
+    private AttachmentMode defaultAttachmentMode;
+    
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault(this);
         paramTypeRegistry = ParamTypeRegistry.createDefault();
@@ -777,6 +779,16 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @Override
     public void setGlobalDefaultUsage(CommandUsage.@NotNull Builder<S> globalDefaultUsage) {
         this.globalDefaultUsage = globalDefaultUsage;
+    }
+    
+    @Override
+    public @NotNull AttachmentMode getDefaultAttachmentMode() {
+        return defaultAttachmentMode;
+    }
+    
+    @Override
+    public void setDefaultAttachmentMode(AttachmentMode attachmentMode) {
+        this.defaultAttachmentMode = attachmentMode;
     }
     
     

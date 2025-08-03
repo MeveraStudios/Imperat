@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
+import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
@@ -67,6 +68,12 @@ public sealed interface ImperatConfig<S extends Source> extends
         return getParameterType(type) != null;
     }
     
+    /**
+     * Registers annotation replacer
+     * @param type the type of annotation to register
+     * @param replacer the replacer for this annotation
+     * @param <A> the type of annotation to replace by the {@link AnnotationReplacer}
+     */
     <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer);
     
     <A extends Annotation> void applyAnnotationReplacers(Imperat<S> imperat);
@@ -336,5 +343,15 @@ public sealed interface ImperatConfig<S extends Source> extends
      */
     void setGlobalDefaultUsage(@NotNull CommandUsage.Builder<S> globalDefaultUsage);
     
-
+    
+    /**
+     * @return the default attachment mode {@link AttachmentMode}
+     */
+    @NotNull AttachmentMode getDefaultAttachmentMode();
+    
+    /**
+     * Sets the default {@link AttachmentMode}
+     * @param attachmentMode the attachment mode.
+     */
+    void setDefaultAttachmentMode(AttachmentMode attachmentMode);
 }

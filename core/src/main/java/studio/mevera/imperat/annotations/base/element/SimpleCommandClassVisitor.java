@@ -29,7 +29,6 @@ import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.reflection.Reflections;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -39,8 +38,7 @@ import java.util.stream.Stream;
 
 @ApiStatus.Internal
 final class SimpleCommandClassVisitor<S extends Source> extends CommandClassVisitor<S> {
-
-
+    
     private final ImperatConfig<S> config;
     private final static String VALUES_SEPARATION_CHAR = "\\|";
 
@@ -61,8 +59,7 @@ final class SimpleCommandClassVisitor<S extends Source> extends CommandClassVisi
         if (clazz.isRootClass() && commandAnnotation != null && clazz.isAnnotationPresent(SubCommand.class)) {
             throw new IllegalStateException("Root command class cannot be a @SubCommand");
         }
-
-
+        
         if (commandAnnotation != null) {
 
             if(clazz.isRootClass() && AnnotationHelper.isAbnormalClass(clazz)) {
@@ -297,8 +294,8 @@ final class SimpleCommandClassVisitor<S extends Source> extends CommandClassVisi
         return cmd;
     }
 
-    private static AttachmentMode extractAttachmentMode(ClassElement commandClass, SubCommand subCommandAnn) {
-        AttachmentMode attachmentMode = subCommandAnn.attachment();
+    private AttachmentMode extractAttachmentMode(ClassElement commandClass, SubCommand subCommandAnn) {
+        AttachmentMode attachmentMode = config.getDefaultAttachmentMode() == AttachmentMode.UNSET ? subCommandAnn.attachment() : config.getDefaultAttachmentMode();
         GlobalAttachmentMode globalAttachmentMode = commandClass.getAnnotation(GlobalAttachmentMode.class);
         if(globalAttachmentMode != null && attachmentMode == AttachmentMode.UNSET) {
             attachmentMode = globalAttachmentMode.value();
