@@ -72,7 +72,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     
     private CommandUsage.Builder<S> globalDefaultUsage = CommandUsage.builder();
     
-    private AttachmentMode defaultAttachmentMode = AttachmentMode.UNSET;
+    private AttachmentMode defaultAttachmentMode = AttachmentMode.MAIN;
     
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault(this);

@@ -55,6 +55,9 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
     ) {
         return new Builder<>(imperat, parent, position, name);
     }
+    
+    @NotNull
+    Imperat<S> imperat();
 
     /**
      * @return The name of the command
@@ -303,7 +306,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
     default void addSubCommandUsage(String subCommand,
                                     List<String> aliases,
                                     CommandUsage.Builder<S> usage) {
-        addSubCommandUsage(subCommand, aliases, usage, AttachmentMode.MAIN);
+        addSubCommandUsage(subCommand, aliases, usage, imperat().config().getDefaultAttachmentMode());
     }
 
     default void addSubCommandUsage(String subCommand,
@@ -320,7 +323,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
      * @param usage      the usage
      */
     default void addSubCommandUsage(String subCommand, CommandUsage.Builder<S> usage) {
-        addSubCommandUsage(subCommand, usage,  AttachmentMode.MAIN);
+        addSubCommandUsage(subCommand, usage,  imperat().config().getDefaultAttachmentMode());
     }
 
     /**
@@ -512,7 +515,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
         }
 
         public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage) {
-            return subCommand(name, mainUsage, AttachmentMode.DEFAULT);
+            return subCommand(name, mainUsage, cmd.imperat().config().getDefaultAttachmentMode());
         }
 
         public Builder<S> preProcessor(CommandPreProcessor<S> preProcessor) {
