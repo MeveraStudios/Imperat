@@ -15,5 +15,5 @@ public @interface SubCommand {
 
     boolean skipSuggestionsChecks() default false;
 
-    AttachmentMode attachment() default AttachmentMode.MAIN;
+    AttachmentMode attachment() default AttachmentMode.UNSET;
 }
