@@ -1,0 +1,19 @@
+package studio.mevera.imperat.exception.parse;
+
+import studio.mevera.imperat.exception.ParseException;
+
+import java.util.List;
+
+public class WordOutOfRestrictionsException extends ParseException {
+
+    private final List<String> restrictions;
+    public WordOutOfRestrictionsException(String input, List<String> restrictions) {
+        super(input);
+        this.restrictions = restrictions;
+    }
+
+    public List<String> getRestrictions() {
+        return restrictions;
+    }
+
+}

@@ -66,10 +66,10 @@ Let's imagine a Minecraft server where administrators want a powerful yet intuit
 Imperat makes this easy with its flexible command definition and parameter resolution capabilities.
 
 ```java
-import dev.velix.imperat.annotations.Command;
-import dev.velix.imperat.annotations.Named;
-import dev.velix.imperat.annotations.Optional;
-import dev.velix.imperat.annotations.Usage;
+import annotations.imperat.studio.mevera.Command;
+import annotations.imperat.studio.mevera.Named;
+import annotations.imperat.studio.mevera.Optional;
+import annotations.imperat.studio.mevera.Usage;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 

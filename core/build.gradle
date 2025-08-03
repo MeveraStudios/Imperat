@@ -11,6 +11,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
+    testImplementation("org.junit.platform:junit-platform-suite:1.10.1")  // ← ADD THIS LINE
     testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation("org.mockito:mockito-core:5.8.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.8.0")
@@ -19,27 +20,103 @@ dependencies {
     testAnnotationProcessor("org.jetbrains:annotations:24.1.0")
 }
 
-dependencies {
-
-}
-
 test {
+    compileJava.options.compilerArgs.add("-parameters")
     useJUnitPlatform()
 
-    // Test execution settings
+    // Test execution configuration
     maxParallelForks = Runtime.getRuntime().availableProcessors()
 
     // System properties for tests
     systemProperty("imperat.test.mode", "true")
     systemProperty("imperat.debug.enabled", "false")
 
-    // Test filtering
+    // Test output configuration
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = false
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+    }
+
+    // Fail fast on first test failure
+    failFast = false
+
+    // Test filtering (exclude performance tests)
     filter {
         excludeTestsMatching("*PerformanceTest*")
         excludeTestsMatching("*SlowTest*")
     }
 }
 
+compileJava {
+    options.compilerArgs.add("-parameters")
+}
+
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+// Task for running only fast tests during development
+// Task for running only fast tests during development
+tasks.register('fastTest', Test) {
+    useJUnitPlatform()
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    include '**/basics/**'
+    include '**/arguments/**'
+    include '**/flags/**'
+    include '**/parameters/**'
+    include '**/errors/**'
+    include '**/integration/**' 
+    include '**/enhanced/**'
+
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
+    }
+
+    description = "Runs fast unit tests for development"
+    group = "verification"
+}
+
+// Task for running integration tests
+tasks.register('integrationTest', Test) {
+    useJUnitPlatform()
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    include '**/integration/**'
+
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showStandardStreams = true
+    }
+
+    description = "Runs integration tests"
+    group = "verification"
+}
+
+// Task for running all functional tests (no performance)
+tasks.register('functionalTest', Test) {
+    useJUnitPlatform()
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    exclude '**/performance/**'
+
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+
+    description = "Runs all functional tests (excludes performance tests)"
+    group = "verification"
 }
