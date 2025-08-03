@@ -82,7 +82,12 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.suggestionResolver = SuggestionResolver.forCommand(this);
 
     }
-
+    
+    @Override
+    public @NotNull Imperat<S> imperat() {
+        return imperat;
+    }
+    
     /**
      * @return the name of the command
      */
