@@ -21,7 +21,7 @@ public final class BanCommand {
             @Named("target") String player,
             @Switch({"silent", "s"}) boolean silent,
             @Switch("ip") boolean ip,
-            @Named("duration") @Default("permanent") @Nullable Duration duration,
+            @Named("duration") @Default("permanent") @Nullable String duration,
             @Named("reason") @Default("Breaking server laws") @Optional @Greedy String reason
     ) {
         //TODO actual ban logic
