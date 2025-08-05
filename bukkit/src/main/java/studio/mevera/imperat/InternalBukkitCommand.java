@@ -43,7 +43,9 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
     @Nullable
     @Override
     public String getPermission() {
-        return imperatCommand.getMainPermission();
+        return dispatcher.config().isAutoPermissionAssignMode()
+                ? dispatcher.config().getPermissionLoader().load(imperatCommand)
+                : imperatCommand.getMainPermission();
     }
 
     @NotNull

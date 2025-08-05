@@ -16,7 +16,7 @@ final class InternalMinestomCommand extends Command {
 
         this.setCondition(
             (sender, commandString) -> imperat.config().getPermissionChecker().hasPermission(
-                imperat.wrapSender(sender), imperatCommand.getPermissions()
+                imperat.wrapSender(sender), imperat.config().isAutoPermissionAssignMode() ? imperat.config().getPermissionLoader().load(imperatCommand) : imperatCommand.getMainPermission()
             )
         );
 
