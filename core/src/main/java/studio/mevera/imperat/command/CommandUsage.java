@@ -25,7 +25,7 @@ import java.util.function.Predicate;
  *
  * @see Command
  */
-public sealed interface CommandUsage<S extends Source> extends PermissionHolder, DescriptionHolder, CooldownHolder permits CommandUsageImpl {
+public sealed interface CommandUsage<S extends Source> extends Iterable<CommandParameter<S>>, PermissionHolder, DescriptionHolder, CooldownHolder  permits CommandUsageImpl{
 
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
@@ -377,7 +377,7 @@ public sealed interface CommandUsage<S extends Source> extends PermissionHolder,
         public CommandUsage<S> build(@NotNull Command<S> command, boolean help) {
             CommandUsageImpl<S> impl = new CommandUsageImpl<>(execution, help);
             impl.setCoordinator(commandCoordinator);
-            impl.permission(permission);
+            impl.addPermission(permission);
             impl.describe(description);
             impl.setCooldown(cooldown);
             impl.addParameters(

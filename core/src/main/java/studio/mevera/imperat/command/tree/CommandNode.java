@@ -10,8 +10,8 @@ import studio.mevera.imperat.context.Source;
 @ApiStatus.Internal
 public final class CommandNode<S extends Source> extends ParameterNode<S, Command<S>> {
     
-    CommandNode(@NotNull Command<S> data, int depth, @Nullable CommandUsage<S> usage) {
-        super(data, depth, usage);
+    CommandNode(@Nullable ParameterNode<S, ?> parent, @NotNull Command<S> data, int depth, @Nullable CommandUsage<S> usage) {
+        super(parent, data, depth, usage);
     }
 
     boolean isSubCommand() {

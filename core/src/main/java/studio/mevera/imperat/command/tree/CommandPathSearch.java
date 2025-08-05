@@ -39,6 +39,32 @@ public final class CommandPathSearch<S extends Source> {
         return dispatch;
     }
     
+    public static <S extends Source> CommandPathSearch<S> paused(Command<S> command) {
+        CommandPathSearch<S> dispatch = of(Result.PAUSE);
+        Command<S> target = null;
+        if(command.tree() != null) {
+            target = command;
+        }else {
+            Command<S> root = command;
+            while ( root != null) {
+                
+                if(root.parent() == null) {
+                    break;
+                }
+                root = root.parent();
+            }
+            if(root != null && root != command) {
+                target = root;
+            }
+        }
+        if(target != null) {
+            dispatch.append(target.tree().rootNode());
+            dispatch.setDirectUsage(target.getDefaultUsage());
+        }
+
+        return dispatch;
+    }
+    
     public void append(ParameterNode<S, ?> node) {
         if (node == null) return;
         if(node.isCommand()) {
@@ -129,6 +155,13 @@ public final class CommandPathSearch<S extends Source> {
     public enum Result {
         
         /**
+         * The tree stopped midway for some reason,
+         * most probably would be that the source doesn't have access
+         * to a {@link ParameterNode} that matches his corresponding input.
+         */
+        PAUSE,
+        
+        /**
          * Defines a complete dispatch of the command,
          * {@link CommandUsage} cannot be null unless the {@link StandardCommandTree} has issues
          */
@@ -142,7 +175,10 @@ public final class CommandPathSearch<S extends Source> {
         /**
          * Defines an execution that ended up with throwing an exception that had no handler
          */
-        FAILURE
+        FAILURE;
         
+        public boolean isStoppable() {
+            return this == COMPLETE || this == PAUSE;
+        }
     }
 }

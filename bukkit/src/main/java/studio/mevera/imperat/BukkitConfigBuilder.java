@@ -25,7 +25,7 @@ import studio.mevera.imperat.util.reflection.Reflections;
 
 public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, BukkitImperat, BukkitConfigBuilder> {
 
-    private final static BukkitPermissionResolver DEFAULT_PERMISSION_RESOLVER = new BukkitPermissionResolver();
+    private final static BukkitPermissionChecker DEFAULT_PERMISSION_RESOLVER = new BukkitPermissionChecker();
 
     private final Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;

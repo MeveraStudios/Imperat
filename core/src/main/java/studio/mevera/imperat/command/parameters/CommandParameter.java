@@ -153,7 +153,17 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
      */
     @ApiStatus.Internal
     void position(int position);
-
+    
+    /**
+     * For parameters, ONLY one permission is allowed for each parameter.
+     * @return the single permission for this parameter.
+     */
+    @Nullable String getSinglePermission();
+    
+    default void setSinglePermission(String permission) {
+        addPermission(getSinglePermission());
+    }
+    
     /**
      * @return the value valueType-token of this parameter
      */

@@ -50,7 +50,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             .requires((obj) -> {
                 var source = wrapCommandSource(obj);
                 return root.getData().isIgnoringACPerms()
-                    || dispatcher.config().getPermissionResolver().hasPermission(source, root.getData().permission());
+                    || dispatcher.config().getPermissionChecker().hasPermission(source, root.getData().getPermissions());
             });
         executor(builder);
 
@@ -69,7 +69,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             : RequiredArgumentBuilder.argument(node.getData().name(), argType);
         
         childBuilder.requires((obj) -> {
-            var permissionResolver = dispatcher.config().getPermissionResolver();
+            var permissionResolver = dispatcher.config().getPermissionChecker();
             var source = wrapCommandSource(obj);
 
             boolean isIgnoringAC = root.getData().isIgnoringACPerms();
@@ -82,8 +82,8 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             if (isIgnoringAC) {
                 return true;
             }
-            boolean hasParentPerm = permissionResolver.hasPermission(source, parent.getData().permission());
-            boolean hasNodePerm = permissionResolver.hasPermission(source, node.getData().permission());
+            boolean hasParentPerm = permissionResolver.hasPermission(source, parent.getData().getPermissions());
+            boolean hasNodePerm = permissionResolver.hasPermission(source, node.getData().getPermissions());
 
             return (hasParentPerm && hasNodePerm);
         });

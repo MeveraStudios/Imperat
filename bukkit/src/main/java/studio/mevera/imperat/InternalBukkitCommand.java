@@ -33,7 +33,6 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
         );
         this.dispatcher = dispatcher;
         this.imperatCommand = imperatCommand;
-        this.setPermission(imperatCommand.permission());
     }
 
     @Override
@@ -44,7 +43,7 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
     @Nullable
     @Override
     public String getPermission() {
-        return imperatCommand.permission();
+        return imperatCommand.getMainPermission();
     }
 
     @NotNull

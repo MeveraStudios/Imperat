@@ -83,7 +83,6 @@ public final class ParameterString<S extends Source> extends BaseParameterType<S
             String nextRaw = inputStream.currentRaw().orElse(null);
             if (nextRaw != null) {
                 builder.append(nextRaw);
-                System.out.println("APPENDING '" + nextRaw + "'");
                 if(inputStream.peekRaw().isPresent()) {
                     builder.append(" ");
                 }

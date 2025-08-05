@@ -12,14 +12,14 @@ import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
-import studio.mevera.imperat.resolvers.BungeePermissionResolver;
+import studio.mevera.imperat.resolvers.BungeePermissionChecker;
 import studio.mevera.imperat.type.ParameterProxiedPlayer;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.reflection.Reflections;
 
 public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, BungeeImperat, BungeeConfigBuilder> {
 
-    private final static BungeePermissionResolver DEFAULT_PERMISSION_RESOLVER = new BungeePermissionResolver();
+    private final static BungeePermissionChecker DEFAULT_PERMISSION_RESOLVER = new BungeePermissionChecker();
     private final Plugin plugin;
 
     private AdventureProvider<CommandSender> adventureProvider;

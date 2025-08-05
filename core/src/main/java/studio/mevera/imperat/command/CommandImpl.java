@@ -1,9 +1,6 @@
 package studio.mevera.imperat.command;
 
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.UnmodifiableView;
+import org.jetbrains.annotations.*;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
@@ -30,6 +27,7 @@ import java.util.*;
 @ApiStatus.Internal
 final class CommandImpl<S extends Source> implements Command<S> {
 
+    final static int INITIAL_PERMISSIONS_CAPACITY = 3;
     private final String name;
     private final int position;
     private final List<String> aliases = new ArrayList<>();
@@ -38,7 +36,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final AutoCompleter<S> autoCompleter;
     private final @Nullable CommandTree<S> tree;
     private final @NotNull CommandTreeVisualizer<S> visualizer;
-    private String permission = null;
+    private @Nullable String permission;
     private Description description = Description.EMPTY;
     private boolean suppressACPermissionChecks = false;
     private CommandUsage<S> mainUsage = null;
@@ -100,8 +98,11 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @return The permission of the command
      */
     @Override
-    public @Nullable String permission() {
-        return permission;
+    public @Unmodifiable Set<String> getPermissions() {
+        if(permission == null) {
+            return Collections.emptySet();
+        }
+        return Set.of(permission);
     }
 
     /**
@@ -110,7 +111,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param permission the permission of a command
      */
     @Override
-    public void permission(@Nullable String permission) {
+    public void addPermission(@Nullable String permission) {
         this.permission = permission;
     }
 
@@ -145,7 +146,12 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void position(int position) {
         throw new UnsupportedOperationException("You can't modify the position of a command");
     }
-
+    
+    @Override
+    public @Nullable String getSinglePermission() {
+        return permission;
+    }
+    
     /**
      * Retrieves the HelpProvider instance associated with the current context.
      *
@@ -173,7 +179,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
         if (tree != null) {
             var copy = context.arguments().copy();
             copy.removeIf(String::isBlank);
-            return tree.contextMatch(copy);
+            return tree.contextMatch(context.source(), copy);
         } else {
             throw new IllegalCallerException("Cannot match a sub command in a root's execution !");
         }
@@ -334,6 +340,11 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void addUsage(CommandUsage<S> usage) {
+        
+        if(tree != null) {
+            tree.parseUsage(usage);
+        }
+        
         if (usage.isDefault()) {
             this.defaultUsage = usage;
         }
@@ -343,8 +354,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
         if (mainUsage == null && !usage.isDefault() && usage.getMaxLength() >= 1 && !usage.hasParamType(Command.class)) {
             mainUsage = usage;
         }
-
-        if (tree != null) tree.parseUsage(usage);
     }
     
     /**

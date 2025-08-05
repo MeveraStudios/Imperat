@@ -58,9 +58,9 @@ final class InternalVelocityCommand implements SimpleCommand {
 
     @Override
     public boolean hasPermission(Invocation invocation) {
-        return imperat.config().getPermissionResolver().hasPermission(
+        return imperat.config().getPermissionChecker().hasPermission(
             imperat.wrapSender(invocation.source()),
-            command.permission()
+            command.getPermissions()
         );
     }
 

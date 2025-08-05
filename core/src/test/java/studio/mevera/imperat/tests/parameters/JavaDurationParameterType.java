@@ -37,6 +37,7 @@ public final class JavaDurationParameterType extends BaseParameterType<TestSourc
     @Override
     public boolean matchesInput(String input, CommandParameter<TestSource> parameter) {
         try {
+            System.out.println("MATCHING DURATION");
             JavaDurationParser.parseDuration(input);
             return true;
         }catch (IllegalArgumentException ex) {

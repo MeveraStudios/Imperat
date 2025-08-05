@@ -16,7 +16,7 @@ final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command imp
     ) {
         super(
             bungeeCommand.name(),
-            bungeeCommand.permission(),
+            bungeeCommand.getPermissions(),
             bungeeCommand.aliases().toArray(new String[0])
         );
         this.bungeeCommandDispatcher = commandDispatcher;

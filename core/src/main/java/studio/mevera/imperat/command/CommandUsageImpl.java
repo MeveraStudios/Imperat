@@ -3,6 +3,7 @@ package studio.mevera.imperat.command;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
@@ -29,7 +30,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     private final List<CommandParameter<S>> parametersWithoutFlags = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
     private final @NotNull CommandExecution<S> execution;
     private final boolean help;
-    private String permission = null;
+    private final Set<String> permissions = new HashSet<>(CommandImpl.INITIAL_PERMISSIONS_CAPACITY);
     private Description description = Description.of("N/A");
     private @NotNull CooldownHandler<S> cooldownHandler;
     private @Nullable UsageCooldown cooldown = null;
@@ -54,8 +55,8 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      * @return the permission for this usage
      */
     @Override
-    public @Nullable String permission() {
-        return permission;
+    public @Unmodifiable Set<String> getPermissions() {
+        return Collections.unmodifiableSet(permissions);
     }
 
     /**
@@ -64,8 +65,8 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      * @param permission permission to set
      */
     @Override
-    public void permission(String permission) {
-        this.permission = permission;
+    public void addPermission(String permission) {
+        this.permissions.add(permission);
     }
 
     /**
@@ -353,6 +354,11 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
         }
         return true;
     }
+    
+    @Override
+    public @NotNull Iterator<CommandParameter<S>> iterator() {
+        return parameters.iterator();
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -375,4 +381,6 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     public int hashCode() {
         return Objects.hash(parameters);
     }
+    
+
 }

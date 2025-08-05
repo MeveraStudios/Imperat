@@ -78,4 +78,57 @@ public class ErrorHandlingTest extends BaseImperatTest {
         ExecutionResult<TestSource> result = execute("ctx sub"); // Should fail due to missing Group context
         assertFailure(result);
     }
+    
+    /*@Test
+    @DisplayName("Should handle permissions overlap 1")
+    void testPermissions1() {
+        ExecutionResult<TestSource> result = execute("testperm"); // Should fail due to missing Group context
+        assertFailure(result, PermissionDeniedException.class);
+        assertNotNull(result.getError());
+        result.getError().printStackTrace();
+    }
+    
+    @Test
+    @DisplayName("Should handle permissions overlap 2")
+    void testPermissions2() {
+        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"), "testperm a b"); // Should fail due to missing Group context
+        assertFailure(result, PermissionDeniedException.class);
+        assertNotNull(result.getError());
+        result.getError().printStackTrace();
+    }
+    
+    @Test
+    @DisplayName("Should handle permissions overlap 3")
+    void testPermissions3() {
+        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use").withPerm("testperm.use.arg1.arg2").withPerm("testperm.main"), "testperm a b"); // Should fail due to missing Group context
+        assertSuccess(result);
+    }
+    
+    @Test
+    @DisplayName("Should handle permissions overlap 4")
+    void testPermissions4() {
+        ExecutionResult<TestSource> result = execute(
+                (src)-> src.withPerm("testperm.use")
+                        .withPerm("testperm.use.arg1.arg2")
+                        .withPerm("testperm.use.arg1.arg2.arg3")
+                        .withPerm("testperm.main"),
+                "testperm a b 3"); // Should fail due to missing Group context
+        assertSuccess(result);
+    }
+    @Test
+    @DisplayName("Should handle permissions overlap 5")
+    void testPermissions5() {
+        ExecutionResult<TestSource> result = execute(
+                (src)->
+                        src.withPerm("ban")
+                                .withPerm("ban.target")
+                                .withPerm("ban.target.silent")
+                                .withPerm("ban.target.ip")
+                                .withPerm("ban.target.duration")
+                                .withPerm("ban.target.reason")
+                                ,
+                "ban mqzen -ip Breaking Server Rules"); // Should fail due to missing Group context
+        assertSuccess(result);
+    }
+     */
 }

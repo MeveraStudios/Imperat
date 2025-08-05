@@ -1,6 +1,8 @@
 package studio.mevera.imperat.command;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+
+import java.util.Set;
 
 /**
  * Represents an entity that can hold a permission.
@@ -11,16 +13,18 @@ public interface PermissionHolder {
     /**
      * Retrieves the permission associated with this holder.
      *
-     * @return the permission string, or {@code null} if no permission is set.
+     * @return A set of permission strings, if no permissions are set, it will return an empty set.
      */
-    @Nullable
-    String permission();
+    @Unmodifiable Set<String> getPermissions();
 
     /**
-     * Sets the permission for this holder.
+     * Adds a permission for this holder.
      *
-     * @param permission the permission string to set, can be {@code null}.
+     * @param permission the permission string to add, can be {@code null}.
      */
-    void permission(String permission);
-
+    void addPermission(String permission);
+    
+    default boolean hasPermission(String permission) {
+        return getPermissions().contains(permission);
+    }
 }

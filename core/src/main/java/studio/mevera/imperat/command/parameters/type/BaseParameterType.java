@@ -83,7 +83,7 @@ public abstract class BaseParameterType<S extends Source, T>
 
     /**
      * Determines whether the provided input matches the expected format or criteria
-     * for a given command parameter. this is used during {@link CommandTree#contextMatch(ArgumentInput)}
+     * for a given command parameter. this is used during {@link CommandTree#contextMatch(Source, ArgumentInput)}
      *
      * @param input     The input string to be matched against the parameter criteria.
      * @param parameter The command parameter that provides context for the input handling.

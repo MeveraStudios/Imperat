@@ -44,7 +44,7 @@ final class ImperatBukkitHelpTopic extends GenericCommandHelpTopic {
     @Override
     public boolean canSee(@NotNull CommandSender sender) {
         // Define whether the sender has permission to see this help topic
-        return imperat.config.getPermissionResolver()
+        return imperat.config.getPermissionChecker()
                 .hasPermission(imperat.wrapSender(sender), command.getPermission()); // Example: always visible
     }
 

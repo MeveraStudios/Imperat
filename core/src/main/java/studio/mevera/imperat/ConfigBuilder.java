@@ -9,6 +9,7 @@ import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
+import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.exception.ThrowableResolver;
@@ -52,17 +53,108 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     }
 
     /**
-     * Sets a custom {@link PermissionResolver} to determine and resolve permissions
+     * Sets a custom {@link PermissionChecker} to determine and resolve permissions
      * for the command sender/source within the platform's configuration.
      *
-     * @param permissionResolver the {@link PermissionResolver} implementation used to handle permission checks for commands
+     * @param permissionChecker the {@link PermissionChecker} implementation used to handle permission checks for commands
      * @return the current {@link ConfigBuilder} instance for method chaining and further configuration
      */
     // Permission Resolver
-    public B permissionResolver(PermissionResolver<S> permissionResolver) {
-        config.setPermissionResolver(permissionResolver);
+    public B permissionChecker(PermissionChecker<S> permissionChecker) {
+        config.setPermissionResolver(permissionChecker);
         return (B) this;
     }
+    
+    /**
+     * Sets the permission loader for automatic permission assignment.
+     * <p>
+     * This method configures the {@link PermissionLoader} that will be used to load
+     * and resolve permissions for command parameters when Auto Permission Assign (APA)
+     * mode is active. The permission loader is responsible for determining what
+     * permissions should be applied to individual command nodes based on the
+     * command structure and configuration.
+     * </p>
+     *
+     * <p>
+     * <strong>Prerequisite:</strong> This method can only be called when APA mode is enabled
+     * via the configuration. APA mode must be activated before setting up permission
+     * loading components to ensure proper initialization order and prevent
+     * configuration conflicts.
+     * </p>
+     *
+     * <p>
+     * The permission loader works in conjunction with the {@link NodePermissionAssigner}
+     * to provide a complete automatic permission assignment system. The loader determines
+     * which permissions to assign, while the assigner handles how those permissions
+     * are applied to the parameter nodes.
+     * </p>
+     *
+     * @param permissionLoader the permission loader to use for loading permissions,
+     *                        must not be null
+     * @return this builder instance for method chaining, never null
+     * @throws IllegalStateException if Auto Permission Assign (APA) mode is not enabled
+     * @throws NullPointerException if {@code permissionLoader} is null
+     * @see PermissionLoader
+     * @see NodePermissionAssigner
+     * @see #permissionAssigner(NodePermissionAssigner)
+     * @since 1.0
+     */
+    public B permissionLoader(PermissionLoader<S> permissionLoader) {
+        if(!config.isAutoPermissionAssignMode()) {
+            throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
+        }
+        config.setPermissionLoader(permissionLoader);
+        return (B)this;
+    }
+    
+    /**
+     * Sets the permission assigner for automatic permission assignment.
+     * <p>
+     * This method configures the {@link NodePermissionAssigner} that will be used to
+     * assign permissions to command parameter nodes when Auto Permission Assign (APA)
+     * mode is active. The permission assigner defines the strategy for how permissions
+     * loaded by the {@link PermissionLoader} are actually applied to individual
+     * {@link ParameterNode} instances.
+     * </p>
+     *
+     * <p>
+     * <strong>Prerequisite:</strong> This method can only be called when APA mode is enabled
+     * via the configuration. APA mode must be activated before setting up permission
+     * assignment components to ensure proper initialization order and prevent
+     * configuration conflicts.
+     * </p>
+     *
+     * <p>
+     * The permission assigner works in conjunction with the {@link PermissionLoader}
+     * to provide a complete automatic permission assignment system. The loader determines
+     * which permissions to assign, while the assigner handles how those permissions
+     * are applied to the parameter nodes.
+     * </p>
+     *
+     * <p>
+     * If no custom assigner is provided, the system will use the default assigner
+     * available via {@link NodePermissionAssigner#defaultAssigner()}.
+     * </p>
+     *
+     * @param permissionAssigner the permission assigner to use for assigning permissions
+     *                          to parameter nodes, must not be null
+     * @return this builder instance for method chaining, never null
+     * @throws IllegalStateException if Auto Permission Assign (APA) mode is not enabled
+     * @throws NullPointerException if {@code permissionAssigner} is null
+     * @see NodePermissionAssigner
+     * @see PermissionLoader
+     * @see #permissionLoader(PermissionLoader)
+     * @see NodePermissionAssigner#defaultAssigner()
+     * @since 1.0
+     */
+    public B permissionAssigner(NodePermissionAssigner<S> permissionAssigner) {
+        if(!config.isAutoPermissionAssignMode()) {
+            throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
+        }
+        config.setNodePermissionAssigner(permissionAssigner);
+        return (B)this;
+    }
+    
 
     /**
      * Sets the context factory for creating contexts used in command execution.

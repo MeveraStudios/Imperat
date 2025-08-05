@@ -6,13 +6,14 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.util.Pair;
 
 /**
  * Represents a functional way of checking for the permissions
  * of the command source/sender.
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface PermissionResolver<S extends Source> {
+public interface PermissionChecker<S extends Source> {
 
     /**
      * @param source     the source of the command (console or other)
@@ -21,18 +22,23 @@ public interface PermissionResolver<S extends Source> {
      */
     boolean hasPermission(@NotNull S source, @Nullable String permission);
 
-    default boolean hasUsagePermission(S source, @Nullable CommandUsage<S> usage) {
-        if (usage == null || usage.permission() == null) {
-            return true;
+    default boolean hasPermission(@NotNull S source, @NotNull CommandParameter<S> parameter) {
+        return hasPermission(source, parameter.getSinglePermission());
+    }
+    
+    default Pair<String, Boolean> hasUsagePermission(S source, @Nullable CommandUsage<S> usage) {
+        if (usage == null) {
+            return new Pair<>(null, true);
         }
-        if (!hasPermission(source, usage.permission())) return false;
-        for (CommandParameter<S> parameter : usage.getParameters()) {
-            //if (!parameter.isCommand()) continue;
-            if (parameter.permission() == null) continue;
-            if (!hasPermission(source, parameter.permission()))
-                return false;
+        
+        for(var perm : usage.getPermissions()) {
+            if(!hasPermission(source, perm)) {
+                return new Pair<>(perm, false);
+            }
+            
         }
-        return true;
+        
+        return new Pair<>(null, true);
     }
 
 }

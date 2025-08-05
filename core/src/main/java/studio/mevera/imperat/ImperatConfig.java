@@ -1,5 +1,6 @@
 package studio.mevera.imperat;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
@@ -10,6 +11,8 @@ import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.tree.CommandTree;
+import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -21,7 +24,7 @@ import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.DependencySupplier;
-import studio.mevera.imperat.resolvers.PermissionResolver;
+import studio.mevera.imperat.resolvers.PermissionChecker;
 import studio.mevera.imperat.verification.UsageVerifier;
 
 import java.lang.annotation.Annotation;
@@ -76,7 +79,54 @@ public sealed interface ImperatConfig<S extends Source> extends
      */
     <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer);
     
+    
+    /**
+     * Apply annotation replacers.
+     * @param imperat the imperat instance
+     * @param <A> A type variable used internally
+     */
+    @ApiStatus.Internal
     <A extends Annotation> void applyAnnotationReplacers(Imperat<S> imperat);
+    
+    /**
+     * Sets the permission assigner for every parameter
+     * @param assigner the assigner.
+     */
+    void setPermissionLoader(PermissionLoader<S> assigner);
+    
+    /**
+     * @return The permission loader for {@link CommandParameter} on every command.
+     */
+    @NotNull PermissionLoader<S> getPermissionLoader();
+    
+    /**
+     * Sets the permission assigner for {@link CommandParameter} on every command.
+     * @param assigner the assigner.
+     */
+    void setNodePermissionAssigner(NodePermissionAssigner<S> assigner);
+    
+    /**
+     * The permission assigner for every {@link CommandParameter}
+     * @return the {@link NodePermissionAssigner} which is responsible for assigning
+     * permissions loaded by {@link PermissionLoader} per {@link CommandParameter}.
+     */
+    @NotNull NodePermissionAssigner<S> getPermissionAssigner();
+    
+    /**
+     * Is the automatic permission assigning mode enabled? If so, the {@link CommandTree} will be using
+     * {@link PermissionLoader} to deduce the permission per {@link CommandParameter}
+     * and the {@link NodePermissionAssigner} to assign the deduced permission to a {@link ParameterNode}
+     * which is a crucial part of {@link CommandTree}
+     * @return Whether the automatic permission assign mode is enabled or not.
+     */
+    boolean isAutoPermissionAssignMode();
+    
+    /**
+     * Toggles the auto permission assign mode.
+     * @param toggle whether to enable/disable the auto permission assign(APS) mode.
+     */
+    void setAutoPermissionAssignMode(boolean toggle);
+    
     /**
      * Determines whether multiple optional parameters can be suggested simultaneously
      * during tab completion at the same command depth level.
@@ -234,16 +284,16 @@ public sealed interface ImperatConfig<S extends Source> extends
     <T> ContextResolverFactory<S, T> getContextResolverFactory(Type resolvingContextType);
 
     /**
-     * @return {@link PermissionResolver} for the dispatcher
+     * @return {@link PermissionChecker} for the dispatcher
      */
-    PermissionResolver<S> getPermissionResolver();
+    PermissionChecker<S> getPermissionChecker();
 
     /**
      * Sets the permission resolver for the platform
      *
-     * @param permissionResolver the permission resolver to set
+     * @param permissionChecker the permission resolver to set
      */
-    void setPermissionResolver(PermissionResolver<S> permissionResolver);
+    void setPermissionResolver(PermissionChecker<S> permissionChecker);
 
     /**
      * @return the factory for creation of

@@ -19,8 +19,8 @@ final class SuggestionCache<S extends Source> {
             .expireAfterWrite(ENTRY_EXPIRATION_DURATION, TimeUnit.SECONDS)
             .build();
     
-    public void computeInput(Command<S> command, ArgumentInput input, ParameterNode<S, ?> lastNode) {
-        InputKey<S> inputKey = new InputKey<>(command, input);
+    public void computeInput(Command<S> command, S source, ArgumentInput input, ParameterNode<S, ?> lastNode) {
+        InputKey<S> inputKey = new InputKey<>(command, source, input);
         lastNodePerInput.asMap().compute(inputKey, (k, oldSet)-> {
             if(oldSet == null) {
                 Set<ParameterNode<S,?>> newLastNodes = new HashSet<>(3);
@@ -32,15 +32,15 @@ final class SuggestionCache<S extends Source> {
         });
     }
     
-    public boolean hasCache(Command<S> command, ArgumentInput input) {
-        return lastNodePerInput.getIfPresent(new InputKey<>(command, input)) != null;
+    public boolean hasCache(Command<S> command, S source, ArgumentInput input) {
+        return lastNodePerInput.getIfPresent(new InputKey<>(command, source, input)) != null;
     }
     
-    public @Nullable Set<ParameterNode<S, ?>> getLastNodes(Command<S> command, ArgumentInput input) {
-        return lastNodePerInput.getIfPresent(new InputKey<>(command, input));
+    public @Nullable Set<ParameterNode<S, ?>> getLastNodes(Command<S> command, S source, ArgumentInput input) {
+        return lastNodePerInput.getIfPresent(new InputKey<>(command, source, input));
     }
     
-    record InputKey<S extends Source>(Command<S> root, ArgumentInput input) {
+    record InputKey<S extends Source>(Command<S> root, S source, ArgumentInput input) {
     
     }
 }

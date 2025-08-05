@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BungeeSource;
 
-public class BungeePermissionResolver implements PermissionResolver<BungeeSource> {
+public class BungeePermissionChecker implements PermissionChecker<BungeeSource> {
 
     @Override
     public boolean hasPermission(

@@ -32,7 +32,7 @@ final class SyntaxDataLoader {
 
     static @NotNull CommandCondition loadCondition(MinestomImperat imperat, CommandUsage<MinestomSource> usage) {
         return (sender, commandString) ->
-            imperat.config().getPermissionResolver()
+            imperat.config().getPermissionChecker()
                 .hasUsagePermission(imperat.wrapSender(sender), usage);
     }
 

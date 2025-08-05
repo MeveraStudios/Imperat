@@ -65,7 +65,6 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
             ParameterType<S, ?> inputType = flagParameter.flagData().inputType();
             rawInput = commandInputStream.popRaw().orElse(null);
             if (rawInput != null) {
-                System.out.println("RAW INPUT= " + rawInput);
                 assert inputType != null;
                 objInput = inputType.resolve(context, commandInputStream, rawInput);
                 if(objInput == null && !flagParameter.getDefaultValueSupplier().isEmpty()) {

@@ -43,7 +43,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             (context, input) ->
             Collections.emptyList();
 
-    private @NotNull PermissionResolver<S> permissionResolver = (source, permission) -> true;
+    private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
     private @NotNull ContextFactory<S> contextFactory;
     private @NotNull UsageVerifier<S> verifier;
     private @Nullable HelpProvider<S> provider = null;
@@ -74,6 +74,12 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     
     private AttachmentMode defaultAttachmentMode = AttachmentMode.UNSET;
     
+    private boolean isAPA;
+    
+    private PermissionLoader<S> permissionLoader = PermissionLoader.defaultLoader();
+    private NodePermissionAssigner<S> permissionAssigner = NodePermissionAssigner.defaultAssigner();
+    
+    
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault(this);
         paramTypeRegistry = ParamTypeRegistry.createDefault();
@@ -87,7 +93,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         regDefThrowableResolvers();
 
         globalPreProcessors = CommandProcessingChain.<S>preProcessors()
-            .then(DefaultProcessors.preUsagePermission())
             .then(DefaultProcessors.preUsageCooldown())
             .build();
 
@@ -286,21 +291,21 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     /**
-     * @return {@link PermissionResolver} for the dispatcher
+     * @return {@link PermissionChecker} for the dispatcher
      */
     @Override
-    public @NotNull PermissionResolver<S> getPermissionResolver() {
-        return permissionResolver;
+    public @NotNull PermissionChecker<S> getPermissionChecker() {
+        return permissionChecker;
     }
 
     /**
      * Sets the permission resolver for the platform
      *
-     * @param permissionResolver the permission resolver to set
+     * @param permissionChecker the permission resolver to set
      */
     @Override
-    public void setPermissionResolver(@NotNull PermissionResolver<S> permissionResolver) {
-        this.permissionResolver = permissionResolver;
+    public void setPermissionResolver(@NotNull PermissionChecker<S> permissionChecker) {
+        this.permissionChecker = permissionChecker;
     }
 
     /**
@@ -486,6 +491,36 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             AnnotationReplacer<A> annReplacer = (AnnotationReplacer<A>)replacer;
             imperat.registerAnnotationReplacer(annType, annReplacer);
         });
+    }
+    
+    @Override
+    public void setPermissionLoader(PermissionLoader<S> assigner) {
+        this.permissionLoader = assigner;
+    }
+    
+    @Override
+    public @NotNull PermissionLoader<S> getPermissionLoader() {
+        return permissionLoader;
+    }
+    
+    @Override
+    public void setNodePermissionAssigner(NodePermissionAssigner<S> assigner) {
+        this.permissionAssigner = assigner;
+    }
+    
+    @Override
+    public @NotNull NodePermissionAssigner<S> getPermissionAssigner() {
+        return permissionAssigner;
+    }
+    
+    @Override
+    public boolean isAutoPermissionAssignMode() {
+        return isAPA;
+    }
+    
+    @Override
+    public void setAutoPermissionAssignMode(boolean toggle) {
+        this.isAPA = toggle;
     }
     
     /**

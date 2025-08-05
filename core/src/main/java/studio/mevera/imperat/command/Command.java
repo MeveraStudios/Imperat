@@ -439,7 +439,14 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
     @ApiStatus.Internal
     @ApiStatus.AvailableSince("1.9.0")
     void registerSubCommand(Command<S> subCommand);
-
+    
+    default @Nullable String getMainPermission() {
+        for(var str : getPermissions())
+            return str;
+        
+        return null;
+    }
+    
     class Builder<S extends Source> {
 
         private final Imperat<S> imperat;
@@ -476,7 +483,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
         }
 
         public Builder<S> permission(String permission) {
-            this.cmd.permission(permission);
+            this.cmd.addPermission(permission);
             return this;
         }
 
@@ -527,10 +534,16 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
             cmd.addPostProcessor(postProcessor);
             return this;
         }
-
+        
+        public Builder<S> parent(@Nullable Command<S> parentCmd) {
+            cmd.parent(parentCmd);
+            return this;
+        }
+        
         public Command<S> build() {
             return cmd;
         }
+        
 
     }
 

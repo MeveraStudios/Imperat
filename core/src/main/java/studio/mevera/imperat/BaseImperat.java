@@ -81,6 +81,10 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         }
     }
     private void registerCmd(@NotNull Command<S> command) {
+        
+        command.tree().computePermissions(
+        );
+        
         this.commands.put(command.name().trim().toLowerCase(), command);
         for(var aliases : command.aliases()) {
             this.commands.put(aliases.trim().toLowerCase(), command);
@@ -217,16 +221,13 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         return null;
     }
     private ExecutionResult<S> handleExecution(Context<S> context) throws ImperatException {
-        // START PROFILING - Add this line at the very beginning
         Command<S> command = context.command();
         S source = context.source();
         
-        // EXISTING: Permission check - Add timing around it
-        if (!config.getPermissionResolver().hasPermission(source, command.permission())) {
-            throw new PermissionDeniedException();
-        }
-        
         CommandPathSearch<S> searchResult = command.contextMatch(context);
+        if(searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
+            throw new PermissionDeniedException(searchResult);
+        }
         
         CommandUsage<S> usage = searchResult.getFoundUsage();
         
@@ -235,7 +236,11 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             throw new InvalidSyntaxException(searchResult);
         }
         
-        // EXISTING: Usage execution - Add timing around it
+        var usageAccessCheckResult = config.getPermissionChecker().hasUsagePermission(source, usage);
+        if(!usageAccessCheckResult.right()) {
+            throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null);
+        }
+        
         return executeUsage(command, source, context, usage, searchResult);
     }
     
@@ -482,7 +487,6 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         );
         
         //TODO check for caches before creating a context
-        
         
         SuggestionContext<S> context =  this.config.getContextFactory()
                 .createSuggestionContext(

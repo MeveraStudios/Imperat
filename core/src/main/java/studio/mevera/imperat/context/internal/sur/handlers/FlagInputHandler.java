@@ -30,9 +30,7 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
         if (currentParameter == null || currentRaw == null || !currentParameter.isFlag() || !Patterns.isInputFlag(currentRaw)) {
             return HandleResult.NEXT_HANDLER;
         }
-        System.out.println("EARLY CURRENT PARAM= " + currentParameter.format() + ". EARLY CURRENT RAW= " + currentRaw);
         
-        System.out.println("[FlagInputHandler] Detected A flag raw-input '" + currentRaw + "'");
         try {
             CommandUsage<S> usage = context.getDetectedUsage();
             
@@ -58,9 +56,7 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
                 throw new MissingFlagInputException(currentParameter.asFlagParameter(), currentRaw);
             }
             
-            System.out.println("CURRENT RAW= " + stream.currentRawFast());
             if(extracted.size() == 1 && extracted.contains(currentParameter.asFlagParameter().flagData())) {
-                System.out.println("[FlagInputHandler] Extracted Single FlagData '" + currentParameter.format() + "' from input '" + currentRaw + "'");
                 
                 //resolve directly
                 context.resolveFlag(ParameterTypes.flag(currentParameter.asFlagParameter().flagData()).resolve(context, stream, currentRaw));
@@ -69,13 +65,11 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
             }
             else if(extracted.size() == 1) {
                 var extractedFlagData = extracted.iterator().next();
-                System.out.println("[FlagInputHandler] Extracted Single FlagData '" + extractedFlagData.format() + "' that doesnt match current parameter '" + currentParameter.format() + "'");
                 resolveFlagDefaultValue(stream, currentParameter.asFlagParameter(), context);
                 stream.skipParameter();
                 return HandleResult.NEXT_ITERATION;
             }
             
-            System.out.println("Multiple flags detected...");
             for(FlagData<S> extractedFlagData : extracted) {
                 CommandParameter<S> matchingParam = getMatchingFlagParam(usage, stream, currentParameter.position()+1, extractedFlagData);
                 if(matchingParam != null) {

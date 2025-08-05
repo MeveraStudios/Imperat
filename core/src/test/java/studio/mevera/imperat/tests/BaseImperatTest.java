@@ -4,6 +4,8 @@ import org.junit.jupiter.api.BeforeEach;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.ImperatException;
 
+import java.util.function.Consumer;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -27,6 +29,16 @@ public abstract class BaseImperatTest {
     protected ExecutionResult<TestSource> execute(String commandLine) {
         try {
             return IMPERAT.execute(SOURCE, commandLine);
+        } catch (ImperatException e) {
+            return ExecutionResult.failure(e);
+        }
+    }
+    
+    protected ExecutionResult<TestSource> execute(Consumer<TestSource> sourceModifier, String commandLine) {
+        try {
+            TestSource source = new TestSource(SOURCE.origin());
+            sourceModifier.accept(source);
+            return IMPERAT.execute(source, commandLine);
         } catch (ImperatException e) {
             return ExecutionResult.failure(e);
         }

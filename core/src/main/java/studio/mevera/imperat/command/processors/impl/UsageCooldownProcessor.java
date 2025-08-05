@@ -35,7 +35,7 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
             assert cooldown != null;
             if(cooldown.permission() == null
                     || cooldown.permission().isEmpty()
-                    || !imperat.config().getPermissionResolver().hasPermission(source, cooldown.permission())) {
+                    || !imperat.config().getPermissionChecker().hasPermission(source, cooldown.permission())) {
 
 
                 throw new CooldownException(

@@ -5,10 +5,12 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.context.ArgumentInput;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a tree structure for commands, providing methods for parsing, matching,
@@ -46,13 +48,16 @@ public interface CommandTree<S extends Source> {
      */
     void parseUsage(@NotNull CommandUsage<S> usage);
     
+    void computePermissions();
+    
     /**
      * Matches the given input against this command tree and returns a dispatch context.
      *
-     * @param input the argument input to match against
+     * @param source the source/sender/executor executing the command.
+     * @param input  the argument input to match against
      * @return a command dispatch context containing matching results, never null
      */
-    @NotNull CommandPathSearch<S> contextMatch(@NotNull ArgumentInput input);
+    @NotNull CommandPathSearch<S> contextMatch(S source, @NotNull ArgumentInput input);
     
     /**
      * Generates tab-completion suggestions based on the current command context.
@@ -63,6 +68,16 @@ public interface CommandTree<S extends Source> {
     @NotNull List<String> tabComplete(
             @NotNull SuggestionContext<S> context
     );
+    
+    /**
+     * Collects the closest usages to a context, this traverses the whole {@link  CommandTree}
+     * from the beginning , visiting every branch/chain possible.
+     * This will lead to collecting the closest usages in-order by how close they are to your input.
+     *
+     * @param context the context containing the details of an input.
+     * @return A set of the closest usages to a {@link Context}
+     */
+    Set<CommandUsage<S>> getClosestUsages(Context<S> context);
     
     static <S extends Source> CommandTree<S> create(ImperatConfig<S> imperatConfig, Command<S> command) {
         return new StandardCommandTree<>(imperatConfig, command);

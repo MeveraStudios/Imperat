@@ -21,10 +21,24 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
 
     private final int depth;
     
-    protected ParameterNode(@NotNull T data, int depth, @Nullable CommandUsage<S> executableUsage) {
+    private final @Nullable ParameterNode<S, ?> parent;
+    
+    private String permission;
+    
+    protected ParameterNode(@Nullable ParameterNode<S, ?> parent, @NotNull T data, int depth, @Nullable CommandUsage<S> executableUsage) {
+        this.parent = parent;
         this.data = data;
         this.depth = depth;
-        this. executableUsage = executableUsage;
+        this.executableUsage = executableUsage;
+        this.permission = data.getSinglePermission();
+    }
+    
+    public String getPermission() {
+        return permission;
+    }
+    
+    public void setPermission(String permission) {
+        this.permission = permission;
     }
     
     public int getDepth() {
@@ -137,13 +151,17 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     public boolean isFlag() {
         return this.data.isFlag();
     }
-
+    
+    public @Nullable ParameterNode<S, ?> getParent() {
+        return parent;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof ParameterNode<?, ?> that)) return false;
         return Objects.equals(data.name(), that.data.name()) && this.depth == that.depth && Objects.equals(nextNodes, that.nextNodes);
     }
-
+    
     @Override
     public int hashCode() {
         return Objects.hash(data.name(), this.depth,  nextNodes);
@@ -153,5 +171,5 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         if(nextNodes.isEmpty())return null;
         return nextNodes.getFirst();
     }
-    
+   
 }

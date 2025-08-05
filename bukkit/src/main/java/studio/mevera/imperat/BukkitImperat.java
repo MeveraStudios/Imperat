@@ -111,7 +111,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
         BukkitUtil.COMMAND_MAP.register(this.plugin.getName(), internalCmd);
 
         if (brigadierManager != null) {
-            brigadierManager.registerBukkitCommand(internalCmd, command, config.getPermissionResolver());
+            brigadierManager.registerBukkitCommand(internalCmd, command, config.getPermissionChecker());
         }
     }
 

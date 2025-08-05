@@ -33,6 +33,11 @@ public class ImperatTestGlobals {
     /** Global test infrastructure instances */
     public static final TestImperat IMPERAT = TestImperatConfig.builder()
             .usageVerifier(UsageVerifier.typeTolerantVerifier())
+            .permissionChecker( (src, perm)-> {
+                System.out.println("SRC HAS PERM '" + perm  +"' = " + src.hasPermission(perm));
+                src.debugPerms();
+                return perm == null || src.hasPermission(perm);
+            } )
             .contextResolver(PlayerData.class, new PlayerDataContextResolver())
             .parameterType(Group.class, new ParameterGroup())
             .parameterType(Duration.class, new JavaDurationParameterType())
@@ -73,7 +78,8 @@ public class ImperatTestGlobals {
                 new RankCommand(),
                 new ContextResolvingCmd(),
                 new FirstOptionalArgumentCmd(),
-                new SomeClass()
+                new SomeClass(),
+                new TestPerm()
         );
         
         
