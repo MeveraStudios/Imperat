@@ -1,5 +1,6 @@
 package studio.mevera.imperat;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
@@ -519,6 +520,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
     
     @Override
+    @ApiStatus.Experimental
     public void setAutoPermissionAssignMode(boolean toggle) {
         this.isAPA = toggle;
     }

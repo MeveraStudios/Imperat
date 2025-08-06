@@ -1,10 +1,12 @@
 package studio.mevera.imperat;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
+import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
@@ -66,6 +68,20 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     }
     
     /**
+     * Toggles the APA (Auto Permission Assign) mode,
+     * When enabled, it will automatically compute, set permissions automatically for every {@link CommandParameter}
+     * in every {@link CommandUsage} you make without the need to explicitly set the permissions , the same goes
+     * on ROOT commands and even subcommands (since they are also treated as {@link CommandParameter})
+     *
+     * @param modeToggle toggles the auto permission assign mode
+     * @return the current {@link ConfigBuilder} instance for method chaining and further configuration
+     */
+    public B autoPermissionAssignMode(boolean modeToggle) {
+        config.setAutoPermissionAssignMode(modeToggle);
+        return (B) this;
+    }
+    
+    /**
      * Sets the permission loader for automatic permission assignment.
      * <p>
      * This method configures the {@link PermissionLoader} that will be used to load
@@ -99,6 +115,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @see #permissionAssigner(NodePermissionAssigner)
      * @since 1.0
      */
+    @ApiStatus.Experimental
     public B permissionLoader(PermissionLoader<S> permissionLoader) {
         if(!config.isAutoPermissionAssignMode()) {
             throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
@@ -147,6 +164,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @see NodePermissionAssigner#defaultAssigner()
      * @since 1.0
      */
+    @ApiStatus.Experimental
     public B permissionAssigner(NodePermissionAssigner<S> permissionAssigner) {
         if(!config.isAutoPermissionAssignMode()) {
             throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");

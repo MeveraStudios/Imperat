@@ -33,7 +33,6 @@ import studio.mevera.imperat.context.Source;
  * @see PermissionLoader
  * @see Source
  */
-@FunctionalInterface
 public interface NodePermissionAssigner<S extends Source> {
     
     /**

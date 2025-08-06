@@ -92,17 +92,20 @@ public sealed interface ImperatConfig<S extends Source> extends
      * Sets the permission assigner for every parameter
      * @param assigner the assigner.
      */
+    @ApiStatus.Experimental
     void setPermissionLoader(PermissionLoader<S> assigner);
     
     /**
      * @return The permission loader for {@link CommandParameter} on every command.
      */
+    @ApiStatus.Experimental
     @NotNull PermissionLoader<S> getPermissionLoader();
     
     /**
      * Sets the permission assigner for {@link CommandParameter} on every command.
      * @param assigner the assigner.
      */
+    @ApiStatus.Experimental
     void setNodePermissionAssigner(NodePermissionAssigner<S> assigner);
     
     /**
@@ -110,6 +113,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @return the {@link NodePermissionAssigner} which is responsible for assigning
      * permissions loaded by {@link PermissionLoader} per {@link CommandParameter}.
      */
+    @ApiStatus.Experimental
     @NotNull NodePermissionAssigner<S> getPermissionAssigner();
     
     /**
@@ -119,12 +123,14 @@ public sealed interface ImperatConfig<S extends Source> extends
      * which is a crucial part of {@link CommandTree}
      * @return Whether the automatic permission assign mode is enabled or not.
      */
+    @ApiStatus.Experimental
     boolean isAutoPermissionAssignMode();
     
     /**
      * Toggles the auto permission assign mode.
      * @param toggle whether to enable/disable the auto permission assign(APS) mode.
      */
+    @ApiStatus.Experimental
     void setAutoPermissionAssignMode(boolean toggle);
     
     /**
