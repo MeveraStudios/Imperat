@@ -148,3 +148,24 @@ jobs:
         with:
           name: test-reports
           path: '**/build/reports/tests/test'
+
+      - name: ℹ️ Update Endpoint
+        if: false
+        run: |
+          rm -rf *
+          git config --global user.name "MeveraStudios System"
+          git config --global user.email "github@mevera.studio"
+          git clone https://github.com/MeveraStudios/endpoint.git
+          cd endpoint
+          mkdir -p imperat && cd imperat
+          echo "{
+            \"release\": \"$LATEST_RELEASE\",
+            \"snapshot\": \"${VERSION}-SNAPSHOT\"
+          }" > info.json
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update imperat version"
+            git push https://x-access-token:${{ secrets.VELIX_SYSTEM_TOKEN }}@github.com/VelixDevelopments/endpoint.git
+          fi
