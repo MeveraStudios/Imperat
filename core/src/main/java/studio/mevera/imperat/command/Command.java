@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
+import studio.mevera.imperat.BaseThrowableHandler;
 import studio.mevera.imperat.FlagRegistrar;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.parameters.CommandParameter;
@@ -33,7 +34,7 @@ import java.util.function.Predicate;
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface Command<S extends Source> extends CommandParameter<S>, FlagRegistrar<S> {
+public interface Command<S extends Source> extends CommandParameter<S>, FlagRegistrar<S>, BaseThrowableHandler<S> {
 
     static <S extends Source> Command.Builder<S> create(@NotNull Imperat<S> imperat, String name) {
         return create(imperat, null, name);

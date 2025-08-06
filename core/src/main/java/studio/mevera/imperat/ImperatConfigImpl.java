@@ -26,7 +26,6 @@ import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
 import studio.mevera.imperat.resolvers.*;
-import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
 import studio.mevera.imperat.util.TypeWrap;
@@ -828,38 +827,22 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         this.defaultAttachmentMode = attachmentMode;
     }
     
-    
     @Override
-    @SuppressWarnings("unchecked")
-    public void handleExecutionThrowable(
-        @NotNull final Throwable throwable,
-        final Context<S> context,
-        final Class<?> owning,
-        final String methodName
-    ) {
-        Throwable current = throwable;
-
-        while (current != null) {
-            if (current instanceof SelfHandledException selfHandledException) {
-                selfHandledException.handle(this, context);
-                return;
+    public <E extends Throwable> boolean handleExecutionThrowable(@NotNull E throwable, Context<S> context, Class<?> owning, String methodName) {
+        
+        //First handling the error using the Local(Command's) Error Handler.
+        //if its during execution, then let's use the LAST entered Command (root or sub)
+        //Since subcommands also can have their own error handlers (aka ThrowableResolver)
+        Command<S> cmd = context instanceof ExecutionContext<S> executionContext ? executionContext.getLastUsedCommand() : context.command();
+        while (cmd != null) {
+            var res = cmd.handleExecutionThrowable(throwable, context, owning, methodName);
+            if (res) {
+                return true;
             }
-
-            ThrowableResolver<? super Throwable, S> handler = (ThrowableResolver<? super Throwable, S>) this.getThrowableResolver(current.getClass());
-            if (handler != null) {
-                ImperatDebugger.debug("Found handler for exception '%s'", current.getClass().getName());
-                handler.resolve(current, context);
-                return;
-            }
-            else {
-                ImperatDebugger.debug("No handler for exception '%s'", current.getClass().getName());
-            }
-
-            current = current.getCause();
+            cmd = cmd.parent();
         }
-
-        ImperatDebugger.error(owning, methodName, throwable);
+        
+        //Trying to handle the error from the Central Throwable Handler.
+        return ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
     }
-
-
 }

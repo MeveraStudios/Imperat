@@ -17,6 +17,7 @@ import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.ProcessorException;
+import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.help.HelpProvider;
 import studio.mevera.imperat.help.PaginatedHelpTemplate;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
@@ -41,6 +42,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private boolean suppressACPermissionChecks = false;
     private CommandUsage<S> mainUsage = null;
     private CommandUsage<S> defaultUsage;
+    
+    private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
 
     private final @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> preProcessors =
             CommandProcessingChain.<S>preProcessors()
@@ -562,8 +565,27 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public Set<FlagData<S>> getRegisteredFlags() {
         return freeFlags;
     }
-
-
+    
+    @Override
+    public <T extends Throwable> void setThrowableResolver(Class<T> exception, ThrowableResolver<T, S> resolver) {
+        errorHandlers.put(exception, resolver);
+    }
+    
+    @Override @SuppressWarnings("unchecked")
+    public @Nullable <T extends Throwable> ThrowableResolver<T, S> getThrowableResolver(Class<T> exception) {
+        
+        Class<?> current = exception;
+        while (current != null && Throwable.class.isAssignableFrom(current)) {
+            var resolver = errorHandlers.get(current);
+            if (resolver != null) {
+                return (ThrowableResolver<T, S>) resolver;
+            }
+            current = current.getSuperclass();
+        }
+        
+        return null;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -575,4 +597,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public int hashCode() {
         return Objects.hash(name);
     }
+    
+    
 }

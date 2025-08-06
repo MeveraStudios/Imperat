@@ -42,9 +42,11 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     private final ImperatConfig<S> config;
     private final static String VALUES_SEPARATION_CHAR = "\\|";
 
+    private final CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> errorHandlersVisitor;
     CommandParsingVisitor(Imperat<S> imperat, AnnotationParser<S> parser, ElementSelector<MethodElement> methodSelector) {
         super(imperat, parser, methodSelector);
         this.config = imperat.config();
+        this.errorHandlersVisitor = CommandClassVisitor.newThrowableParsingVisitor(imperat, parser);
     }
 
 
@@ -111,7 +113,8 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         }
     }
 
-    private studio.mevera.imperat.command.Command<S> loadCmdInstance(Annotation cmdAnnotation, ParseElement<?> element) {
+    @SuppressWarnings("unchecked")
+    private <E extends Throwable> studio.mevera.imperat.command.Command<S> loadCmdInstance(Annotation cmdAnnotation, ParseElement<?> element) {
         PreProcessor preProcessor = element.getAnnotation(PreProcessor.class);
         PostProcessor postProcessor = element.getAnnotation(PostProcessor.class);
 
@@ -120,15 +123,17 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         //help provider for this command
         Help help = element.getAnnotation(Help.class);
-
+        
+        studio.mevera.imperat.command.Command.Builder<S> builder;
         if (cmdAnnotation instanceof Command cmdAnn) {
             final String[] values = config.replacePlaceholders(cmdAnn.value());
             final List<String> aliases = List.of(values).subList(1, values.length);
             final boolean ignoreAC = cmdAnn.skipSuggestionsChecks();
 
-            var builder = studio.mevera.imperat.command.Command.create(imperat, values[0])
+            builder = studio.mevera.imperat.command.Command.create(imperat, values[0])
                 .ignoreACPermissions(ignoreAC)
                 .aliases(aliases);
+            
             if (permission != null) {
                 builder.permission(
                     config.replacePlaceholders(permission.value())
@@ -156,8 +161,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             if(help != null) {
                 builder.helpProvider(loadHelpProviderInstance(help.value()));
             }
-
-            return builder.build();
+            
 
         } else if (cmdAnnotation instanceof SubCommand subCommand) {
             final String[] values = config.replacePlaceholders(subCommand.value());
@@ -166,7 +170,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             final List<String> aliases = List.of(values).subList(1, values.length);
             final boolean ignoreAC = subCommand.skipSuggestionsChecks();
 
-            var builder = studio.mevera.imperat.command.Command.create(imperat, values[0])
+            builder = studio.mevera.imperat.command.Command.create(imperat, values[0])
                 .ignoreACPermissions(ignoreAC)
                 .aliases(aliases);
 
@@ -199,9 +203,23 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 builder.helpProvider(loadHelpProviderInstance(help.value()));
             }
 
-            return builder.build();
         }
-        return null;
+        else {
+            return null;
+        }
+        
+        var cmd = builder.build();
+        
+        if(element instanceof ClassElement classElement) {
+            var errorHandlersCollected = errorHandlersVisitor.visitCommandClass(classElement);
+            if(errorHandlersCollected != null) {
+                for(var errorHandler : errorHandlersCollected) {
+                    cmd.setThrowableResolver((Class<E>)errorHandler.getExceptionType(), (MethodThrowableResolver<E, S>)errorHandler);
+                }
+            }
+        }
+        
+        return cmd;
     }
 
     private @Nullable studio.mevera.imperat.command.Command<S> loadCommand(
@@ -221,19 +239,21 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         }
 
         if (parseElement instanceof MethodElement method && cmd != null) {
+            
             //Loading @Command/@SubCommand on methods
             if (!methodSelector.canBeSelected(imperat, parser, method, true)) {
                 ImperatDebugger.debugForTesting("Method '%s' has failed verification", method.getName());
                 return cmd;
             }
-
+            
             var usage = loadUsage(parentCmd, cmd, method);
-
+            
             if (usage != null) {
                 cmd.addUsage(usage);
             }
-
+            
             return cmd;
+            
         } else if (parseElement instanceof ClassElement commandClass) {
             //Loading @Command/@SubCommand on classes
 

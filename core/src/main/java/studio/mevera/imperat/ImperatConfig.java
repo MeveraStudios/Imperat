@@ -47,7 +47,7 @@ import java.util.Optional;
  */
 public sealed interface ImperatConfig<S extends Source> extends
     ProcessorRegistrar<S>, ResolverRegistrar<S>,
-    CommandHelpHandler<S>, ThrowableHandler<S>
+    CommandHelpHandler<S>, BaseThrowableHandler<S>
     permits ImperatConfigImpl {
 
     /**

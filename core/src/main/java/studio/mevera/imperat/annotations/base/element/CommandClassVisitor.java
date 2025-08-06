@@ -7,7 +7,6 @@ import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ThrowableResolver;
 
 import java.util.Set;
 
@@ -17,11 +16,15 @@ import java.util.Set;
  * @param <S> the command source
  */
 public abstract class CommandClassVisitor<S extends Source, R> {
+    public final static ElementSelector<MethodElement> ERROR_HANDLING_METHOD_SELECTOR =
+            ElementSelector.<MethodElement>create()
+                    .addRule(MethodRules.IS_PUBLIC)
+                    .addRule(MethodRules.HAS_EXCEPTION_HANDLER_ANNOTATION)
+                    .addRule(MethodRules.HAS_EXCEPTION_HANDLER_PARAMS_IN_ORDER);
 
     protected final Imperat<S> imperat;
     protected final AnnotationParser<S> parser;
     protected final ElementSelector<MethodElement> methodSelector;
-
     protected CommandClassVisitor(
         Imperat<S> imperat,
         AnnotationParser<S> parser,
@@ -57,10 +60,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
         return new ThrowableParsingVisitor<>(
                 imperat,
                 parser,
-                ElementSelector.<MethodElement>create()
-                        .addRule(MethodRules.IS_PUBLIC)
-                        .addRule(MethodRules.HAS_EXCEPTION_HANDLER_ANNOTATION)
-                        .addRule(MethodRules.HAS_EXCEPTION_HANDLER_PARAMS_IN_ORDER)
+                ERROR_HANDLING_METHOD_SELECTOR
         );
     }
     
