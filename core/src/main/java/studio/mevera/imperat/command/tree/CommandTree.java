@@ -48,6 +48,11 @@ public interface CommandTree<S extends Source> {
      */
     void parseUsage(@NotNull CommandUsage<S> usage);
     
+    /**
+     * Compute Permissions in APA(AutoPermissionAssign) mode
+     * This is a method that shall take some considerable amount of resources whenever
+     * an instance of {@link Command} is created using its {@link Command.Builder}.
+     */
     void computePermissions();
     
     /**

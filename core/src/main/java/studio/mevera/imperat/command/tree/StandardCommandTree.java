@@ -38,7 +38,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
-    private final SuggestionCache<S> suggestionCache = new SuggestionCache<>();
+    private final CommandSuggestionCache<S> commandSuggestionCache = new CommandSuggestionCache<>();
     
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
         this.rootCommand = command;
@@ -763,7 +763,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final String prefix = context.getArgToComplete().value();
         final boolean hasPrefix = prefix != null && !prefix.isBlank();
         
-        var lastNodes = suggestionCache.getLastNodes(context.command(), context.source(), context.arguments());
+        var lastNodes = commandSuggestionCache.getLastNodes(context.source(), context.arguments());
         if(lastNodes != null) {
             for(var lastNode : lastNodes) {
                 collectSuggestionsOptimized(
@@ -775,6 +775,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         return tabCompleteIterativeDFS(context, targetDepth, prefix, hasPrefix, results);
     }
+    
     
     /**
      * ULTRA-OPTIMIZED Iterative tab completion DFS
@@ -799,14 +800,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             final var currentNode = stack.pop();
             final int currentDepth = currentNode.getDepth();
             
-            // FAST PATH: Are we at suggestion depth?
+            // Are we at suggestion depth?
             if (targetDepth - currentDepth == 1) {
                 // COLLECT SUGGESTIONS from all children at this level
                 collectSuggestionsOptimized(
                         currentNode, context, prefix,
                         hasPrefix, source, results
                 );
-                suggestionCache.computeInput(context.command(), context.source(), context.arguments(), currentNode);
+                commandSuggestionCache.computeInput(context.source(), context.arguments(), currentNode);
                 continue; // Don't traverse deeper from suggestion nodes
             }
             
@@ -821,7 +822,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
     
     /**
-     * HYPER-OPTIMIZED suggestion collection - Zero overhead
+     * suggestion collection in the most optimal way possible
      */
     private void collectSuggestionsOptimized(
             ParameterNode<S, ?> node,
@@ -860,7 +861,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
     
     /**
-     * FAST child validation and stack addition for DFS
+     * Child validation and stack addition for DFS
      * Children added in REVERSE order to maintain left-to-right traversal
      */
     private void addValidChildrenToStackDFS(
@@ -882,6 +883,10 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 stack.push(child);
                 
                 if(child.isCommand()) {
+                    /*
+                        If a subcommand matches this input then
+                        we don't need to further check other neighbours
+                    */
                     break;
                 }
             }
