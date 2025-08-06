@@ -1,9 +1,11 @@
 package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
@@ -54,6 +56,15 @@ public interface CommandTree<S extends Source> {
      * an instance of {@link Command} is created using its {@link Command.Builder}.
      */
     void computePermissions();
+    
+    /**
+     * This should fetch the command parameter's assigned permission.
+     * Use this method when necessary only.
+     * @throws IllegalStateException when the APA(AutoPermissionAssign) mode is NOT enabled.
+     * @param commandParameter the parameter
+     * @return the permission that was auto assigned for it.
+     */
+    @Nullable String getAutoAssignedPermission(@NotNull CommandParameter<S> commandParameter);
     
     /**
      * Matches the given input against this command tree and returns a dispatch context.

@@ -1,6 +1,7 @@
 package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
@@ -9,7 +10,6 @@ import studio.mevera.imperat.context.*;
 import studio.mevera.imperat.resolvers.PermissionChecker;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeUtility;
-
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -38,6 +38,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
+    
+    private final Map<CommandParameter<S>, String> assignedPermissions = new HashMap<>();
+    
     private final CommandSuggestionCache<S> commandSuggestionCache = new CommandSuggestionCache<>();
     
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
@@ -124,6 +127,15 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
     }
     
+    @Override
+    public @Nullable String getAutoAssignedPermission(@NotNull CommandParameter<S> commandParameter) {
+        if(!imperatConfig.isAutoPermissionAssignMode()) {
+            throw new IllegalStateException("APA mode must be enabled!");
+        }
+        
+        return assignedPermissions.get(commandParameter);
+    }
+    
     private void computePermissionsRecursive(ParameterNode<S, ?> node, List<ParameterNode<S, ?>> pathNodes, String rootPermission) {
         // Add current node to the path
         List<ParameterNode<S, ?>> currentPath = new ArrayList<>(pathNodes);
@@ -134,6 +146,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             if (node.isExecutable() || node.isCommand()) {
                 String permission = buildHierarchicalPermission(rootPermission, currentPath);
                 imperatConfig.getPermissionAssigner().assign(node, permission);
+                assignedPermissions.put(node.data, permission);
             } else {
                 ParameterNode<S, ?> firstParentCmd = node;
                 while (firstParentCmd != null) {
@@ -146,6 +159,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                     firstParentCmd = root;
                 }
                 imperatConfig.getPermissionAssigner().assign(node, firstParentCmd.getPermission());
+                assignedPermissions.put(node.data, firstParentCmd.getPermission());
             }
         }
         
