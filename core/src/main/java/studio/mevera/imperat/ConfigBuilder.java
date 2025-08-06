@@ -48,7 +48,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param cmdPrefix the prefix string to be used before commands
      * @return the updated instance of the ConfigBuilder to allow for method chaining
      */
-    // CommandProcessingChain Prefix
     public B commandPrefix(String cmdPrefix) {
         config.setCommandPrefix(cmdPrefix);
         return (B) this;
@@ -61,7 +60,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param permissionChecker the {@link PermissionChecker} implementation used to handle permission checks for commands
      * @return the current {@link ConfigBuilder} instance for method chaining and further configuration
      */
-    // Permission Resolver
     public B permissionChecker(PermissionChecker<S> permissionChecker) {
         config.setPermissionResolver(permissionChecker);
         return (B) this;
@@ -180,7 +178,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param contextFactory the context factory to be used for generating contexts
      * @return the current instance of {@code ConfigBuilder} for method chaining
      */
-    // Context Factory
     public B contextFactory(ContextFactory<S> contextFactory) {
         config.setContextFactory(contextFactory);
         return (B) this;
@@ -192,7 +189,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param usageVerifier the {@link UsageVerifier} instance to validate command usages
      * @return the current {@link ConfigBuilder} instance for fluent chaining
      */
-    // Usage Verifier
     public B usageVerifier(UsageVerifier<S> usageVerifier) {
         config.setUsageVerifier(usageVerifier);
         return (B) this;
@@ -211,16 +207,110 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         return (B) this;
     }
     
+    /**
+     * Registers a custom annotation replacer for the specified annotation type.
+     * This allows for dynamic transformation or substitution of annotations during
+     * command processing, enabling advanced annotation-based command customization.
+     *
+     * <p>Annotation replacers are particularly useful for:
+     * <ul>
+     *   <li>Converting legacy annotation formats to newer ones</li>
+     *   <li>Applying conditional annotation logic based on runtime context</li>
+     *   <li>Implementing annotation inheritance or composition patterns</li>
+     *   <li>Providing backwards compatibility for deprecated annotations</li>
+     * </ul>
+     *
+     * <p><strong>Example usage:</strong>
+     * <pre>{@code
+     * builder.annotationReplacer(LegacyCommand.class, (annotation, context) -> {
+     *     return Command.builder()
+     *         .name(annotation.value())
+     *         .permission(annotation.permission())
+     *         .build();
+     * });
+     * }</pre>
+     *
+     * @param <A> the type of annotation to be replaced by the {@link AnnotationReplacer}
+     * @param annotationType the class object representing the annotation type to register
+     *                      a replacer for, must not be {@code null}
+     * @param replacer the annotation replacer implementation that will handle
+     *                transformations for the specified annotation type, must not be {@code null}
+     * @return this builder instance for method chaining
+     *
+     * @throws IllegalArgumentException if annotationType or replacer is {@code null}
+     * @see AnnotationReplacer
+     */
     public <A extends Annotation> B annotationReplacer(Class<A> annotationType, AnnotationReplacer<A> replacer) {
         config.registerAnnotationReplacer(annotationType, replacer);
         return (B) this;
     }
     
+    /**
+     * Configures whether multiple optional parameters can be suggested simultaneously
+     * during tab completion at the same command depth level. This is a builder method
+     * that provides a fluent interface for the underlying configuration setting.
+     *
+     * <p>This setting affects the behavior of tab completion suggestions without
+     * modifying the underlying command structure. The command tree and parameter
+     * validation remain unchanged regardless of this setting.
+     *
+     * <p><strong>Examples:</strong>
+     * <pre>{@code
+     * // Command structure: /command [count] [extra]
+     * //                              \[extra]
+     *
+     * // When enabled (true):
+     * /command <TAB> → shows: [count], [extra]
+     *
+     * // When disabled (false):
+     * /command <TAB> → shows: [count] (first optional only)
+     * }</pre>
+     *
+     * <p><strong>Default behavior:</strong> The default value depends on the framework
+     * configuration, but typically defaults to {@code false} for simpler user experience.
+     *
+     * @param overlap {@code true} to allow multiple optional parameter suggestions,
+     *               {@code false} to limit to one optional parameter suggestion at a time
+     * @return this builder instance for method chaining
+     *
+     * @see ImperatConfig#isOptionalParameterSuggestionOverlappingEnabled()
+     * @see SuggestionResolver
+     */
     public B overlapOptionalParameterSuggestions(boolean overlap) {
         config.setOptionalParameterSuggestionOverlap(overlap);
         return (B) this;
     }
     
+    /**
+     * Sets the default suggestion resolver to be used when no specific resolver
+     * is defined for a parameter or command context. This resolver acts as a
+     * fallback mechanism for tab completion suggestions.
+     *
+     * <p>The default suggestion resolver is invoked when:
+     * <ul>
+     *   <li>A parameter has no specific {@link SuggestionResolver} defined</li>
+     *   <li>A command argument requires suggestions but no custom logic exists</li>
+     *   <li>Fallback suggestions are needed during error recovery</li>
+     * </ul>
+     *
+     * <p><strong>Example usage:</strong>
+     * <pre>{@code
+     * builder.setDefaultSuggestionResolver((source, context, input) -> {
+     *     // Provide generic suggestions like player names, common values, etc.
+     *     return Arrays.asList("player1", "player2", "default_value");
+     * });
+     * }</pre>
+     *
+     * <p><strong>Note:</strong> Setting this to {@code null} will disable default
+     * suggestions, potentially leaving some parameters without tab completion support.
+     *
+     * @param resolver the default suggestion resolver implementation, or {@code null}
+     *                to disable default suggestions
+     * @return this builder instance for method chaining
+     *
+     * @see SuggestionResolver
+     * @see ImperatConfig#getDefaultSuggestionResolver()
+     */
     public B setDefaultSuggestionResolver(SuggestionResolver<S> resolver) {
         config.setDefaultSuggestionResolver(resolver);
         return (B) this;
