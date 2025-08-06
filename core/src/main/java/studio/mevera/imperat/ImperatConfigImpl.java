@@ -103,36 +103,36 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     private void regDefThrowableResolvers() {
 
-        this.setThrowableResolver(InvalidSourceException.class, (exception, imperat, context) -> {
+        this.setThrowableResolver(InvalidSourceException.class, (exception, context) -> {
             throw new UnsupportedOperationException("Couldn't find any source resolver for valueType `"
                 + exception.getTargetType().getTypeName() + "'");
         });
 
-        this.setThrowableResolver(UnknownFlagException.class,(ex, imperat, context)-> {
+        this.setThrowableResolver(UnknownFlagException.class,(ex, context)-> {
             context.source().error("Unknown flag '" + ex.getInput() + "'");
         });
 
-        this.setThrowableResolver(MissingFlagInputException.class,(ex, imperat, context)-> {
+        this.setThrowableResolver(MissingFlagInputException.class,(ex, context)-> {
             context.source().error("Please enter the value for flag '" + ex.getInput() + "'");
         });
 
-        this.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, imperat, context)-> {
+        this.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
             context.source().error("Only players can do this!");
         });
 
-        this.setThrowableResolver(ValueOutOfConstraintException.class, (ex, imperat, context)-> {
+        this.setThrowableResolver(ValueOutOfConstraintException.class, (ex, context)-> {
             context.source().error("Input '" + ex.getInput() + "' is not one of: [" + String.join(",",  ex.getAllowedValues()) + "]");
         });
 
-        this.setThrowableResolver(WordOutOfRestrictionsException.class, (ex, imperat, context)-> {
+        this.setThrowableResolver(WordOutOfRestrictionsException.class, (ex, context)-> {
             context.source().error("Word '" + ex.getInput() + "' is not within the given restrictions=" + String.join(",",ex.getRestrictions()));
         });
 
-        this.setThrowableResolver(UnknownSubCommandException.class, (exception, imperat, context) -> {
+        this.setThrowableResolver(UnknownSubCommandException.class, (exception, context) -> {
             context.source().error("Unknown sub-command '" + exception.getInput() + "'");
         });
 
-        this.setThrowableResolver(InvalidMapEntryFormatException.class, (exception, imperat, context) -> {
+        this.setThrowableResolver(InvalidMapEntryFormatException.class, (exception, context) -> {
             InvalidMapEntryFormatException.Reason reason = exception.getReason();
             String extraMsg = "";
             if(reason == InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR) {
@@ -143,19 +143,19 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             context.source().error("Invalid map entry '" + exception.getInput() + "'" + (!extraMsg.isEmpty() ? ", " + extraMsg : ""));
         });
 
-        this.setThrowableResolver(InvalidBooleanException.class, (exception, imperat, context) -> {
+        this.setThrowableResolver(InvalidBooleanException.class, (exception, context) -> {
             context.source().error("Invalid boolean '" + exception.getInput() + "'");
         });
 
-        this.setThrowableResolver(InvalidEnumException.class, (exception, imperat, context) -> {
+        this.setThrowableResolver(InvalidEnumException.class, (exception, context) -> {
             context.source().error("Invalid " + exception.getEnumType().getTypeName() + " '" + exception.getInput() + "'");
         });
 
-        this.setThrowableResolver(InvalidNumberFormatException.class, (exception, imperat, context) -> {
+        this.setThrowableResolver(InvalidNumberFormatException.class, (exception, context) -> {
             context.source().error("Invalid " + exception.getNumberTypeDisplay() + " format '" + exception.getInput() + "'");
         });
 
-        this.setThrowableResolver(NumberOutOfRangeException.class, ((exception, imperat, context) -> {
+        this.setThrowableResolver(NumberOutOfRangeException.class, ((exception, context) -> {
             NumericRange range = exception.getRange();
             final StringBuilder builder = new StringBuilder();
             if (range.getMin() != Double.MIN_VALUE && range.getMax() != Double.MAX_VALUE)
@@ -173,7 +173,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
         this.setThrowableResolver(
             SourceException.class,
-            (exception, imperat, context) -> {
+            (exception, context) -> {
                 final String msg = exception.getMessage();
                 switch (exception.getType()) {
                     case SEVERE -> context.source().error(msg);
@@ -184,13 +184,13 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         );
 
         this.setThrowableResolver(
-            InvalidUUIDException.class, (exception, imperat, context) ->
+            InvalidUUIDException.class, (exception, context) ->
                 context.source().error("Invalid uuid-format '" + exception.getInput() + "'")
         );
 
         this.setThrowableResolver(
             CooldownException.class,
-            (exception, imperat, context) -> {
+            (exception, context) -> {
                 context.source().error(
                     "Please wait %d second(s) to execute this command again!".formatted(exception.getRemainingDuration().toSeconds())
                 );
@@ -198,25 +198,25 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         );
         this.setThrowableResolver(
             PermissionDeniedException.class,
-            (exception, imperat, context) -> context.source().error("You don't have permission to use this command!")
+            (exception, context) -> context.source().error("You don't have permission to use this command!")
         );
         this.setThrowableResolver(
             InvalidSyntaxException.class,
-            (exception, imperat, context) -> {
+            (exception, context) -> {
                 S source = context.source();
                 //if usage is null, find the closest usage
                 source.error("Invalid command usage '/" + context.command().name() + " " + context.arguments().join(" ") + "'");
                 
                 var closestUsage = exception.getExecutionResult().getClosestUsage();
                 if(closestUsage != null) {
-                    source.error("Closest Command Usage: " + (imperat.commandPrefix() + CommandUsage.format(context.label(), closestUsage)) );
+                    source.error("Closest Command Usage: " + (context.imperatConfig().commandPrefix() + CommandUsage.format(context.label(), closestUsage)) );
                 }
             }
         );
         
         this.setThrowableResolver(
             NoHelpException.class,
-            (exception, imperat, context) -> {
+            (exception, context) -> {
                 Command<S> cmdUsed;
                 if (context instanceof ExecutionContext<S> resolvedContext) {
                     cmdUsed = resolvedContext.getLastUsedCommand();
@@ -229,7 +229,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         );
         this.setThrowableResolver(
             NoHelpPageException.class,
-            (exception, imperat, context) -> {
+            (exception, context) -> {
                 if (!(context instanceof ExecutionContext<S> resolvedContext) || resolvedContext.getDetectedUsage() == null) {
                     throw new IllegalCallerException("Called NoHelpPageCaption in wrong the wrong sequence/part of the code");
                 }
@@ -848,7 +848,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             ThrowableResolver<? super Throwable, S> handler = (ThrowableResolver<? super Throwable, S>) this.getThrowableResolver(current.getClass());
             if (handler != null) {
                 ImperatDebugger.debug("Found handler for exception '%s'", current.getClass().getName());
-                handler.resolve(current, this, context);
+                handler.resolve(current, context);
                 return;
             }
             else {

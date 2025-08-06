@@ -79,7 +79,6 @@ public sealed interface ImperatConfig<S extends Source> extends
      */
     <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer);
     
-    
     /**
      * Apply annotation replacers.
      * @param imperat the imperat instance

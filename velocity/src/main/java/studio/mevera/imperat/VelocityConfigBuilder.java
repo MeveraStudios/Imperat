@@ -45,7 +45,7 @@ public final class VelocityConfigBuilder extends ConfigBuilder<VelocitySource, V
 
     private void addThrowableHandlers() {
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, imperat, context) ->
+            UnknownPlayerException.class, (exception, context) ->
                 context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
         );
     }

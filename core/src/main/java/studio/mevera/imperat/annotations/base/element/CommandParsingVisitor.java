@@ -37,12 +37,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ApiStatus.Internal
-final class SimpleCommandClassVisitor<S extends Source> extends CommandClassVisitor<S> {
+final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set<studio.mevera.imperat.command.Command<S>>> {
     
     private final ImperatConfig<S> config;
     private final static String VALUES_SEPARATION_CHAR = "\\|";
 
-    SimpleCommandClassVisitor(Imperat<S> imperat, AnnotationParser<S> parser, ElementSelector<MethodElement> methodSelector) {
+    CommandParsingVisitor(Imperat<S> imperat, AnnotationParser<S> parser, ElementSelector<MethodElement> methodSelector) {
         super(imperat, parser, methodSelector);
         this.config = imperat.config();
     }

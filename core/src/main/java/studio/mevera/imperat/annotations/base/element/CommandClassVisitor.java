@@ -7,6 +7,7 @@ import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.ThrowableResolver;
 
 import java.util.Set;
 
@@ -15,7 +16,7 @@ import java.util.Set;
  *
  * @param <S> the command source
  */
-public abstract class CommandClassVisitor<S extends Source> {
+public abstract class CommandClassVisitor<S extends Source, R> {
 
     protected final Imperat<S> imperat;
     protected final AnnotationParser<S> parser;
@@ -30,16 +31,17 @@ public abstract class CommandClassVisitor<S extends Source> {
         this.parser = parser;
         this.methodSelector = methodSelector;
     }
-
-    public abstract Set<Command<S>> visitCommandClass(
+    
+    
+    public abstract R visitCommandClass(
         @NotNull ClassElement clazz
     );
 
-    public static <S extends Source> CommandClassVisitor<S> newSimpleVisitor(
+    public static <S extends Source> CommandClassVisitor<S, Set<Command<S>>> newCommandParsingVisitor(
         Imperat<S> imperat,
         AnnotationParser<S> parser
     ) {
-        return new SimpleCommandClassVisitor<>(
+        return new CommandParsingVisitor<>(
             imperat,
             parser,
             ElementSelector.<MethodElement>create()
@@ -47,4 +49,19 @@ public abstract class CommandClassVisitor<S extends Source> {
                 //.addRule(MethodRules.HAS_LEAST_ONLY_ONE_MAIN_ANNOTATION)
         );
     }
+    
+    public static <S extends Source> CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> newThrowableParsingVisitor(
+            Imperat<S> imperat,
+            AnnotationParser<S> parser
+    ) {
+        return new ThrowableParsingVisitor<>(
+                imperat,
+                parser,
+                ElementSelector.<MethodElement>create()
+                        .addRule(MethodRules.IS_PUBLIC)
+                        .addRule(MethodRules.HAS_EXCEPTION_HANDLER_ANNOTATION)
+                        .addRule(MethodRules.HAS_EXCEPTION_HANDLER_PARAMS_IN_ORDER)
+        );
+    }
+    
 }

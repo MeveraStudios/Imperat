@@ -5,20 +5,25 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.CommandClassVisitor;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
+import studio.mevera.imperat.annotations.base.element.MethodThrowableResolver;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
+import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.ThrowableResolver;
 
 import java.lang.annotation.Annotation;
+import java.util.Set;
 
 @ApiStatus.Internal
 final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
 
     final AnnotationRegistry annotationRegistry;
     private final ElementSelector<MethodElement> methodSelector;
-    private final CommandClassVisitor<S> visitor;
-
+    private final CommandClassVisitor<S, Set<Command<S>>> commandParsingVisitor;
+    private final CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> throwableHandlerVisitor;
+    
     AnnotationParserImpl(Imperat<S> dispatcher) {
         super(dispatcher);
         this.annotationRegistry = new AnnotationRegistry();
@@ -28,7 +33,8 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
             MethodRules.IS_PUBLIC/*.and(MethodRules.RETURNS_VOID)*/.and(MethodRules.HAS_A_MAIN_ANNOTATION)
         );
 
-        this.visitor = CommandClassVisitor.newSimpleVisitor(dispatcher, this);
+        this.commandParsingVisitor = CommandClassVisitor.newCommandParsingVisitor(dispatcher, this);
+        this.throwableHandlerVisitor = CommandClassVisitor.newThrowableParsingVisitor(dispatcher, this);
     }
 
 
@@ -36,10 +42,16 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
     public <T> void parseCommandClass(T instance) {
         //loading dependency
         AnnotationReader<S> reader = AnnotationReader.read(imperat, methodSelector, this, instance);
-        reader.accept(visitor);
+        reader.acceptCommandsParsing(commandParsingVisitor);
     }
-
-
+    
+    @Override
+    public <T> void parseThrowableHandlerClass(T instance) {
+        AnnotationReader<S> reader = AnnotationReader.read(imperat, methodSelector, this, instance);
+        reader.acceptThrowableResolversParsing(throwableHandlerVisitor);
+    }
+    
+    
     /**
      * Registers a valueType of annotations so that it can be
      * detected by {@link AnnotationReader} , it's useful as it allows that valueType of annotation

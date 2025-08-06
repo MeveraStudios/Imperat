@@ -37,7 +37,7 @@ public final class VelocityImperat extends BaseImperat<VelocitySource> {
 
         // Define custom exception handling for unknown players
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, imperat, context) ->
+            UnknownPlayerException.class, (exception, context) ->
                 context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
         );
 

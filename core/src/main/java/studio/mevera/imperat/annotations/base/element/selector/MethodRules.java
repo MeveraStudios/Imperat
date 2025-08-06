@@ -1,9 +1,13 @@
 package studio.mevera.imperat.annotations.base.element.selector;
 
+import studio.mevera.imperat.annotations.ExceptionHandler;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.util.TypeUtility;
+import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -46,7 +50,26 @@ public interface MethodRules {
             throw methodError(element, "doesn't have any main annotations!");
         })
         .build();
-
+    
+    Rule<MethodElement> HAS_EXCEPTION_HANDLER_ANNOTATION = Rule.<MethodElement>builder()
+            .condition((imp, parser, methodElement)->
+                    methodElement.getDeclaredAnnotation(ExceptionHandler.class) != null)
+            .build();
+    
+    Rule<MethodElement> HAS_EXCEPTION_HANDLER_PARAMS_IN_ORDER = Rule.<MethodElement>builder()
+            .condition((imp, parser, methodElement)-> {
+                var params = methodElement.getParameters();
+                if(params.size() != 2) {
+                    return false;
+                }
+                
+                var first = params.get(0);
+                var second = params.get(1);
+                return TypeWrap.of(first.getElement().getType()).isSubtypeOf(Throwable.class) &&
+                        TypeUtility.matches(second.getElement().getType(), Context.class);
+            })
+            .build();
+    
     private static IllegalStateException methodError(MethodElement element, String msg) {
         ClassElement parent = (ClassElement) element.getParent();
 

@@ -59,19 +59,19 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
 
     private void addThrowableHandlers() {
-        config.setThrowableResolver(InvalidSelectorFieldCriteriaFormat.class, (ex, imperat, context)-> {
+        config.setThrowableResolver(InvalidSelectorFieldCriteriaFormat.class, (ex, context)-> {
             context.source().error("Invalid field-criteria format '" + ex.getFieldCriteriaInput() + "'");
         });
 
-        config.setThrowableResolver(UnknownSelectorFieldException.class, (ex, imperat, context)-> {
+        config.setThrowableResolver(UnknownSelectorFieldException.class, (ex, context)-> {
             context.source().error("Unknown selection field '" + ex.getFieldEntered() + "'");
         });
 
-        config.setThrowableResolver(UnknownEntitySelectionTypeException.class, ((exception, imperat, context) -> {
+        config.setThrowableResolver(UnknownEntitySelectionTypeException.class, ((exception, context) -> {
             context.source().error("Unknown selection type '" + exception.getInput() + "'");
         }));
 
-        config.setThrowableResolver(InvalidLocationFormatException.class, (exception, imperat, context) -> {
+        config.setThrowableResolver(InvalidLocationFormatException.class, (exception, context) -> {
 
             InvalidLocationFormatException.Reason reason = exception.getReason();
             String msg = switch (reason) {
@@ -86,15 +86,15 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         });
 
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, imperat, context) ->
+            UnknownPlayerException.class, (exception, context) ->
                 context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
         );
         config.setThrowableResolver(
-            UnknownOfflinePlayerException.class, (exception, imperat, context) ->
+            UnknownOfflinePlayerException.class, (exception, context) ->
                 context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to exist")
         );
         config.setThrowableResolver(
-            UnknownWorldException.class, (exception, imperat, context) ->
+            UnknownWorldException.class, (exception, context) ->
                 context.source().error("A world with the name '" + exception.getName() + "' doesn't seem to exist")
         );
 

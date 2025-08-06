@@ -240,8 +240,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      *         chaining for further configuration.
      */
     // Throwable Resolver
-    public <T extends Throwable> B throwableResolver(
-        Class<T> exception, ThrowableResolver<T, S> handler) {
+    public <T extends Throwable> B throwableResolver(Class<T> exception, ThrowableResolver<T, S> handler) {
         config.setThrowableResolver(exception, handler);
         return (B) this;
     }

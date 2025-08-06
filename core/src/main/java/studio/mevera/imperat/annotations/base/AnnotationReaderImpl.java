@@ -5,17 +5,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.ExternalSubCommand;
-import studio.mevera.imperat.annotations.base.element.ClassElement;
-import studio.mevera.imperat.annotations.base.element.CommandClassVisitor;
-import studio.mevera.imperat.annotations.base.element.MethodElement;
-import studio.mevera.imperat.annotations.base.element.RootCommandClass;
+import studio.mevera.imperat.annotations.base.element.*;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 
 @ApiStatus.Internal
 final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S> {
@@ -122,10 +121,25 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
     }
 
     @Override
-    public void accept(CommandClassVisitor<S> visitor) {
-        for (Command<S> loaded : classElement.accept(visitor)) {
+    public void acceptCommandsParsing(CommandClassVisitor<S, Set<Command<S>>> visitor) {
+        var collectedCommands = classElement.accept(visitor);
+        if(collectedCommands == null) return;
+        
+        for (Command<S> loaded : collectedCommands) {
             imperat.registerCommand(loaded);
         }
     }
-
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public <E extends Throwable> void acceptThrowableResolversParsing(CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> visitor) {
+        Set<MethodThrowableResolver<?, S>> collectedErrorHandlers = classElement.accept(visitor);
+        if(collectedErrorHandlers == null) return;
+        
+        for (var errorHandler : collectedErrorHandlers) {
+            Class<E> castedExceptionType = (Class<E>) errorHandler.getExceptionType();
+            
+            imperat.config().setThrowableResolver(castedExceptionType, (MethodThrowableResolver<E, S>)errorHandler);
+        }
+    }
 }

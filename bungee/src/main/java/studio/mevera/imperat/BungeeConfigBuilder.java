@@ -26,6 +26,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
 
     BungeeConfigBuilder(Plugin plugin, @Nullable AdventureProvider<CommandSender> adventureProvider) {
         this.plugin = plugin;
+        this.adventureProvider = adventureProvider;
         config.setPermissionResolver(DEFAULT_PERMISSION_RESOLVER);
         addThrowableHandlers();
         registerSourceResolvers();
@@ -63,7 +64,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
 
     private void addThrowableHandlers() {
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, imperat, context) ->
+            UnknownPlayerException.class, (exception, context) ->
                 context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
         );
     }

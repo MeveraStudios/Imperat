@@ -4,11 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.Dependency;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
-import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownDependencyException;
 import studio.mevera.imperat.util.reflection.Reflections;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -140,14 +138,15 @@ public final class ClassElement extends ParseElement<Class<?>> {
         return instance;
     }
 
-    public <S extends Source> Set<Command<S>> accept(CommandClassVisitor<S> visitor) {
+    public <S extends Source, R> R accept(CommandClassVisitor<S, R> visitor) {
         try {
             return visitor.visitCommandClass(this);
         } catch (Throwable ex) {
             ex.printStackTrace();
-            return Collections.emptySet();
+            return null;
         }
     }
+    
 
     public @Nullable ParseElement<?> getChildElement(Predicate<ParseElement<?>> predicate) {
         for (var element : getChildren()) if (predicate.test(element)) return element;
