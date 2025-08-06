@@ -74,7 +74,7 @@ public final class CommandTreeVisualizer<S extends Source> {
     private TreeNode buildTreeStructure(ParameterNode<S, ?> node, TreeNode parent) {
         if (node == null) return null;
         
-        NodeType type = parent == null ? NodeType.ROOT : determineNodeType(node, parent.type);
+        NodeType type = parent == null ? NodeType.ROOT : determineNodeType(node);
         TreeNode treeNode = new TreeNode(node, type);
         
         for (ParameterNode<S, ?> child : node.getChildren()) {
@@ -257,9 +257,10 @@ public final class CommandTreeVisualizer<S extends Source> {
                     
                     if (canvas[boxY + 3][childCenterX] == HORIZONTAL_LINE.charAt(0)) {
                         canvas[boxY + 3][childCenterX] = T_JUNCTION.charAt(0);
-                    } else if (canvas[boxY + 3][childCenterX] == T_JUNCTION.charAt(0)) {
-                        // Already set
                     }
+                    /*else if (canvas[boxY + 3][childCenterX] == T_JUNCTION.charAt(0)) {
+                        // Already set
+                    }*/
                 }
             }
         }
@@ -322,7 +323,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         return max;
     }
     
-    private NodeType determineNodeType(ParameterNode<S, ?> node, NodeType parentType) {
+    private NodeType determineNodeType(ParameterNode<S, ?> node) {
         // Adjust based on your actual node structure
         String format = node.format().toLowerCase();
         if (format.startsWith("-") || format.startsWith("--")) {
@@ -404,7 +405,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         
         // Draw node box
         String nodeText = node.format();
-        builder.append("[").append(nodeText).append("]\n");
+        builder.append(nodeText).append("\n");
         
         // Draw children
         List<ParameterNode<S, ?>> children = node.getChildren();

@@ -188,7 +188,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     @Override
     public void visualizeTree() {
         ImperatDebugger.debug("Visualizing %s's tree", this.name);
-        visualizer.visualize();
+        visualizer.visualizeSimple();
     }
 
     /**
