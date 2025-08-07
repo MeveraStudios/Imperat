@@ -1,6 +1,7 @@
 package studio.mevera.imperat;
 
 import org.jetbrains.annotations.Contract;
+import studio.mevera.imperat.annotations.ExceptionHandler;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.AnnotationReader;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
@@ -18,8 +19,14 @@ import java.lang.annotation.Annotation;
  * @param <S> the type of the command source (e.g., console, player, etc.)
  */
 public interface AnnotationInjector<S extends Source> {
-
-
+    
+    /**
+     * Fetches the annotation parser
+     * @see AnnotationParser
+     * @return the annotation parser instance.
+     */
+    AnnotationParser<S> getAnnotationParser();
+    
     /**
      * Changes the instance of {@link AnnotationParser}
      *
@@ -49,5 +56,14 @@ public interface AnnotationInjector<S extends Source> {
         final Class<A> type,
         final AnnotationReplacer<A> replacer
     );
+    
+    /**
+     * Parses the instance's class that contains {@link ExceptionHandler} annotation
+     * into multiple throwable resolvers to be registered and injected into {@link Imperat}
+     * @param object the annotated class containing the exception handling methods.
+     */
+    default void registerThrowableHandler(Object object) {
+        getAnnotationParser().parseThrowableHandlerClass(object);
+    }
 
 }

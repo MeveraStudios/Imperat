@@ -918,7 +918,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
     
     /**
-     * Alternative DFS implementation using recursion (maybe faster for shallow trees)
+     * Alternative DFS implementation using recursion (may be faster for shallow trees)
      * Use this if your command trees are typically shallow (< 10 levels)
      */
     private List<String> tabCompleteRecursiveDFS(

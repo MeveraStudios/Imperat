@@ -11,6 +11,7 @@ import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
+import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
@@ -191,6 +192,20 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     public B usageVerifier(UsageVerifier<S> usageVerifier) {
         config.setUsageVerifier(usageVerifier);
         return (B) this;
+    }
+    
+    /**
+     * Registers a {@link ReturnResolver}
+     * @param type the type of value to return using the return resolver
+     * @param returnResolver the return resolving instance.
+     * @return the current {@link ConfigBuilder} instance for fluent chaining
+     */
+    public B returnResolver(Type type, ReturnResolver<S, ?> returnResolver) {
+        if(!returnResolver.getType().equals(type)) {
+            throw new IllegalArgumentException("The return resolver entered, has a to-return type that does not match the entered type.");
+        }
+        config.registerReturnResolver(type, returnResolver);
+        return(B)this;
     }
 
     /**
