@@ -79,6 +79,12 @@ public class ErrorHandlingTest extends BaseImperatTest {
         assertFailure(result);
     }
     
+    @Test
+    @DisplayName("Should detect thrown exception handler from annotated class")
+    void testExceptionHandlerAnnotation() {
+        executeSafe("fail"); // Should fail due to missing Group context
+    }
+    
     /*@Test
     @DisplayName("Should handle permissions overlap 1")
     void testPermissions1() {

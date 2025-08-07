@@ -510,7 +510,12 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     public Collection<? extends Command<S>> getRegisteredCommands() {
         return commands.values();
     }
-
+    
+    @Override
+    public @NotNull AnnotationParser<S> getAnnotationParser() {
+        return annotationParser;
+    }
+    
     @Override
     public void debug(boolean treeVisualizing) {
         for (var cmd : commands.values()) {

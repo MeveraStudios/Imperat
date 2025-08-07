@@ -12,6 +12,7 @@ import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.ParameterGroup;
 import studio.mevera.imperat.tests.contextresolver.PlayerData;
 import studio.mevera.imperat.tests.contextresolver.PlayerDataContextResolver;
+import studio.mevera.imperat.tests.errors.GlobalHandler;
 import studio.mevera.imperat.tests.parameters.CustomDuration;
 import studio.mevera.imperat.tests.parameters.CustomDurationParameterType;
 import studio.mevera.imperat.tests.parameters.JavaDurationParameterType;
@@ -42,6 +43,8 @@ public class ImperatTestGlobals {
             .build();
     
     static {
+        IMPERAT.registerThrowableHandler(new GlobalHandler());
+        
         IMPERAT.registerAnnotationReplacer(MyCustomAnnotation.class,(element, ann)-> {
             Command cmdAnn = AnnotationFactory.create(Command.class, "value",
                     new String[]{ann.name()});
@@ -74,7 +77,8 @@ public class ImperatTestGlobals {
                 new ContextResolvingCmd(),
                 new FirstOptionalArgumentCmd(),
                 new SomeClass(),
-                new TestPerm()
+                new TestPerm(),
+                new FailingCmd()
         );
         
         

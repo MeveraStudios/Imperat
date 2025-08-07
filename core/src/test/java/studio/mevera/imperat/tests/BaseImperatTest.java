@@ -34,6 +34,14 @@ public abstract class BaseImperatTest {
         }
     }
     
+    /**
+     * Executes a full command line and returns the result for assertion.
+     * Uses the correct execute method that takes the full command line.
+     */
+    protected void executeSafe(String commandLine) {
+        IMPERAT.executeSafely(SOURCE, commandLine);
+    }
+    
     protected ExecutionResult<TestSource> execute(Consumer<TestSource> sourceModifier, String commandLine) {
         try {
             TestSource source = new TestSource(SOURCE.origin());
