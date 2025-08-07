@@ -160,7 +160,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @see PermissionLoader
      * @see #permissionLoader(PermissionLoader)
      * @see NodePermissionAssigner#defaultAssigner()
-     * @since 1.0
      */
     @ApiStatus.Experimental
     public B permissionAssigner(NodePermissionAssigner<S> permissionAssigner) {

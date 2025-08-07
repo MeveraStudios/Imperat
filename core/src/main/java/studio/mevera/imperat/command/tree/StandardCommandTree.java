@@ -53,7 +53,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     private Map<String, FlagData<S>> initializeFlagCache() {
         // Use HashMap instead of concurrent map for better performance in single-threaded access
-        final var cache = new HashMap<String, FlagData<S>>();
+        final Map<String, FlagData<S>> cache = new HashMap<>();
         for (var usage : rootCommand.usages()) {
             for (var flag : usage.getUsedFreeFlags()) {
                 for (String alias : flag.aliases()) {
@@ -792,7 +792,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     
     /**
-     * ULTRA-OPTIMIZED Iterative tab completion DFS
+     * Iterative tab completion DFS
      * Every microsecond matters here!
      */
     private List<String> tabCompleteIterativeDFS(
@@ -809,14 +809,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final var source = context.source();
         final var arguments = context.arguments();
         
-        // MAIN ITERATIVE DFS LOOP - Pure performance
         while (!stack.isEmpty()) {
             final var currentNode = stack.pop();
             final int currentDepth = currentNode.getDepth();
             
-            // Are we at suggestion depth?
             if (targetDepth - currentDepth == 1) {
-                // COLLECT SUGGESTIONS from all children at this level
                 collectSuggestionsOptimized(
                         currentNode, context, prefix,
                         hasPrefix, source, results
@@ -851,27 +848,41 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return;
         }
         
-        // ULTRA-FAST child processing
         for (var child : children) {
-            // FAST PERMISSION CHECK with caching
             if (!hasPermission(source, child)) {
                 continue;
             }
+            resolveChildSuggestions(child, context, prefix, hasPrefix, results);
+        }
+    }
+    
+    private void resolveChildSuggestions(
+            ParameterNode<S, ?> child,
+            SuggestionContext<S> context,
+            String prefix,
+            boolean hasPrefix,
+            List<String> results
+    ) {
+        final var resolver = getResolverCached(child.data);
+        final var suggestions = resolver.autoComplete(context, child.data);
+        if(suggestions ==null) return;
+        
+        for (final String suggestion : suggestions) {
+            if (!hasPrefix || fastStartsWith(suggestion, prefix)) {
+                results.add(suggestion);
+            }
+        }
+        
+        if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
             
-            // FAST RESOLVER LOOKUP with caching
-            final var resolver = getResolverCached(child.data);
-            
-            // CACHED SUGGESTION LOOKUP
-            final var suggestions = resolver.autoComplete(context, child.data);
-            
-            // OPTIMIZED suggestion filtering and adding
-            for (final String suggestion : suggestions) {
-                // ULTRA-FAST prefix matching - optimized for common cases
-                if (!hasPrefix || fastStartsWith(suggestion, prefix)) {
-                    results.add(suggestion);
+            //Collect overlapped suggestions
+            for(var grandChild : child.getChildren()) {
+                if(grandChild.isOptional() && !grandChild.data.valueType().equals(child.data.valueType())) {
+                    resolveChildSuggestions(grandChild, context, prefix, hasPrefix, results);
                 }
             }
         }
+        
     }
     
     /**
@@ -891,7 +902,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         for (int i = children.size() - 1; i >= 0; i--) {
             final var child = children.get(i);
             
-            // FAST validation checks
             if (matchesInput(child, inputAtDepth, imperatConfig.strictCommandTree()) &&
                     hasPermission(source, child)) {
                 stack.push(child);
@@ -908,7 +918,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
     
     /**
-     * Alternative DFS implementation using recursion (may be faster for shallow trees)
+     * Alternative DFS implementation using recursion (maybe faster for shallow trees)
      * Use this if your command trees are typically shallow (< 10 levels)
      */
     private List<String> tabCompleteRecursiveDFS(
