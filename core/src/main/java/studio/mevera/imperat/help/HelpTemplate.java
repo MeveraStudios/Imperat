@@ -39,7 +39,7 @@ public sealed abstract class HelpTemplate<S extends Source> implements HelpProvi
 
         final int maxUsages = command.usages().size();
         if (maxUsages == 0) {
-            throw new NoHelpException();
+            throw new NoHelpException(context);
         }
         int page = context.getArgumentOr("page", 1);
         displayHeaderHyphen(command, source, page, 1);

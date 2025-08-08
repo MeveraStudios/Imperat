@@ -38,6 +38,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
             ParameterType<S, ?> inputType = freeFlag.inputType();
             rawInput = commandInputStream.popRaw().orElse(null);
             if (rawInput != null) {
+                assert inputType != null;
                 input = inputType.resolve(context, commandInputStream, commandInputStream.readInput());
             }
         } else {
@@ -75,7 +76,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
                 }
             }else {
                 //"Please enter the value for flag '%s'"
-                throw new MissingFlagInputException(flagParameter, rawFlag);
+                throw new MissingFlagInputException(flagParameter, rawFlag, context);
             }
         } else {
             objInput = true;

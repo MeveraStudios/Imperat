@@ -57,7 +57,9 @@ public final class ExecutionResult<S extends Source> {
      * The execution context containing command arguments, source information,
      * and other execution-related data. This field is null for failed executions.
      */
-    private ExecutionContext<S> context;
+    private ExecutionContext<S> executionContext;
+    
+    private final Context<S> context;
     
     /**
      * The command path search result containing information about the matched
@@ -68,15 +70,16 @@ public final class ExecutionResult<S extends Source> {
     /**
      * Private constructor for creating a successful execution result.
      *
-     * <p>This constructor is used internally by the {@link #of(ExecutionContext, CommandPathSearch)}
+     * <p>This constructor is used internally by the {@link #of(ExecutionContext, CommandPathSearch, Context)}
      * factory method to create instances representing successful command executions.</p>
      *
-     * @param context the execution context containing command execution data
+     * @param executionContext the execution context containing command execution data
      * @param search the command path search result containing parsing information
      *
      * @throws IllegalArgumentException if either context or search is null
      */
-    private ExecutionResult(@NotNull ExecutionContext<S> context, @NotNull CommandPathSearch<S> search) {
+    private ExecutionResult(@NotNull ExecutionContext<S> executionContext, Context<S> context, @NotNull CommandPathSearch<S> search) {
+        this.executionContext = executionContext;
         this.context = context;
         this.search = search;
     }
@@ -84,14 +87,15 @@ public final class ExecutionResult<S extends Source> {
     /**
      * Private constructor for creating a failed execution result.
      *
-     * <p>This constructor is used internally by the {@link #failure(Throwable)}
+     * <p>This constructor is used internally by the {@link #failure(Throwable, Context)}
      * factory method to create instances representing failed command executions.</p>
      *
      * @param ex the exception or error that caused the execution failure,
      *           may be null to represent a generic failure without specific error details
      */
-    private ExecutionResult(@Nullable Throwable ex) {
+    private ExecutionResult(@Nullable Throwable ex, Context<S> context) {
         this.error = ex;
+        this.context = context;
     }
     
     /**
@@ -110,14 +114,15 @@ public final class ExecutionResult<S extends Source> {
      * @throws IllegalArgumentException if either context or search is null
      *
      * @see #hasFailed()
-     * @see #getContext()
+     * @see #getExecutionContext()
      * @see #getSearch()
      */
     public static <S extends Source> ExecutionResult<S> of(
-            ExecutionContext<S> context,
-            CommandPathSearch<S> search
+            ExecutionContext<S> executionContext,
+            CommandPathSearch<S> search,
+            Context<S> context
     ) {
-        return new ExecutionResult<>(context, search);
+        return new ExecutionResult<>(executionContext, context, search);
     }
     
     /**
@@ -136,10 +141,10 @@ public final class ExecutionResult<S extends Source> {
      *
      * @see #hasFailed()
      * @see #getError()
-     * @see #failure()
+     * @see #failure(Context)
      */
-    public static <S extends Source> ExecutionResult<S> failure(@Nullable Throwable error) {
-        return new ExecutionResult<>(error);
+    public static <S extends Source> ExecutionResult<S> failure(@Nullable Throwable error, Context<S> context) {
+        return new ExecutionResult<>(error, context);
     }
     
     /**
@@ -175,11 +180,11 @@ public final class ExecutionResult<S extends Source> {
      *
      * @return a new {@code ExecutionResult} instance representing a generic failed execution
      *
-     * @see #failure(Throwable)
+     * @see #failure(Throwable, Context)
      * @see #hasFailed()
      */
-    public static <S extends Source> ExecutionResult<S> failure() {
-        return failure(null);
+    public static <S extends Source> ExecutionResult<S> failure(Context<S> context) {
+        return failure(null, context);
     }
     
     /**
@@ -187,18 +192,18 @@ public final class ExecutionResult<S extends Source> {
      *
      * <p>An execution is considered failed if either the execution context or
      * command path search is null, which occurs when the result was created
-     * using the {@link #failure(Throwable)} factory method.</p>
+     * using the {@link #failure(Throwable, Context)} factory method.</p>
      *
      * <p><strong>Note:</strong> A failed result may or may not have associated
      * error information accessible via {@link #getError()}.</p>
      *
      * @return {@code true} if the command execution failed, {@code false} if it succeeded
      *
-     * @see #failure(Throwable)
+     * @see #failure(Throwable, Context)
      * @see #getError()
      */
     public boolean hasFailed() {
-        return context == null || search == null;
+        return executionContext == null || search == null;
     }
     
     /**
@@ -215,10 +220,14 @@ public final class ExecutionResult<S extends Source> {
      *         specific error information is available or if the execution succeeded
      *
      * @see #hasFailed()
-     * @see #failure(Throwable)
+     * @see #failure(Throwable, Context)
      */
     public @Nullable Throwable getError() {
         return error;
+    }
+    
+    public Context<S> getContext() {
+        return context;
     }
     
     /**
@@ -265,7 +274,7 @@ public final class ExecutionResult<S extends Source> {
      * @see #hasFailed()
      * @see ExecutionContext
      */
-    public ExecutionContext<S> getContext() {
-        return context;
+    public ExecutionContext<S> getExecutionContext() {
+        return executionContext;
     }
 }

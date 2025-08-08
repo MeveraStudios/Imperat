@@ -36,7 +36,7 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
         try {
             return parse(input);
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberFormatException(input,ex, display(), this.wrappedType());
+            throw new InvalidNumberFormatException(input,ex, display(), this.wrappedType(), context);
         }
     }
 

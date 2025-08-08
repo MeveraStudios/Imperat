@@ -2,6 +2,7 @@ package studio.mevera.imperat.command.flags;
 
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownFlagException;
@@ -28,12 +29,12 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
     }
 
     @Override
-    public Set<FlagData<S>> extract(String rawInput) throws UnknownFlagException {
+    public Set<FlagData<S>> extract(String rawInput, Context<S> ctx) throws UnknownFlagException {
         if (rawInput == null || rawInput.isEmpty()) {
             return Collections.emptySet();
         }
 
-        return parseFlags(rawInput);
+        return parseFlags(rawInput, ctx);
     }
 
     /**
@@ -68,7 +69,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
      * Parses the input string using a greedy longest-match algorithm.
      * This ensures that longer aliases are matched before shorter ones.
      */
-    private Set<FlagData<S>> parseFlags(String input) throws UnknownFlagException {
+    private Set<FlagData<S>> parseFlags(String input, Context<S> context) throws UnknownFlagException {
         Set<FlagData<S>> extractedFlags = new LinkedHashSet<>(3);
         List<String> unmatchedParts = new ArrayList<>();
 
@@ -89,7 +90,8 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
         // Throw exception if there are unmatched parts
         if (!unmatchedParts.isEmpty()) {
             throw new UnknownFlagException(
-                    String.join(", ", unmatchedParts)
+                    String.join(", ", unmatchedParts), context
+                    
             );
         }
 

@@ -34,7 +34,7 @@ public final class ParameterEnum<S extends Source> extends BaseParameterType<S, 
         try {
             return Enum.valueOf((Class<? extends Enum>) enumType, input);
         } catch (IllegalArgumentException | EnumConstantNotPresentException ex) {
-            throw new InvalidEnumException(input, (Class<? extends Enum>) enumType);
+            throw new InvalidEnumException(input, (Class<? extends Enum>) enumType, context);
         }
     }
 

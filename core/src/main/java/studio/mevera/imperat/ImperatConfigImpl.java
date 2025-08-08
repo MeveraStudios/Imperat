@@ -837,12 +837,14 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         while (cmd != null) {
             var res = cmd.handleExecutionThrowable(throwable, context, owning, methodName);
             if (res) {
+                System.out.println("Found handler from cmd '" + cmd.name() + "'");
                 return true;
             }
             cmd = cmd.parent();
         }
         
         //Trying to handle the error from the Central Throwable Handler.
+        System.out.println("Going for handler from the central config");
         return ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
     }
 }

@@ -28,11 +28,11 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
     }
 
     private void registerDefaultResolvers() {
-        config.registerSourceResolver(CommandSender.class, MinestomSource::origin);
+        config.registerSourceResolver(CommandSender.class, (minestomSource, ctx) -> minestomSource.origin());
 
-        config.registerSourceResolver(Player.class, source -> {
+        config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new OnlyPlayerAllowedException(ctx);
             }
             return source.asPlayer();
         });

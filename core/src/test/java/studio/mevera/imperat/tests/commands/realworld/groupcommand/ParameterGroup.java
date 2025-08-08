@@ -28,7 +28,7 @@ public final class ParameterGroup extends BaseParameterType<TestSource, Group> {
             return null;
         }
         return GroupRegistry.getInstance().getData(raw)
-            .orElseThrow(() -> new SourceException("Unknown group '%s'", raw));
+            .orElseThrow(() -> new SourceException(context, "Unknown group '%s'", raw));
     }
 
     @Override

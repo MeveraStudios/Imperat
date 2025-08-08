@@ -226,19 +226,19 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         
         CommandPathSearch<S> searchResult = command.contextMatch(context);
         if(searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
-            throw new PermissionDeniedException(searchResult);
+            throw new PermissionDeniedException(searchResult, context);
         }
         
         CommandUsage<S> usage = searchResult.getFoundUsage();
         
         if(usage == null || searchResult.getLastNode() == null ||
                 searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
-            throw new InvalidSyntaxException(searchResult);
+            throw new InvalidSyntaxException(searchResult, context);
         }
         
         var usageAccessCheckResult = config.getPermissionChecker().hasUsagePermission(source, usage);
         if(!usageAccessCheckResult.right()) {
-            throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null);
+            throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null, context);
         }
         
         return executeUsage(command, source, context, usage, searchResult);
@@ -268,7 +268,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         globalPostProcessing(resolvedContext);
         command.postProcess(this, resolvedContext, usage);
         
-        return ExecutionResult.of(resolvedContext, dispatch);
+        return ExecutionResult.of(resolvedContext, dispatch, context);
     }
     
     private void globalPreProcessing(
@@ -280,7 +280,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             try {
                 preProcessor.process(this, context, usage);
             } catch (Throwable ex) {
-                throw new ProcessorException(ProcessorException.Type.PRE, null, ex);
+                throw new ProcessorException(ProcessorException.Type.PRE, null, ex, context);
             }
         }
         
@@ -301,7 +301,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             context.command().visualizeTree();
             return handleExecution(context);
         }catch (Exception ex) {
-            return ExecutionResult.failure(ex);
+            return ExecutionResult.failure(ex, context);
         }
         //return ex instanceof InvalidSyntaxException ise ? ise.getExecutionResult().getResult() : CommandPathSearch.Result.FAILURE;
     }
@@ -319,8 +319,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull String commandName, String[] rawInput) throws ImperatException {
         Command<S> command = getCommand(commandName);
         if (command == null) {
-            source.error("Unknown command input: '" + commandName + "'");
-            return ExecutionResult.failure();
+            throw new IllegalArgumentException("Unknown command input: '" + commandName + "'");
         }
         return execute(source, command, commandName, rawInput);
     }
@@ -333,7 +332,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String line) throws ImperatException {
         if(line.isBlank()) {
-            return ExecutionResult.failure(new IllegalArgumentException("Empty Command Line"));
+            throw new IllegalArgumentException("Empty Command Line");
         }
         String[] lineArgs = line.split(" ");
         String[] argumentsOnly = new String[lineArgs.length - 1];

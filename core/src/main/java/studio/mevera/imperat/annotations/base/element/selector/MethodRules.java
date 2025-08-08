@@ -52,8 +52,9 @@ public interface MethodRules {
         .build();
     
     Rule<MethodElement> HAS_EXCEPTION_HANDLER_ANNOTATION = Rule.<MethodElement>builder()
-            .condition((imp, parser, methodElement)->
-                    methodElement.getDeclaredAnnotation(ExceptionHandler.class) != null)
+            .condition((imp, parser, methodElement)-> {
+                return methodElement.getDeclaredAnnotation(ExceptionHandler.class) != null;
+            })
             .build();
     
     Rule<MethodElement> HAS_EXCEPTION_HANDLER_PARAMS_IN_ORDER = Rule.<MethodElement>builder()

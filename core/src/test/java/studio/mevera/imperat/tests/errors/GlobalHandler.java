@@ -7,7 +7,7 @@ import studio.mevera.imperat.tests.TestSource;
 public final class GlobalHandler {
     
     @ExceptionHandler(CustomException.class)
-    public void t(CustomException ex, Context<TestSource> ctx) {
+    public void globalHandler(CustomException ex, Context<TestSource> ctx) {
         System.out.println("IT WORKS !");
     }
     

@@ -120,7 +120,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
         var sourceResolver = imperatConfig.getSourceResolver(type);
         assert sourceResolver != null;
 
-        return (R) sourceResolver.resolve(this.source());
+        return (R) sourceResolver.resolve(this.source(), this);
     }
 
     /**
@@ -191,7 +191,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
             && !numericParameter.matchesRange((Number) value)) {
 
             NumericRange range = numericParameter.getRange();
-            throw new NumberOutOfRangeException(raw, numericParameter, (Number) value, range);
+            throw new NumberOutOfRangeException(raw, numericParameter, (Number) value, range, this);
         }
         final Argument<S> argument = new Argument<>(raw, parameter, index, value);
         resolvedArgumentsPerCommand.update(command, (existingResolvedArgs) -> {

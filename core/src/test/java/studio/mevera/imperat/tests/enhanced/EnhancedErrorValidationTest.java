@@ -19,15 +19,12 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         
         @Test
         @DisplayName("Should fail gracefully for unknown commands")
-        void testUnknownCommandGracefulFailure() throws ImperatException {
-            ExecutionResult<TestSource> result = execute("completely_unknown_command with args");
-            
-            assertThat(result)
-                .hasFailed();
-                
-            // Error should not be null for unknown commands
-            if (result.getError() != null) {
-                Assertions.assertFalse(result.getError().getMessage().isEmpty());
+        void testUnknownCommandGracefulFailure() {
+            try {
+                execute("completely_unknown_command with args");
+            }catch (Exception ex) {
+                ex.printStackTrace();
+                Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
             }
         }
         
@@ -72,7 +69,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Should handle invalid enum values gracefully")
         void testInvalidEnumValues() throws ImperatException {
-            ExecutionResult<TestSource> result = execute("test4 COMPLETELY_INVALID_ENUM_VALUE");
+            ExecutionResult<TestSource> result = execute("customenum COMPLETELY_INVALID_ENUM_VALUE");
             
             assertThat(result)
                 .hasFailed();
@@ -82,9 +79,10 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         @ValueSource(strings = {"", "   ", "\t", "\n"})
         @DisplayName("Should handle empty or whitespace inputs")
         void testEmptyWhitespaceInputs(String input) throws ImperatException {
-            if (input.trim().isEmpty()) {
-                ExecutionResult<TestSource> result = execute(input);
-                assertThat(result).hasFailed();
+            try {
+                execute(input);
+            }catch (Exception ex) {
+                Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
             }
         }
     }

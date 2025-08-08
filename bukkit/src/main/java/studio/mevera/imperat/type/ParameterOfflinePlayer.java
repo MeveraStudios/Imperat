@@ -32,7 +32,7 @@ public class ParameterOfflinePlayer extends BaseParameterType<BukkitSource, Offl
             @NotNull String input) throws ImperatException {
 
         if (input.length() > 16) {
-            throw new UnknownPlayerException(input);
+            throw new UnknownPlayerException(input, context);
         }
 
         return Bukkit.getOfflinePlayer(input);

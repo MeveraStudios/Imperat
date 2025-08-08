@@ -18,7 +18,6 @@ import java.util.Set;
 public abstract class CommandClassVisitor<S extends Source, R> {
     public final static ElementSelector<MethodElement> ERROR_HANDLING_METHOD_SELECTOR =
             ElementSelector.<MethodElement>create()
-                    .addRule(MethodRules.IS_PUBLIC)
                     .addRule(MethodRules.HAS_EXCEPTION_HANDLER_ANNOTATION)
                     .addRule(MethodRules.HAS_EXCEPTION_HANDLER_PARAMS_IN_ORDER);
 

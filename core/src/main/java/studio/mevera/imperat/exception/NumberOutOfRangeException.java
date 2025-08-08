@@ -2,6 +2,7 @@ package studio.mevera.imperat.exception;
 
 import studio.mevera.imperat.command.parameters.NumericParameter;
 import studio.mevera.imperat.command.parameters.NumericRange;
+import studio.mevera.imperat.context.Context;
 
 public class NumberOutOfRangeException extends ParseException {
 
@@ -13,9 +14,10 @@ public class NumberOutOfRangeException extends ParseException {
             final String originalInput,
             final NumericParameter<?> parameter,
             final Number value,
-            final NumericRange range
+            final NumericRange range,
+            Context<?> ctx
     ) {
-        super(originalInput);
+        super(originalInput, ctx);
         this.parameter = parameter;
         this.value = value;
         this.range = range;

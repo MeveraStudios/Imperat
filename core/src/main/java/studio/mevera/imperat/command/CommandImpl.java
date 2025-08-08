@@ -217,7 +217,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
             try {
                 processor.process(api, context, usage);
             } catch (ImperatException e) {
-                throw new ProcessorException(ProcessorException.Type.PRE, this, e);
+                throw new ProcessorException(ProcessorException.Type.PRE, this, e, context);
             }
         }
     }
@@ -245,7 +245,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
             try {
                 processor.process(api, context);
             } catch (ImperatException e) {
-                throw new ProcessorException(ProcessorException.Type.POST, this, e);
+                throw new ProcessorException(ProcessorException.Type.POST, this, e, context);
             }
 
         }

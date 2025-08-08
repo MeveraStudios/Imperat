@@ -42,13 +42,13 @@ public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends B
             if(raw == null) break;
 
             if(!raw.contains(ENTRY_SEPARATOR)) {
-                throw new InvalidMapEntryFormatException(raw, ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR);
+                throw new InvalidMapEntryFormatException(raw, ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR, context);
                 //throw new SourceException("Invalid map entry '%s', entry doesn't contain '%s'", raw, ENTRY_SEPARATOR);
             }
 
             String[] split = raw.split(ENTRY_SEPARATOR);
             if(split.length != 2) {
-                throw new InvalidMapEntryFormatException(raw,ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS);
+                throw new InvalidMapEntryFormatException(raw,ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS, context);
                 //throw new SourceException("Invalid map entry '%s', entry is not made of 2 elements", raw);
             }
 

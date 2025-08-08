@@ -781,10 +781,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if(lastNodes != null) {
             for(var lastNode : lastNodes) {
                 collectSuggestionsOptimized(
-                        lastNode, context, prefix, hasPrefix, context.source(), results
+                        lastNode, context, context.source(), results
                 );
             }
-            return results;
+            return results.stream()
+                    .filter((suggestion)->
+                            !hasPrefix || fastStartsWith(suggestion, prefix)
+                    )
+                    .toList();
         }
         
         return tabCompleteIterativeDFS(context, targetDepth, prefix, hasPrefix, results);
@@ -815,8 +819,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             
             if (targetDepth - currentDepth == 1) {
                 collectSuggestionsOptimized(
-                        currentNode, context, prefix,
-                        hasPrefix, source, results
+                        currentNode, context, source, results
                 );
                 commandSuggestionCache.computeInput(context.source(), context.arguments(), currentNode);
                 continue; // Don't traverse deeper from suggestion nodes
@@ -829,7 +832,10 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
         }
         
-        return Collections.unmodifiableList(results); // Return defensive copy
+        return results.stream()
+                .filter((suggestion)->
+                    !hasPrefix || fastStartsWith(suggestion, prefix)
+                ).toList();
     }
     
     /**
@@ -838,8 +844,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private void collectSuggestionsOptimized(
             ParameterNode<S, ?> node,
             SuggestionContext<S> context,
-            String prefix,
-            boolean hasPrefix,
             S source,
             List<String> results
     ) {
@@ -852,33 +856,27 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             if (!hasPermission(source, child)) {
                 continue;
             }
-            resolveChildSuggestions(child, context, prefix, hasPrefix, results);
+            resolveChildSuggestions(child, context, results);
         }
     }
     
     private void resolveChildSuggestions(
             ParameterNode<S, ?> child,
             SuggestionContext<S> context,
-            String prefix,
-            boolean hasPrefix,
             List<String> results
     ) {
         final var resolver = getResolverCached(child.data);
         final var suggestions = resolver.autoComplete(context, child.data);
         if(suggestions ==null) return;
         
-        for (final String suggestion : suggestions) {
-            if (!hasPrefix || fastStartsWith(suggestion, prefix)) {
-                results.add(suggestion);
-            }
-        }
+        results.addAll(suggestions);
         
         if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
             
             //Collect overlapped suggestions
             for(var grandChild : child.getChildren()) {
                 if(grandChild.isOptional() && !grandChild.data.valueType().equals(child.data.valueType())) {
-                    resolveChildSuggestions(grandChild, context, prefix, hasPrefix, results);
+                    resolveChildSuggestions(grandChild, context, results);
                 }
             }
         }
@@ -921,6 +919,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Alternative DFS implementation using recursion (may be faster for shallow trees)
      * Use this if your command trees are typically shallow (< 10 levels)
      */
+    @SuppressWarnings("unused")
     private List<String> tabCompleteRecursiveDFS(
             SuggestionContext<S> context,
             int targetDepth,
@@ -928,8 +927,10 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             boolean hasPrefix,
             List<String> results
     ) {
-        dfsTraverseRecursively(root, context, targetDepth, prefix, hasPrefix, results);
-        return Collections.unmodifiableList(results);
+        dfsTraverseRecursively(root, context, targetDepth, results);
+        return results.stream()
+                .filter((suggestion)-> !hasPrefix || fastStartsWith(suggestion, prefix))
+                .toList();
     }
     
     /**
@@ -939,8 +940,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             ParameterNode<S, ?> node,
             SuggestionContext<S> context,
             int targetDepth,
-            String prefix,
-            boolean hasPrefix,
             List<String> results
     ) {
         final int currentDepth = node.getDepth();
@@ -949,7 +948,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // BASE CASE: At suggestion depth
         if (targetDepth - currentDepth == 1) {
-            collectSuggestionsOptimized(node, context, prefix, hasPrefix, source, results);
+            collectSuggestionsOptimized(node, context, source, results);
             return;
         }
         
@@ -962,7 +961,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             for (var child : children) {
                 if (matchesInput(child, inputAtDepth, false) &&
                         hasPermission(source, child)) {
-                    dfsTraverseRecursively(child, context, targetDepth, prefix, hasPrefix, results);
+                    dfsTraverseRecursively(child, context, targetDepth, results);
                 }
             }
         }

@@ -54,7 +54,7 @@ public non-sealed abstract class PaginatedHelpTemplate<S extends Source> extends
 
         final int maxUsages = commandUsages.size();
         if (maxUsages == 0) {
-            throw new NoHelpException();
+            throw new NoHelpException(context);
         }
 
         PaginatedText<CommandUsage<S>> paginatedText = new PaginatedText<>(syntaxesPerPage);
@@ -65,7 +65,7 @@ public non-sealed abstract class PaginatedHelpTemplate<S extends Source> extends
         int page = context.getArgumentOr("page", 1);
         TextPage<CommandUsage<S>> textPage = paginatedText.getPage(page);
         if (textPage == null) {
-            throw new NoHelpPageException();
+            throw new NoHelpPageException(context);
         }
 
         displayHeaderHyphen(command, source, page, paginatedText.getMaxPages());

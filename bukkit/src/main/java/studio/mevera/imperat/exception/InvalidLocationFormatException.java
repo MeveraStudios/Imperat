@@ -1,22 +1,30 @@
 package studio.mevera.imperat.exception;
 
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.context.Context;
 
 public class InvalidLocationFormatException extends ParseException {
 
     private final Reason reason;
     private final @Nullable String inputX, inputY, inputZ;
 
-    public InvalidLocationFormatException(String input, Reason reason, @Nullable String inputX, @Nullable String inputY, @Nullable String inputZ) {
-        super(input);
+    public InvalidLocationFormatException(
+            String input,
+            Reason reason,
+            @Nullable String inputX,
+            @Nullable String inputY,
+            @Nullable String inputZ,
+            Context<?> ctx
+    ) {
+        super(input, ctx);
         this.reason = reason;
         this.inputX = inputX;
         this.inputY = inputY;
         this.inputZ = inputZ;
     }
 
-    public InvalidLocationFormatException(String input, Reason reason) {
-        this(input, reason, null, null, null);
+    public InvalidLocationFormatException(String input, Reason reason, Context<?> ctx) {
+        this(input, reason, null, null, null, ctx);
     }
 
     public Reason getReason() {

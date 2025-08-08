@@ -24,7 +24,7 @@ public final class ParameterUUID<S extends Source> extends BaseParameterType<S, 
         try {
             return UUID.fromString(input);
         } catch (Exception ex) {
-            throw new InvalidUUIDException(input);
+            throw new InvalidUUIDException(input, context);
         }
     }
 

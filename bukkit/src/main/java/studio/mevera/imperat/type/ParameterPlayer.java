@@ -34,7 +34,7 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
 
         if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
-                throw new UnknownPlayerException(input);
+                throw new UnknownPlayerException(input, context);
             }
             return context.source().asPlayer();
         }
@@ -42,7 +42,7 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
         final Player player = Bukkit.getPlayerExact(input);
         if (player != null) return player;
 
-        throw new UnknownPlayerException(input);
+        throw new UnknownPlayerException(input, context);
     }
 
     /**

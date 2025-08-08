@@ -42,7 +42,7 @@ public interface SelectionType {
             @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws ImperatException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new OnlyPlayerAllowedException(context);
             }
             return List.of((E) context.source().asPlayer());
         }
@@ -61,7 +61,7 @@ public interface SelectionType {
             @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws ImperatException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new OnlyPlayerAllowedException(context);
             }
 
             Player sender = context.source().asPlayer();
@@ -131,7 +131,7 @@ public interface SelectionType {
             @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws ImperatException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new OnlyPlayerAllowedException(context);
             }
             Player player = context.source().asPlayer();
             World world = player.getWorld();

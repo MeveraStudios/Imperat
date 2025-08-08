@@ -28,7 +28,7 @@ public class CustomDurationParameterType<S extends Source> extends BaseParameter
     ) throws ImperatException {
         final long ms = TimeUtil.convertDurationToMs(input);
         if (ms == 0) {
-            throw new SourceException("Bad duration input '" + input + "'");
+            throw new SourceException(context, "Bad duration input '" + input + "'");
         }
         return new CustomDuration(ms);
     }

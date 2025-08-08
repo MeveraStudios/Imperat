@@ -2,6 +2,7 @@ package studio.mevera.imperat.exception;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.context.Context;
 
 public final class ProcessorException extends ImperatException {
     
@@ -10,9 +11,10 @@ public final class ProcessorException extends ImperatException {
     public ProcessorException(
             Type type,
             @Nullable Command<?> owningCommand,
-            Throwable cause
+            Throwable cause,
+            Context<?> ctx
     ) {
-        super((owningCommand == null ? "A Global" : "Preprocessor of command '" + owningCommand.name() +"'"), cause);
+        super((owningCommand == null ? "A Global" : "Preprocessor of command '" + owningCommand.name() +"'"), cause, ctx);
         this.owningCommand = owningCommand;
     }
     

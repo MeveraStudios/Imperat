@@ -1,6 +1,8 @@
 package studio.mevera.imperat.selector.field.operators;
 
 import org.bukkit.entity.Entity;
+import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.util.TypeWrap;
@@ -21,18 +23,19 @@ final class SortOperatorField extends OperatorField<SortOption> {
     /**
      * Parses the given string representation of the value and converts it into the field's value type.
      *
-     * @param value the string representation of the value to be parsed
+     * @param value   the string representation of the value to be parsed
+     * @param context
      * @return the parsed value of the field's type
      * @throws ImperatException if the parsing fails
      */
     @Override
-    public SortOption parseFieldValue(String value) throws ImperatException {
+    public SortOption parseFieldValue(String value, Context<BukkitSource> context) throws ImperatException {
         for (SortOption option : SortOption.values()) {
             if (option.name().equalsIgnoreCase(name)) {
                 return option;
             }
         }
-        throw new SourceException("Unknown sort option '%s'", name);
+        throw new SourceException(context, "Unknown sort option '%s'", name);
     }
 
     /**

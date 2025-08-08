@@ -35,17 +35,17 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
             CommandUsage<S> usage = context.getDetectedUsage();
             
             Set<FlagData<S>> extracted = usage.getFlagExtractor()
-                .extract(Patterns.withoutFlagSign(currentRaw));
+                .extract(Patterns.withoutFlagSign(currentRaw), context);
             
             long numberOfSwitches = extracted.stream().filter(FlagData::isSwitch).count();
             long numberOfTrueFlags = extracted.size() - numberOfSwitches;
             
             if (extracted.size() != numberOfSwitches && extracted.size() != numberOfTrueFlags) {
-                return HandleResult.failure(new ShortHandFlagException("Unsupported use of a mixture of switches and true flags!"));
+                return HandleResult.failure(new ShortHandFlagException("Unsupported use of a mixture of switches and true flags!", context));
             }
             
             if (extracted.size() == numberOfTrueFlags && !TypeUtility.areTrueFlagsOfSameInputTpe(extracted)) {
-                return HandleResult.failure(new ShortHandFlagException("You cannot use compressed true-flags, while they are not of same input type"));
+                return HandleResult.failure(new ShortHandFlagException("You cannot use compressed true-flags, while they are not of same input type", context));
             }
             
             boolean areAllSwitches = extracted.size() == numberOfSwitches;
@@ -53,7 +53,7 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
             
             String inputRaw = areAllSwitches ? currentRaw : stream.peekRawFast();
             if(inputRaw == null) {
-                throw new MissingFlagInputException(currentParameter.asFlagParameter(), currentRaw);
+                throw new MissingFlagInputException(currentParameter.asFlagParameter(), currentRaw, context);
             }
             
             if(extracted.size() == 1 && extracted.contains(currentParameter.asFlagParameter().flagData())) {
@@ -64,7 +64,6 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
                 return HandleResult.NEXT_ITERATION;
             }
             else if(extracted.size() == 1) {
-                var extractedFlagData = extracted.iterator().next();
                 resolveFlagDefaultValue(stream, currentParameter.asFlagParameter(), context);
                 stream.skipParameter();
                 return HandleResult.NEXT_ITERATION;
@@ -119,7 +118,7 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
         String defValue = flagParameter.getDefaultValueSupplier().supply(context.source(), flagParameter);
         if (defValue != null) {
             Object flagValueResolved = flagParameter.getDefaultValueSupplier().isEmpty() ? null :
-                    flagDataFromRaw.inputType().resolve(
+                    Objects.requireNonNull(flagDataFromRaw.inputType()).resolve(
                             context,
                             CommandInputStream.subStream(stream, defValue),
                             defValue

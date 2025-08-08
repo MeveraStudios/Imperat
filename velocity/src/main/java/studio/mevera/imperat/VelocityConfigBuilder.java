@@ -33,11 +33,11 @@ public final class VelocityConfigBuilder extends ConfigBuilder<VelocitySource, V
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceResolver(CommandSource.class, VelocitySource::origin);
+        config.registerSourceResolver(CommandSource.class, (velocitySource, ctx) -> velocitySource.origin());
 
-        config.registerSourceResolver(Player.class, (source) -> {
+        config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new OnlyPlayerAllowedException(ctx);
             }
             return source.asPlayer();
         });

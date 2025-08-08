@@ -92,7 +92,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
             .isSuccessful()
             .satisfies(executionResult -> {
                 // Custom validation on the entire execution result
-                Assertions.assertThat(executionResult.getContext()).isNotNull();
+                Assertions.assertThat(executionResult.getExecutionContext()).isNotNull();
                 Assertions.assertThat(executionResult.getSearch()).isNotNull();
                 Assertions.assertThat(executionResult.getError()).isNull();
             })
@@ -115,17 +115,17 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
             .satisfiesAll(
                 // First validation
                 executionResult -> {
-                    Assertions.assertThat((Object) executionResult.getContext().getArgument("target")).isEqualTo("griefer");
+                    Assertions.assertThat((Object) executionResult.getExecutionContext().getArgument("target")).isEqualTo("griefer");
                 },
                 // Second validation
                 executionResult -> {
-                    Assertions.assertThat((Object)executionResult.getContext().getFlagValue("silent")).isEqualTo(true);
-                    Assertions.assertThat((Object)executionResult.getContext().getFlagValue("ip")).isEqualTo(true);
+                    Assertions.assertThat((Object)executionResult.getExecutionContext().getFlagValue("silent")).isEqualTo(true);
+                    Assertions.assertThat((Object)executionResult.getExecutionContext().getFlagValue("ip")).isEqualTo(true);
                 },
                 // Third validation
                 executionResult -> {
-                    Assertions.assertThat((Object)executionResult.getContext().getArgument("duration")).isEqualTo("7d");
-                    Assertions.assertThat((Object)executionResult.getContext().getArgument("reason")).isEqualTo("Griefing");
+                    Assertions.assertThat((Object)executionResult.getExecutionContext().getArgument("duration")).isEqualTo("7d");
+                    Assertions.assertThat((Object)executionResult.getExecutionContext().getArgument("reason")).isEqualTo("Griefing");
                 }
             );
     }

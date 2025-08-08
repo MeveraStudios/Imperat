@@ -1,5 +1,7 @@
 package studio.mevera.imperat.selector.field;
 
+import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.util.TypeUtility;
@@ -23,16 +25,17 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
     /**
      * Parses the given string representation of the value and converts it into the field's value type.
      *
-     * @param value the string representation of the value to be parsed
+     * @param value   the string representation of the value to be parsed
+     * @param context the context
      * @return the parsed value of the field's type
      * @throws ImperatException if the parsing fails
      */
     @Override
-    public N parseFieldValue(String value) throws ImperatException {
-        return parseNumber(value);
+    public N parseFieldValue(String value, Context<BukkitSource> context) throws ImperatException {
+        return parseNumber(value, context);
     }
 
-    protected abstract N parseNumber(String value) throws ImperatException;
+    protected abstract N parseNumber(String value, Context<BukkitSource> ctx) throws ImperatException;
 
     public static NumericField<Integer> integerField(String name) {
         return new IntegerField(name);
@@ -65,9 +68,9 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
         }
 
         @Override
-        public Integer parseNumber(String value) throws ImperatException {
+        public Integer parseNumber(String value, Context<BukkitSource> ctx) throws ImperatException {
             if (!TypeUtility.isInteger(value)) {
-                throw new SourceException("Invalid limit-value integer '%s'", value);
+                throw new SourceException(ctx, "Invalid limit-value integer '%s'", value);
             }
             return Integer.parseInt(value);
         }
@@ -79,9 +82,9 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
         }
 
         @Override
-        public Double parseNumber(String value) throws ImperatException {
+        public Double parseNumber(String value, Context<BukkitSource> ctx) throws ImperatException {
             if (!TypeUtility.isDouble(value)) {
-                throw new SourceException("Invalid double value '%s'", value);
+                throw new SourceException(ctx, "Invalid double value '%s'", value);
             }
             return Double.parseDouble(value);
         }
@@ -93,9 +96,9 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
         }
 
         @Override
-        public Float parseNumber(String value) throws ImperatException {
+        public Float parseNumber(String value, Context<BukkitSource> ctx) throws ImperatException {
             if (!TypeUtility.isFloat(value)) {
-                throw new SourceException("Invalid float value '%s'", value);
+                throw new SourceException(ctx, "Invalid float value '%s'", value);
             }
             return Float.parseFloat(value);
         }
@@ -107,9 +110,9 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
         }
 
         @Override
-        public Long parseNumber(String value) throws ImperatException {
+        public Long parseNumber(String value, Context<BukkitSource> ctx) throws ImperatException {
             if (!TypeUtility.isLong(value)) {
-                throw new SourceException("Invalid long value '%s'", value);
+                throw new SourceException(ctx, "Invalid long value '%s'", value);
             }
             return Long.parseLong(value);
         }
@@ -121,9 +124,9 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
         }
 
         @Override
-        public Short parseNumber(String value) throws ImperatException {
+        public Short parseNumber(String value, Context<BukkitSource> ctx) throws ImperatException {
             if (!TypeUtility.isShort(value)) {
-                throw new SourceException("Invalid short value '%s'", value);
+                throw new SourceException(ctx, "Invalid short value '%s'", value);
             }
             return Short.parseShort(value);
         }
@@ -137,9 +140,9 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
         }
 
         @Override
-        public Byte parseNumber(String value) throws ImperatException {
+        public Byte parseNumber(String value, Context<BukkitSource> ctx) throws ImperatException {
             if (!TypeUtility.isByte(value)) {
-                throw new SourceException("Invalid byte value '%s'", value);
+                throw new SourceException(ctx, "Invalid byte value '%s'", value);
             }
             return Byte.parseByte(value);
         }

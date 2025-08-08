@@ -28,10 +28,10 @@ public final class CommandParameterHandler<S extends Source> implements Paramete
                 stream.skip();
                 return HandleResult.NEXT_ITERATION;
             } else {
-                return HandleResult.failure(new UnknownSubCommandException(currentRaw));
+                return HandleResult.failure(new UnknownSubCommandException(currentRaw, context));
             }
         } catch (Exception e) {
-            return HandleResult.failure(new ImperatException("Error processing command parameter", e));
+            return HandleResult.failure(new ImperatException("Error processing command parameter", e, context));
         }
     }
 }

@@ -40,7 +40,8 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
 
                 throw new CooldownException(
                         cooldown.toDuration(),
-                        handler.getLastTimeExecuted(source).orElseThrow()
+                        handler.getLastTimeExecuted(source).orElseThrow(),
+                        context
                 );
             }
         }

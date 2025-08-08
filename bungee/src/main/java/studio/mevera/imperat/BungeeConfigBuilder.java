@@ -53,10 +53,10 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceResolver(CommandSender.class, BungeeSource::origin);
-        config.registerSourceResolver(ProxiedPlayer.class, (source) -> {
+        config.registerSourceResolver(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
+        config.registerSourceResolver(ProxiedPlayer.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new OnlyPlayerAllowedException(ctx);
             }
             return source.asPlayer();
         });

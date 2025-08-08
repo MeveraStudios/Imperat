@@ -13,7 +13,7 @@ public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleSource,
 
     CommandLineConfigBuilder(InputStream inputStream) {
         this.inputStream = inputStream;
-        config.registerSourceResolver(PrintStream.class, ConsoleSource::origin);
+        config.registerSourceResolver(PrintStream.class, (consoleSource, ctx) -> consoleSource.origin());
         registerContextResolvers();
     }
     

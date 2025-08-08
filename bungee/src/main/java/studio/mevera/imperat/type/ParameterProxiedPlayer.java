@@ -31,14 +31,14 @@ public final class ParameterProxiedPlayer extends BaseParameterType<BungeeSource
 
         if (input.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
-                throw new UnknownPlayerException(input);
+                throw new UnknownPlayerException(input, context);
             }
             return context.source().asPlayer();
         }
 
         ProxiedPlayer proxiedPlayer = ProxyServer.getInstance().getPlayer(input);
         if (proxiedPlayer == null) {
-            throw new UnknownPlayerException(input);
+            throw new UnknownPlayerException(input, context);
         }
         return proxiedPlayer;
     }

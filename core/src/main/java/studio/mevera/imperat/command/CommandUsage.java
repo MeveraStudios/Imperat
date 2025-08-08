@@ -59,7 +59,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @return a non-null flag extractor configured for this command's flag definitions
      * @throws IllegalStateException if the command usage has not been properly initialized
      *                               or if no flag definitions are available
-     * @see FlagExtractor#extract(String)
+     * @see FlagExtractor#extract(String, studio.mevera.imperat.context.Context)
      * @see FlagData
      * @since 1.9.6
      */

@@ -26,7 +26,7 @@ public final class ParameterWord<S extends Source> extends BaseParameterType<S, 
             return input;
         }
         if(!restrictions.contains(input)) {
-            throw new WordOutOfRestrictionsException(input, restrictions);
+            throw new WordOutOfRestrictionsException(input, restrictions, context);
         }
         return input;
     }

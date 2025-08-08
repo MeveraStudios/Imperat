@@ -34,7 +34,7 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
             }
             else {
                 //required
-                throw new InvalidSyntaxException(CommandPathSearch.freshlyNew(context.getLastUsedCommand()));
+                throw new InvalidSyntaxException(CommandPathSearch.freshlyNew(context.getLastUsedCommand()), context);
             }
             // Handle remaining optional parameters
             return HandleResult.NEXT_ITERATION;

@@ -7,7 +7,11 @@ import studio.mevera.imperat.context.Source;
 
 @ApiStatus.AvailableSince("1.0.0")
 public abstract class SelfHandledException extends ImperatException {
-
+    
+    public SelfHandledException(Context<?> ctx) {
+        super(ctx);
+    }
+    
     /**
      * Handles the exception
      *

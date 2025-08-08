@@ -43,7 +43,7 @@ public final class ConstrainedParameterTypeDecorator<S extends Source, T> extend
         if(ConstrainedParameterTypeDecorator.contains(input, allowedValues, caseSensitive)) {
             return original.resolve(context, commandInputStream, commandInputStream.readInput());
         }else {
-            throw new ValueOutOfConstraintException(input, allowedValues);
+            throw new ValueOutOfConstraintException(input, allowedValues, context);
         }
     }
 

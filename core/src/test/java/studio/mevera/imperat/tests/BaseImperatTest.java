@@ -1,6 +1,7 @@
 package studio.mevera.imperat.tests;
 
 import org.junit.jupiter.api.BeforeEach;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.ImperatException;
 
@@ -30,7 +31,7 @@ public abstract class BaseImperatTest {
         try {
             return IMPERAT.execute(SOURCE, commandLine);
         } catch (ImperatException e) {
-            return ExecutionResult.failure(e);
+            return ExecutionResult.failure(e, (Context<TestSource>) e.getCtx());
         }
     }
     
@@ -48,7 +49,7 @@ public abstract class BaseImperatTest {
             sourceModifier.accept(source);
             return IMPERAT.execute(source, commandLine);
         } catch (ImperatException e) {
-            return ExecutionResult.failure(e);
+            return ExecutionResult.failure(e, (Context<TestSource>)e.getCtx());
         }
     }
     
@@ -59,7 +60,7 @@ public abstract class BaseImperatTest {
         assertFalse(result.hasFailed(), 
             "Expected successful execution but got failure: " + 
             (result.getError() != null ? result.getError().getMessage() : "Unknown error"));
-        assertNotNull(result.getContext(), "Execution context should not be null for successful execution");
+        assertNotNull(result.getExecutionContext(), "Execution context should not be null for successful execution");
         assertNotNull(result.getSearch(), "Command path search should not be null for successful execution");
     }
     
@@ -86,14 +87,14 @@ public abstract class BaseImperatTest {
      */
     protected <T> void assertArgument(ExecutionResult<TestSource> result, String paramName, T expectedValue) {
         assertSuccess(result);
-        T actualValue = result.getContext().getArgument(paramName);
+        T actualValue = result.getExecutionContext().getArgument(paramName);
         assertEquals(expectedValue, actualValue,
             "Argument '" + paramName + "' has unexpected value");
     }
     
     protected <T> void assertArrayArgs(ExecutionResult<TestSource> result, String paramName, T[] expected) {
         assertSuccess(result);
-        T[] actualValue = result.getContext().getArgument(paramName);
+        T[] actualValue = result.getExecutionContext().getArgument(paramName);
         assertArrayEquals(expected, actualValue, "Argument '" + paramName + "' has unexpected value");
     }
     
@@ -102,7 +103,7 @@ public abstract class BaseImperatTest {
      */
     protected <T> void assertFlag(ExecutionResult<TestSource> result, String flagName, T expectedValue) {
         assertSuccess(result);
-        T actualValue = result.getContext().getFlagValue(flagName);
+        T actualValue = result.getExecutionContext().getFlagValue(flagName);
         assertEquals(expectedValue, actualValue, 
             "Flag '" + flagName + "' has unexpected value");
     }

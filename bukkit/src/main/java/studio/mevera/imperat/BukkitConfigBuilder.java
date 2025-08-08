@@ -49,10 +49,10 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
     
     private void registerSourceResolvers() {
-        config.registerSourceResolver(CommandSender.class, BukkitSource::origin);
-        config.registerSourceResolver(Player.class, (source) -> {
+        config.registerSourceResolver(CommandSender.class, (bukkitSource, ctx) -> bukkitSource.origin());
+        config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new OnlyPlayerAllowedException(ctx);
             }
             return source.asPlayer();
         });

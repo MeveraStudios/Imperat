@@ -42,9 +42,9 @@ public final class VelocityImperat extends BaseImperat<VelocitySource> {
         );
 
         // Register source resolver for Player
-        config.registerSourceResolver(Player.class, (source) -> {
+        config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new OnlyPlayerAllowedException(ctx);
             }
             return source.asPlayer();
         });

@@ -45,7 +45,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                 var worlds = Bukkit.getWorlds();
                 if(worlds.isEmpty()) {
                     //worlds may be empty.
-                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.NO_WORLDS_AVAILABLE);
+                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.NO_WORLDS_AVAILABLE, context);
                 }
                 world = Bukkit.getWorlds().get(0);
             }else {
@@ -59,17 +59,17 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
 
             String inputX = stream.readInput();
             Double x = doubleParser.resolve(context, stream, inputX);
-            if(x == null ) throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_X_COORDINATE, inputX, null, null);
+            if(x == null ) throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_X_COORDINATE, inputX, null, null, context);
             stream.skipRaw();
 
             String inputY = stream.readInput();
             Double y = doubleParser.resolve(context, stream, inputY);
-            if(y == null ) throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_Y_COORDINATE, null, inputY, null);
+            if(y == null ) throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_Y_COORDINATE, null, inputY, null, context);
             stream.skipRaw();
 
             String inputZ = stream.readInput();
             Double z = doubleParser.resolve(context, stream, inputZ);
-            if(z == null) throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_Z_COORDINATE, null, null, inputZ);
+            if(z == null) throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_Z_COORDINATE, null, null, inputZ, context);
 
             return new Location(world, x, y, z);
         }
@@ -79,12 +79,12 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
     private @NotNull Location locFromStr(ExecutionContext<BukkitSource> context, CommandInputStream<BukkitSource> stream, String currentRaw) throws ImperatException {
         String[] split = currentRaw.split(SINGLE_STRING_SEPARATOR);
         if(split.length < 4) {
-            throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.WRONG_FORMAT);
+            throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.WRONG_FORMAT, context);
         }
 
         World world = Bukkit.getWorld(split[0]);
         if(world == null) {
-            throw new UnknownWorldException(split[0]);
+            throw new UnknownWorldException(split[0], context);
         }
 
         Double x = Objects.requireNonNull(doubleParser.resolve(context, stream, split[1]));

@@ -2,6 +2,7 @@ package studio.mevera.imperat.tests;
 
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.*;
 import studio.mevera.imperat.tests.commands.complex.FirstOptionalArgumentCmd;
@@ -18,6 +19,7 @@ import studio.mevera.imperat.tests.parameters.CustomDurationParameterType;
 import studio.mevera.imperat.tests.parameters.JavaDurationParameterType;
 import studio.mevera.imperat.tests.parameters.TestPlayerParamType;
 import studio.mevera.imperat.util.ImperatDebugger;
+import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.verification.UsageVerifier;
 
 import java.time.Duration;
@@ -40,6 +42,7 @@ public class ImperatTestGlobals {
             .parameterType(TestPlayer.class, new TestPlayerParamType())
             .parameterType(CustomDuration.class, new CustomDurationParameterType<>())
             .handleExecutionConsecutiveOptionalArguments(true)
+            .contextResolver(new TypeWrap<Context<TestSource>>(){}.getType(), (ctx, pe)-> ctx)
             .build();
     
     static {

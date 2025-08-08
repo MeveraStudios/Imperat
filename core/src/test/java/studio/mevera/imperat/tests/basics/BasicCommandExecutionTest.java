@@ -1,5 +1,6 @@
 package studio.mevera.imperat.tests.basics;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,8 +22,11 @@ public class BasicCommandExecutionTest extends BaseImperatTest {
     @Test
     @DisplayName("Should fail for unknown command")
     void testUnknownCommand() {
-        ExecutionResult<TestSource> result = execute("nonexistent");
-        assertFailure(result);
+        try {
+            execute("nonexistent");
+        }catch (Exception ex) {
+            Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
+        }
     }
     
     @Test

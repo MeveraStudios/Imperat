@@ -39,11 +39,15 @@ public sealed interface ElementSelector<E extends ParseElement<?>> permits Simpl
 
     default boolean canBeSelected(Imperat<?> imperat, AnnotationParser<?> parse, E element, boolean fail) {
         for (var rule : getRules()) {
+            
             if (!rule.test(imperat, parse, element)) {
+                System.out.println("RULE FAILED");
                 if (fail) {
                     rule.onFailure(parse, element);
                 }
                 return false;
+            }else {
+                System.out.println("RULE SUCCESS");
             }
         }
         return true;

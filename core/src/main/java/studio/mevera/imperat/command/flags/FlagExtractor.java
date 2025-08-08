@@ -2,6 +2,7 @@ package studio.mevera.imperat.command.flags;
 
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownFlagException;
@@ -24,10 +25,12 @@ public sealed interface FlagExtractor<S extends Source> permits FlagExtractorImp
 
     /**
      * Extracts all flags used from a single string with no spaces.
+     *
      * @param rawInput the raw input of an argument
+     * @param ctx
      * @return the extracted {@link FlagData} for flags.
      */
-    Set<FlagData<S>> extract(String rawInput) throws UnknownFlagException;
+    Set<FlagData<S>> extract(String rawInput, Context<S> ctx) throws UnknownFlagException;
 
     static <S extends Source> FlagExtractor<S> createNative(CommandUsage<S> usage) {
         return new FlagExtractorImpl<>(usage);

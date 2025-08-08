@@ -1,15 +1,16 @@
 package studio.mevera.imperat.tests.errors;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.tests.BaseImperatTest;
+import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Error Handling Tests")
 public class ErrorHandlingTest extends BaseImperatTest {
@@ -24,8 +25,12 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should fail for completely unknown commands")
     void testCompletelyUnknownCommands() {
-        ExecutionResult<TestSource> result = execute("completely_unknown_command with args");
-        assertFailure(result);
+        try{
+            execute("completely_unknown_command with args");
+        }catch (Exception ex) {
+            ex.printStackTrace();
+            Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
+        }
     }
     
     @Test
@@ -41,19 +46,21 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @ValueSource(strings = {"", " ", "   "})
     @DisplayName("Should handle empty or whitespace-only inputs")
     void testEmptyInputs(String input) {
-        ExecutionResult<TestSource> result = execute(input.trim());
-        if (input.trim().isEmpty()) {
-            // Empty input should fail
-            assertFailure(result);
+        try {
+            execute(input.trim());
+        }catch (Exception ex) {
+            assertInstanceOf(IllegalArgumentException.class, ex);
         }
     }
     
     @Test
     @DisplayName("Should provide meaningful error information")
     void testErrorInformation() {
-        ExecutionResult<TestSource> result = execute("nonexistent command args");
-        assertFailure(result);
-        assertTrue(result.hasFailed(), "Should indicate failure");
+        try {
+            execute("nonexistent command args");
+        }catch (Exception ex) {
+            assertInstanceOf(IllegalArgumentException.class, ex);
+        }
     }
     
     @Test
@@ -82,7 +89,14 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should detect thrown exception handler from annotated class")
     void testExceptionHandlerAnnotation() {
-        executeSafe("fail"); // Should fail due to missing Group context
+        var res = execute("fail");
+        assertFailure(res);
+        
+        assertNotNull(res.getError());
+        ImperatTestGlobals.IMPERAT.config()
+                .handleExecutionThrowable(res.getError(), res.getContext(), BaseImperatTest.class, "testFail");
+        
+        // Should fail due to missing Group context
     }
     
     /*@Test

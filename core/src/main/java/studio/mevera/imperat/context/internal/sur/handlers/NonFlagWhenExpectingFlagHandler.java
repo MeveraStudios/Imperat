@@ -13,6 +13,8 @@ import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.UnknownFlagException;
 import studio.mevera.imperat.util.Patterns;
 
+import java.util.Objects;
+
 public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements ParameterHandler<S> {
     
     @Override
@@ -28,7 +30,7 @@ public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements 
             var nextParam = stream.peekParameter().orElse(null);
             
             if (nextParam == null) {
-                return HandleResult.failure(new UnknownFlagException(currentRaw));
+                return HandleResult.failure(new UnknownFlagException(currentRaw, context));
             } else if (!context.hasResolvedFlag(currentParameter)) {
                 resolveFlagDefaultValue(stream, currentParameter.asFlagParameter(), context);
             }
@@ -36,7 +38,7 @@ public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements 
             stream.skipParameter();
             return HandleResult.NEXT_ITERATION;
         } catch (Exception e) {
-            return HandleResult.failure(new ImperatException("Error handling non-flag input when expecting flag", e));
+            return HandleResult.failure(new ImperatException("Error handling non-flag input when expecting flag", e, context));
         }
     }
     
@@ -51,7 +53,7 @@ public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements 
         String defValue = flagParameter.getDefaultValueSupplier().supply(context.source(), flagParameter);
         if (defValue != null) {
             Object flagValueResolved = flagParameter.getDefaultValueSupplier().isEmpty() ? null :
-                    flagDataFromRaw.inputType().resolve(
+                    Objects.requireNonNull(flagDataFromRaw.inputType()).resolve(
                             context,
                             CommandInputStream.subStream(stream, defValue),
                             defValue

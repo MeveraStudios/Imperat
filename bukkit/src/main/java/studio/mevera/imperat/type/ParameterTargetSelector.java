@@ -8,6 +8,7 @@ import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.Version;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -80,7 +81,7 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
         //update current
 
         if (type == SelectionType.UNKNOWN) {
-            throw new UnknownEntitySelectionTypeException(commandInputStream.currentLetter().orElseThrow() + "");
+            throw new UnknownEntitySelectionTypeException(commandInputStream.currentLetter().orElseThrow() + "", context);
         }
 
         List<SelectionParameterInput<?>> inputParameters = new ArrayList<>();
@@ -90,13 +91,13 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
             commandInputStream.skipLetter();
 
             String params = commandInputStream.collectBeforeFirst(PARAMETER_END);
-            inputParameters = SelectionParameterInput.parseAll(params, commandInputStream);
+            inputParameters = SelectionParameterInput.parseAll(params, commandInputStream, context);
         }
 
         List<Entity> entities = type.getTargetEntities(context, commandInputStream);
         List<Entity> selected = new ArrayList<>();
 
-        EntityCondition entityPredicted = getEntityPredicate(commandInputStream, inputParameters);
+        EntityCondition entityPredicted = getEntityPredicate(commandInputStream, inputParameters, context);
         for (Entity entity : entities) {
             if (entityPredicted.test(context.source(), entity)) {
                 selected.add(entity);
@@ -108,13 +109,13 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
     }
 
     @SuppressWarnings("unchecked")
-    private static @NotNull <V> EntityCondition getEntityPredicate(@NotNull CommandInputStream<BukkitSource> commandInputStream, List<SelectionParameterInput<?>> inputParameters) {
+    private static @NotNull <V> EntityCondition getEntityPredicate(@NotNull CommandInputStream<BukkitSource> commandInputStream, List<SelectionParameterInput<?>> inputParameters, Context<BukkitSource> ctx) {
         EntityCondition entityPredicted = (sender, entity) -> true;
         for (var input : inputParameters) {
             if (!(input.getField() instanceof PredicateField<?>)) continue;
             PredicateField<V> predicateField = (PredicateField<V>) input.getField();
             entityPredicted = entityPredicted.and(
-                (sender, entity) -> predicateField.isApplicable(sender, entity, (V) input.getValue(), commandInputStream)
+                (sender, entity) -> predicateField.isApplicable(sender, entity, (V) input.getValue(), commandInputStream, ctx)
             );
 
         }

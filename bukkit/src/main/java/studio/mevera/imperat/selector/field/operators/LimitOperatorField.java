@@ -1,6 +1,8 @@
 package studio.mevera.imperat.selector.field.operators;
 
 import org.bukkit.entity.Entity;
+import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.selector.field.NumericField;
 import studio.mevera.imperat.util.TypeWrap;
@@ -19,13 +21,14 @@ public final class LimitOperatorField extends OperatorField<Integer> {
     /**
      * Parses the given string representation of the value and converts it into the field's value type.
      *
-     * @param value the string representation of the value to be parsed
+     * @param value   the string representation of the value to be parsed
+     * @param context
      * @return the parsed value of the field's type
      * @throws ImperatException if the parsing fails
      */
     @Override
-    public Integer parseFieldValue(String value) throws ImperatException {
-        return numericField.parseFieldValue(value);
+    public Integer parseFieldValue(String value, Context<BukkitSource> context) throws ImperatException {
+        return numericField.parseFieldValue(value, context);
     }
 
     /**

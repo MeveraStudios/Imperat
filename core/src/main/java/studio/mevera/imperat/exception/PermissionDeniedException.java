@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 
 import java.util.Objects;
@@ -19,19 +20,21 @@ public final class PermissionDeniedException extends ImperatException {
     public <S extends Source> PermissionDeniedException(
             @NotNull CommandUsage<S> usage,
             @NotNull String lackingPermission,
-            @Nullable CommandParameter<S> targetParameter
+            @Nullable CommandParameter<S> targetParameter,
+            Context<S> context
     ) {
-        super("Lacking permission '" + lackingPermission + "'");
+        super("Lacking permission '" + lackingPermission + "'", context);
         this.usage = usage;
         this.lackingPermission = lackingPermission;
         this.targetParameter = targetParameter;
     }
     
-    public <S extends Source> PermissionDeniedException(CommandPathSearch<S> pathSearch) {
+    public <S extends Source> PermissionDeniedException(CommandPathSearch<S> pathSearch, Context<S> context) {
         this(
                 pathSearch.getFoundUsage() != null ? pathSearch.getFoundUsage() : pathSearch.getLastCommandNode().getData().getDefaultUsage(),
                 Objects.requireNonNull(pathSearch.getLastNode()).getPermission(),
-                pathSearch.getLastNode().getData()
+                pathSearch.getLastNode().getData(),
+                context
         );
     }
     

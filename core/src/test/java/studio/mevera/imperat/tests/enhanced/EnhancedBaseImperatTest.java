@@ -3,6 +3,7 @@ package studio.mevera.imperat.tests.enhanced;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
@@ -29,7 +30,7 @@ public abstract class EnhancedBaseImperatTest {
         try {
             return IMPERAT.execute(SOURCE, commandLine);
         }catch (ImperatException ex) {
-            return ExecutionResult.failure(ex);
+            return ExecutionResult.failure(ex, (Context<TestSource>) ex.getCtx());
         }
     }
     
@@ -76,7 +77,7 @@ public abstract class EnhancedBaseImperatTest {
         
         public ExecutionResultAssert hasArgument(String paramName, Object expectedValue) {
             isSuccessful();
-            Object actualValue = actual.getContext().getArgument(paramName);
+            Object actualValue = actual.getExecutionContext().getArgument(paramName);
             if (!Objects.equals(expectedValue, actualValue)) {
                 failWithMessage("Expected argument '%s' to be '%s' but was '%s'",
                     paramName, expectedValue, actualValue);
@@ -86,7 +87,7 @@ public abstract class EnhancedBaseImperatTest {
         
         public ExecutionResultAssert hasFlag(String flagName, Object expectedValue) {
             isSuccessful();
-            Object actualValue = actual.getContext().getFlagValue(flagName);
+            Object actualValue = actual.getExecutionContext().getFlagValue(flagName);
             if (!java.util.Objects.equals(expectedValue, actualValue)) {
                 failWithMessage("Expected flag <%s> to be <%s> but was <%s>", 
                     flagName, expectedValue, actualValue);
@@ -100,14 +101,14 @@ public abstract class EnhancedBaseImperatTest {
         
         public ExecutionResultAssert hasArgumentSatisfying(String paramName, org.assertj.core.api.ThrowingConsumer<Object> requirements) {
             isSuccessful();
-            Object actualValue = actual.getContext().getArgument(paramName);
+            Object actualValue = actual.getExecutionContext().getArgument(paramName);
             Assertions.assertThat(actualValue).satisfies(requirements);
             return this;
         }
         
         public ExecutionResultAssert hasArgumentOfType(String paramName, Class<?> expectedType) {
             isSuccessful();
-            Object actualValue = actual.getContext().getArgument(paramName);
+            Object actualValue = actual.getExecutionContext().getArgument(paramName);
             Assertions.assertThat(actualValue).isInstanceOf(expectedType);
             return this;
         }

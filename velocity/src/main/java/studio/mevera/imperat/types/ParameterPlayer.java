@@ -34,11 +34,11 @@ public final class ParameterPlayer extends BaseParameterType<VelocitySource, Pla
 
         if (input.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
-                throw new UnknownPlayerException(input);
+                throw new UnknownPlayerException(input, context);
             }
             return context.source().asPlayer();
         }
-        return proxyServer.getPlayer(input.toLowerCase()).orElseThrow(() -> new UnknownPlayerException(input));
+        return proxyServer.getPlayer(input.toLowerCase()).orElseThrow(() -> new UnknownPlayerException(input, context));
     }
 
     @Override

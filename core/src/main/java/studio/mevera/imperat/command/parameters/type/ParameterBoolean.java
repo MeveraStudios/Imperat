@@ -42,7 +42,7 @@ public final class ParameterBoolean<S extends Source> extends BaseParameterType<
         if (allowVariants) {
             return VARIANTS.get(raw.toLowerCase());
         } else {
-            throw new InvalidBooleanException(raw);
+            throw new InvalidBooleanException(raw, context);
         }
     }
 

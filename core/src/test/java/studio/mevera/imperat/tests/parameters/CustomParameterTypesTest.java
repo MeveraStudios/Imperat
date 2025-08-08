@@ -24,7 +24,7 @@ public class CustomParameterTypesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should fail for invalid enum values")
     void testInvalidEnumValues() {
-        ExecutionResult<TestSource> result = execute("test4 INVALID_VALUE");
+        ExecutionResult<TestSource> result = execute("customenum INVALID_VALUE");
         assertFailure(result);
     }
     

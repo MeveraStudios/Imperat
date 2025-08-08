@@ -26,12 +26,16 @@ final class ThrowableParsingVisitor<S extends Source> extends CommandClassVisito
     @Override
     public Set<MethodThrowableResolver<?, S>> visitCommandClass(@NotNull ClassElement clazz) {
         Set<MethodThrowableResolver<?, S>> throwableResolvers = new HashSet<>();
+        System.out.println("CLASS '" + clazz.getName() +"' has " + clazz.getChildren().size() + " children");
         for(var childElement : clazz.getChildren()) {
+            System.out.println("Class '" + clazz.getName() + "' has child '" + childElement.getName() + "' of type : " + childElement.element.getClass().getTypeName());
             if(! (childElement instanceof MethodElement methodElement))
                 continue;
+            System.out.println("Checking method '" + methodElement.getName() +"'");
             if(methodSelector.canBeSelected(imperat, parser, methodElement, false)) {
                 var resolverLoaded = loadResolver(clazz, methodElement);
                 if(resolverLoaded != null) {
+                    System.out.println("Adding loaded throwable resolver for exception: '" + resolverLoaded.getExceptionType().getTypeName() + "'");
                     throwableResolvers.add(resolverLoaded);
                 }
             }
