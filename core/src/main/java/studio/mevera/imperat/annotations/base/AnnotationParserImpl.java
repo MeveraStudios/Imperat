@@ -48,7 +48,6 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
     @Override
     public <T> void parseThrowableHandlerClass(T instance) {
         AnnotationReader<S> reader = AnnotationReader.read(imperat, CommandClassVisitor.ERROR_HANDLING_METHOD_SELECTOR, this, instance);
-        System.out.println("Read the global handler '" + instance.getClass().getTypeName() + "'");
         reader.acceptThrowableResolversParsing(throwableHandlerVisitor);
     }
     

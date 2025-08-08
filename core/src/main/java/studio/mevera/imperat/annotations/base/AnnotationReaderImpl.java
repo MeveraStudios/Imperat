@@ -68,16 +68,11 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
             throw new RuntimeException(e);
         }
         
-        System.out.println("CLASS= " + root.getName() + ", METHODS SIZE= " + methods.size());
         //Arrays.sort(methods, METHOD_COMPARATOR);
         for (Method method : methods) {
-            System.out.println("Reading method '" + method.getName() +"' from class '" + this.rootCommandClass.proxyClass().getTypeName() + "'");
             MethodElement methodElement = new MethodElement(parser, root, method);
             if (methodSelector.canBeSelected(imperat, parser, methodElement, false)) {
-                System.out.println("Adding method... '" + methodElement.getName() + "'");
                 root.addChild(methodElement);
-            }else {
-                System.out.println("METHOD '" + methodElement.getName() + "' NOT ACCEPTED");
             }
         }
 
@@ -141,14 +136,10 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
     public <E extends Throwable> void acceptThrowableResolversParsing(CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> visitor) {
         Set<MethodThrowableResolver<?, S>> collectedErrorHandlers = classElement.accept(visitor);
         if(collectedErrorHandlers == null) {
-            System.out.println("NULL collected handlers");
             return;
         }
-        System.out.println("Collecting error handlers");
         for (var errorHandler : collectedErrorHandlers) {
-            System.out.println("Detected error handler for type '" + errorHandler.getExceptionType().getTypeName() +"'");
             Class<E> castedExceptionType = (Class<E>) errorHandler.getExceptionType();
-            
             imperat.config().setThrowableResolver(castedExceptionType, (MethodThrowableResolver<E, S>)errorHandler);
         }
     }
