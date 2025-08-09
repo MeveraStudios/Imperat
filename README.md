@@ -297,19 +297,6 @@ public class RankCommand {
 
 ---
 
-## 📈 **Why Teams Choose Imperat**
-
-> **"Imperat transformed our server's performance. We went from noticeable command lag with 200+ players to butter-smooth operation."**  
-> — *Large Minecraft Network Administrator*
-
-> **"The annotation system is so intuitive. Our junior developers picked it up in minutes, not hours."**  
-> — *Development Team Lead*
-
-> **"29x performance improvement over Cloud was a game-changer for our high-frequency trading CLI tools."**  
-> — *FinTech Developer*
-
----
-
 ## 🤝 **Contributing**
 
 We welcome contributions! Whether it's bug reports, feature requests, or pull requests, check out our [Contributing Guidelines](CONTRIBUTING.md).
