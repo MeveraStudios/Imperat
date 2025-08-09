@@ -57,6 +57,8 @@ subprojects {
     if (project.name == "paper") {
         return
     }
+    compileJava.options.encoding = "UTF-8"
+
 
     plugins.apply("com.vanniktech.maven.publish")
 

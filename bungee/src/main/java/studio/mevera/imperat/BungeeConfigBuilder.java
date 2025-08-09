@@ -63,6 +63,9 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void addThrowableHandlers() {
+        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
+            context.source().error("Only players can do this!");
+        });
         config.setThrowableResolver(
             UnknownPlayerException.class, (exception, context) ->
                 context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")

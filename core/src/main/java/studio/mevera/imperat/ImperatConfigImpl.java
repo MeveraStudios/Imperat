@@ -115,10 +115,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             context.source().error("Please enter the value for flag '" + ex.getInput() + "'");
         });
 
-        this.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
-            context.source().error("Only players can do this!");
-        });
-
         this.setThrowableResolver(ValueOutOfConstraintException.class, (ex, context)-> {
             context.source().error("Input '" + ex.getInput() + "' is not one of: [" + String.join(",",  ex.getAllowedValues()) + "]");
         });

@@ -20,6 +20,10 @@ dependencies {
     testAnnotationProcessor("org.jetbrains:annotations:24.1.0")
 }
 
+javadoc {
+    options.encoding = "UTF-8"
+}
+
 test {
     compileJava.options.compilerArgs.add("-parameters")
     useJUnitPlatform()

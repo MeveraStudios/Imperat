@@ -59,6 +59,10 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
 
     private void addThrowableHandlers() {
+        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
+            context.source().error("Only players can do this!");
+        });
+        
         config.setThrowableResolver(InvalidSelectorFieldCriteriaFormat.class, (ex, context)-> {
             context.source().error("Invalid field-criteria format '" + ex.getFieldCriteriaInput() + "'");
         });

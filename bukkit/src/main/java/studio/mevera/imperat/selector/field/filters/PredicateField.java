@@ -36,7 +36,7 @@ public abstract class PredicateField<V> extends AbstractField<V> implements Pred
      *
      * @param value              The value used to generate the condition.
      * @param commandInputStream The stream providing command input data.
-     * @param context
+     * @param context the context.
      * @return The condition that will be used to filter entities based on the value and input data.
      */
     @NotNull

@@ -164,7 +164,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         if (useColors) result.append(BOLD);
         result.append("Command Tree Structure\n");
         if (useColors) result.append(RESET);
-        result.append("═".repeat(maxX)).append("\n\n");
+        result.append("=".repeat(maxX)).append("\n").append("\n");
         
         // Convert canvas to string
         for (char[] row : canvas) {
@@ -382,7 +382,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         if (tree == null || !ImperatDebugger.isEnabled()) return;
         
         StringBuilder builder = new StringBuilder();
-        builder.append("\n═══ Command Tree ═══\n\n");
+        builder.append("\n==== Command Tree ====\n\n");
         
         visualizeSimpleNode(tree.rootNode(), builder, 0, new ArrayList<>(), true);
         
