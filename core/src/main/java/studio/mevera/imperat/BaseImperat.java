@@ -252,17 +252,15 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             final CommandPathSearch<S> dispatch
     ) throws ImperatException {
         
-        // MEASURE: Global pre-processing
+        //global preprocessing
         globalPreProcessing(context, usage);
         
-        // MEASURE: Command pre-processing
+        //per-command preprocessor
         command.preProcess(this, context, usage);
         
-        // MEASURE: Context resolution (this is likely the biggest bottleneck)
         ExecutionContext<S> resolvedContext = config.getContextFactory().createExecutionContext(context, dispatch);
         resolvedContext.resolve();
         
-        // MEASURE: Actual usage execution
         usage.execute(this, source, resolvedContext);
         
         globalPostProcessing(resolvedContext);
