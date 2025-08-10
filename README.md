@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/github/license/MeveraStudios/Imperat?style=for-the-badge&color=green)](LICENSE)
 [![Discord](https://img.shields.io/discord/1285395980610568192?style=for-the-badge&color=7289da&label=Discord)](https://discord.gg/McN4GMWApE)
 [![Documentation](https://img.shields.io/badge/Docs-Available-brightgreen?style=for-the-badge)](https://docs.mevera.studio/Imperat)
-[![Java](https://img.shields.io/badge/Java-8%2B-orange?style=for-the-badge)](https://java.com)
+[![Java](https://img.shields.io/badge/Java-17%2B-orange?style=for-the-badge)](https://java.com)
 
 **The most performant, feature-rich command framework for Java applications**
 
