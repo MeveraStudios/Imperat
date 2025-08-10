@@ -22,7 +22,7 @@ tasks.register('printVersion') {
 allprojects {
     compileJava.options.encoding = "UTF-8"
 
-    group = "dev.velix"
+    group = "studio.mevera"
     version = baseVersion
 
     if (isSnapshot && releaseSnapshots) {
@@ -30,8 +30,8 @@ allprojects {
     }
 
     ext {
-        def kyoriVersion = "4.20.0"
-        def kyoriPlatformVersion = "4.3.4"
+        def kyoriVersion = "4.24.0"
+        def kyoriPlatformVersion = "4.4.1"
 
         kyori = { String module ->
             return "net.kyori:adventure-" + module + ":" + kyoriVersion
@@ -69,7 +69,7 @@ subprojects {
             name = "Imperat"
             description = "A modern customizable command framework."
             inceptionYear = "2024"
-            url = "https://github.com/VelixDevelopments/Imperat/"
+            url = "https://github.com/MeveraStudios/Imperat/"
             licenses {
                 license {
                     name = 'MIT'
@@ -90,9 +90,9 @@ subprojects {
                 }
             }
             scm {
-                url = "https://github.com/VelixDevelopments/Imperat/"
-                connection = "scm:git:git://github.com/VelixDevelopments/Imperat.git"
-                developerConnection = "scm:git:ssh://git@github.com/VelixDevelopments/Imperat.git"
+                url = "https://github.com/MeveraStudios/Imperat/"
+                connection = "scm:git:git://github.com/MeveraStudios/Imperat.git"
+                developerConnection = "scm:git:ssh://git@github.com/MeveraStudios/Imperat.git"
             }
         }
 
