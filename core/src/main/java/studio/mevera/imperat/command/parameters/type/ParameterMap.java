@@ -36,7 +36,7 @@ public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends B
     public @Nullable M resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
         M newMap = mapInitializer.get();
 
-        while (commandInputStream.hasNextRaw()) {
+        while (commandInputStream.isCurrentRawInputAvailable()) {
 
             String raw = commandInputStream.currentRaw().orElse(null);
             if(raw == null) break;

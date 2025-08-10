@@ -20,23 +20,23 @@
 
 ## 🎯 **Why Imperat?**
 
+Imperat isn't just another command framework—it's the **ultimate solution** for developers who demand both **blazing performance** and **rich features**. <br>
+Built by [Mqzen](https://github.com/Mqzen), Imperat delivers sub-microsecond command execution while maintaining an elegant, intuitive API.
+
 <div align="center">
+
+</div>
+
+---
+
+### 📊 **Performance**
+Imperat provides the optimum performance for command execution and suggestion providing.<br>
+We have proven this  through running benchmarks using **JMH**:
 
 | **Lightning Fast** ⚡ | **Feature Complete** 🎨 | **Multi-Platform** 🌍 |
 |:---:|:---:|:---:|
 | **29x faster** than Cloud<br/>**10x faster** than Lamp | Annotations, builders, suggestions,<br/>permissions, and much more | Bukkit, Velocity, BungeeCord,<br/>Minestom, CLI, and more |
 
-</div>
-
-Imperat isn't just another command framework—it's the **ultimate solution** for developers who demand both **blazing performance** and **rich features**. Built by [Mqzen](https://github.com/Mqzen), Imperat delivers sub-microsecond command execution while maintaining an elegant, intuitive API.
-
----
-
-## 📊 **Performance**
-
-<div align="center">
-
-### **Real-World Command Execution Benchmarks**
 
 | Framework | Median Latency | Throughput | vs Imperat |
 |:---------:|:--------------:|:----------:|:----------:|
@@ -46,9 +46,7 @@ Imperat isn't just another command framework—it's the **ultimate solution** fo
 
 <sub>*Benchmarked on complex command trees with 10+ depth levels and multiple branches*</sub>
 
-</div>
-
-> 💡 **What does this mean?** On a busy Minecraft server with 100 players, Imperat adds only **0.47ms** overhead per 1000 commands, while Cloud adds **12.2ms**—that's the difference between smooth gameplay and noticeable lag!
+> 💡 **What does this mean?** On a busy Minecraft server with many players, Imperat adds only **0.47ms** overhead per 1000 commands, while Other framework like Cloud adds **12.2ms**—that's the difference between smooth gameplay and noticeable lag!
 
 ---
 
@@ -56,14 +54,14 @@ Imperat isn't just another command framework—it's the **ultimate solution** fo
 
 <div align="center">
 
-| **Core Features** | **Advanced Features** | **Developer Experience** |
-|:---:|:---:|:---:|
-| 📝 Annotation-based commands | 🔄 Async command execution | 🎯 Zero boilerplate |
-| 🏗️ Builder pattern API | 🎮 Tab completion & suggestions | 📚 Extensive documentation |
-| 🌳 Unlimited subcommands | 🛡️ Permission management | 🔧 IDE autocomplete support |
-| ⚡ Parameter validation | 🔌 Dependency injection | 🎨 Custom parameter types |
-| 🎯 Multiple usage patterns | 📊 Processing pipeline | 🚀 Hot-reload support |
-| 🔀 Greedy parameters | ⏱️ Command cooldowns | 💾 Context resolvers |
+|     **Core Features**      |    **Advanced Features**     | **Developer Experience** |
+|:--------------------------:|:----------------------------:|:------------------------:|
+| Annotation-based commands  |   Async command execution    |     Zero boilerplate     |
+|    Builder pattern API     | Tab completion & suggestions | Extensive documentation  |
+|   Unlimited subcommands    |    Permission management     | IDE autocomplete support |
+|    Parameter validation    |     Dependency injection     |  Custom parameter types  |
+| Multiple usage patterns |     Processing pipeline      |    Hot-reload support    |
+|    Greedy parameters    |      Command cooldowns       |    Context resolvers     |
 
 </div>
 
@@ -299,7 +297,7 @@ public class RankCommand {
 
 ## 🤝 **Contributing**
 
-We welcome contributions! Whether it's bug reports, feature requests, or pull requests, check out our [Contributing Guidelines](CONTRIBUTING.md).
+We welcome contributions! Whether it's bug reports, feature requests, or pull requests.
 
 ## 📜 **License**
 
@@ -313,6 +311,6 @@ Imperat is licensed under the [MIT License](LICENSE).
 
 [📚 **Read the Docs**](https://docs.mevera.studio/Imperat) • [💬 **Join our Discord**](https://discord.gg/McN4GMWApE) • [⭐ **Star on GitHub**](https://github.com/MeveraStudios/Imperat)
 
-**Built with ❤️ by [Mqzen](https://github.com/Mqzen) and the Imperat community**
+**Built with ❤️ by [Mqzen](https://github.com/Mqzen) and [iiAhmedYT](https://github.com/iiAhmedYT)**
 
 </div>

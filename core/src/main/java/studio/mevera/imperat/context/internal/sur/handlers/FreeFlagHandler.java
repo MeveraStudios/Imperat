@@ -19,7 +19,7 @@ public final class FreeFlagHandler<S extends Source> implements ParameterHandler
         var lastParam = context.getDetectedUsage().getParameter(context.getDetectedUsage().size() - 1);
         
         String currentRaw;
-        while ((currentRaw = stream.currentRawFast()) != null) {
+        while ((currentRaw = stream.currentRawIfPresent()) != null) {
             if (lastParam != null && lastParam.isGreedy()) {
                 break;
             }

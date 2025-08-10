@@ -17,12 +17,12 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
     
     @Override
     public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
-        CommandParameter<S> currentParameter = stream.currentParameterFast();
+        CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         if (currentParameter == null) {
             return HandleResult.TERMINATE;
         }
         
-        String currentRaw = stream.currentRawFast();
+        String currentRaw = stream.currentRawIfPresent();
         if (currentRaw != null) {
             return HandleResult.NEXT_HANDLER; // Not empty input, let other handlers process
         }
@@ -53,10 +53,13 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
             if (flag.isSwitch()) {
                 value = false;
             } else {
+                var flagInputType = flag.inputType();
+                assert flagInputType != null;
+                
                 String defaultStrValue = flagParameter.getDefaultValueSupplier()
                     .supply(context.source(), flagParameter);
                 if (defaultStrValue != null) {
-                    value = flag.inputType().resolve(context, CommandInputStream.subStream(stream, defaultStrValue), defaultStrValue);
+                    value = flagInputType.resolve(context, CommandInputStream.subStream(stream, defaultStrValue), defaultStrValue);
                 }
             }
             

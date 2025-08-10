@@ -1,6 +1,7 @@
 package studio.mevera.imperat.context.internal;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ArgumentInput;
@@ -19,7 +20,6 @@ final class CommandInputStreamImpl<S extends Source> implements CommandInputStre
     // Cache to store the starting position of each raw argument in the input line
     private final int[] rawStartPositions;
     
-    // Performance optimization: Cache frequently accessed values
     private CommandParameter<S> cachedCurrentParameter = null;
     private String cachedCurrentRaw = null;
     private int lastParameterPosition = -1;
@@ -140,24 +140,20 @@ final class CommandInputStreamImpl<S extends Source> implements CommandInputStre
         return streamPosition;
     }
     
-    // ============================================================================
-    // FAST ACCESSOR METHODS (NO OPTIONAL OVERHEAD)
-    // ============================================================================
-    
     @Override
-    public CommandParameter<S> currentParameterFast() {
+    public CommandParameter<S> currentParameterIfPresent() {
         updateCache();
         return cachedCurrentParameter;
     }
     
     @Override
-    public String currentRawFast() {
+    public String currentRawIfPresent() {
         updateCache();
         return cachedCurrentRaw;
     }
     
     @Override
-    public CommandParameter<S> peekParameterFast() {
+    public CommandParameter<S> peekParameterIfPresent() {
         int nextIndex = streamPosition.parameter + 1;
         if (nextIndex >= parametersList.size()) {
             return null;
@@ -166,13 +162,13 @@ final class CommandInputStreamImpl<S extends Source> implements CommandInputStre
     }
     
     @Override
-    public String peekRawFast() {
+    public String peekRawIfPresent() {
         int nextIndex = streamPosition.raw + 1;
         return queue.getOr(nextIndex, null);
     }
     
     @Override
-    public Character currentLetterFast() {
+    public Character currentLetterIfPresent() {
         int letterPos = getCurrentLetterPos();
         if (letterPos >= inputLine.length()) {
             return null;
@@ -180,15 +176,21 @@ final class CommandInputStreamImpl<S extends Source> implements CommandInputStre
         return inputLine.charAt(letterPos);
     }
     
-    // ============================================================================
-    // ORIGINAL OPTIONAL-BASED METHODS (FOR BACKWARD COMPATIBILITY)
-    // ============================================================================
+    @Override
+    public @Nullable String nextInput() {
+        return popRaw().orElse(null);
+    }
+    
+    @Override
+    public @Nullable CommandParameter<S> nextParameter() {
+        return popParameter().orElse(null);
+    }
     
     @Override
     public Optional<CommandParameter<S>> popParameter() {
         streamPosition.shift(ShiftTarget.PARAMETER_ONLY, ShiftOperation.RIGHT);
         invalidateCache();
-        CommandParameter<S> current = currentParameterFast();
+        CommandParameter<S> current = currentParameterIfPresent();
         return Optional.ofNullable(current);
     }
     
@@ -229,7 +231,7 @@ final class CommandInputStreamImpl<S extends Source> implements CommandInputStre
     public Optional<String> popRaw() {
         streamPosition.shift(ShiftTarget.RAW_ONLY, ShiftOperation.RIGHT);
         invalidateCache();
-        String current = currentRawFast();
+        String current = currentRawIfPresent();
         return Optional.ofNullable(current);
     }
     
@@ -240,13 +242,18 @@ final class CommandInputStreamImpl<S extends Source> implements CommandInputStre
     }
     
     @Override
-    public boolean hasNextLetter() {
+    public boolean isCurrentLetterAvailable() {
         return getCurrentLetterPos() < inputLine.length();
     }
     
     @Override
-    public boolean hasNextRaw() {
-        return streamPosition.canContinue(ShiftTarget.RAW_ONLY);
+    public boolean hasNextLetter() {
+        return (getCurrentLetterPos()+1) < inputLine.length();
+    }
+    
+    @Override
+    public boolean isCurrentRawInputAvailable() {
+        return (streamPosition.raw) < rawsLength();
     }
     
     @Override
@@ -255,13 +262,23 @@ final class CommandInputStreamImpl<S extends Source> implements CommandInputStre
     }
     
     @Override
-    public boolean hasNextParameter() {
-        return streamPosition.canContinue(ShiftTarget.PARAMETER_ONLY);
+    public boolean hasNextRaw() {
+        return (streamPosition.raw+1) < rawsLength();
+    }
+    
+    @Override
+    public boolean isCurrentParameterAvailable() {
+        return (streamPosition.parameter) < parametersLength();
     }
     
     @Override
     public boolean hasPreviousParameter() {
         return streamPosition.parameter > 0;
+    }
+    
+    @Override
+    public boolean hasNextParameter() {
+        return (streamPosition.parameter+1) < parametersLength();
     }
     
     @Override

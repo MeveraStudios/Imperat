@@ -57,7 +57,7 @@ public final class ParameterString<S extends Source> extends BaseParameterType<S
         }
         
         if (parameter != null && parameter.isGreedyString()) {
-            handleGreedyOptimized(builder, inputStream, input);
+            handleGreedyOptimized(builder, inputStream);
             return builder.toString();
         }
 
@@ -67,7 +67,7 @@ public final class ParameterString<S extends Source> extends BaseParameterType<S
             next = inputStream.popLetter().orElse(null);
             if (next == null) break;
             builder.append(next);
-        } while (inputStream.hasNextRaw()
+        } while (inputStream.isCurrentRawInputAvailable()
                 && inputStream.peekLetter().map((ch) -> !isQuoteChar(ch))
                 .orElse(false));
         
@@ -77,9 +77,9 @@ public final class ParameterString<S extends Source> extends BaseParameterType<S
     /**
      * Optimized greedy handling with better performance characteristics
      */
-    private void handleGreedyOptimized(StringBuilder builder, CommandInputStream<S> inputStream, String input) {
+    private void handleGreedyOptimized(StringBuilder builder, CommandInputStream<S> inputStream) {
         // If truly greedy (consumes multiple raw inputs), handle remaining
-        while (inputStream.hasNextRaw()) {
+        while (inputStream.isCurrentRawInputAvailable()) {
             String nextRaw = inputStream.currentRaw().orElse(null);
             if (nextRaw != null) {
                 builder.append(nextRaw);

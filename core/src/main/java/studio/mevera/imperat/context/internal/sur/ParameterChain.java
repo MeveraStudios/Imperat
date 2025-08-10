@@ -18,7 +18,7 @@ public class ParameterChain<S extends Source> {
     public void execute(ExecutionContext<S> context, CommandInputStream<S> stream) throws ImperatException {
         
         pipeLine:
-        while (stream.hasNextParameter()) {
+        while (stream.isCurrentParameterAvailable()) {
             
             for (ParameterHandler<S> handler : handlers) {
                 

@@ -33,7 +33,7 @@ public abstract class ParameterArray<S extends Source, E> extends BaseParameterT
         E[] array = (E[]) initializer.apply(arrayLength);
 
         int i = 0;
-        while (stream.hasNextRaw()) {
+        while (stream.isCurrentRawInputAvailable()) {
 
             String raw = stream.currentRaw().orElse(null);
             if(raw == null)

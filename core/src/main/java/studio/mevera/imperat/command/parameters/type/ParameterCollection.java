@@ -26,7 +26,7 @@ public class ParameterCollection<S extends Source, E, C extends Collection<E>> e
     public @Nullable C resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
         C newCollection = collectionSupplier.get();
 
-        while (commandInputStream.hasNextRaw()) {
+        while (commandInputStream.isCurrentRawInputAvailable()) {
 
             String raw = commandInputStream.currentRaw().orElse(null);
             if(raw == null) break;

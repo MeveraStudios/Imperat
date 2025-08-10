@@ -168,9 +168,9 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
     ) throws ImperatException {
         resolveArgument(
             getLastUsedCommand(),
-            stream.currentRawFast(),
+            stream.currentRawIfPresent(),
             stream.currentRawPosition(),
-            stream.currentParameterFast(),
+            stream.currentParameterIfPresent(),
             value
         );
     }

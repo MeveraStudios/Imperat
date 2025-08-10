@@ -19,8 +19,8 @@ public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements 
     
     @Override
     public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
-        CommandParameter<S> currentParameter = stream.currentParameterFast();
-        String currentRaw = stream.currentRawFast();
+        CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
+        String currentRaw = stream.currentRawIfPresent();
         
         if (currentParameter == null || currentRaw == null || !currentParameter.isFlag() || Patterns.isInputFlag(currentRaw)) {
             return HandleResult.NEXT_HANDLER;

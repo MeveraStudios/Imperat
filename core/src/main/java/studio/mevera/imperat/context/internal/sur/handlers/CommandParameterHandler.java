@@ -14,8 +14,8 @@ public final class CommandParameterHandler<S extends Source> implements Paramete
     
     @Override
     public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
-        CommandParameter<S> currentParameter = stream.currentParameterFast();
-        String currentRaw = stream.currentRawFast();
+        CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
+        String currentRaw = stream.currentRawIfPresent();
         
         if (currentParameter == null || currentRaw == null || !currentParameter.isCommand()) {
             return HandleResult.NEXT_HANDLER;

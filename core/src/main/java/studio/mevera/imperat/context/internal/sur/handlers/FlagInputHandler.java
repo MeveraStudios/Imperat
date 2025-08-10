@@ -25,8 +25,8 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
     
     @Override
     public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
-        CommandParameter<S> currentParameter = stream.currentParameterFast();
-        String currentRaw = stream.currentRawFast();
+        CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
+        String currentRaw = stream.currentRawIfPresent();
         if (currentParameter == null || currentRaw == null || !currentParameter.isFlag() || !Patterns.isInputFlag(currentRaw)) {
             return HandleResult.NEXT_HANDLER;
         }
@@ -51,7 +51,7 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
             boolean areAllSwitches = extracted.size() == numberOfSwitches;
             boolean areAllTrueFlags = extracted.size() == numberOfTrueFlags;
             
-            String inputRaw = areAllSwitches ? currentRaw : stream.peekRawFast();
+            String inputRaw = areAllSwitches ? currentRaw : stream.peekRawIfPresent();
             if(inputRaw == null) {
                 throw new MissingFlagInputException(currentParameter.asFlagParameter(), currentRaw, context);
             }
