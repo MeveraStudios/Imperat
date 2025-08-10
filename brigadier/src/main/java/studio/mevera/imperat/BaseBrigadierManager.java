@@ -117,10 +117,9 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             String input = context.getInput();
             String label = input.substring(0, input.indexOf(' '));
 
-            boolean hadExtraSpace = Character.isWhitespace(input.charAt(input.length() - 1));
             String[] processed = processedInput(input);
 
-            ArgumentInput args = ArgumentInput.parseAutoCompletion(processed, hadExtraSpace);
+            ArgumentInput args = ArgumentInput.parseAutoCompletion(processed, true);
 
             SuggestionContext<S> ctx = dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
             CompletionArg arg = ctx.getArgToComplete();

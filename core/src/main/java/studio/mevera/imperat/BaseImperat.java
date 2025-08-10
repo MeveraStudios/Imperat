@@ -483,8 +483,6 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                 fullCommandLine.charAt(fullCommandLine.length()-1) == ' '
         );
         
-        //TODO check for caches before creating a context
-        
         SuggestionContext<S> context =  this.config.getContextFactory()
                 .createSuggestionContext(
                         this, source, command, cmdName, argumentInput

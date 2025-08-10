@@ -41,7 +41,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     private final Map<CommandParameter<S>, String> assignedPermissions = new HashMap<>();
     
-    private final CommandSuggestionCache<S> commandSuggestionCache = new CommandSuggestionCache<>();
     
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
         this.rootCommand = command;
@@ -770,26 +769,10 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     @Override
     public @NotNull List<String> tabComplete(@NotNull SuggestionContext<S> context) {
-        
         List<String> results = new ArrayList<>(MAX_SUGGESTIONS_PER_ARGUMENT);
-        
         final int targetDepth = context.getArgToComplete().index();
         final String prefix = context.getArgToComplete().value();
         final boolean hasPrefix = prefix != null && !prefix.isBlank();
-        
-        var lastNodes = commandSuggestionCache.getLastNodes(context.source(), context.arguments());
-        if(lastNodes != null) {
-            for(var lastNode : lastNodes) {
-                collectSuggestionsOptimized(
-                        lastNode, context, context.source(), results
-                );
-            }
-            return results.stream()
-                    .filter((suggestion)->
-                            !hasPrefix || fastStartsWith(suggestion, prefix)
-                    )
-                    .toList();
-        }
         
         return tabCompleteIterativeDFS(context, targetDepth, prefix, hasPrefix, results);
     }
@@ -816,12 +799,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         while (!stack.isEmpty()) {
             final var currentNode = stack.pop();
             final int currentDepth = currentNode.getDepth();
-            
+            // /test2 array <TAB>
             if (targetDepth - currentDepth == 1) {
                 collectSuggestionsOptimized(
                         currentNode, context, source, results
                 );
-                commandSuggestionCache.computeInput(context.source(), context.arguments(), currentNode);
                 continue; // Don't traverse deeper from suggestion nodes
             }
             
@@ -1026,7 +1008,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
     
     private ParameterNode<S, ?> findStartingNode(ParameterNode<S, ?> root, String raw) {
-        // SAFE OPTIMIZATION: Use cached root children if available
         for (var child : root.getChildren()) {
             if (child.matchesInput(raw)) {
                 return child;
