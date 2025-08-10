@@ -113,13 +113,13 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             String paramFormat = parameter.format();
             String desc = parameter.description() != Description.EMPTY ? parameter.description().toString() : "";
             Message tooltip = new LiteralMessage(paramFormat + (desc.isEmpty() ? "" : " - " + desc));
-
+            
             String input = context.getInput();
-            String label = input.substring(0, input.indexOf(' '));
-
-            String[] processed = processedInput(input);
-
-            ArgumentInput args = ArgumentInput.parseAutoCompletion(processed, true);
+            int firstSpaceIndex = input.indexOf(' ');
+            String label = input.substring(0, firstSpaceIndex);
+            
+            String argsInput= input.substring(firstSpaceIndex);
+            ArgumentInput args = ArgumentInput.parseAutoCompletion(argsInput, (argsInput.charAt(argsInput.length()-1) != ' '));
 
             SuggestionContext<S> ctx = dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
             CompletionArg arg = ctx.getArgToComplete();
