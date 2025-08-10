@@ -6,7 +6,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/studio.mevera/imperat-core?style=for-the-badge&color=blue)](https://search.maven.org/artifact/studio.mevera/imperat-core)
 [![License](https://img.shields.io/github/license/MeveraStudios/Imperat?style=for-the-badge&color=green)](LICENSE)
-[![Discord](https://img.shields.io/discord/YOUR_DISCORD_ID?style=for-the-badge&color=7289da&label=Discord)](https://discord.gg/McN4GMWApE)
+[![Discord](https://img.shields.io/discord/1285395980610568192?style=for-the-badge&color=7289da&label=Discord)](https://discord.gg/McN4GMWApE)
 [![Documentation](https://img.shields.io/badge/Docs-Available-brightgreen?style=for-the-badge)](https://docs.mevera.studio/Imperat)
 [![Java](https://img.shields.io/badge/Java-8%2B-orange?style=for-the-badge)](https://java.com)
 
