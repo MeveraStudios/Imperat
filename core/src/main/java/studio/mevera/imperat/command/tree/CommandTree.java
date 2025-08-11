@@ -6,10 +6,13 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.tree.help.HelpEntry;
+import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
+import studio.mevera.imperat.command.tree.help.HelpQuery;
 
 import java.util.List;
 import java.util.Set;
@@ -83,6 +86,25 @@ public interface CommandTree<S extends Source> {
      */
     @NotNull List<String> tabComplete(
             @NotNull SuggestionContext<S> context
+    );
+    
+    /**
+     * Queries the help system to retrieve a set of help entries that match the specified criteria.
+     *
+     * <p>This method searches through available help entries and returns those that satisfy
+     * the conditions defined in the provided {@link HelpQuery}. The query can include filters
+     * such as search terms, categories, permissions, or other criteria depending on the
+     * implementation.</p>
+     *
+     * @param query the help query containing search criteria and filters; must not be null
+     * @return a set of {@link HelpEntry} objects that match the query criteria;
+     * returns an empty set if no matches are found; never returns null
+     * @see HelpQuery
+     * @see HelpEntry
+     * @since 2.0.0
+     */
+    HelpEntryList<S> queryHelp(
+            @NotNull HelpQuery<S> query
     );
     
     /**

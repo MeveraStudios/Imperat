@@ -4,7 +4,6 @@ import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.help.CommandHelp;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
 
@@ -62,9 +61,9 @@ public final class TestCommands {
                     .execute((source, context) -> {
                         Integer page = context.getArgument("page");
 
-                        CommandHelp help = context.getContextResolvedArgument(CommandHelp.class);
-                        assert help != null;
-                        help.display(source);
+                        //CommandHelp help = context.getContextResolvedArgument(CommandHelp.class);
+                        //assert help != null;
+                        //help.display(source);
 
                         source.sendMsg("Help page= " + page);
                     })

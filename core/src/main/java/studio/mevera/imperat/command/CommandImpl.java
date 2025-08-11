@@ -18,8 +18,6 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.ThrowableResolver;
-import studio.mevera.imperat.help.HelpProvider;
-import studio.mevera.imperat.help.PaginatedHelpTemplate;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 
@@ -53,7 +51,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
             CommandProcessingChain.<S>postProcessors()
             .build();
 
-    private @Nullable HelpProvider<S> helpProvider;
     private @Nullable Command<S> parent;
     private final CommandUsage<S> emptyUsage;
     private final @NotNull SuggestionResolver<S> suggestionResolver;
@@ -155,28 +152,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
         return permission;
     }
     
-    /**
-     * Retrieves the HelpProvider instance associated with the current context.
-     *
-     * @return the HelpProvider instance of type S
-     */
-    @Override
-    public @Nullable HelpProvider<S> getHelpProvider() {
-        return helpProvider;
-    }
-
-    /**
-     * Sets the help provider for the current context. The provided help provider can be used
-     * to supply contextual help or assistance in various scenarios.
-     *
-     * @param helpProvider the help provider instance to set. Can be null to indicate
-     *                     that no help provider is to be used.
-     */
-    @Override
-    public void setHelpProvider(@Nullable HelpProvider<S> helpProvider) {
-        this.helpProvider = helpProvider;
-    }
-
     @Override
     public @NotNull CommandPathSearch<S> contextMatch(Context<S> context) {
         if (tree != null) {
@@ -522,34 +497,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void ignoreACPermissions(boolean suppress) {
         this.suppressACPermissionChecks = suppress;
     }
-
-    /**
-     * Adds help as a sub-command to the command chain
-     *
-     * @param dispatcher    the api
-     * @param params        the parameters of the help command
-     * @param helpExecution the help execution
-     */
-    @Override
-    public void addHelpCommand(Imperat<S> dispatcher, List<CommandParameter<S>> params, CommandExecution<S> helpExecution) {
-        if (params.isEmpty() && dispatcher.config().getHelpProvider() instanceof PaginatedHelpTemplate) {
-            params.add(
-                CommandParameter.<S>optionalInt("page")
-                    .description("help-page")
-                    .defaultValue(1)
-                    .build()
-            );
-        }
-
-        addSubCommandUsage(
-            "help",
-            CommandUsage.<S>builder()
-                .parameters(params)
-                .execute(helpExecution),
-            AttachmentMode.MAIN
-        );
-    }
-
+    
     @Override
     public void registerFlag(FlagData<S> flag) {
         freeFlags.add(flag);

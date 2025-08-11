@@ -39,6 +39,8 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     private final Set<FlagData<S>> freeFlags = new HashSet<>(EXPECTED_FREE_FLAGS_CAPACITY);
     private final FlagExtractor<S> flagExtractor;
 
+    private final List<String> examples = new ArrayList<>(2);
+    
     CommandUsageImpl(@NotNull CommandExecution<S> execution) {
         this(execution, false);
     }
@@ -189,7 +191,18 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     public List<CommandParameter<S>> getParametersWithoutFlags() {
         return parametersWithoutFlags;
     }
-
+    
+    @Override
+    public List<String> getExamples() {
+        return examples;
+    }
+    
+    @Override
+    public void addExample(String example) {
+        if(examples.contains(example))return;
+        examples.add(example);
+    }
+    
     @Override
     public @Nullable CommandParameter<S> getParameter(int index) {
         if (index < 0 || index >= parameters.size()) return null;

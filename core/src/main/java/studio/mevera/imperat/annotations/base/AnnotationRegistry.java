@@ -19,7 +19,7 @@ final class AnnotationRegistry {
             Cooldown.class, Description.class, Permission.class,
             Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
             Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, ContextResolved.class, Range.class, Async.class,
-            PostProcessor.class, PreProcessor.class, Help.class, GlobalAttachmentMode.class, ExceptionHandler.class
+            PostProcessor.class, PreProcessor.class, GlobalAttachmentMode.class, ExceptionHandler.class
         );
     }
 

@@ -6,6 +6,7 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.tree.help.*;
 import studio.mevera.imperat.context.*;
 import studio.mevera.imperat.resolvers.PermissionChecker;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
@@ -38,6 +39,8 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
+    
+    private final HelpEntryFactory<S> helpEntryFactory = HelpEntryFactory.defaultFactory();
     
     private final Map<CommandParameter<S>, String> assignedPermissions = new HashMap<>();
     
@@ -775,6 +778,68 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final boolean hasPrefix = prefix != null && !prefix.isBlank();
         
         return tabCompleteIterativeDFS(context, targetDepth, prefix, hasPrefix, results);
+    }
+    
+    @Override
+    public HelpEntryList<S> queryHelp(@NotNull HelpQuery<S> query) {
+        final HelpEntryList<S> results = new HelpEntryList<>();
+        
+        if (query.getLimit() <= 0) {
+            return HelpEntryList.empty();
+        }
+        
+        collectHelpEntries(root, query, results);
+        return results;
+    }
+    
+    /**
+     * Collects help entries in deep hierarchical mode - full tree traversal with structure
+     */
+    private void collectHelpEntries(
+            ParameterNode<S, ?> node,
+            HelpQuery<S> query,
+            HelpEntryList<S> results
+    ) {
+        // Check depth limit using node's depth
+        if (node.getDepth() > query.getMaxDepth()) {
+            return;
+        }
+        
+        // Check result limit
+        if (results.size() >= query.getLimit()) {
+            return;
+        }
+        
+        // Apply filters to current node
+        if (!passesFilters(node, query.getFilters())) {
+            return;
+        }
+        
+        // Add current node ONLY if it has executableUsage (truly executable)
+        if (node.isExecutable()) {
+            results.add(helpEntryFactory.createEntry(node));
+        }
+        
+        // Recursively process children (DFS traversal) - continues even through command nodes
+        for (var child : node.getChildren()) {
+            if (results.size() >= query.getLimit()) {
+                break;
+            }
+            collectHelpEntries(child, query, results);
+        }
+    }
+    
+    /**
+     * Applies all filters to a node
+     * Short-circuits on first failed filter for efficiency
+     */
+    private boolean passesFilters(ParameterNode<S, ?> node, Queue<HelpFilter<S>> filters) {
+        for (HelpFilter<S> filter : filters) {
+            if (!filter.filter(node)) {
+                return false;
+            }
+        }
+        return true;
     }
     
     

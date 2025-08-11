@@ -5,7 +5,6 @@ import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Usage;
 import studio.mevera.imperat.command.AttachmentMode;
-import studio.mevera.imperat.help.CommandHelp;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("group")
@@ -27,9 +26,9 @@ public final class AnnotatedGroupCommand {
     }
 
     @SubCommand(value = "help", attachment = AttachmentMode.DEFAULT)
-    public void help(TestSource source, CommandHelp help) {
+    public void help(TestSource source) {
         // /group help
-        help.display(source);
+        //help.display(source);
     }
 
     @SubCommand("setperm")

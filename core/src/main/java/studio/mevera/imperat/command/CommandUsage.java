@@ -124,7 +124,23 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @see CommandParameter
      */
     List<CommandParameter<S>> getParametersWithoutFlags();
-
+    
+    /**
+     * The pre-defined syntax examples for this usage.
+     * @return the pre-defined examples for this {@link CommandUsage}
+     */
+    List<String> getExamples();
+    
+    /**
+     * Adds an example to the usage
+     * @param example the example to add using this usage.
+     */
+    void addExample(String example);
+    
+    default void addExamples(List<String> examples) {
+        examples.forEach(this::addExample);
+    }
+    
     /**
      * Fetches the parameter at the index
      *
@@ -259,7 +275,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @return whether this usage has this sequence of parameters
      */
     boolean hasParameters(List<CommandParameter<S>> parameters);
-
+    
     default int size() {
         return getParameters().size();
     }
@@ -304,7 +320,8 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         private UsageCooldown cooldown = null;
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
         private final Set<FlagData<S>> flags = new HashSet<>();
-
+        private final List<String> examples = new ArrayList<>(2);
+        
         Builder() {
 
         }
@@ -385,6 +402,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             );
             flags.forEach(impl::addFlag);
             impl.getUsedFreeFlags().forEach(command::registerFlag);
+            impl.addExamples(this.examples);
             return impl;
         }
 
@@ -396,7 +414,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         public CommandUsage<S> buildAsHelp(@NotNull Command<S> command) {
             return build(command, true);
         }
-
-
     }
+    
+
 }

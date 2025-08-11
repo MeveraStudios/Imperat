@@ -2,12 +2,10 @@ package studio.mevera.imperat.command;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.help.CommandHelp;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.util.Registry;
 import studio.mevera.imperat.util.TypeWrap;
@@ -20,15 +18,15 @@ public final class ContextResolverRegistry<S extends Source> extends Registry<Ty
 
     private final Registry<Type, ContextResolverFactory<S, ?>> factories = new Registry<>();
 
-    private ContextResolverRegistry(final ImperatConfig<S> config) {
+    private ContextResolverRegistry() {
         super();
-        this.registerResolver(TypeWrap.of(CommandHelp.class).getType(), (ctx, param) -> new CommandHelp(config, ctx));
+        //this.registerResolver(TypeWrap.of(CommandHelp.class).getType(), (ctx, param) -> new CommandHelp(config, ctx));
         this.registerResolver(new TypeWrap<ExecutionContext<S>>(){}.getType(), (ctx, param)-> ctx);
         this.registerResolver(new TypeWrap<ArgumentInput>(){}.getType(),(ctx, param)-> ctx.arguments());
     }
 
-    public static <S extends Source> ContextResolverRegistry<S> createDefault(final ImperatConfig<S> imperat) {
-        return new ContextResolverRegistry<>(imperat);
+    public static <S extends Source> ContextResolverRegistry<S> createDefault() {
+        return new ContextResolverRegistry<>();
     }
 
     public <T> void registerResolver(Type type, ContextResolver<S, T> resolver) {

@@ -20,7 +20,6 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.help.HelpProvider;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Collection;
@@ -160,34 +159,6 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
     @Override
     default @NotNull OptionalValueSupplier getDefaultValueSupplier() {
         return OptionalValueSupplier.of(name());
-    }
-
-
-    /**
-     * Retrieves the HelpProvider instance associated with the current context.
-     *
-     * @return the HelpProvider instance of type S
-     */
-    @Nullable HelpProvider<S> getHelpProvider();
-
-
-    /**
-     * Sets the help provider for the current context. The provided help provider can be used
-     * to supply contextual help or assistance in various scenarios.
-     *
-     * @param helpProvider the help provider instance to set. Can be null to indicate
-     *                     that no help provider is to be used.
-     */
-    void setHelpProvider(@Nullable HelpProvider<S> helpProvider);
-
-
-    /**
-     * Determines whether a help provider is available.
-     *
-     * @return true if a help provider is present, false otherwise
-     */
-    default boolean hasHelpProvider() {
-        return getHelpProvider() != null;
     }
 
     /**
@@ -425,18 +396,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
      * @param ignore true if you want to ignore the permission checks on tab completion of args
      */
     void ignoreACPermissions(boolean ignore);
-
-    /**
-     * Adds help as a sub-command to the command chain
-     *
-     * @param dispatcher    the api
-     * @param params        the parameters of the help command
-     * @param helpExecution the help execution
-     */
-    void addHelpCommand(Imperat<S> dispatcher,
-                        List<CommandParameter<S>> params,
-                        CommandExecution<S> helpExecution);
-
+    
     @ApiStatus.Internal
     @ApiStatus.AvailableSince("1.9.0")
     void registerSubCommand(Command<S> subCommand);
@@ -495,12 +455,6 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
 
         public Builder<S> usage(CommandUsage.Builder<S> usage) {
             cmd.addUsage(usage);
-            return this;
-        }
-
-        @ApiStatus.AvailableSince("1.9.0")
-        public Builder<S> helpProvider(HelpProvider<S> helpProvider) {
-            cmd.setHelpProvider(helpProvider);
             return this;
         }
 

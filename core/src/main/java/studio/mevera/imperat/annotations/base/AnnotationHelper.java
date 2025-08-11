@@ -14,27 +14,13 @@ import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.help.CommandHelp;
-import studio.mevera.imperat.util.TypeUtility;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.util.List;
 
 public final class AnnotationHelper {
-
-    public static boolean isMethodHelp(Method method) {
-        for (Parameter parameter : method.getParameters()) {
-            if (TypeUtility.areRelatedTypes(parameter.getParameterizedType(), CommandHelp.class)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
+    
     public static <S extends Source> Object[] loadParameterInstances(
         Imperat<S> dispatcher,
         List<CommandParameter<S>> fullParameters,
@@ -184,9 +170,9 @@ public final class AnnotationHelper {
         return fallback;
     }
 
-    public static boolean isHelpParameter(ParameterElement element) {
+    /*public static boolean isHelpParameter(ParameterElement element) {
         return TypeUtility.areRelatedTypes(element.getType(), CommandHelp.class);
-    }
+    }*/
 
 
     public static boolean isAbnormalClass(ParseElement<?> parseElement) {

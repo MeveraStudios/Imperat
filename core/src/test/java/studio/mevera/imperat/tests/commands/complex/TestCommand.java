@@ -2,7 +2,6 @@ package studio.mevera.imperat.tests.commands.complex;
 
 import studio.mevera.imperat.annotations.*;
 import studio.mevera.imperat.command.AttachmentMode;
-import studio.mevera.imperat.help.CommandHelp;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("test")
@@ -26,8 +25,8 @@ public class TestCommand {
     }
 
     @SubCommand(value = "help", attachment = AttachmentMode.DEFAULT)
-    public void help(TestSource source, CommandHelp help) {
-        help.display(source);
+    public void help(TestSource source) {
+        //help.display(source);
         source.reply("executed /test help");
     }
 

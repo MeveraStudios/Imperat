@@ -21,7 +21,6 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.exception.*;
 import studio.mevera.imperat.exception.parse.*;
-import studio.mevera.imperat.help.HelpProvider;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
@@ -46,7 +45,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
     private @NotNull ContextFactory<S> contextFactory;
     private @NotNull UsageVerifier<S> verifier;
-    private @Nullable HelpProvider<S> provider = null;
 
     private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
 
@@ -81,7 +79,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     
     
     ImperatConfigImpl() {
-        contextResolverRegistry = ContextResolverRegistry.createDefault(this);
+        contextResolverRegistry = ContextResolverRegistry.createDefault();
         paramTypeRegistry = ParamTypeRegistry.createDefault();
         suggestionResolverRegistry = SuggestionResolverRegistry.createDefault(this);
         sourceResolverRegistry = SourceResolverRegistry.createDefault();
@@ -764,25 +762,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public UsageVerifier<S> getUsageVerifier() {
         return verifier;
     }
-
-    /**
-     * @return The template for showing help
-     */
-    @Override
-    public @Nullable HelpProvider<S> getHelpProvider() {
-        return provider;
-    }
-
-    /**
-     * Set the help template to use
-     *
-     * @param template the help template
-     */
-    @Override
-    public void setHelpProvider(@Nullable HelpProvider<S> template) {
-        this.provider = template;
-    }
-
+    
     @Override
     @Nullable
     @SuppressWarnings("unchecked")

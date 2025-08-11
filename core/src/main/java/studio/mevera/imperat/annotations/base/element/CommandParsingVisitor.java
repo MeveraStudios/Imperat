@@ -23,7 +23,6 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.help.HelpProvider;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeUtility;
@@ -122,7 +121,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         studio.mevera.imperat.annotations.Description description = element.getAnnotation(studio.mevera.imperat.annotations.Description.class);
 
         //help provider for this command
-        Help help = element.getAnnotation(Help.class);
+        //Help help = element.getAnnotation(Help.class);
         
         studio.mevera.imperat.command.Command.Builder<S> builder;
         if (cmdAnnotation instanceof Command cmdAnn) {
@@ -158,9 +157,9 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 }
             }
 
-            if(help != null) {
+            /*if(help != null) {
                 builder.helpProvider(loadHelpProviderInstance(help.value()));
-            }
+            }*/
             
 
         } else if (cmdAnnotation instanceof SubCommand subCommand) {
@@ -199,9 +198,9 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 }
             }
 
-            if(help != null) {
+            /*if(help != null) {
                 builder.helpProvider(loadHelpProviderInstance(help.value()));
-            }
+            }*/
 
         }
         else {
@@ -349,7 +348,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         }
     }
 
-    @SuppressWarnings("unchecked")
+    /*@SuppressWarnings("unchecked")
     private HelpProvider<S> loadHelpProviderInstance(Class<? extends HelpProvider<?>> clazz) {
         var constructor = Reflections.getConstructor(clazz);
         if (constructor == null)
@@ -361,6 +360,8 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             throw new RuntimeException(e);
         }
     }
+    
+     */
 
 
     private CommandUsage<S> loadUsage(
@@ -399,10 +400,10 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         if (async != null)
             builder.coordinator(CommandCoordinator.async());
-
+        boolean help = false; //method.isHelp();
         return builder
             .registerFlags(usageData.freeFlags)
-            .build(loadedCmd, method.isHelp());
+            .build(loadedCmd, help);
 
     }
 

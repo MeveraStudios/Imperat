@@ -16,7 +16,6 @@ import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.exception.ThrowableResolver;
-import studio.mevera.imperat.help.HelpProvider;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.resolvers.*;
 import studio.mevera.imperat.verification.UsageVerifier;
@@ -513,19 +512,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.registerPlaceholder(placeholder);
         return (B) this;
     }
-
-    /**
-     * Sets the help provider to be used for providing help messages.
-     *
-     * @param helpProvider the help provider instance used to display help messages
-     * @return the current instance of {@code ConfigBuilder}, for method chaining
-     */
-    // Help Provider
-    public B helpProvider(HelpProvider<S> helpProvider) {
-        config.setHelpProvider(helpProvider);
-        return (B) this;
-    }
-
 
     /**
      * Sets the command tree to be strict

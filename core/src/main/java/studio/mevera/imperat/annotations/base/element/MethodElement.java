@@ -2,10 +2,8 @@ package studio.mevera.imperat.annotations.base.element;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.annotations.base.AnnotationHelper;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.context.Source;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -16,9 +14,7 @@ public final class MethodElement extends ParseElement<Method> {
     private final List<ParameterElement> parameters = new ArrayList<>();
     private int inputCount = 0;
     private int optionalCount = 0;
-
-    private boolean help = false;
-
+    
     public <S extends Source> MethodElement(
         @NotNull AnnotationParser<S> parser,
         @Nullable ClassElement owningElement,
@@ -39,10 +35,6 @@ public final class MethodElement extends ParseElement<Method> {
                     if(parameterElement.isOptional()) {
                         optionalCount++;
                     }
-                }
-
-                if(!help && AnnotationHelper.isHelpParameter(parameterElement)) {
-                    help = true;
                 }
 
             }
@@ -84,11 +76,7 @@ public final class MethodElement extends ParseElement<Method> {
     public boolean isAllOptionalInput() {
         return inputCount == optionalCount;
     }
-
-    public boolean isHelp() {
-        return help;
-    }
-
+    
     @Override
     public @NotNull ParseElement<?> getParent() {
         assert super.getParent() != null;
