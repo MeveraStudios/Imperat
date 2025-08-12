@@ -62,6 +62,7 @@ public class ImperatTestGlobals {
         IMPERAT.registerCommand(new MessageCmd());
         IMPERAT.registerCommand(new EmptyCmd());
         IMPERAT.registerCommand(new KitCommand());
+        
         IMPERAT.registerCommands(new TestCommand(), new Test2Command(), new Test3Command(), new TestCustomAnnotationCmd());
         IMPERAT.registerCommand(new GiveCmd());
         IMPERAT.registerCommand(new BanCommand());

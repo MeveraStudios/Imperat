@@ -67,10 +67,12 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 throw new IllegalArgumentException("Abnormal root class '%s'".formatted(clazz.getName()));
             }
             
+            System.out.println("Loading cmd Ann on class '" + clazz.getName() + "'");
             studio.mevera.imperat.command.Command<S> cmd = loadCommand(null, clazz, commandAnnotation);
 
             //if cmd=null → loading @CommandProcessingChain methods only from this class
             if (cmd != null) {
+                System.out.println("Adding cmd '" + cmd.name() + "'");
                 loadCommandMethods(clazz);
                 commands.add(cmd);
             }
@@ -502,11 +504,22 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return new MethodUsageData<>(personalMethodInputParameters, totalMethodParameters, freeFlags);
     }
 
-    private static <S extends Source> boolean doesRequireParameterInheritance(@Nullable studio.mevera.imperat.command.Command<S> parentCmd, @NotNull MethodElement method) {
+    private static <S extends Source> boolean doesRequireParameterInheritance(
+            @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
+            @NotNull MethodElement method
+    ) {
         boolean requiresParameterInheritance = false;
 
         if(method.isAnnotationPresent(SubCommand.class)) {
-            requiresParameterInheritance = Objects.requireNonNull(method.getAnnotation(SubCommand.class)).attachment().requiresParameterInheritance();
+            var attachment = Objects.requireNonNull(method.getAnnotation(SubCommand.class)).attachment();
+            if(parentCmd == null) {
+                requiresParameterInheritance = attachment.requiresParameterInheritance();
+            }else {
+                if(attachment == AttachmentMode.DEFAULT) {
+                    requiresParameterInheritance = parentCmd.getDefaultUsage().size() > 0;
+                }else
+                    requiresParameterInheritance = (attachment == AttachmentMode.MAIN || attachment == AttachmentMode.UNSET);
+            }
         }
         else if (method.isAnnotationPresent(Usage.class)) {
             var ann =  method.getParent().getAnnotation(SubCommand.class);
