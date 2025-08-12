@@ -1,10 +1,11 @@
 package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
-import studio.mevera.imperat.annotations.Command;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.*;
 import studio.mevera.imperat.command.AttachmentMode;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
+import studio.mevera.imperat.command.tree.help.HelpQuery;
+import studio.mevera.imperat.command.tree.help.HelpRenderOptions;
+import studio.mevera.imperat.command.tree.help.HelpTheme;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("group")
@@ -17,6 +18,7 @@ public final class AnnotatedGroupCommand {
     }
 
     @Usage
+    @Description("Shows sub-commands.")
     public void mainUsage(
         TestSource source,
         @Named("group") Group group
@@ -26,12 +28,24 @@ public final class AnnotatedGroupCommand {
     }
 
     @SubCommand(value = "help", attachment = AttachmentMode.DEFAULT)
-    public void help(TestSource source) {
+    @Description("Shows Help for the command.")
+    public void help(TestSource source, CommandHelp<TestSource> commandHelp) {
         // /group help
-        //help.display(source);
+        commandHelp.display(
+                HelpQuery.<TestSource>builder()
+                        .limit(30)
+                        .maxDepth(10)
+                        .build(),
+                
+                HelpRenderOptions.<TestSource>builder()
+                        .layout(HelpRenderOptions.Layout.TREE)
+                        .theme(HelpTheme.defaultTheme())
+        );
+        
     }
 
     @SubCommand("setperm")
+    @Description("Sets permission for a group.")
     public void setGroupPermission(TestSource source,
                               @Named("group") Group group,
                               @Named("permission") String permission) {
@@ -41,6 +55,7 @@ public final class AnnotatedGroupCommand {
     }
 
     @SubCommand("setprefix")
+    @Description("Sets prefix for a group.")
     public void setPrefix(
         TestSource source,
         @Named("group") Group group,

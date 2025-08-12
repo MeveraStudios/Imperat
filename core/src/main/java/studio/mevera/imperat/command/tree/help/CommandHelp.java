@@ -1,0 +1,38 @@
+package studio.mevera.imperat.command.tree.help;
+
+import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.annotations.ContextResolved;
+import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.context.Source;
+
+@ContextResolved
+public final class CommandHelp<S extends Source> {
+    
+    private final @NotNull ExecutionContext<S> context;
+    private final @NotNull HelpCoordinator<S> coordinator;
+    
+    private CommandHelp(@NotNull ExecutionContext<S> context) {
+        this.context = context;
+        this.coordinator = context.imperatConfig().getHelpCoordinator();
+    }
+    
+    public static <S extends Source> CommandHelp<S> create(ExecutionContext<S> context) {
+        return new CommandHelp<>(context);
+    }
+    
+    public void display(
+            HelpQuery<S> query,
+            HelpRenderOptions<S> options
+    ) {
+        coordinator.showHelp(context, query, options);
+    }
+    
+    public @NotNull ExecutionContext<S> getContext() {
+        return context;
+    }
+    
+    public @NotNull HelpCoordinator<S> getCoordinator() {
+        return coordinator;
+    }
+    
+}

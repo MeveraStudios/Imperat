@@ -1,10 +1,9 @@
-package studio.mevera.imperat.command.tree.help.renderers;
+package studio.mevera.imperat.command.tree.help.renderers.layouts;
 
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpRenderOptions;
-import studio.mevera.imperat.command.tree.help.renderers.list.ListHelpLayoutRenderer;
-import studio.mevera.imperat.command.tree.help.renderers.list.ListTransformer;
-import studio.mevera.imperat.command.tree.help.renderers.tree.HierarchicalTreeRenderer;
+import studio.mevera.imperat.command.tree.help.renderers.HelpDataTransformer;
+import studio.mevera.imperat.command.tree.help.renderers.HelpLayoutRenderer;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import java.util.EnumMap;
@@ -43,7 +42,7 @@ public class HelpLayoutRendererManager<S extends Source> {
     }
     
     public void render(ExecutionContext<S> context, HelpEntryList<S> entries,
-                       HelpRenderOptions options) {
+                       HelpRenderOptions<S> options) {
         LayoutPipeline<S, ?> pipeline = pipelines.get(options.getLayout());
         if (pipeline == null) {
             throw new IllegalArgumentException("Unknown layout: " + options.getLayout());
@@ -59,7 +58,7 @@ public class HelpLayoutRendererManager<S extends Source> {
         void execute(
                 ExecutionContext<S> context,
                 HelpEntryList<S> entries,
-                HelpRenderOptions options
+                HelpRenderOptions<S> options
         ) {
             // Transform
             T model = transformer.transform(context, entries, options);

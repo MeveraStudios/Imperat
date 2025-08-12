@@ -94,4 +94,11 @@ public class SubcommandTest extends BaseImperatTest {
         assertSuccess(result);
         assertArgument(result, "value", "testvalue");
     }
+    
+    @Test
+    @DisplayName("Should send proper help message using help subcommand")
+    void testGroupHelpSubCommand() {
+        var res = execute("group help");
+        assertSuccess(res);
+    }
 }

@@ -2,6 +2,7 @@ package studio.mevera.imperat.tests;
 
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.*;
@@ -48,6 +49,7 @@ public class ImperatTestGlobals {
             .parameterType(BigDecimal.class, new BigDecimalParamType())
             .parameterType(Currency.class, new CurrencyParamType())
             .handleExecutionConsecutiveOptionalArguments(true)
+            .contextResolver(new TypeWrap<CommandHelp<TestSource>>() {}.getType(), (ctx, pe)-> CommandHelp.create(ctx))
             .contextResolver(new TypeWrap<Context<TestSource>>(){}.getType(), (ctx, pe)-> ctx)
             .build();
     

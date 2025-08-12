@@ -4,6 +4,7 @@ import studio.mevera.imperat.annotations.*;
 import studio.mevera.imperat.annotations.base.AnnotationHelper;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
@@ -14,7 +15,7 @@ public final class ParameterElement extends ParseElement<Parameter> {
     private final String name;
     private final Type type;
     private final ClassElement owningClass;
-    private final boolean contextResolved; // Cached result of isContextResolved
+    private final boolean contextResolved;
 
     <S extends Source> ParameterElement(
         final AnnotationParser<S> parser,
@@ -65,7 +66,7 @@ public final class ParameterElement extends ParseElement<Parameter> {
         }
 
         // Check if the Type of the parameter is annotated with @ContextResolved
-        if (type instanceof Class<?> clazz && clazz.isAnnotationPresent(ContextResolved.class)) {
+        if (TypeWrap.of(type).getRawType().isAnnotationPresent(ContextResolved.class)) {
             return true;
         }
 

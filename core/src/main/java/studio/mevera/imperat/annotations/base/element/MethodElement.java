@@ -3,6 +3,7 @@ package studio.mevera.imperat.annotations.base.element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.Source;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -14,6 +15,7 @@ public final class MethodElement extends ParseElement<Method> {
     private final List<ParameterElement> parameters = new ArrayList<>();
     private int inputCount = 0;
     private int optionalCount = 0;
+    private boolean help = false;
     
     public <S extends Source> MethodElement(
         @NotNull AnnotationParser<S> parser,
@@ -24,7 +26,6 @@ public final class MethodElement extends ParseElement<Method> {
         var params = element.getParameters();
         for (int i = 0; i < params.length; i++) {
             var parameter = params[i];
-            //TODO debug this !
             ParameterElement parameterElement = new ParameterElement(parser, owningElement, this, parameter);
             //ImperatDebugger.debug("Adding param '%s' to method '%s'", parameterElement.getName(), this.getName());
             parameters.add(parameterElement);
@@ -35,6 +36,9 @@ public final class MethodElement extends ParseElement<Method> {
                     if(parameterElement.isOptional()) {
                         optionalCount++;
                     }
+                }
+                else if(parameterElement.getElement().getType().equals(CommandHelp.class)) {
+                    help = true;
                 }
 
             }
@@ -81,5 +85,9 @@ public final class MethodElement extends ParseElement<Method> {
     public @NotNull ParseElement<?> getParent() {
         assert super.getParent() != null;
         return super.getParent();
+    }
+    
+    public boolean isHelp() {
+        return help;
     }
 }

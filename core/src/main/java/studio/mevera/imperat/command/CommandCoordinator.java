@@ -25,7 +25,11 @@ public interface CommandCoordinator<S extends Source> {
             if (executorService == null) {
                 executorService = ForkJoinPool.commonPool();
             }
-            CompletableFuture.runAsync((UnsafeRunnable) () -> execution.execute(source, context), executorService);
+            CompletableFuture.runAsync((UnsafeRunnable) () -> execution.execute(source, context), executorService)
+                    .exceptionally((ex)-> {
+                        api.config().handleExecutionThrowable(ex, context, CommandUsage.class, "execute");
+                        return null;
+                    });
         });
     }
 

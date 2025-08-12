@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
 public final class HelpEntryList<S extends Source> implements Iterable<HelpEntry<S>> {
     
     private static final int DEFAULT_CAPACITY = 16;
-    private static final float GROWTH_FACTOR = 1.5f;
+    private static final float GROWTH_FACTOR = 1.2f;
     
     private HelpEntry<S>[] elements;
     private int size;

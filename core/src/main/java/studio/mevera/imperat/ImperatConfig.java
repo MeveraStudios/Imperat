@@ -13,6 +13,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.ParameterNode;
+import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -46,8 +47,7 @@ import java.util.Optional;
  * @param <S> The type of the source object used by the configuration, which implements the {@link Source} interface.
  */
 public sealed interface ImperatConfig<S extends Source> extends
-    ProcessorRegistrar<S>, ResolverRegistrar<S>,
-        BaseThrowableHandler<S>
+    ProcessorRegistrar<S>, ResolverRegistrar<S>, BaseThrowableHandler<S>
     permits ImperatConfigImpl {
 
     /**
@@ -56,8 +56,7 @@ public sealed interface ImperatConfig<S extends Source> extends
     String commandPrefix();
 
     void setCommandPrefix(String cmdPrefix);
-
-
+    
     /**
      * Fetches {@link ParameterType} for a certain value
      *
@@ -409,4 +408,17 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @param attachmentMode the attachment mode.
      */
     void setDefaultAttachmentMode(AttachmentMode attachmentMode);
+    
+    /**
+     * @return the help coordinator that coordinates
+     * how a help is being shown and displayed to the source.
+     */
+    @NotNull HelpCoordinator<S> getHelpCoordinator();
+    
+    /**
+     * Sets the coordinator for displaying of a help.
+     * @param coordinator the new coordinator to set.
+     */
+    void setHelpCoordinator(@NotNull HelpCoordinator<S> coordinator);
+    
 }

@@ -14,6 +14,7 @@ import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.processors.impl.DefaultProcessors;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.suggestions.SuggestionResolverRegistry;
+import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ParamTypeRegistry;
@@ -77,6 +78,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private PermissionLoader<S> permissionLoader = PermissionLoader.defaultLoader();
     private NodePermissionAssigner<S> permissionAssigner = NodePermissionAssigner.defaultAssigner();
     
+    private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
     
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault();
@@ -801,6 +803,16 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @Override
     public void setDefaultAttachmentMode(AttachmentMode attachmentMode) {
         this.defaultAttachmentMode = attachmentMode;
+    }
+    
+    @Override
+    public @NotNull HelpCoordinator<S> getHelpCoordinator() {
+        return helpCoordinator;
+    }
+    
+    @Override
+    public void setHelpCoordinator(@NotNull HelpCoordinator<S> coordinator) {
+        this.helpCoordinator = coordinator;
     }
     
     @Override

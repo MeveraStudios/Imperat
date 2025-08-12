@@ -67,15 +67,12 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 throw new IllegalArgumentException("Abnormal root class '%s'".formatted(clazz.getName()));
             }
             
-            System.out.println("Loading cmd Ann on class '" + clazz.getName() + "'");
             studio.mevera.imperat.command.Command<S> cmd = loadCommand(null, clazz, commandAnnotation);
-
-            //if cmd=null → loading @CommandProcessingChain methods only from this class
             if (cmd != null) {
-                System.out.println("Adding cmd '" + cmd.name() + "'");
                 loadCommandMethods(clazz);
                 commands.add(cmd);
             }
+            
         } else {
             //no annotation
             for (ParseElement<?> element : clazz.getChildren()) {
@@ -402,7 +399,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         if (async != null)
             builder.coordinator(CommandCoordinator.async());
-        boolean help = false; //method.isHelp();
+        boolean help = method.isHelp();
         return builder
             .registerFlags(usageData.freeFlags)
             .build(loadedCmd, help);
