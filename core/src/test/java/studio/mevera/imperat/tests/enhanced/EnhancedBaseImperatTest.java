@@ -10,6 +10,7 @@ import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestSource;
 
+import java.util.List;
 import java.util.Objects;
 
 
@@ -32,6 +33,10 @@ public abstract class EnhancedBaseImperatTest {
         }catch (ImperatException ex) {
             return ExecutionResult.failure(ex, (Context<TestSource>) ex.getCtx());
         }
+    }
+    
+    protected List<String> tabComplete(String commandLine) {
+        return IMPERAT.autoComplete(SOURCE, commandLine).join();
     }
     
     /**

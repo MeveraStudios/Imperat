@@ -8,6 +8,10 @@ import studio.mevera.imperat.tests.commands.*;
 import studio.mevera.imperat.tests.commands.complex.FirstOptionalArgumentCmd;
 import studio.mevera.imperat.tests.commands.complex.TestCommand;
 import studio.mevera.imperat.tests.commands.realworld.*;
+import studio.mevera.imperat.tests.commands.realworld.economy.BigDecimalParamType;
+import studio.mevera.imperat.tests.commands.realworld.economy.Currency;
+import studio.mevera.imperat.tests.commands.realworld.economy.CurrencyParamType;
+import studio.mevera.imperat.tests.commands.realworld.economy.EconomyCommand;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.AnnotatedGroupCommand;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.ParameterGroup;
@@ -22,6 +26,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.verification.UsageVerifier;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 
@@ -41,13 +46,13 @@ public class ImperatTestGlobals {
             .parameterType(Duration.class, new JavaDurationParameterType())
             .parameterType(TestPlayer.class, new TestPlayerParamType())
             .parameterType(CustomDuration.class, new CustomDurationParameterType<>())
+            .parameterType(BigDecimal.class, new BigDecimalParamType())
+            .parameterType(Currency.class, new CurrencyParamType())
             .handleExecutionConsecutiveOptionalArguments(true)
             .contextResolver(new TypeWrap<Context<TestSource>>(){}.getType(), (ctx, pe)-> ctx)
             .build();
     
     static {
-        IMPERAT.registerThrowableHandler(new GlobalHandler());
-        
         IMPERAT.registerAnnotationReplacer(MyCustomAnnotation.class,(element, ann)-> {
             Command cmdAnn = AnnotationFactory.create(Command.class, "value",
                     new String[]{ann.name()});
@@ -85,8 +90,8 @@ public class ImperatTestGlobals {
                 new FailingCmd()
         );
         
-        
         ImperatDebugger.setEnabled(true);
+        IMPERAT.registerCommand(new EconomyCommand());
     }
     
     public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);

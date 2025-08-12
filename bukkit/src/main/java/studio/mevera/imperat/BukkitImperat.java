@@ -36,7 +36,6 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
             Plugin plugin,
             AdventureProvider<CommandSender> adventureProvider,
             boolean supportBrigadier,
-            boolean injectCustomHelp,
             ImperatConfig<BukkitSource> config
     ) {
         super(config);
@@ -56,11 +55,6 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
 
         if (supportBrigadier) {
             applyBrigadier();
-        }
-
-        //registering automatic help topic:
-        if (injectCustomHelp) {
-            Bukkit.getHelpMap().registerHelpTopicFactory(InternalBukkitCommand.class, new ImperatBukkitHelpTopic.Factory(this));
         }
     }
 

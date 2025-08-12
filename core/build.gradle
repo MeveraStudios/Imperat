@@ -24,7 +24,6 @@ javadoc {
 }
 
 test {
-    compileJava.options.compilerArgs.add("-parameters")
     useJUnitPlatform()
 
     // Test execution configuration
@@ -52,10 +51,15 @@ test {
         excludeTestsMatching("*PerformanceTest*")
         excludeTestsMatching("*SlowTest*")
     }
+
 }
 
 compileJava {
-    options.compilerArgs.add("-parameters")
+    options.compilerArgs << "-parameters"
+}
+
+compileTestJava {
+    options.compilerArgs << "-parameters"
 }
 
 java {
@@ -86,6 +90,8 @@ tasks.register('fastTest', Test) {
     description = "Runs fast unit tests for development"
     group = "verification"
 }
+
+
 
 // Task for running integration tests
 tasks.register('integrationTest', Test) {

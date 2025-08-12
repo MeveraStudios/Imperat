@@ -1,5 +1,6 @@
 package studio.mevera.imperat.tests.enhanced;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 
 import java.time.Duration;
+import java.util.List;
 
 @DisplayName("Enhanced Integration Tests")
 class EnhancedIntegrationTest extends EnhancedBaseImperatTest {
@@ -202,6 +204,13 @@ class EnhancedIntegrationTest extends EnhancedBaseImperatTest {
                 .isSuccessful()
                 .hasArgument("num", 15)
                 .hasArgument("num2", 99);
+        }
+        
+        @Test
+        @DisplayName("Should return (not last)optional argument suggestions")
+        void testEcoCmd() {
+            var suggestions = tabComplete("eco add mqzen ");
+            Assertions.assertLinesMatch(List.of("gold", "silver"), suggestions);
         }
         
     }

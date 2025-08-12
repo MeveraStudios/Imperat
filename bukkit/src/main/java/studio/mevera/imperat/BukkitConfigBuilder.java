@@ -30,7 +30,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     private final Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
 
-    private boolean supportBrigadier = false, injectCustomHelp = false;
+    private boolean supportBrigadier = false;
 
     BukkitConfigBuilder(Plugin plugin) {
         this.plugin = plugin;
@@ -120,17 +120,12 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         return this;
     }
 
-    public BukkitConfigBuilder injectCustomHelp(boolean injectCustomHelp) {
-        this.injectCustomHelp = injectCustomHelp;
-        return this;
-    }
-
     @Override
     public @NotNull BukkitImperat build() {
         if (this.adventureProvider == null) {
             this.adventureProvider = this.loadAdventure();
         }
-        return new BukkitImperat(plugin, adventureProvider, supportBrigadier, injectCustomHelp, this.config);
+        return new BukkitImperat(plugin, adventureProvider, supportBrigadier, this.config);
     }
 
     @SuppressWarnings("ConstantConditions")
