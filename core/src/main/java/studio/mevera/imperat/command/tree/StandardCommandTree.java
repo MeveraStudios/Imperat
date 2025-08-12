@@ -817,7 +817,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // Add current node ONLY if it has executableUsage (truly executable)
         if (node.isExecutable()) {
-            results.add(helpEntryFactory.createEntry(node));
+            if(!node.isRoot() || /*Root Node :D*/ query.getRootUsagePredicate().test(node.getExecutableUsage())) {
+                results.add(helpEntryFactory.createEntry(node));
+            }
         }
         
         // Recursively process children (DFS traversal) - continues even through command nodes

@@ -171,5 +171,8 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         if(nextNodes.isEmpty())return null;
         return nextNodes.getFirst();
     }
-   
+    
+    public boolean isRoot() {
+        return parent == null;
+    }
 }

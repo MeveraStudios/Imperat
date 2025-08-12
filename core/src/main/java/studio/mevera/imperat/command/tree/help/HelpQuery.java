@@ -1,9 +1,11 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.context.Source;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * An immutable data class representing a query for help documentation.
@@ -18,6 +20,7 @@ public final class HelpQuery<S extends Source> {
     
     private final int maxDepth, limit;
     private final @NotNull Queue<HelpFilter<S>> filters;
+    private final @NotNull Predicate<CommandUsage<S>> rootUsagePredicate;
     
     /**
      * Constructs a new HelpQuery. This constructor is private to enforce
@@ -27,10 +30,11 @@ public final class HelpQuery<S extends Source> {
      * @param limit The maximum number of help entries to return.
      * @param filters A queue of filters to apply to the help entries.
      */
-    private HelpQuery(int maxDepth, int limit, @NotNull Queue<HelpFilter<S>> filters) {
+    private HelpQuery(int maxDepth, int limit, @NotNull Queue<HelpFilter<S>> filters, @NotNull Predicate<CommandUsage<S>> rootUsagePredicate) {
         this.maxDepth = maxDepth;
         this.limit = limit;
         this.filters = filters;
+        this.rootUsagePredicate = rootUsagePredicate;
     }
     
     /**
@@ -71,6 +75,13 @@ public final class HelpQuery<S extends Source> {
     }
     
     /**
+     * @return Fetches the condition for including the root's {@link CommandUsage}
+     */
+    public @NotNull Predicate<CommandUsage<S>> getRootUsagePredicate() {
+        return rootUsagePredicate;
+    }
+    
+    /**
      * A builder class for creating instances of {@link HelpQuery}.
      * <p>
      * This class uses a fluent API to allow for easy and readable configuration
@@ -83,7 +94,7 @@ public final class HelpQuery<S extends Source> {
         private int maxDepth = 25;
         private int limit = 50;
         private final @NotNull Queue<HelpFilter<S>> filters = new LinkedList<>();
-        
+        private @NotNull Predicate<CommandUsage<S>> rootUsagePredicate = (u)-> u.size() > 0;
         /**
          * Private constructor to enforce builder pattern.
          */
@@ -113,6 +124,16 @@ public final class HelpQuery<S extends Source> {
         }
         
         /**
+         * Sets the condition for including the root's <strong>MAIN</strong>command usage.
+         * @param rootUsagePredicate the condition/predicate to include the root.
+         * @return This builder instance.
+         */
+        public Builder<S> conditionalRootUsage(Predicate<CommandUsage<S>> rootUsagePredicate) {
+            this.rootUsagePredicate = rootUsagePredicate;
+            return this;
+        }
+        
+        /**
          * Adds a filter to the queue of filters.
          *
          * @param filter The filter to add.
@@ -129,8 +150,9 @@ public final class HelpQuery<S extends Source> {
          * @return A new {@code HelpQuery}.
          */
         public @NotNull HelpQuery<S> build() {
-            return new HelpQuery<>(maxDepth, limit, filters);
+            return new HelpQuery<>(maxDepth, limit, filters, rootUsagePredicate);
         }
+     
     }
     
 }

@@ -2,10 +2,7 @@ package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
 import studio.mevera.imperat.annotations.*;
 import studio.mevera.imperat.command.AttachmentMode;
-import studio.mevera.imperat.command.tree.help.CommandHelp;
-import studio.mevera.imperat.command.tree.help.HelpQuery;
-import studio.mevera.imperat.command.tree.help.HelpRenderOptions;
-import studio.mevera.imperat.command.tree.help.HelpTheme;
+import studio.mevera.imperat.command.tree.help.*;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("group")
@@ -38,7 +35,7 @@ public final class AnnotatedGroupCommand {
                         .build(),
                 
                 HelpRenderOptions.<TestSource>builder()
-                        .layout(HelpRenderOptions.Layout.TREE)
+                        .layout(HelpRenderOptions.Layout.LIST)
                         .theme(HelpTheme.defaultTheme())
         );
         

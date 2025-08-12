@@ -18,7 +18,7 @@ public final class CommandNode<S extends Source> extends ParameterNode<S, Comman
         return data.hasParent();
     }
 
-    boolean isRoot() {
+    public boolean isRoot() {
         return !isSubCommand();
     }
 

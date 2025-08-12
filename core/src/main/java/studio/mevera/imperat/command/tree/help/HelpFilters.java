@@ -1,5 +1,6 @@
 package studio.mevera.imperat.command.tree.help;
 
+import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.resolvers.PermissionChecker;
@@ -158,5 +159,9 @@ public final class HelpFilters {
             }
             return false;
         };
+    }
+    
+    public static <S extends Source> @NotNull HelpFilter<S> childrenOnly() {
+        return node -> node.getParent() != null;
     }
 }
