@@ -14,14 +14,6 @@ public final class CommandNode<S extends Source> extends ParameterNode<S, Comman
         super(parent, data, depth, usage);
     }
 
-    boolean isSubCommand() {
-        return data.hasParent();
-    }
-
-    public boolean isRoot() {
-        return !isSubCommand();
-    }
-
     @Override
     public boolean matchesInput(String raw) {
         return data.hasName(raw);
