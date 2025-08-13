@@ -32,11 +32,10 @@ public final class CurrencyParamType extends BaseParameterType<TestSource, Curre
     
     @Override
     public SuggestionResolver<TestSource> getSuggestionResolver() {
-        return (ctx, parameter)-> {
-          return CurrencyManager.getInstance().getAllCurrencies()
-                  .stream()
-                  .map(Currency::getName)
-                  .toList();
-        };
+        return (ctx, parameter)->
+                CurrencyManager.getInstance().getAllCurrencies()
+                .stream()
+                .map(Currency::getName)
+                .toList();
     }
 }

@@ -87,6 +87,9 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
         for(String arg : args) {
             builder.append(arg).append(" ");
         }
+        if(!builder.isEmpty()) {
+            builder.deleteCharAt(builder.length()-1);
+        }
         return dispatcher.autoComplete(source, builder.toString()).join();
     }
 

@@ -48,6 +48,7 @@ public final class StringUtils {
     }
     
     public static ArgumentInput parseToQueue(String argumentsInOneLine, boolean autoCompletion, boolean extraSpace) {
+        // "add "
         if (argumentsInOneLine.isEmpty())
             return !autoCompletion ? ArgumentInput.of(argumentsInOneLine) : ArgumentInput.parse(" ");
         
@@ -92,11 +93,15 @@ public final class StringUtils {
             }
             
             if (Character.isWhitespace(c)) {
-                // Only add if builder is not empty
+                
                 if (!builder.isEmpty()) {
                     toCollect.add(builder.toString());
+                    if(autoCompletion && i == chars.length-1) {
+                        toCollect.add(String.valueOf(c));
+                    }
                     builder = new StringBuilder();
                 }
+                
                 continue;
             }
             

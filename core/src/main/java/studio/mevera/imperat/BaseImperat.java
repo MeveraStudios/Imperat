@@ -480,7 +480,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         
         ArgumentInput argumentInput = ArgumentInput.parseAutoCompletion(
                 fullCommandLine.substring(firstSpace),
-                fullCommandLine.charAt(fullCommandLine.length()-1) == ' '
+                false
         );
         
         SuggestionContext<S> context =  this.config.getContextFactory()

@@ -1,5 +1,6 @@
 package studio.mevera.imperat.command.tree;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
@@ -7,40 +8,46 @@ import studio.mevera.imperat.context.Source;
 
 public final class CommandPathSearch<S extends Source> {
     
+    private final CommandNode<S> root;
+    
     private ParameterNode<S, ?> lastNode;
-    private ParameterNode<S, ?> lastCommandNode;
+    private @NotNull ParameterNode<S, ?> lastCommandNode;
     
     private CommandUsage<S> directUsage, closestUsage;
 
     private Result result;
     
-    private CommandPathSearch(Result result) {
+    private CommandPathSearch(@NotNull CommandNode<S> root, Result result) {
+        this.root = root;
+        this.lastCommandNode = root;
         this.result = result;
     }
     
-    private CommandPathSearch(Result result, ParameterNode<S, ?> lastNode, CommandUsage<S> directUsage) {
+    private CommandPathSearch(Result result, @NotNull CommandNode<S> root, ParameterNode<S, ?> lastNode, CommandUsage<S> directUsage) {
+        this.root = root;
         this.result = result;
         this.lastNode = lastNode;
         this.directUsage = directUsage;
+        this.lastCommandNode = root;
     }
     
-    public static <S extends Source> CommandPathSearch<S> of(final Result result) {
-        return new CommandPathSearch<>(result);
+    public static <S extends Source> CommandPathSearch<S> of(CommandNode<S> root, final Result result) {
+        return new CommandPathSearch<>(root, result);
     }
 
-    public static <S extends Source> CommandPathSearch<S> unknown() {
-        return of(Result.UNKNOWN);
+    public static <S extends Source> CommandPathSearch<S> unknown(CommandNode<S> root) {
+        return of(root, Result.UNKNOWN);
     }
     
     public static <S extends Source> CommandPathSearch<S> freshlyNew(Command<S> command) {
-        CommandPathSearch<S> dispatch = of(Result.UNKNOWN);
+        CommandPathSearch<S> dispatch = of(command.tree().rootNode(), Result.UNKNOWN);
         dispatch.append(command.tree().rootNode());
         dispatch.setDirectUsage(command.getDefaultUsage());
         return dispatch;
     }
     
     public static <S extends Source> CommandPathSearch<S> paused(Command<S> command) {
-        CommandPathSearch<S> dispatch = of(Result.PAUSE);
+        CommandPathSearch<S> dispatch = of(command.tree().rootNode(), Result.PAUSE);
         Command<S> target = null;
         if(command.tree() != null) {
             target = command;
@@ -129,7 +136,7 @@ public final class CommandPathSearch<S extends Source> {
             curr = curr.getTopChild();
         }
         
-        if(closestUsage == null && lastCommandNode != null) {
+        if(closestUsage == null) {
             //if its still null, then let's go back to the last cmd node
             if(lastCommandNode.isExecutable()) {
                 closestUsage = lastCommandNode.getExecutableUsage();
@@ -142,10 +149,10 @@ public final class CommandPathSearch<S extends Source> {
     }
     
     public CommandPathSearch<S> copy() {
-        return new CommandPathSearch<>(result, lastNode, directUsage);
+        return new CommandPathSearch<>(result, root, lastNode, directUsage);
     }
     
-    public CommandNode<S> getLastCommandNode() {
+    public @NotNull CommandNode<S> getLastCommandNode() {
         return (CommandNode<S>) lastCommandNode;
     }
     

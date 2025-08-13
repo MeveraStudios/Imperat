@@ -24,6 +24,7 @@ import studio.mevera.imperat.util.TypeUtility;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 
@@ -109,29 +110,32 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
     ) {
         
         return (context, builder) -> {
+            
             S source = this.wrapCommandSource(context.getSource());
             String paramFormat = parameter.format();
             String desc = parameter.description() != Description.EMPTY ? parameter.description().toString() : "";
             Message tooltip = new LiteralMessage(paramFormat + (desc.isEmpty() ? "" : " - " + desc));
             
             String input = context.getInput();
+            while (input.startsWith("/")) {
+                input = input.substring(1);
+            }
+            
             int firstSpaceIndex = input.indexOf(' ');
             String label = input.substring(0, firstSpaceIndex);
             
-            String argsInput= input.substring(firstSpaceIndex);
-            ArgumentInput args = ArgumentInput.parseAutoCompletion(argsInput, (argsInput.charAt(argsInput.length()-1) != ' '));
-
+            String argsInput = input.substring(firstSpaceIndex);
+            ArgumentInput args = ArgumentInput.parseAutoCompletion(argsInput, false);
+            
             SuggestionContext<S> ctx = dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
             CompletionArg arg = ctx.getArgToComplete();
             
             return dispatcher.config().getParameterSuggestionResolver(parameter).asyncAutoComplete(ctx, parameter)
                 .thenCompose((results) -> {
                     results
-                        .stream()
-                        .filter(c -> arg.isEmpty() || c.toLowerCase().startsWith(arg.value().toLowerCase()))
-                        .distinct()
-                        .sorted(String.CASE_INSENSITIVE_ORDER)
-                        .forEach((res) -> builder.suggest(res, tooltip));
+                    .stream()
+                    .filter((c)-> arg.isEmpty() || c.toLowerCase().startsWith(arg.value().toLowerCase()))
+                    .forEachOrdered((res) -> builder.suggest(res, tooltip));
                     return builder.buildFuture();
                 });
         };
@@ -144,18 +148,6 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             dispatcher.executeSafely(sender, input);
             return com.mojang.brigadier.Command.SINGLE_SUCCESS;
         });
-    }
-
-    private String[] processedInput(final String input) {
-        String result = input;
-        if (result.charAt(0) == '/')
-            result = result.substring(1);
-
-        String[] split = result.split(" ");
-        String[] argumentsOnly = new String[split.length - 1];
-        System.arraycopy(split, 1, argumentsOnly, 0, split.length - 1);
-
-        return argumentsOnly;
     }
 
     //resolvers methods
@@ -174,7 +166,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
                     return argumentTypeResolver.resolveArgType(flagParameter);
                 }
 
-                return param.valueType() == flagParameter.flagData().inputType().type()
+                return param.valueType() == Objects.requireNonNull(flagParameter.flagData().inputType()).type()
                     ? argumentTypeResolver.resolveArgType(param) : null;
             }
             return TypeUtility.matches(param.valueType(), type) ? argumentTypeResolver.resolveArgType(param) : null;

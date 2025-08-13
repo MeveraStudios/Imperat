@@ -99,15 +99,14 @@ public class ErrorHandlingTest extends BaseImperatTest {
         // Should fail due to missing Group context
     }
     
-    /*@Test
+    @Test
     @DisplayName("Should handle permissions overlap 1")
     void testPermissions1() {
-        ExecutionResult<TestSource> result = execute("testperm"); // Should fail due to missing Group context
-        assertFailure(result, PermissionDeniedException.class);
+        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"),"testperm hi bye"); // Should fail due to missing Group context
         assertNotNull(result.getError());
         result.getError().printStackTrace();
     }
-    
+   /*
     @Test
     @DisplayName("Should handle permissions overlap 2")
     void testPermissions2() {

@@ -534,7 +534,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             S source,
             @NotNull ArgumentInput input
     ) {
-        final var dispatch = CommandPathSearch.<S>unknown();
+        final var dispatch = CommandPathSearch.unknown(root);
         dispatch.append(root);
         if(!hasPermission(source, root)) {
             dispatch.setResult(CommandPathSearch.Result.PAUSE);
@@ -581,7 +581,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         int bestDepth = 0;
         
         for (var child : rootChildren) {
-            final var result = dispatchNode(CommandPathSearch.unknown(), source, input, child, 0);
+            final var result = dispatchNode(CommandPathSearch.unknown(root), source, input, child, 0);
             // Track the best (deepest) match
             if (result.getResult().isStoppable()) {
                 return result; // Return immediately on complete match
@@ -920,7 +920,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         results.addAll(suggestions);
         
-        if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
+        /*if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
             
             //Collect overlapped suggestions
             for(var grandChild : child.getChildren()) {
@@ -928,7 +928,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                     resolveChildSuggestions(grandChild, context, results);
                 }
             }
-        }
+        }*/
         
     }
     

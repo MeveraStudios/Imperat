@@ -16,7 +16,7 @@ public class TestPerm {
     }
     
     @Usage
-    public void mainUsage(TestSource source, String a, String b, @Default("1") Integer c) {
+    public void mainUsage(TestSource source, @Permission("testperm.a.use") String a, String b, @Default("1") Integer c) {
         source.reply("a=" + a +", b=" + b + ", c=" + c);
     }
     
