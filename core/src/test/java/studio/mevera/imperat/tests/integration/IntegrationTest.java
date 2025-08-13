@@ -19,7 +19,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle complete setrank command")
         void testCompleteSetrankCommand() {
-            ExecutionResult<TestSource> result = execute("setrank mqzen admin permanent Promotion -e");
+            ExecutionResult<TestSource> result = execute((src) -> src.withPerm("voxy.grant"), "setrank mqzen admin permanent Promotion -e");
             assertSuccess(result);
             assertArgument(result, "target", "mqzen");
             assertArgument(result, "rank", "admin");
