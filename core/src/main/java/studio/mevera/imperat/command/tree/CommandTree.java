@@ -40,11 +40,24 @@ public interface CommandTree<S extends Source> {
     @NotNull CommandNode<S> rootNode();
     
     /**
+     * Gets the unique versioned tree.
+     * @return the unique versioned tree.
+     */
+    @NotNull CommandNode<S> uniqueVersionedTree();
+    
+    /**
      * The number of nodes cached in this {@link CommandTree}.
      * @return the number of nodes representing the size
      * of this N-ary tree
      */
     int size();
+    
+    /**
+     * The size of the unique versioned tree
+     * @see #uniqueVersionedTree()
+     * @return The size of the unique versioned tree.
+     */
+    int uniqueSize();
     
     /**
      * Parses the given command usage and updates the command tree accordingly.

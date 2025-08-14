@@ -21,8 +21,9 @@ import java.util.*;
 final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private final Command<S> rootCommand;
     final CommandNode<S> root;
+    final CommandNode<S> uniqueRoot;
     
-    private int size;
+    private int size, uniqueSize;
     
     // Pre-computed immutable collections to eliminate allocations
     private final static int MAX_SUGGESTIONS_PER_ARGUMENT = 20;
@@ -51,6 +52,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         this.flagCache = initializeFlagCache();
         this.imperatConfig = imperatConfig;
         this.permissionChecker = imperatConfig.getPermissionChecker();
+        this.uniqueRoot = root.copy();
     }
     
     private Map<String, FlagData<S>> initializeFlagCache() {
@@ -87,8 +89,18 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
     
     @Override
+    public @NotNull CommandNode<S> uniqueVersionedTree() {
+        return uniqueRoot;
+    }
+    
+    @Override
     public int size() {
         return size;
+    }
+    
+    @Override
+    public int uniqueSize() {
+        return uniqueSize;
     }
     
     @Override
@@ -102,7 +114,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final var parameters = usage.getParameters();
         if (usage.isDefault()) {
             root.setExecutableUsage(usage);
+            uniqueRoot.setExecutableUsage(usage);
         }
+        
         
         // Use thread-local buffer to eliminate allocations
         final var path = pathBuffer.get();
@@ -114,6 +128,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         } finally {
             path.clear(); // Clean up for next use
         }
+        
+        //adding unique versioned tree
+        addParametersWithoutOptionalBranchingToTree(uniqueRoot, usage, parameters, 0);
     }
     
     @Override
@@ -232,7 +249,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // Regular parameter handling
         final var param = parameters.get(index);
-        final var childNode = getOrCreateChildNode(currentNode, param);
+        final var childNode = getOrCreateChildNode(currentNode, param, true);
         
         // Efficient path management
         final int pathSize = path.size();
@@ -252,6 +269,36 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 path.remove(pathSize);
             }
         }
+    }
+    
+    private void addParametersWithoutOptionalBranchingToTree(
+            ParameterNode<S, ?> currentNode,
+            CommandUsage<S> usage,
+            List<CommandParameter<S>> parameters,
+            int index
+    ) {
+        final int paramSize = parameters.size();
+        if (index >= paramSize) {
+            currentNode.setExecutableUsage(usage);
+            return;
+        }
+        
+        
+        if (currentNode.isGreedyParam()) {
+            if (!currentNode.isLast()) {
+                throw new IllegalStateException("A greedy node '%s' is not the last argument!".formatted(currentNode.format()));
+            }
+            currentNode.setExecutableUsage(usage);
+            return;
+        }
+        
+        // Regular parameter handling
+        final var param = parameters.get(index);
+        final var childNode = getOrCreateChildNode(currentNode, param, true);
+        
+        addParametersWithoutOptionalBranchingToTree(
+                childNode, usage, parameters, index + 1
+        );
     }
     
     /**
@@ -458,7 +505,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         // Process each flag in the permutation
         for (int i = 0; i < permutation.size(); i++) {
             final var flagParam = permutation.get(i);
-            final var flagNode = getOrCreateChildNode(nodePointer, flagParam);
+            final var flagNode = getOrCreateChildNode(nodePointer, flagParam, false);
             updatedPath.add(flagNode);
             nodePointer = flagNode;
             
@@ -502,7 +549,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         return true;
     }
     
-    private ParameterNode<S, ?> getOrCreateChildNode(ParameterNode<S, ?> parent, CommandParameter<S> param) {
+    private ParameterNode<S, ?> getOrCreateChildNode(ParameterNode<S, ?> parent, CommandParameter<S> param, boolean onlyUnique) {
         // Optimized child lookup with early termination
         final var children = parent.getChildren();
         final String paramName = param.name();
@@ -521,7 +568,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 : new ArgumentNode<>(parent, param, parent.getDepth() + 1, null);
         
         parent.addChild(newNode);
-        size++;
+        if(onlyUnique) {
+            uniqueSize++;
+        }else {
+            size++;
+        }
         
         return newNode;
     }

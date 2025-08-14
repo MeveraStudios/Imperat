@@ -41,7 +41,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
     @Override
     public @NotNull <T> LiteralCommandNode<T> parseCommandIntoNode(@NotNull Command<S> command) {
         var tree = command.tree();
-        var root = tree.rootNode();
+        var root = tree.uniqueVersionedTree();
         return this.<T>convertRoot(root).build();
     }
 

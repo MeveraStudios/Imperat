@@ -167,6 +167,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void visualizeTree() {
         ImperatDebugger.debug("Visualizing %s's tree", this.name);
         visualizer.visualizeSimple();
+        visualizer.visualizeUniqueTreeSimple();
     }
 
     /**

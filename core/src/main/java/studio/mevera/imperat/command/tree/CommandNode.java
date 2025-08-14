@@ -29,5 +29,8 @@ public final class CommandNode<S extends Source> extends ParameterNode<S, Comman
     public int priority() {
         return -1;
     }
-
+    
+    public CommandNode<S> copy() {
+        return new CommandNode<>(this.getParent(), this.data, getDepth(), executableUsage);
+    }
 }
