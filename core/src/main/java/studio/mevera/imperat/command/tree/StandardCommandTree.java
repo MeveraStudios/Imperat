@@ -769,17 +769,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         return true;
     }
-    
-    @Override
-    public @NotNull List<String> tabComplete(@NotNull SuggestionContext<S> context) {
-        List<String> results = new ArrayList<>(MAX_SUGGESTIONS_PER_ARGUMENT);
-        final int targetDepth = context.getArgToComplete().index();
-        final String prefix = context.getArgToComplete().value();
-        final boolean hasPrefix = prefix != null && !prefix.isBlank();
-        
-        return tabCompleteIterativeDFS(context, targetDepth, prefix, hasPrefix, results);
-    }
-    
+  
     @Override
     public HelpEntryList<S> queryHelp(@NotNull HelpQuery<S> query) {
         final HelpEntryList<S> results = new HelpEntryList<>();
@@ -845,10 +835,16 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
     
     
-    /**
-     * Iterative tab completion DFS
-     * Every microsecond matters here!
-     */
+    @Override
+    public @NotNull List<String> tabComplete(@NotNull SuggestionContext<S> context) {
+        List<String> results = new ArrayList<>(MAX_SUGGESTIONS_PER_ARGUMENT);
+        final int targetDepth = context.getArgToComplete().index();
+        final String prefix = context.getArgToComplete().value();
+        final boolean hasPrefix = prefix != null && !prefix.isBlank();
+        
+        return tabCompleteIterativeDFS(context, targetDepth, prefix, hasPrefix, results);
+    }
+    
     private List<String> tabCompleteIterativeDFS(
             SuggestionContext<S> context,
             int targetDepth,
@@ -858,6 +854,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     ) {
         final ArrayDeque<ParameterNode<S, ?>> stack = new ArrayDeque<>(this.size);
         
+        // ALWAYS create the Set to prevent duplicates, not just when overlapping is enabled
+        final Set<String> collectedNodeIds = new HashSet<>();
+        
         stack.push(root);
         
         final var source = context.source();
@@ -866,15 +865,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         while (!stack.isEmpty()) {
             final var currentNode = stack.pop();
             final int currentDepth = currentNode.getDepth();
-            // /test2 array <TAB>
+            
             if (targetDepth - currentDepth == 1) {
                 collectSuggestionsOptimized(
-                        currentNode, context, source, results
+                        currentNode, context, source, results, collectedNodeIds
                 );
-                continue; // Don't traverse deeper from suggestion nodes
+                continue;
             }
             
-            // DFS TRAVERSAL PATH: Add valid children in REVERSE order for proper DFS
             if (currentDepth < targetDepth - 1) {
                 final String inputAtDepth = arguments.getOr(currentDepth + 1, null);
                 addValidChildrenToStackDFS(currentNode, inputAtDepth, source, stack);
@@ -882,10 +880,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         
         return results.stream()
-                .filter((suggestion)->
-                    !hasPrefix || fastStartsWith(suggestion, prefix)
+                .filter((suggestion) ->
+                        !hasPrefix || fastStartsWith(suggestion, prefix)
                 ).toList();
     }
+
     
     /**
      * suggestion collection in the most optimal way possible
@@ -894,42 +893,121 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             ParameterNode<S, ?> node,
             SuggestionContext<S> context,
             S source,
-            List<String> results
+            List<String> results,
+            Set<String> collectedNodeIds
     ) {
         final var children = node.getChildren();
         if (children.isEmpty()) {
             return;
         }
         
+        boolean foundFirstOptional = false;
+        Set<Type> seenOptionalTypes = null;
+        
+        // When overlap is enabled, track types to avoid same-type optionals
+        if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
+            seenOptionalTypes = new HashSet<>();
+        }
+        
         for (var child : children) {
             if (!hasPermission(source, child)) {
                 continue;
             }
-            resolveChildSuggestions(child, context, results);
+            
+            // Handle overlap disabled case
+            if (!imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
+                if (child.isOptional()) {
+                    if (foundFirstOptional) {
+                        continue; // Skip subsequent optionals when overlap disabled
+                    }
+                    foundFirstOptional = true;
+                }
+                // Required parameters always get processed
+            }
+            // Handle overlap enabled case
+            else if (child.isOptional()) {
+                Type paramType = child.data.valueType();
+                assert seenOptionalTypes != null;
+                if (seenOptionalTypes.contains(paramType)) {
+                    continue; // Skip optionals of already-seen types
+                }
+                seenOptionalTypes.add(paramType);
+            }
+            
+            resolveChildSuggestions(child, context, results, collectedNodeIds);
         }
     }
     
     private void resolveChildSuggestions(
             ParameterNode<S, ?> child,
             SuggestionContext<S> context,
-            List<String> results
+            List<String> results,
+            Set<String> collectedNodeIds
     ) {
+        // ALWAYS check for duplicates, not just when overlapping is enabled
+        String nodeId = child.format();
+        if (collectedNodeIds.contains(nodeId)) {
+            return;
+        }
+        collectedNodeIds.add(nodeId);
+        
         final var resolver = getResolverCached(child.data);
         final var suggestions = resolver.autoComplete(context, child.data);
-        if(suggestions ==null) return;
+        if (suggestions == null) return;
         
         results.addAll(suggestions);
         
-        /*if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
-            
-            //Collect overlapped suggestions
-            for(var grandChild : child.getChildren()) {
-                if(grandChild.isOptional() && !grandChild.data.valueType().equals(child.data.valueType())) {
-                    resolveChildSuggestions(grandChild, context, results);
-                }
+        // Handle overlapping suggestions for optional parameters
+        if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && child.isOptional()) {
+            collectOverlappingSuggestions(child, context, results, collectedNodeIds);
+        }
+    }
+    
+    /**
+     * Recursively collect suggestions from subsequent parameters with different types
+     * Stops at required parameters (inclusive)
+     */
+    private void collectOverlappingSuggestions(
+            ParameterNode<S, ?> currentNode,
+            SuggestionContext<S> context,
+            List<String> results,
+            Set<String> collectedNodeIds
+    ) {
+        for (var nextNode : currentNode.getChildren()) {
+            // Skip if same type as current node
+            if (nextNode.data.valueType().equals(currentNode.data.valueType())) {
+                continue;
             }
-        }*/
-        
+            
+            // Skip if we've already collected from this node
+            String nodeId = nextNode.format();
+            if (collectedNodeIds.contains(nodeId)) {
+                continue;
+            }
+            
+            // Check permissions
+            if (!hasPermission(context.source(), nextNode)) {
+                continue;
+            }
+            
+            // Mark this node as collected
+            collectedNodeIds.add(nodeId);
+            
+            // Collect suggestions from this node
+            final var resolver = getResolverCached(nextNode.data);
+            final var suggestions = resolver.autoComplete(context, nextNode.data);
+            if (suggestions != null) {
+                results.addAll(suggestions);
+            }
+            
+            // If this is a required parameter, stop here (it's a stop point)
+            if (!nextNode.isOptional()) {
+                continue; // Don't traverse deeper from this branch
+            }
+            
+            // If it's optional, continue recursively
+            collectOverlappingSuggestions(nextNode, context, results, collectedNodeIds);
+        }
     }
     
     /**
@@ -946,8 +1024,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // DFS OPTIMIZATION: Add children in reverse order
         // Stack is LIFO, so reverse order gives us left-to-right DFS traversal
-        for (int i = children.size() - 1; i >= 0; i--) {
-            final var child = children.get(i);
+        ListIterator<ParameterNode<S, ?>> listIterator = children.listIterator(children.size());
+        while (listIterator.hasPrevious()){
+            final var child = listIterator.previous();
             
             if (matchesInput(child, inputAtDepth, imperatConfig.strictCommandTree()) &&
                     hasPermission(source, child)) {
@@ -968,6 +1047,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Alternative DFS implementation using recursion (may be faster for shallow trees)
      * Use this if your command trees are typically shallow (< 10 levels)
      */
+    /*
     @SuppressWarnings("unused")
     private List<String> tabCompleteRecursiveDFS(
             SuggestionContext<S> context,
@@ -980,11 +1060,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         return results.stream()
                 .filter((suggestion)-> !hasPrefix || fastStartsWith(suggestion, prefix))
                 .toList();
-    }
+    }*/
     
     /**
      * RECURSIVE DFS helper - Optimized for shallow trees
      */
+    /*
     private void dfsTraverseRecursively(
             ParameterNode<S, ?> node,
             SuggestionContext<S> context,
@@ -1015,6 +1096,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
         }
     }
+    */
     
     /**
      * CACHED permission checking - Eliminates repeated lookups

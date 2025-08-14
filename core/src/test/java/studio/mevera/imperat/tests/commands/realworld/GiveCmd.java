@@ -13,7 +13,7 @@ public class GiveCmd {
             TestSource sender,
             @NotNull @Named("item") @Suggest("lightning") String item,
             @Named("player") @Optional TestPlayer player,
-            @Named("amount") @Default("1") Integer amount
+            @Named("amount") @Default("1") @Suggest({"1", "2", "3"}) Integer amount
     ) {
         sender.reply("item=" + item + ", target=" + (player == null ? "null" : player.toString()) + ", " + "amount= " + amount) ;
     }

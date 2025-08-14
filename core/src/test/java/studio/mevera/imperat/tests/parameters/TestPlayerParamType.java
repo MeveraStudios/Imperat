@@ -6,8 +6,11 @@ import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
+
+import java.util.List;
 
 public final class TestPlayerParamType extends BaseParameterType<TestSource, TestPlayer> {
     
@@ -28,5 +31,12 @@ public final class TestPlayerParamType extends BaseParameterType<TestSource, Tes
         }catch (Exception exception) {
             return input.length() <= 16;
         }
+    }
+    
+    @Override
+    public SuggestionResolver<TestSource> getSuggestionResolver() {
+        return (ctx, p)-> {
+            return List.of("MQZEN", "MOHAMED");
+        };
     }
 }

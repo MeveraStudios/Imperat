@@ -3,15 +3,18 @@ package studio.mevera.imperat.tests.enhanced;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestImperat;
+import studio.mevera.imperat.tests.TestImperatConfig;
 import studio.mevera.imperat.tests.TestSource;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 
 /**
@@ -34,9 +37,15 @@ public abstract class EnhancedBaseImperatTest {
             return ExecutionResult.failure(ex, (Context<TestSource>) ex.getCtx());
         }
     }
-    
     protected List<String> tabComplete(String commandLine) {
         return IMPERAT.autoComplete(SOURCE, commandLine).join();
+    }
+    protected List<String> tabComplete(Object cmd, Consumer<ImperatConfig<TestSource>> cfgConsumer, String commandLine) {
+        TestImperat newImperat = TestImperatConfig.builder()
+                .applyOnConfig(cfgConsumer)
+                .build();
+        newImperat.registerCommand(cmd);
+        return newImperat.autoComplete(SOURCE, commandLine).join();
     }
     
     /**

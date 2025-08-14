@@ -44,7 +44,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
         @Nullable Command<S> parent,
         @NotNull String name
     ) {
-        return create(imperat, parent, 0, name);
+        return create(imperat, parent, -1, name);
     }
 
     static <S extends Source> Command.Builder<S> create(

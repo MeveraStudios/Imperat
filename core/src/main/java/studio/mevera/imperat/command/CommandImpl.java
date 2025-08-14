@@ -64,7 +64,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
 
     //sub-command constructor
     CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, String name) {
-        this(imperat, parent, 0, name);
+        this(imperat, parent, -1, name);
     }
 
     CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, int position, String name) {
@@ -166,7 +166,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     @Override
     public void visualizeTree() {
         ImperatDebugger.debug("Visualizing %s's tree", this.name);
-        visualizer.visualize();
+        visualizer.visualizeSimple();
     }
 
     /**
