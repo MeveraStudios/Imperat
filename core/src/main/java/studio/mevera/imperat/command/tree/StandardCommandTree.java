@@ -910,7 +910,8 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         
         for (var child : children) {
-            if (!hasPermission(source, child)) {
+            if ((child.isCommand() && child.data.asCommand().isIgnoringACPerms())
+                    || !hasPermission(source, child)) {
                 continue;
             }
             
