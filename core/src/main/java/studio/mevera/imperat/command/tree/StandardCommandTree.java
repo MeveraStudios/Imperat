@@ -829,7 +829,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return HelpEntryList.empty();
         }
         
-        collectHelpEntries(root, query, results);
+        collectHelpEntries(uniqueRoot, query, results);
         return results;
     }
     
@@ -905,10 +905,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     ) {
         final ArrayDeque<ParameterNode<S, ?>> stack = new ArrayDeque<>(this.size);
         
-        // ALWAYS create the Set to prevent duplicates, not just when overlapping is enabled
-        final Set<String> collectedNodeIds = new HashSet<>();
-        
-        stack.push(root);
+        stack.push(uniqueRoot);
         
         final var source = context.source();
         final var arguments = context.arguments();
@@ -919,7 +916,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             
             if (targetDepth - currentDepth == 1) {
                 collectSuggestionsOptimized(
-                        currentNode, context, source, results, collectedNodeIds
+                        currentNode, context, source, results
                 );
                 continue;
             }
@@ -944,65 +941,27 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             ParameterNode<S, ?> node,
             SuggestionContext<S> context,
             S source,
-            List<String> results,
-            Set<String> collectedNodeIds
+            List<String> results
     ) {
         final var children = node.getChildren();
         if (children.isEmpty()) {
             return;
         }
         
-        boolean foundFirstOptional = false;
-        Set<Type> seenOptionalTypes = null;
-        
-        // When overlap is enabled, track types to avoid same-type optionals
-        if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
-            seenOptionalTypes = new HashSet<>();
-        }
-        
         for (var child : children) {
-            if ((child.isCommand() && child.data.asCommand().isIgnoringACPerms())
-                    || !hasPermission(source, child)) {
+            if ( !(child.isCommand() && child.data.asCommand().isIgnoringACPerms())
+                    && !hasPermission(source, child)) {
                 continue;
             }
-            
-            // Handle overlap disabled case
-            if (!imperatConfig.isOptionalParameterSuggestionOverlappingEnabled()) {
-                if (child.isOptional()) {
-                    if (foundFirstOptional) {
-                        continue; // Skip subsequent optionals when overlap disabled
-                    }
-                    foundFirstOptional = true;
-                }
-                // Required parameters always get processed
-            }
-            // Handle overlap enabled case
-            else if (child.isOptional()) {
-                Type paramType = child.data.valueType();
-                assert seenOptionalTypes != null;
-                if (seenOptionalTypes.contains(paramType)) {
-                    continue; // Skip optionals of already-seen types
-                }
-                seenOptionalTypes.add(paramType);
-            }
-            
-            resolveChildSuggestions(child, context, results, collectedNodeIds);
+            resolveChildSuggestions(child, context, results);
         }
     }
     
     private void resolveChildSuggestions(
             ParameterNode<S, ?> child,
             SuggestionContext<S> context,
-            List<String> results,
-            Set<String> collectedNodeIds
+            List<String> results
     ) {
-        // ALWAYS check for duplicates, not just when overlapping is enabled
-        String nodeId = child.format();
-        if (collectedNodeIds.contains(nodeId)) {
-            return;
-        }
-        collectedNodeIds.add(nodeId);
-        
         final var resolver = getResolverCached(child.data);
         final var suggestions = resolver.autoComplete(context, child.data);
         if (suggestions == null) return;
@@ -1011,7 +970,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // Handle overlapping suggestions for optional parameters
         if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && child.isOptional()) {
-            collectOverlappingSuggestions(child, context, results, collectedNodeIds);
+            collectOverlappingSuggestions(child, context, results);
         }
     }
     
@@ -1022,8 +981,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private void collectOverlappingSuggestions(
             ParameterNode<S, ?> currentNode,
             SuggestionContext<S> context,
-            List<String> results,
-            Set<String> collectedNodeIds
+            List<String> results
     ) {
         for (var nextNode : currentNode.getChildren()) {
             // Skip if same type as current node
@@ -1031,24 +989,16 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 continue;
             }
             
-            // Skip if we've already collected from this node
-            String nodeId = nextNode.format();
-            if (collectedNodeIds.contains(nodeId)) {
-                continue;
-            }
-            
             // Check permissions
-            if (!hasPermission(context.source(), nextNode)) {
+            if ( !(nextNode.isCommand() && nextNode.data.asCommand().isIgnoringACPerms() )
+                    && !hasPermission(context.source(), nextNode)) {
                 continue;
             }
-            
-            // Mark this node as collected
-            collectedNodeIds.add(nodeId);
             
             // Collect suggestions from this node
             final var resolver = getResolverCached(nextNode.data);
             final var suggestions = resolver.autoComplete(context, nextNode.data);
-            if (suggestions != null) {
+            if (suggestions != null && !suggestions.isEmpty()) {
                 results.addAll(suggestions);
             }
             
@@ -1058,7 +1008,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
             
             // If it's optional, continue recursively
-            collectOverlappingSuggestions(nextNode, context, results, collectedNodeIds);
+            collectOverlappingSuggestions(nextNode, context, results);
         }
     }
     

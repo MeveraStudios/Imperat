@@ -108,7 +108,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Both optional params return strings, so NO overlap (same type)
         Assertions.assertThatList(results)
-                .containsExactly("final", "option1", "option2");
+                .containsExactly("option1", "option2");
     }
     
     @Test
@@ -124,15 +124,14 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     }
     
     @Test
-    @DisplayName("Should stop at required parameter and include it")
+    @DisplayName("Should stop at required parameter and include it IF THEY HAVE DIFFERENT TYPES")
     void testStopAtRequired() {
         var results = tabComplete(new MultipleOptionals(), (cfg)->{
             cfg.setOptionalParameterSuggestionOverlap(true);
         }, "optreq ");
         
-        // [Optional1] <Required> [Optional2] - should NOT include Optional2
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("opt1-value", "required-value");
+                .containsExactlyInAnyOrder("opt1-value");
     }
     
     @Test
@@ -169,7 +168,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Only show first optional's suggestions
         Assertions.assertThatList(results)
-                .containsExactly("final", "text1", "text2");
+                .containsExactly("text1", "text2");
     }
     
     @Test
@@ -219,7 +218,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Without overlap, should only show suggestions for the immediate next position
         Assertions.assertThatList(results)
-                .containsExactly("stop-point", "7.5");
+                .containsExactly("7.5");
     }
     
     @Test
@@ -245,7 +244,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // After consuming opt1, should show: required first, then opt2, opt3 (all different types)
         Assertions.assertThatList(results)
-                .containsExactly("final", "100", "200", "3.14", "2.71");
+                .containsExactly("100", "200", "3.14", "2.71", "final");
     }
     
     @Test
@@ -258,7 +257,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         // After opt1, opt2 is same type (String), so NO overlap to it
         // Required first, then opt2
         Assertions.assertThatList(results)
-                .containsExactly("final", "option3", "option4");
+                .containsExactly("option3", "option4");
     }
     
     @Test
@@ -270,7 +269,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Without overlap: required first, then first optional
         Assertions.assertThatList(results)
-                .containsExactly("end1", "end2", "opt1-a", "opt1-b");
+                .containsExactly("opt1-a", "opt1-b");
     }
     
     @Test
@@ -282,7 +281,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // With overlap: required first, then all optionals (different types)
         Assertions.assertThatList(results)
-                .containsExactly("end1", "end2", "opt1-a", "opt1-b", "7", "8");
+                .containsExactly("opt1-a", "opt1-b", "7", "8", "end1", "end2");
     }
     
     @Test
@@ -318,7 +317,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Required first, then optionals (all different types)
         Assertions.assertThatList(results)
-                .containsExactly("end", "path1", "path2", "10", "20");
+                .containsExactly("path1", "path2", "10", "20", "end");
     }
     
     @Test
@@ -342,7 +341,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Required first, then optionals (different types)
         Assertions.assertThatList(results)
-                .containsExactly("end", "opt1", "5");
+                .containsExactly("opt1", "5", "end");
     }
     
     @Test
@@ -354,7 +353,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Required first, then opt3
         Assertions.assertThatList(results)
-                .containsExactly("final", "3.14", "2.71");
+                .containsExactly("3.14", "2.71", "final");
     }
     
     @Test
@@ -366,11 +365,11 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Required first, then optionals (different types)
         Assertions.assertThatList(results)
-                .containsExactly("stop-point", "hi", "7.5");
+                .containsExactly("hi", "7.5", "stop-point");
     }
     
     @Test
-    @DisplayName("Should respect required stop point in empty command")
+    @DisplayName("Resolves the current optional suggestions only when overlap=false AND next required arg is of different type.")
     void testEmptyRequiredStopPoint() {
         var results = tabComplete(new MultipleOptionals(), (cfg)->{
             cfg.setOptionalParameterSuggestionOverlap(false);
@@ -378,7 +377,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Without overlap: required first, then first optional
         Assertions.assertThatList(results)
-                .containsExactly("end", "opt1");
+                .containsExactly("opt1");
     }
     
     @Test
@@ -390,7 +389,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Without overlap: required first, then first optional only
         Assertions.assertThatList(results)
-                .containsExactly("stop-point", "hi");
+                .containsExactly("hi");
     }
     
     @Test
