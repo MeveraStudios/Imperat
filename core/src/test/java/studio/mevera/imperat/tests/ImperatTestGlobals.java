@@ -52,6 +52,7 @@ public class ImperatTestGlobals {
             .handleExecutionConsecutiveOptionalArguments(true)
             .contextResolver(new TypeWrap<CommandHelp<TestSource>>() {}.getType(), (ctx, pe)-> CommandHelp.create(ctx))
             .contextResolver(new TypeWrap<Context<TestSource>>(){}.getType(), (ctx, pe)-> ctx)
+            .overlapOptionalParameterSuggestions(true)
             .build();
     
     static {

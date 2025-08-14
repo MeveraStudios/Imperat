@@ -225,6 +225,8 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         S source = context.source();
         
         CommandPathSearch<S> searchResult = command.contextMatch(context);
+        ImperatDebugger.debug("Search-result: '" + searchResult.getResult().name() + "'");
+        
         if(searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
             throw new PermissionDeniedException(searchResult, context);
         }
@@ -233,14 +235,17 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         
         if(usage == null || searchResult.getLastNode() == null ||
                 searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
+            ImperatDebugger.debug("Usage not found !");
             throw new InvalidSyntaxException(searchResult, context);
         }
         
         var usageAccessCheckResult = config.getPermissionChecker().hasUsagePermission(source, usage);
         if(!usageAccessCheckResult.right()) {
+            ImperatDebugger.debug("Failed usage permission check !");
             throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null, context);
         }
         
+        ImperatDebugger.debug("IMPERAT >> Executing usage '/" + CommandUsage.format(command, usage) + "'");
         return executeUsage(command, source, context, usage, searchResult);
     }
     
@@ -258,10 +263,16 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         //per-command preprocessor
         command.preProcess(this, context, usage);
         
+        ImperatDebugger.debug("Finished pre-processing");
         ExecutionContext<S> resolvedContext = config.getContextFactory().createExecutionContext(context, dispatch);
-        resolvedContext.resolve();
         
+        ImperatDebugger.debug("Resolving Input...");
+        resolvedContext.resolve();
+        resolvedContext.debug();
+        ImperatDebugger.debug("Finished resolving input");
+        ImperatDebugger.debug("Actually executing the usage");
         usage.execute(this, source, resolvedContext);
+        ImperatDebugger.debug("Finished executing the usage !");
         
         globalPostProcessing(resolvedContext);
         command.postProcess(this, resolvedContext, usage);
@@ -293,19 +304,20 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
     
     @Override
-    public @NotNull ExecutionResult<S> execute(@NotNull Context<S> context) throws ImperatException {
+    public @NotNull ExecutionResult<S> execute(@NotNull Context<S> context) {
         
         try {
             context.command().visualizeTree();
             return handleExecution(context);
         }catch (Exception ex) {
+            //handle here
+            this.config().handleExecutionThrowable(ex, context, BaseImperat.class, "execute(Context<S> context)");
             return ExecutionResult.failure(ex, context);
         }
-        //return ex instanceof InvalidSyntaxException ise ? ise.getExecutionResult().getResult() : CommandPathSearch.Result.FAILURE;
     }
 
     @Override
-    public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput) throws ImperatException {
+    public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput)  {
         ArgumentInput rawArguments = ArgumentInput.parse(rawInput);
         Context<S> plainContext = config.getContextFactory()
             .createContext(this, source, command, commandName, rawArguments);
@@ -314,7 +326,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
 
     @Override
-    public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull String commandName, String[] rawInput) throws ImperatException {
+    public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull String commandName, String[] rawInput)  {
         Command<S> command = getCommand(commandName);
         if (command == null) {
             throw new IllegalArgumentException("Unknown command input: '" + commandName + "'");
@@ -323,12 +335,12 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
 
     @Override
-    public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String rawArgsOneLine) throws ImperatException {
+    public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String rawArgsOneLine) {
         return execute(sender, commandName, rawArgsOneLine.split(" "));
     }
 
     @Override
-    public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String line) throws ImperatException {
+    public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String line) {
         if(line.isBlank()) {
             throw new IllegalArgumentException("Empty Command Line");
         }
@@ -336,127 +348,6 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         String[] argumentsOnly = new String[lineArgs.length - 1];
         System.arraycopy(lineArgs, 1, argumentsOnly, 0, lineArgs.length - 1);
         return execute(sender, lineArgs[0], argumentsOnly);
-    }
-    
-    @Override
-    public void executeSafely(@NotNull Context<S> context) {
-        try {
-            execute(context);
-        }catch (Exception ex) {
-            config.handleExecutionThrowable(ex, context, BaseImperat.class, "safeExecution");
-        }
-    }
-    
-    /**
-     * Safely executes a command with the provided source, command, command name, and raw input.
-     * This method catches any exceptions that occur during execution and handles them through
-     * the configured exception handler instead of propagating them.
-     *
-     * @param source the command source (sender) executing the command
-     * @param command the command object to execute
-     * @param commandName the name of the command as invoked
-     * @param rawInput the raw input arguments as string array
-     *
-     * @see #execute(Source, Command, String, String[])
-     * @see #executeSafely(Context)
-     */
-    @Override
-    public void executeSafely(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput) {
-        try {
-            execute(source, command, commandName, rawInput);
-        } catch (Exception ex) {
-            // Create context for error handling
-            ArgumentInput rawArguments = ArgumentInput.parse(rawInput);
-            Context<S> context = config.getContextFactory()
-                    .createContext(this, source, command, commandName, rawArguments);
-            config.handleExecutionThrowable(ex, context, BaseImperat.class, "safeExecution");
-        }
-    }
-    
-    /**
-     * Safely executes a command with the provided source, command name, and raw input.
-     * This method catches any exceptions that occur during execution and handles them through
-     * the configured exception handler instead of propagating them.
-     *
-     * @param source the command source (sender) executing the command
-     * @param commandName the name of the command to execute
-     * @param rawInput the raw input arguments as string array
-     *
-     * @see #execute(Source, String, String[])
-     * @see #executeSafely(Context)
-     */
-    @Override
-    public void executeSafely(@NotNull S source, @NotNull String commandName, String[] rawInput) {
-        try {
-            execute(source, commandName, rawInput);
-        } catch (Exception ex) {
-            // For unknown commands, we might not have a command object
-            Command<S> command = getCommand(commandName);
-            ArgumentInput rawArguments = ArgumentInput.parse(rawInput);
-            Context<S> context = command != null
-                    ? config.getContextFactory().createContext(this, source, command, commandName, rawArguments)
-                    : config.getContextFactory().createContext(this, source, null, commandName, rawArguments);
-            config.handleExecutionThrowable(ex, context, BaseImperat.class, "safeExecution");
-        }
-    }
-    
-    /**
-     * Safely executes a command with the provided sender, command name, and raw arguments as a single line.
-     * This method catches any exceptions that occur during execution and handles them through
-     * the configured exception handler instead of propagating them.
-     *
-     * @param sender the command source (sender) executing the command
-     * @param commandName the name of the command to execute
-     * @param rawArgsOneLine the raw arguments as a single space-separated string
-     *
-     * @see #execute(Source, String, String)
-     * @see #executeSafely(Context)
-     */
-    @Override
-    public void executeSafely(@NotNull S sender, @NotNull String commandName, @NotNull String rawArgsOneLine) {
-        try {
-            execute(sender, commandName, rawArgsOneLine);
-        } catch (Exception ex) {
-            // Parse arguments and create context for error handling
-            String[] rawInput = rawArgsOneLine.split(" ");
-            Command<S> command = getCommand(commandName);
-            ArgumentInput rawArguments = ArgumentInput.parse(rawInput);
-            Context<S> context = command != null
-                    ? config.getContextFactory().createContext(this, sender, command, commandName, rawArguments)
-                    : config.getContextFactory().createContext(this, sender, null, commandName, rawArguments);
-            config.handleExecutionThrowable(ex, context, BaseImperat.class, "safeExecution");
-        }
-    }
-    
-    /**
-     * Safely executes a command from a complete command line input.
-     * This method catches any exceptions that occur during execution and handles them through
-     * the configured exception handler instead of propagating them.
-     *
-     * @param sender the command source (sender) executing the command
-     * @param line the complete command line including command name and arguments
-     *
-     * @see #execute(Source, String)
-     * @see #executeSafely(Context)
-     */
-    @Override
-    public void executeSafely(@NotNull S sender, @NotNull String line) {
-        try {
-            execute(sender, line);
-        } catch (Exception ex) {
-            // Parse the line to extract command name and arguments for context creation
-            String[] lineArgs = line.split(" ");
-            String commandName = lineArgs[0];
-            String[] argumentsOnly = new String[lineArgs.length - 1];
-            System.arraycopy(lineArgs, 1, argumentsOnly, 0, lineArgs.length - 1);
-            
-            Command<S> command = getCommand(commandName);
-            ArgumentInput rawArguments = ArgumentInput.parse(argumentsOnly);
-            Context<S> context = command != null
-                    ? config.getContextFactory().createContext(this, sender, command, commandName, rawArguments)
-                    : config.getContextFactory().createContext(this, sender, null, commandName, rawArguments);
-            config.handleExecutionThrowable(ex, context, BaseImperat.class, "safeExecution");
-        }
     }
     
     /**

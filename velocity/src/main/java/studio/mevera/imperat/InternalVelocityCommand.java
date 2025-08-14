@@ -41,8 +41,7 @@ final class InternalVelocityCommand implements SimpleCommand {
         String label = invocation.alias();
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
-
-        imperat.executeSafely(imperat.wrapSender(source), StringUtils.stripNamespace(label), args);
+        imperat.execute(imperat.wrapSender(source), StringUtils.stripNamespace(label), args);
     }
 
     @Override

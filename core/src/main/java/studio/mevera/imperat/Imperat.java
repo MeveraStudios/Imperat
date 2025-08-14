@@ -7,9 +7,6 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.exception.ThrowableResolver;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -44,15 +41,6 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
     @NotNull ImperatConfig<S> config();
     
     /**
-     * Executes the context safely with automated handling of exceptions.
-     * However, Exceptions that are thrown and do not have a {@link ThrowableResolver}
-     * registered for it, it will disrupt the runtime flow.
-     *
-     * @param context the context to execute based on.
-     */
-    void executeSafely(@NotNull Context<S> context);
-    
-    /**
      * Dispatches and executes a command using {@link Context} only
      *
      * @param context the context
@@ -69,7 +57,9 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @param rawInput the command's args input
      * @return the usage match setResult
      */
-    @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, @NotNull String... rawInput) throws ImperatException;
+    @NotNull ExecutionResult<S> execute(
+            @NotNull S source, @NotNull Command<S> command,
+            @NotNull String commandName, @NotNull String... rawInput);
 
     /**
      * Dispatches and executes a command with certain raw arguments
@@ -79,7 +69,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @param rawInput    the command's args input
      * @return the usage match setResult
      */
-    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String[] rawInput) throws ImperatException;
+    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String[] rawInput);
 
     /**
      * Dispatches and executes a command with certain raw arguments
@@ -89,7 +79,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @param rawArgsOneLine the command's args input on ONE LINE
      * @return the usage match setResult
      */
-    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String rawArgsOneLine) throws ImperatException;
+    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String rawArgsOneLine);
 
     /**
      * Dispatches the full command-line
@@ -98,15 +88,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @param commandLine the command line to dispatch
      * @return the usage match setResult
      */
-    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandLine) throws ImperatException;
-    
-    void executeSafely(S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput);
-    
-    void executeSafely(S source, @NotNull String commandName, String[] rawInput);
-    
-    void executeSafely(S sender, @NotNull String commandName, @NotNull String rawArgsOneLine);
-    
-    void executeSafely(S sender, @NotNull String line);
+    @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandLine);
     
     /**
      * @param sender          the sender writing the command

@@ -21,7 +21,6 @@ import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.util.TypeUtility;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -145,7 +144,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
         builder.executes((context) -> {
             String input = context.getInput();
             S sender = this.wrapCommandSource(context.getSource());
-            dispatcher.executeSafely(sender, input);
+            dispatcher.execute(sender, input);
             return com.mojang.brigadier.Command.SINGLE_SUCCESS;
         });
     }

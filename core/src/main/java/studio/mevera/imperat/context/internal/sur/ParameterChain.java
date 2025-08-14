@@ -5,7 +5,6 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.sur.handlers.ParameterHandler;
 import studio.mevera.imperat.exception.ImperatException;
-
 import java.util.List;
 
 public class ParameterChain<S extends Source> {
@@ -19,12 +18,10 @@ public class ParameterChain<S extends Source> {
         
         pipeLine:
         while (stream.isCurrentParameterAvailable()) {
-            
             for (ParameterHandler<S> handler : handlers) {
                 
                 // ADD: Time each individual handler
                 HandleResult result = handler.handle(context, stream);
-                
                 switch (result) {
                     case TERMINATE:
                         break pipeLine;

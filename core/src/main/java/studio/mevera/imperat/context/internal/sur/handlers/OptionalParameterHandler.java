@@ -54,16 +54,22 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             return;
         }
         
-        if(     distanceFromNextOptional == 1 && // means there is next optional argument, while current is optional too, lets check if there's matching with input for smart switching of values
+        if(     stream.peekParameter().isPresent() && // means there is next required/optional argument, while current is optional too, lets check if there's matching with input for smart switching of values
                 context.imperatConfig().handleExecutionMiddleOptionalSkipping() &&
                 !currentParameter.type().matchesInput(currentRaw, currentParameter)
         ) {
+            Object value = currentParameter.type().resolve(context, stream.copy(), currentRaw);
+            if(value == null) {
+                value = getDefaultValue(context, stream, currentParameter);
+            }
             //if it doesn't match the input while having a next optional arg, let's resolve the current for its default value,
             // then go after the next optional arg WHILE maintaining the same index/cursor on the raw input.
-            context.resolveArgument(stream, getDefaultValue(context, stream, currentParameter));
+            context.resolveArgument(stream, value);
             stream.skipParameter();
             return;
         }
+        //matches input and next is not empty
+        //if it matches input already just resolve it right away.
         var value = currentParameter.type().resolve(context, stream, stream.readInput());
         context.resolveArgument(stream, value);
         stream.skip();

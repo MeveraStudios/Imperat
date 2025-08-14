@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.util.List;
 
@@ -64,16 +63,9 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
     public boolean execute(@NotNull CommandSender sender,
                            @NotNull String label,
                            String[] raw) {
-
-        try {
-            BukkitSource source = dispatcher.wrapSender(sender);
-            dispatcher.executeSafely(source, this.imperatCommand, label, raw);
-            return true;
-        } catch (Exception ex) {
-            ImperatDebugger.error(InternalBukkitCommand.class, "execute", ex);
-            return false;
-        }
-
+        BukkitSource source = dispatcher.wrapSender(sender);
+        dispatcher.execute(source, this.imperatCommand, label, raw);
+        return true;
     }
 
     @Override

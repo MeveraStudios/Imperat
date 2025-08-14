@@ -27,7 +27,7 @@ final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command imp
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        bungeeCommandDispatcher.executeSafely(
+        bungeeCommandDispatcher.execute(
             bungeeCommandDispatcher.wrapSender(sender),
             bungeeCommand.name(),
             args

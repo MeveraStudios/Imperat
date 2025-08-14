@@ -1,7 +1,6 @@
 package studio.mevera.imperat;
 
 import net.minestom.server.command.builder.Command;
-
 import static studio.mevera.imperat.SyntaxDataLoader.*;
 
 final class InternalMinestomCommand extends Command {
@@ -21,9 +20,12 @@ final class InternalMinestomCommand extends Command {
         );
 
         this.setDefaultExecutor(
-            (commandSender, commandContext) ->
-                imperat.executeSafely(imperat.wrapSender(commandSender),
-                    commandContext.getCommandName(), commandContext.getInput())
+            (commandSender, commandContext) -> {
+                
+                imperat.execute(imperat.wrapSender(commandSender),
+                        commandContext.getCommandName(), commandContext.getInput());
+                
+            }
         );
 
         for (var usage : imperatCommand.usages()) {

@@ -50,7 +50,7 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
             String line = reader.readLine();
             ConsoleSource prompt = wrapSender(outputStream);
-            super.executeSafely(prompt, line);
+            super.execute(prompt, line);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -123,6 +123,7 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
         
         while (current != null) {
             if (current instanceof SelfHandledException selfHandledException) {
+                System.out.println("Found self-handled for it.");
                 selfHandledException.handle(context.imperatConfig(), context);
                 return true;
             }

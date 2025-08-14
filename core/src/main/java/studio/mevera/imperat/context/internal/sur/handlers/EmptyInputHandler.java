@@ -28,6 +28,7 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
         }
         
         try {
+           
             if (currentParameter.isOptional()) {
                 handleEmptyOptional(currentParameter, stream, context);
                 stream.skipParameter();
