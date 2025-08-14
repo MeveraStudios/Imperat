@@ -58,7 +58,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
                 context.imperatConfig().handleExecutionMiddleOptionalSkipping() &&
                 !currentParameter.type().matchesInput(currentRaw, currentParameter)
         ) {
-            Object value = currentParameter.type().resolve(context, stream.copy(), currentRaw);
+            Object value = currentParameter.type().resolve(context, stream, currentRaw);
             if(value == null) {
                 value = getDefaultValue(context, stream, currentParameter);
             }

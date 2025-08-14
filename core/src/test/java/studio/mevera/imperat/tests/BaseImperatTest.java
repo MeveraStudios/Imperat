@@ -1,9 +1,7 @@
 package studio.mevera.imperat.tests;
 
 import org.junit.jupiter.api.BeforeEach;
-import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.exception.ImperatException;
 
 import java.util.function.Consumer;
 
@@ -28,29 +26,13 @@ public abstract class BaseImperatTest {
      * Uses the correct execute method that takes the full command line.
      */
     protected ExecutionResult<TestSource> execute(String commandLine) {
-        try {
-            return IMPERAT.execute(SOURCE, commandLine);
-        } catch (ImperatException e) {
-            return ExecutionResult.failure(e, (Context<TestSource>) e.getCtx());
-        }
-    }
-    
-    /**
-     * Executes a full command line and returns the result for assertion.
-     * Uses the correct execute method that takes the full command line.
-     */
-    protected void executeSafe(String commandLine) {
-        IMPERAT.executeSafely(SOURCE, commandLine);
+        return IMPERAT.execute(SOURCE, commandLine);
     }
     
     protected ExecutionResult<TestSource> execute(Consumer<TestSource> sourceModifier, String commandLine) {
-        try {
-            TestSource source = new TestSource(SOURCE.origin());
-            sourceModifier.accept(source);
-            return IMPERAT.execute(source, commandLine);
-        } catch (ImperatException e) {
-            return ExecutionResult.failure(e, (Context<TestSource>)e.getCtx());
-        }
+        TestSource source = new TestSource(SOURCE.origin());
+        sourceModifier.accept(source);
+        return IMPERAT.execute(source, commandLine);
     }
     
     /**

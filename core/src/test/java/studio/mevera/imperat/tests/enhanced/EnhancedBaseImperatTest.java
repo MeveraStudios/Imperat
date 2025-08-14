@@ -4,9 +4,7 @@ package studio.mevera.imperat.tests.enhanced;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestImperatConfig;
@@ -31,11 +29,7 @@ public abstract class EnhancedBaseImperatTest {
     }
     
     protected ExecutionResult<TestSource> execute(String commandLine) {
-        try {
-            return IMPERAT.execute(SOURCE, commandLine);
-        }catch (ImperatException ex) {
-            return ExecutionResult.failure(ex, (Context<TestSource>) ex.getCtx());
-        }
+        return IMPERAT.execute(SOURCE, commandLine);
     }
     protected List<String> tabComplete(String commandLine) {
         return IMPERAT.autoComplete(SOURCE, commandLine).join();

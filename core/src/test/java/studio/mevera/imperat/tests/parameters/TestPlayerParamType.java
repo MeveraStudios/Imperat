@@ -1,11 +1,11 @@
 package studio.mevera.imperat.tests.parameters;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
@@ -15,11 +15,14 @@ import java.util.List;
 public final class TestPlayerParamType extends BaseParameterType<TestSource, TestPlayer> {
     
     @Override
-    public @NotNull TestPlayer resolve(
+    public @Nullable TestPlayer resolve(
             @NotNull ExecutionContext<TestSource> context,
             @NotNull CommandInputStream<TestSource> inputStream,
             @NotNull String input
-    ) throws ImperatException {
+    ) {
+        if(!matchesInput(input, inputStream.currentParameterIfPresent())) {
+            return null;
+        }
         return new TestPlayer(input);
     }
     
