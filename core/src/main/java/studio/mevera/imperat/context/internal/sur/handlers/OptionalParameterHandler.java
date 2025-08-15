@@ -58,10 +58,8 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
                 context.imperatConfig().handleExecutionMiddleOptionalSkipping() &&
                 !currentParameter.type().matchesInput(currentRaw, currentParameter)
         ) {
-            Object value = currentParameter.type().resolve(context, stream, currentRaw);
-            if(value == null) {
-                value = getDefaultValue(context, stream, currentParameter);
-            }
+            Object value = getDefaultValue(context, stream, currentParameter);
+            
             //if it doesn't match the input while having a next optional arg, let's resolve the current for its default value,
             // then go after the next optional arg WHILE maintaining the same index/cursor on the raw input.
             context.resolveArgument(stream, value);

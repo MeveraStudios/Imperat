@@ -515,4 +515,11 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
                     .containsEntry("city", "Paris");
             });
     }
+    
+    @Test
+    @DisplayName("Should handle proper TRUE-FLAG tab-completion for its value")
+    void testTrueFlagTabCompletion() {
+        var res = tabComplete("bal -c ");
+        Assertions.assertThat(res).containsExactly("gold", "silver");
+    }
 }

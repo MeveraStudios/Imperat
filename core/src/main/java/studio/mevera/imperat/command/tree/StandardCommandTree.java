@@ -26,7 +26,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private int size, uniqueSize;
     
     // Pre-computed immutable collections to eliminate allocations
-    private final static int MAX_SUGGESTIONS_PER_ARGUMENT = 20;
+    private final static int INITIAL_SUGGESTIONS_CAPACITY = 20;
     
     // Optimized flag cache with better hashing
     private final Map<String, FlagData<S>> flagCache;
@@ -888,89 +888,71 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     @Override
     public @NotNull List<String> tabComplete(@NotNull SuggestionContext<S> context) {
-        List<String> results = new ArrayList<>(MAX_SUGGESTIONS_PER_ARGUMENT);
-        final int targetDepth = context.getArgToComplete().index();
+        List<String> results = new ArrayList<>(INITIAL_SUGGESTIONS_CAPACITY);
         final String prefix = context.getArgToComplete().value();
         final boolean hasPrefix = prefix != null && !prefix.isBlank();
         
-        return tabCompleteIterativeDFS(context, targetDepth, prefix, hasPrefix, results);
+        return tabComplete$1(context, prefix, hasPrefix, results);
     }
     
-    private List<String> tabCompleteIterativeDFS(
+    
+    @SuppressWarnings("unused")
+    private List<String> tabComplete$1(
             SuggestionContext<S> context,
-            int targetDepth,
             String prefix,
             boolean hasPrefix,
             List<String> results
     ) {
-        final ArrayDeque<ParameterNode<S, ?>> stack = new ArrayDeque<>(this.size);
-        
-        stack.push(uniqueRoot);
-        
-        final var source = context.source();
-        final var arguments = context.arguments();
-        
-        while (!stack.isEmpty()) {
-            final var currentNode = stack.pop();
-            final int currentDepth = currentNode.getDepth();
-            
-            if (targetDepth - currentDepth == 1) {
-                collectSuggestionsOptimized(
-                        currentNode, context, source, results
-                );
-                continue;
-            }
-            
-            if (currentDepth < targetDepth - 1) {
-                final String inputAtDepth = arguments.getOr(currentDepth + 1, null);
-                addValidChildrenToStackDFS(currentNode, inputAtDepth, source, stack);
-            }
+       
+        for(var child : uniqueRoot.getChildren()) {
+            tabCompleteNode(child, context, 0, results);
         }
         
         return results.stream()
-                .filter((suggestion) ->
-                        !hasPrefix || fastStartsWith(suggestion, prefix)
-                ).toList();
+                .filter((suggestion)-> !hasPrefix || fastStartsWith(suggestion, prefix))
+                .toList();
     }
-
     
-    /**
-     * suggestion collection in the most optimal way possible
-     */
-    private void collectSuggestionsOptimized(
-            ParameterNode<S, ?> node,
-            SuggestionContext<S> context,
-            S source,
-            List<String> results
+    private void tabCompleteNode(
+            final ParameterNode<S, ?> node,
+            final SuggestionContext<S> context,
+            int inputDepth,
+            final List<String> results
     ) {
-        final var children = node.getChildren();
-        if (children.isEmpty()) {
+        
+        int lastIndex = context.getArgToComplete().index();
+        if(inputDepth > lastIndex) {
             return;
         }
         
-        for (var child : children) {
-            if ( !(child.isCommand() && child.data.asCommand().isIgnoringACPerms())
-                    && !hasPermission(source, child)) {
-                continue;
+        System.out.println("Reading matching node '" + node.format() +"'");
+        System.out.println("LAST INDEX= " + lastIndex + ", input depth= " + inputDepth);
+        
+        if(inputDepth == lastIndex) {
+            System.out.println("NODE= '" + node.format());
+            results.addAll(getResolverCached(node.data).autoComplete(context, node.data));
+            if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional()) {
+                collectOverlappingSuggestions(node, context, results);
             }
-            resolveChildSuggestions(child, context, results);
-        }
-    }
-    
-    private void resolveChildSuggestions(
-            ParameterNode<S, ?> child,
-            SuggestionContext<S> context,
-            List<String> results
-    ) {
-        final var resolver = getResolverCached(child.data);
-        final var suggestions = resolver.autoComplete(context, child.data);
-        if (suggestions == null) return;
-        
-        results.addAll(suggestions);
-        
-        // Handle overlapping suggestions for optional parameters
-        if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && child.isOptional()) {
-            collectOverlappingSuggestions(child, context, results);
+        }else {
+            String currentInput = context.arguments().get(inputDepth);
+            assert currentInput != null;
+            if(!hasAutoCompletionPermission(context.source(), node)) {
+                System.out.println("NO PERM");
+                return;
+            }
+            
+            if (!node.matchesInput(currentInput)) {
+            
+                if(node.isRequired()) {
+                    return;
+                }
+                inputDepth--; //back tracking with optional nodes.
+            }
+            
+            for(var child : node.getChildren()) {
+                tabCompleteNode(child, context, inputDepth+1, results);
+            }
         }
     }
     
@@ -1012,99 +994,16 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
     }
     
-    /**
-     * Child validation and stack addition for DFS
-     * Children added in REVERSE order to maintain left-to-right traversal
-     */
-    private void addValidChildrenToStackDFS(
-            ParameterNode<S, ?> node,
-            String inputAtDepth,
-            S source,
-            ArrayDeque<ParameterNode<S, ?>> stack
-    ) {
-        final var children = node.getChildren();
-        
-        // DFS OPTIMIZATION: Add children in reverse order
-        // Stack is LIFO, so reverse order gives us left-to-right DFS traversal
-        ListIterator<ParameterNode<S, ?>> listIterator = children.listIterator(children.size());
-        while (listIterator.hasPrevious()){
-            final var child = listIterator.previous();
-            
-            if (matchesInput(child, inputAtDepth, imperatConfig.strictCommandTree()) &&
-                    hasPermission(source, child)) {
-                stack.push(child);
-                
-                if(child.isCommand()) {
-                    /*
-                        If a subcommand matches this input then
-                        we don't need to further check other neighbours
-                    */
-                    break;
-                }
-            }
-        }
-    }
     
-    /**
-     * Alternative DFS implementation using recursion (may be faster for shallow trees)
-     * Use this if your command trees are typically shallow (< 10 levels)
-     */
-    /*
-    @SuppressWarnings("unused")
-    private List<String> tabCompleteRecursiveDFS(
-            SuggestionContext<S> context,
-            int targetDepth,
-            String prefix,
-            boolean hasPrefix,
-            List<String> results
-    ) {
-        dfsTraverseRecursively(root, context, targetDepth, results);
-        return results.stream()
-                .filter((suggestion)-> !hasPrefix || fastStartsWith(suggestion, prefix))
-                .toList();
-    }*/
-    
-    /**
-     * RECURSIVE DFS helper - Optimized for shallow trees
-     */
-    /*
-    private void dfsTraverseRecursively(
-            ParameterNode<S, ?> node,
-            SuggestionContext<S> context,
-            int targetDepth,
-            List<String> results
-    ) {
-        final int currentDepth = node.getDepth();
-        final var source = context.source();
-        final var arguments = context.arguments();
-        
-        // BASE CASE: At suggestion depth
-        if (targetDepth - currentDepth == 1) {
-            collectSuggestionsOptimized(node, context, source, results);
-            return;
-        }
-        
-        // RECURSIVE CASE: Continue DFS traversal
-        if (currentDepth < targetDepth - 1) {
-            final String inputAtDepth = arguments.getOr(currentDepth + 1, null);
-            final var children = node.getChildren();
-            
-            // DFS: Process each valid child completely before moving to next
-            for (var child : children) {
-                if (matchesInput(child, inputAtDepth, false) &&
-                        hasPermission(source, child)) {
-                    dfsTraverseRecursively(child, context, targetDepth, results);
-                }
-            }
-        }
-    }
-    */
-    
-    /**
-     * CACHED permission checking - Eliminates repeated lookups
-     */
     private boolean hasPermission(S source, ParameterNode<S, ?> node) {
         return permissionChecker.hasPermission(source, node.getPermission());
+    }
+    
+    private boolean hasAutoCompletionPermission(S src, ParameterNode<S, ?> node) {
+        if(node.isCommand() && node.getData().asCommand().isIgnoringACPerms()) {
+            return true;
+        }
+        return hasPermission(src, node);
     }
     
     /**

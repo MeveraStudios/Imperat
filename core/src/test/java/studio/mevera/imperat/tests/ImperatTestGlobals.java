@@ -9,10 +9,7 @@ import studio.mevera.imperat.tests.commands.*;
 import studio.mevera.imperat.tests.commands.complex.FirstOptionalArgumentCmd;
 import studio.mevera.imperat.tests.commands.complex.TestCommand;
 import studio.mevera.imperat.tests.commands.realworld.*;
-import studio.mevera.imperat.tests.commands.realworld.economy.BigDecimalParamType;
-import studio.mevera.imperat.tests.commands.realworld.economy.Currency;
-import studio.mevera.imperat.tests.commands.realworld.economy.CurrencyParamType;
-import studio.mevera.imperat.tests.commands.realworld.economy.EconomyCommand;
+import studio.mevera.imperat.tests.commands.realworld.economy.*;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.AnnotatedGroupCommand;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.ParameterGroup;
@@ -95,7 +92,7 @@ public class ImperatTestGlobals {
         );
         
         ImperatDebugger.setEnabled(true);
-        IMPERAT.registerCommand(new EconomyCommand());
+        IMPERAT.registerCommands(new EconomyCommand(), new BalanceCmd());
     }
     
     public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);

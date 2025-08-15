@@ -22,7 +22,7 @@ public class CurrencyManager {
     }
     
     public Currency getCurrencyByName(String name) {
-        return currencyMap.get(name);
+        return currencyMap.get(name.toLowerCase());
     }
     
     public Collection<? extends Currency> getAllCurrencies() {

@@ -11,7 +11,9 @@ import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedInputFlag;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.MissingFlagInputException;
+import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Patterns;
+import java.util.Collections;
 
 public class ParameterFlag<S extends Source> extends BaseParameterType<S, ExtractedInputFlag> {
 
@@ -104,5 +106,30 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
         return parameter.asFlagParameter().flagData()
             .acceptsInput(flagInput);
     }
+    
+    @Override
+    public SuggestionResolver<S> getSuggestionResolver() {
+        return (ctx, param)-> {
+            if(!param.isFlag())
+                return Collections.emptyList();
 
+            FlagParameter<S> flagParameter = param.asFlagParameter();
+            var argToComplete = ctx.getArgToComplete();
+            if(flagParameter.isSwitch() ||
+                    argToComplete.index() == 0 ||
+                    !this.matchesInput(ctx.arguments().get(argToComplete.index()-1), param) ) {
+                return this.suggestions;
+            }
+            //flag is a true flag AND the next position is its value
+            var specificParamType = flagParameter.inputSuggestionResolver();
+            if(specificParamType != null) {
+                return specificParamType.autoComplete(ctx, param);
+            }
+            ParameterType<S, ?> flagInputValueType = ctx.imperatConfig().getParameterType(flagParameter.inputValueType());
+            if(flagInputValueType != null) {
+                return flagInputValueType.getSuggestionResolver().autoComplete(ctx, param);
+            }
+            return Collections.emptyList();
+        };
+    }
 }
