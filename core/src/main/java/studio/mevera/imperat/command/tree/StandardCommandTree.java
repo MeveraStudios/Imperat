@@ -135,6 +135,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     @Override
     public void computePermissions() {
+        root.setPermission(rootCommand.getSinglePermission());
+        uniqueRoot.setPermission(rootCommand.getSinglePermission());
+        
         if(!imperatConfig.isAutoPermissionAssignMode()) {
             return;
         }
@@ -282,7 +285,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             currentNode.setExecutableUsage(usage);
             return;
         }
-        
         
         if (currentNode.isGreedyParam()) {
             if (!currentNode.isLast()) {
@@ -904,6 +906,10 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             List<String> results
     ) {
        
+        if(!hasAutoCompletionPermission(context.source(), uniqueRoot)) {
+            return Collections.emptyList();
+        }
+        
         for(var child : uniqueRoot.getChildren()) {
             tabCompleteNode(child, context, 0, results);
         }

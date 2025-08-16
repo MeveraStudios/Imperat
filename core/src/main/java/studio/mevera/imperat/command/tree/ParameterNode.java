@@ -33,6 +33,15 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         this.permission = data.getSinglePermission();
     }
     
+    public static <S extends Source> ArgumentNode<S> createArgumentNode(
+            ParameterNode<S,?> node,
+            CommandParameter<S> data,
+            int depth,
+            @Nullable CommandUsage<S> executableUsage
+    ) {
+        return new ArgumentNode<>(node, data, depth, executableUsage);
+    }
+    
     public String getPermission() {
         return permission;
     }

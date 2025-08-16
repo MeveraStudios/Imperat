@@ -15,6 +15,7 @@ import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
+import studio.mevera.imperat.command.tree.ArgumentNode;
 import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.context.ArgumentInput;
@@ -72,20 +73,12 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             var permissionResolver = dispatcher.config().getPermissionChecker();
             var source = wrapCommandSource(obj);
 
-            boolean isIgnoringAC = root.getData().isIgnoringACPerms();
-            if (parent != root && parent instanceof CommandNode<?> parentCmdNode) {
-                isIgnoringAC = isIgnoringAC && parentCmdNode.getData().isIgnoringACPerms();
-            }
-            if (node instanceof CommandNode<?> commandNode) {
-                isIgnoringAC = isIgnoringAC && commandNode.getData().isIgnoringACPerms();
-            }
-            if (isIgnoringAC) {
+            if (node instanceof CommandNode<?> commandNode
+                    && commandNode.getData().isIgnoringACPerms()) {
                 return true;
             }
-            boolean hasParentPerm = permissionResolver.hasPermission(source, parent.getPermission());
-            boolean hasNodePerm = permissionResolver.hasPermission(source, node.getPermission());
-
-            return (hasParentPerm && hasNodePerm);
+            
+            return (permissionResolver.hasPermission(source, node.getPermission()));
         });
 
         executor(childBuilder);
@@ -95,6 +88,27 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             );
         }
 
+        if(node.isTrueFlag()) {
+            String name = node.getData().name() + "_value";
+            ArgumentNode<S> flagValueNode =
+                    ParameterNode.createArgumentNode(
+                            node,
+                            CommandParameter.required(name, dispatcher.config()
+                                            .getParameterType(node.getData().asFlagParameter().inputValueType()))
+                                    .permission(node.getPermission())
+                                    .build(),
+                            node.getDepth()+1,
+                            node.getExecutableUsage()
+                    );
+            
+            for(var trueFlagChildren : node.getChildren()) {
+                flagValueNode.addChild(trueFlagChildren);
+            }
+            
+            childBuilder.then(convertNode(root, node, flagValueNode));
+            return childBuilder.build();
+        }
+        
         for (var innerChild : node.getChildren()) {
             childBuilder.then(convertNode(root, node, innerChild));
         }

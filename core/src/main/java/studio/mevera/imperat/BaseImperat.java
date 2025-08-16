@@ -82,8 +82,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
     private void registerCmd(@NotNull Command<S> command) {
         
-        command.tree().computePermissions(
-        );
+        command.tree().computePermissions();
         
         this.commands.put(command.name().trim().toLowerCase(), command);
         for(var aliases : command.aliases()) {
@@ -223,6 +222,15 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     private ExecutionResult<S> handleExecution(Context<S> context) throws ImperatException {
         Command<S> command = context.command();
         S source = context.source();
+        
+        if(!config.getPermissionChecker().hasPermission(source, command.getSinglePermission())) {
+            throw new PermissionDeniedException(
+                    command.getDefaultUsage(),
+                    Objects.requireNonNull(command.getSinglePermission()),
+                    command,
+                    context
+            );
+        }
         
         CommandPathSearch<S> searchResult = command.contextMatch(context);
         ImperatDebugger.debug("Search-result: '" + searchResult.getResult().name() + "'");
