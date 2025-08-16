@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitUtil;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
@@ -18,7 +19,7 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import java.util.List;
 
 public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
-
+    
     private final PlayerSuggestionResolver SUGGESTION_RESOLVER = new PlayerSuggestionResolver();
     private final OptionalValueSupplier DEFAULT_VALUE_SUPPLIER = OptionalValueSupplier.of("~");
 
@@ -77,5 +78,11 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
     @Override
     public OptionalValueSupplier supplyDefaultValue() {
         return DEFAULT_VALUE_SUPPLIER;
+    }
+    
+    @Override
+    public boolean matchesInput(String input, CommandParameter<BukkitSource> parameter) {
+        return BukkitUtil.PLAYER_USERNAME_PATTERN.matcher(input).matches()
+                && Bukkit.getPlayer(input) != null;
     }
 }

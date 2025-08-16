@@ -56,8 +56,9 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         
         if(     stream.peekParameter().isPresent() && // means there is next required/optional argument, while current is optional too, lets check if there's matching with input for smart switching of values
                 context.imperatConfig().handleExecutionMiddleOptionalSkipping() &&
-                !currentParameter.type().matchesInput(currentRaw, currentParameter)
+                (!currentParameter.type().matchesInput(currentRaw, currentParameter) )
         ) {
+            
             Object value = getDefaultValue(context, stream, currentParameter);
             
             //if it doesn't match the input while having a next optional arg, let's resolve the current for its default value,
@@ -71,6 +72,21 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         var value = currentParameter.type().resolve(context, stream, stream.readInput());
         context.resolveArgument(stream, value);
         stream.skip();
+    }
+    
+    private boolean hasNextOptionalMatchingParam(
+            CommandInputStream<S> stream,
+            String raw
+    ) {
+        CommandParameter<S> next;
+        
+        while ((next = stream.popParameter().orElse(null)) != null) {
+            
+            if(next.type().matchesInput(raw, next)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private int calculateDistanceFromNextOptional(ExecutionContext<S> context, CommandParameter<S> curr) {

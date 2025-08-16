@@ -19,8 +19,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class BukkitUtil {
-
-    public static final Pattern SPLIT_LINE = Pattern.compile(" ", Pattern.LITERAL);
+    
+    public final static Pattern PLAYER_USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9_]{3,16}$");
+    public final static Pattern SPLIT_LINE = Pattern.compile(" ", Pattern.LITERAL);
     public final static FieldAccessor<SimpleCommandMap> COMMAND_MAP_ACCESSOR = Reflections.getField(Bukkit.getServer().getClass(), SimpleCommandMap.class);
     public static CommandMap COMMAND_MAP;
     public static @Nullable Field KNOWN_COMMANDS;

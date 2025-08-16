@@ -907,7 +907,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         for(var child : uniqueRoot.getChildren()) {
             tabCompleteNode(child, context, 0, results);
         }
-        
         return results.stream()
                 .filter((suggestion)-> !hasPrefix || fastStartsWith(suggestion, prefix))
                 .toList();
@@ -925,20 +924,20 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return;
         }
         
-        System.out.println("Reading matching node '" + node.format() +"'");
-        System.out.println("LAST INDEX= " + lastIndex + ", input depth= " + inputDepth);
+        //System.out.println("Reading matching node '" + node.format() +"'");
+        //System.out.println("LAST INDEX= " + lastIndex + ", input depth= " + inputDepth);
         
         if(inputDepth == lastIndex) {
-            System.out.println("NODE= '" + node.format());
+            //System.out.println("NODE= '" + node.format());
             results.addAll(getResolverCached(node.data).autoComplete(context, node.data));
-            if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional()) {
+            if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional() && !(node.isTrueFlag()) ) {
                 collectOverlappingSuggestions(node, context, results);
             }
         }else {
             String currentInput = context.arguments().get(inputDepth);
             assert currentInput != null;
             if(!hasAutoCompletionPermission(context.source(), node)) {
-                System.out.println("NO PERM");
+                //System.out.println("NO PERM");
                 return;
             }
             
@@ -947,12 +946,28 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 if(node.isRequired()) {
                     return;
                 }
-                inputDepth--; //back tracking with optional nodes.
+                String prevInput = context.arguments().getOr(inputDepth-1, null);
+                boolean isCurrentInputTrueFlagValue = prevInput != null
+                        && node.isTrueFlag()
+                        && node.matchesInput(prevInput);
+                
+                if(!isCurrentInputTrueFlagValue) {
+                    inputDepth--; //back tracking with optional nodes.
+                }
+                
+            }
+            else if(node.isTrueFlag()) {
+                //node is matching
+                //if the node is a true flag that matches the corresponding input WHILE not being on last index
+                //Then go tab complete the SAME node but with incrementing the next input
+                tabCompleteNode(node, context, inputDepth+1, results);
+                return;
             }
             
-            for(var child : node.getChildren()) {
+            for (var child : node.getChildren()) {
                 tabCompleteNode(child, context, inputDepth+1, results);
             }
+            
         }
     }
     
