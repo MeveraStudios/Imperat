@@ -253,7 +253,6 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null, context);
         }
         
-        ImperatDebugger.debug("IMPERAT >> Executing usage '/" + CommandUsage.format(command, usage) + "'");
         return executeUsage(command, source, context, usage, searchResult);
     }
     
@@ -271,16 +270,10 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         //per-command preprocessor
         command.preProcess(this, context, usage);
         
-        ImperatDebugger.debug("Finished pre-processing");
         ExecutionContext<S> resolvedContext = config.getContextFactory().createExecutionContext(context, dispatch);
         
-        ImperatDebugger.debug("Resolving Input...");
         resolvedContext.resolve();
-        resolvedContext.debug();
-        ImperatDebugger.debug("Finished resolving input");
-        ImperatDebugger.debug("Actually executing the usage");
         usage.execute(this, source, resolvedContext);
-        ImperatDebugger.debug("Finished executing the usage !");
         
         globalPostProcessing(resolvedContext);
         command.postProcess(this, resolvedContext, usage);

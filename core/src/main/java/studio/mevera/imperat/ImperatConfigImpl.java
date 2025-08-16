@@ -26,6 +26,7 @@ import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
 import studio.mevera.imperat.resolvers.*;
+import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
 import studio.mevera.imperat.util.TypeWrap;
@@ -831,6 +832,10 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         }
         
         //Trying to handle the error from the Central Throwable Handler.
-        return ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
+        var res = ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
+        if(!res) {
+            ImperatDebugger.error(owning, methodName, throwable);
+        }
+        return true;
     }
 }

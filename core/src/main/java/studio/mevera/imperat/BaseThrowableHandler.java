@@ -123,7 +123,6 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
         
         while (current != null) {
             if (current instanceof SelfHandledException selfHandledException) {
-                System.out.println("Found self-handled for it.");
                 selfHandledException.handle(context.imperatConfig(), context);
                 return true;
             }
@@ -134,13 +133,9 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
                 handler.resolve(current, context);
                 return true;
             }
-            else {
-                ImperatDebugger.debug("No handler for exception '%s'", current.getClass().getName());
-            }
             
             current = current.getCause();
         }
-        ImperatDebugger.error(owning, methodName, throwable);
         return false;
     }
 }
