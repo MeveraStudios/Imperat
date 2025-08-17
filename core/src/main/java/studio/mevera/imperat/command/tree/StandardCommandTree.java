@@ -48,7 +48,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
         this.rootCommand = command;
-        this.root = new CommandNode<>(null, command, -1, command.getDefaultUsage());
+        this.root = ParameterNode.createCommandNode(null, command, -1, command.getDefaultUsage());
         this.flagCache = initializeFlagCache();
         this.imperatConfig = imperatConfig;
         this.permissionChecker = imperatConfig.getPermissionChecker();
@@ -566,8 +566,8 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // Create new node
         final ParameterNode<S, ?> newNode = param.isCommand()
-                ? new CommandNode<>(parent, param.asCommand(), parent.getDepth() + 1, null)
-                : new ArgumentNode<>(parent, param, parent.getDepth() + 1, null);
+                ? ParameterNode.createCommandNode(parent, param.asCommand(), parent.getDepth() + 1, null)
+                : ParameterNode.createArgumentNode(parent, param, parent.getDepth() + 1, null);
         
         parent.addChild(newNode);
         if(onlyUnique) {
@@ -1054,8 +1054,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         // For longer prefixes, use regionMatches
         return str.regionMatches(true, 0, prefix, 0, prefixLen);
     }
-    
-    // Optimized usage search
     
     /**
      * Searches for closest usage to a context entered.

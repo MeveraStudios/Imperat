@@ -2,6 +2,7 @@ package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.Source;
@@ -33,13 +34,21 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         this.permission = data.getSinglePermission();
     }
     
+    public static <S extends Source> CommandNode<S> createCommandNode(
+            @Nullable ParameterNode<S, ?> parent,
+            @NotNull Command<S> data,
+            int depth,
+            @Nullable CommandUsage<S> executableUsage
+    ) {
+        return new CommandNode<>(parent, data, depth, executableUsage);
+    }
     public static <S extends Source> ArgumentNode<S> createArgumentNode(
-            ParameterNode<S,?> node,
+            ParameterNode<S,?> parent,
             CommandParameter<S> data,
             int depth,
             @Nullable CommandUsage<S> executableUsage
     ) {
-        return new ArgumentNode<>(node, data, depth, executableUsage);
+        return new ArgumentNode<>(parent, data, depth, executableUsage);
     }
     
     public String getPermission() {
