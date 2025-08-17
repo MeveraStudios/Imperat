@@ -14,7 +14,12 @@ public class SourceOrderHelper {
      */
     public static List<Method> getMethodsInSourceOrder(Class<?> clazz) throws Exception {
         String className = clazz.getName().replace('.', '/') + ".class";
-        try (InputStream stream = clazz.getClassLoader().getResourceAsStream(className)) {
+        ClassLoader loader = clazz.getClassLoader();
+        if (loader == null) {
+            loader = Thread.currentThread().getContextClassLoader();
+        }
+        
+        try (InputStream stream = loader.getResourceAsStream(className)) {
             if (stream == null) {
                 throw new IOException("Class resource not found: " + className);
             }
