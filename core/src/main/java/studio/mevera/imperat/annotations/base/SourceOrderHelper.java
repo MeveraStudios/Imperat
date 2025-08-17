@@ -82,6 +82,7 @@ public class SourceOrderHelper {
                 if (!nestMember.equals(outerClass)) { // Exclude the outer class itself
                     allInnerClasses.add(nestMember);
                 }
+                
             }
             
             // Map all inner classes by name
