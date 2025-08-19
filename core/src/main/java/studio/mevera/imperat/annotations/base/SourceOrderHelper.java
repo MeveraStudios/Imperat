@@ -1,5 +1,6 @@
 package studio.mevera.imperat.annotations.base;
 
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.*;
 
 import java.io.IOException;
@@ -7,18 +8,26 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class SourceOrderHelper {
+public final class SourceOrderHelper {
 
+    private SourceOrderHelper() {
+        throw new AssertionError();
+    }
+    
+    private static @NotNull ClassLoader getClassLoader(Class<?> clazz) {
+        var loader = clazz.getClassLoader();
+        if(loader == null) {
+            return Thread.currentThread().getContextClassLoader();
+        }
+        return loader;
+    }
+    
     /**
      * Gets methods in their original source code declaration order
      */
     public static List<Method> getMethodsInSourceOrder(Class<?> clazz) throws Exception {
         String className = clazz.getName().replace('.', '/') + ".class";
-        ClassLoader loader = clazz.getClassLoader();
-        if (loader == null) {
-            loader = Thread.currentThread().getContextClassLoader();
-        }
-        
+        ClassLoader loader = getClassLoader(clazz);
         try (InputStream stream = loader.getResourceAsStream(className)) {
             if (stream == null) {
                 throw new IOException("Class resource not found: " + className);
@@ -55,7 +64,7 @@ public class SourceOrderHelper {
      */
     public static List<Class<?>> getInnerClassesInSourceOrder(Class<?> outerClass) throws Exception {
         String className = outerClass.getName().replace('.', '/') + ".class";
-        try (InputStream stream = outerClass.getClassLoader().getResourceAsStream(className)) {
+        try (InputStream stream = getClassLoader(outerClass).getResourceAsStream(className)) {
             if (stream == null) {
                 throw new IOException("Class resource not found: " + className);
             }
@@ -102,29 +111,6 @@ public class SourceOrderHelper {
             }
             return orderedClasses;
         }
-    }
-
-    /**
-     * Gets all static inner classes, including those defined in inner classes
-     */
-    public static List<Class<?>> getAllNestedStaticClassesInSourceOrder(Class<?> rootClass) throws Exception {
-        List<Class<?>> result = new ArrayList<>();
-        Queue<Class<?>> queue = new LinkedList<>();
-        queue.add(rootClass);
-
-        while (!queue.isEmpty()) {
-            Class<?> currentClass = queue.poll();
-            // Skip the root class itself, only add its inner classes
-            if (currentClass != rootClass) {
-                result.add(currentClass);
-            }
-
-            // Add all inner classes to the queue for further processing
-            List<Class<?>> innerClasses = getInnerClassesInSourceOrder(currentClass);
-            queue.addAll(innerClasses);
-        }
-
-        return result;
     }
 
     private static class MethodOrderVisitor extends ClassVisitor {

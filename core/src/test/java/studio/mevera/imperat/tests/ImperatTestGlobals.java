@@ -91,8 +91,10 @@ public class ImperatTestGlobals {
                 new FailingCmd()
         );
         
-        ImperatDebugger.setEnabled(true);
         IMPERAT.registerCommands(new EconomyCommand(), new BalanceCmd());
+        
+        ImperatDebugger.setEnabled(true);
+        IMPERAT.debug(false);
     }
     
     public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);
