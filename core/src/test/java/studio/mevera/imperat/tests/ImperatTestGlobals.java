@@ -46,10 +46,10 @@ public class ImperatTestGlobals {
             .parameterType(CustomDuration.class, new CustomDurationParameterType<>())
             .parameterType(BigDecimal.class, new BigDecimalParamType())
             .parameterType(Currency.class, new CurrencyParamType())
-            .handleExecutionConsecutiveOptionalArguments(true)
+            .handleMiddleOptionalArgSkipping(true)
             .contextResolver(new TypeWrap<CommandHelp<TestSource>>() {}.getType(), (ctx, pe)-> CommandHelp.create(ctx))
             .contextResolver(new TypeWrap<Context<TestSource>>(){}.getType(), (ctx, pe)-> ctx)
-            .handleExecutionConsecutiveOptionalArguments(true)
+            .handleMiddleOptionalArgSkipping(true)
             .overlapOptionalParameterSuggestions(true)
             .build();
     

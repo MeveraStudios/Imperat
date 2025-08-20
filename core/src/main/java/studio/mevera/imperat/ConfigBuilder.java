@@ -555,7 +555,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param toggle the toggle for this option
      * @return whether this option is enabled or not.
      */
-    public B handleExecutionConsecutiveOptionalArguments(boolean toggle) {
+    public B handleMiddleOptionalArgSkipping(boolean toggle) {
         config.setHandleExecutionConsecutiveOptionalArgumentsSkip(toggle);
         return (B)this;
     }
