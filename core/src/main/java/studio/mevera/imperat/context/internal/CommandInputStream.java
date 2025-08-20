@@ -535,6 +535,10 @@ public interface CommandInputStream<S extends Source> {
         return current;
     }
     
+    default void endInput(){
+        position().raw = position().maxRawLength;
+    }
+    
     /**
      * Marks the specified parameter as exempt from normal processing.
      * Exempt parameters are typically flag parameters that have been
