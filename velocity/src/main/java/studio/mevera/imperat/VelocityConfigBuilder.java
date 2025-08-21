@@ -5,6 +5,7 @@ import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
@@ -29,6 +30,10 @@ public final class VelocityConfigBuilder extends ConfigBuilder<VelocitySource, V
         config.registerContextResolver(
                 new TypeWrap<ExecutionContext<VelocitySource>>() {}.getType(),
                 (ctx, paramElement)-> ctx
+        );
+        config.registerContextResolver(
+                new TypeWrap<CommandHelp<VelocitySource>>() {}.getType(),
+                (ctx, paramElement)-> CommandHelp.create(ctx)
         );
     }
 

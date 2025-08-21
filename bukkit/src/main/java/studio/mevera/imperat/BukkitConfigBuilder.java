@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.adventure.CastingAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.*;
 import studio.mevera.imperat.exception.selector.InvalidSelectorFieldCriteriaFormat;
@@ -45,6 +46,10 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         config.registerContextResolver(
                 new TypeWrap<ExecutionContext<BukkitSource>>() {}.getType(),
                 (ctx, paramElement)-> ctx
+        );
+        config.registerContextResolver(
+                new TypeWrap<CommandHelp<BukkitSource>>() {}.getType(),
+                (ctx, paramElement)-> CommandHelp.create(ctx)
         );
     }
     

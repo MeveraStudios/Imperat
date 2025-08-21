@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.adventure.BungeeAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
@@ -38,6 +39,10 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
         config.registerContextResolver(
                 new TypeWrap<ExecutionContext<BungeeSource>>() {}.getType(),
                 (ctx, paramElement)-> ctx
+        );
+        config.registerContextResolver(
+                new TypeWrap<CommandHelp<BungeeSource>>() {}.getType(),
+                (ctx, paramElement)-> CommandHelp.create(ctx)
         );
     }
 

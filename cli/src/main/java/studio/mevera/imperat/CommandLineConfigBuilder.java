@@ -1,6 +1,7 @@
 package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -21,6 +22,10 @@ public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleSource,
         config.registerContextResolver(
                 new TypeWrap<ExecutionContext<ConsoleSource>>() {}.getType(),
                 (ctx, paramElement)-> ctx
+        );
+        config.registerContextResolver(
+                new TypeWrap<CommandHelp<ConsoleSource>>() {}.getType(),
+                (ctx, paramElement)-> CommandHelp.create(ctx)
         );
     }
     

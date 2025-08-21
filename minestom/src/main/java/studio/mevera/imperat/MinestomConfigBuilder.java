@@ -4,6 +4,7 @@ import net.minestom.server.ServerProcess;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
@@ -24,6 +25,10 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
         config.registerContextResolver(
                 new TypeWrap<ExecutionContext<MinestomSource>>() {}.getType(),
                 (ctx, paramElement)-> ctx
+        );
+        config.registerContextResolver(
+                new TypeWrap<CommandHelp<MinestomSource>>() {}.getType(),
+                (ctx, paramElement)-> CommandHelp.create(ctx)
         );
     }
 
