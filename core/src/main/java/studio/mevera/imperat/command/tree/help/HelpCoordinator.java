@@ -63,6 +63,16 @@ public class HelpCoordinator<S extends Source> {
      * @param <S> The type of the {@link Source}.
      * @return A new instance of {@code HelpCoordinator} with default provider and renderer.
      */
+    public static <S extends Source> HelpCoordinator<S> create(UnaryOperator<HelpLayoutRendererManager<S>> rendererManagerModifier) {
+        return new HelpCoordinator<>(HelpProvider.defaultProvider(), rendererManagerModifier);
+    }
+    
+    /**
+     * A factory method to create a new HelpCoordinator with default settings.
+     *
+     * @param <S> The type of the {@link Source}.
+     * @return A new instance of {@code HelpCoordinator} with default provider and renderer.
+     */
     public static <S extends Source> HelpCoordinator<S> create() {
         return new HelpCoordinator<>();
     }

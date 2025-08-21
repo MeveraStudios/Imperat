@@ -3,6 +3,8 @@ package studio.mevera.imperat.tests;
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
+import studio.mevera.imperat.command.tree.help.HelpCoordinator;
+import studio.mevera.imperat.command.tree.help.HelpRenderOptions;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.*;

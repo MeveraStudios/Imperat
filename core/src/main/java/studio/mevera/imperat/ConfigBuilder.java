@@ -13,6 +13,7 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.tree.ParameterNode;
+import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.exception.ThrowableResolver;
@@ -23,6 +24,7 @@ import studio.mevera.imperat.verification.UsageVerifier;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 /**
  * A generic abstract builder class for configuring instances of ImperatConfig and creating
@@ -119,7 +121,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
             throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
         }
         config.setPermissionLoader(permissionLoader);
-        return (B)this;
+        return (B) this;
     }
     
     /**
@@ -167,9 +169,20 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
             throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
         }
         config.setNodePermissionAssigner(permissionAssigner);
-        return (B)this;
+        return (B) this;
     }
     
+    /**
+     * Sets the {@link HelpCoordinator} that coordinates all the core-components of the
+     * new help API, to create a coordinator call {@link HelpCoordinator#create(UnaryOperator)}
+     * @param coordinator the coordinator
+     * @since 2.0.0
+     * @return the current instance of {@code ConfigBuilder} for method chaining
+     */
+    public B helpCoordinator(HelpCoordinator<S> coordinator) {
+        config.setHelpCoordinator(coordinator);
+        return (B) this;
+    }
 
     /**
      * Sets the context factory for creating contexts used in command execution.

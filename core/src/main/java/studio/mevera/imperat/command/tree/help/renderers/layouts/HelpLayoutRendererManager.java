@@ -35,7 +35,7 @@ public class HelpLayoutRendererManager<S extends Source> {
          */
     }
     
-    private <T> void registerPipeline(HelpRenderOptions.Layout layout,
+    public <T> void registerPipeline(HelpRenderOptions.Layout layout,
                                       HelpDataTransformer<S, T> transformer,
                                       HelpLayoutRenderer<S, T> renderer) {
         pipelines.put(layout, new LayoutPipeline<>(transformer, renderer));
