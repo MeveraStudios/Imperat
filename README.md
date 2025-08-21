@@ -147,41 +147,41 @@ public class YourPlugin extends JavaPlugin {
 public class GameModeCommand {
 
     @Usage
-    public void defaultUsage(
+    public void mainUsage(
             Player source,
             @Named("mode") GameMode gameMode,
-            @Optional @Named("target") Player target
+            @Default("me") @Named("target") Player target
     ) {
         // Handle: /gamemode <mode> [target]
-        Player finalTarget = target != null ? target : source;
-        finalTarget.setGameMode(gameMode);
+        target.setGameMode(gameMode);
         
         source.sendMessage("§aGamemode updated to " + gameMode.name());
-        if (target != null && target != source) {
+        if (target != source) {
             target.sendMessage("§aYour gamemode was updated by " + source.getName());
         }
     }
     
-    // Convenient aliases
+    // Independent root aliases.
     @Command("gmc")
-    public void creative(Player source, @Optional Player target) {
-        defaultUsage(source, GameMode.CREATIVE, target);
+    @Permission("server.gamemode.creative")
+    public void creative(Player source, @Default("me") Player target) {
+        mainUsage(source, GameMode.CREATIVE, target);
     }
     
     @Command("gms")
-    public void survival(Player source, @Optional Player target) {
-        defaultUsage(source, GameMode.SURVIVAL, target);
+    @Permission("server.gamemode.survival")
+    public void survival(Player source, @Default("me") Player target) {
+        mainUsage(source, GameMode.SURVIVAL, target);
     }
 }
 ```
 
 That's it! You've just created a fully-functional command with:
-- ✅ Multiple aliases (`/gamemode`, `/gm`, `/gmc`, `/gms`)
+- ✅ Multiple aliases (`/gamemode`, `/gm`)
+- ✅ Multiple shortcuts/root-aliases (`/gmc`, `/gms`)
 - ✅ Tab completion for GameMode and online players
 - ✅ Optional parameters with smart defaults
 - ✅ Permission checking
-- ✅ Automatic help generation
-
 ---
 
 ## 🎨 **Advanced Example - Complex Command Trees**
