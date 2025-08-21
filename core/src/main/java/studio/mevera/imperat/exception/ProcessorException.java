@@ -8,6 +8,8 @@ public final class ProcessorException extends ImperatException {
     
     @Nullable
     private final Command<?> owningCommand;
+    private final Type processorType;
+    
     public ProcessorException(
             Type type,
             @Nullable Command<?> owningCommand,
@@ -15,6 +17,7 @@ public final class ProcessorException extends ImperatException {
             Context<?> ctx
     ) {
         super((owningCommand == null ? "A Global" : "Preprocessor of command '" + owningCommand.name() +"'"), cause, ctx);
+        this.processorType = type;
         this.owningCommand = owningCommand;
     }
     
@@ -22,8 +25,16 @@ public final class ProcessorException extends ImperatException {
         return owningCommand == null;
     }
     
+    /**
+     * @return The command owning the processor that caused this ProcessorException to be thrown.
+     * if it's a global processor, it will return null.
+     */
     public @Nullable Command<?> getOwningCommand() {
         return owningCommand;
+    }
+    
+    public Type getProcessorType() {
+        return processorType;
     }
     
     public enum Type {

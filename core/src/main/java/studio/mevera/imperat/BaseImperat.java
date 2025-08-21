@@ -300,7 +300,11 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             @NotNull ExecutionContext<S> context
     ) throws ImperatException {
         for (CommandPostProcessor<S> postProcessor : config.getPostProcessors()) {
-            postProcessor.process(this, context);
+            try {
+                postProcessor.process(this, context);
+            }catch (Throwable ex) {
+                throw new ProcessorException(ProcessorException.Type.POST, null, ex, context);
+            }
         }
     }
     
