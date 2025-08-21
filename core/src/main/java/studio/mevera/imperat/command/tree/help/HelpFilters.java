@@ -2,6 +2,7 @@ package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.ParameterNode;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.resolvers.PermissionChecker;
 
@@ -61,6 +62,26 @@ public final class HelpFilters {
             String permission = node.getPermission();
             return permission == null || checker.hasPermission(source, permission);
         };
+    }
+    
+    /**
+     * Creates a filter that checks if a source has permission for the node.
+     *
+     * @param source the source to check permissions for
+     * @param context the context.
+     */
+    public static <S extends Source> HelpFilter<S> hasPermission(S source, Context<S> context) {
+        return hasPermission(source, context.imperatConfig().getPermissionChecker());
+    }
+    
+    /**
+     * Creates a filter that checks if a source has permission for the node.
+     *
+     * @param source the source to check permissions for
+     * @param help the command help.
+     */
+    public static <S extends Source> HelpFilter<S> hasPermission(S source, CommandHelp<S> help) {
+        return hasPermission(source, help.getContext());
     }
     
     /**

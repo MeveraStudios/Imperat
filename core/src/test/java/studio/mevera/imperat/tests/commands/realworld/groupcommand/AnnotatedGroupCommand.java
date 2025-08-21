@@ -1,7 +1,6 @@
 package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
 import studio.mevera.imperat.annotations.*;
-import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.tree.help.*;
 import studio.mevera.imperat.tests.TestSource;
 
@@ -9,9 +8,18 @@ import studio.mevera.imperat.tests.TestSource;
 public final class AnnotatedGroupCommand {
 
     @Usage
-    public void defaultUsage(TestSource source) {
+    public void defaultUsage(TestSource source, CommandHelp<TestSource> commandHelp) {
         //default execution = no args
-        source.reply("/group <group>");
+        // /group help
+        commandHelp.display(
+                HelpQuery.<TestSource>builder()
+                        .filter(HelpFilters.hasPermission(source, commandHelp.getContext()))
+                        .build(),
+                
+                HelpRenderOptions.<TestSource>builder()
+                        .layout(HelpRenderOptions.Layout.LIST)
+                        .theme(HelpTheme.defaultTheme())
+        );
     }
 
     @Usage
@@ -22,23 +30,6 @@ public final class AnnotatedGroupCommand {
     ) {
         //when he does "/group <group>"
         source.reply("entered group name= " + group.name());
-    }
-
-    @SubCommand(value = "help", attachment = AttachmentMode.DEFAULT)
-    @Description("Shows Help for the command.")
-    public void help(TestSource source, CommandHelp<TestSource> commandHelp) {
-        // /group help
-        commandHelp.display(
-                HelpQuery.<TestSource>builder()
-                        .limit(30)
-                        .maxDepth(10)
-                        .build(),
-                
-                HelpRenderOptions.<TestSource>builder()
-                        .layout(HelpRenderOptions.Layout.LIST)
-                        .theme(HelpTheme.defaultTheme())
-        );
-        
     }
 
     @SubCommand("setperm")
