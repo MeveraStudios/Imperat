@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/MeveraStudios/Imperat/refs/heads/master/logo.png" alt="Imperat Logo" width="600"/>
+<img src="https://raw.githubusercontent.com/MeveraStudios/Imperat/refs/heads/master/assets/logo.png" alt="Imperat Logo" width="600"/>
 
 # **Imperat** - The Blazing Fast Command Framework ⚡
 
@@ -32,6 +32,8 @@ Built by [Mqzen](https://github.com/Mqzen), Imperat delivers sub-microsecond com
 ### 📊 **Performance**
 Imperat provides the optimum performance for command execution and suggestion providing.<br>
 We have proven this  through running benchmarks using **JMH**:
+
+<img src="https://raw.githubusercontent.com/MeveraStudios/Imperat/refs/heads/master/assets/performance_chart.png" alt="Comparison performance chart"/>
 
 | **Lightning Fast** ⚡ | **Feature Complete** 🎨 | **Multi-Platform** 🌍 |
 |:---:|:---:|:---:|
