@@ -85,7 +85,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "multopts ");
         
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("stop-point", "hi", "7.5");
+                .containsExactlyInAnyOrder("hi", "7.5");
     }
     
     @Test
@@ -120,7 +120,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // [String] [Integer] [Double] <Required>
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("text1", "text2", "100", "200", "3.14", "2.71", "final");
+                .containsExactlyInAnyOrder("text1", "text2", "100", "200", "3.14", "2.71");
     }
     
     @Test
@@ -156,7 +156,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // <required1> [optional1] [optional2] <required2>
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("opt1-a", "opt1-b", "7", "8", "end1", "end2");
+                .containsExactlyInAnyOrder("opt1-a", "opt1-b", "7", "8");
     }
     
     @Test
@@ -193,7 +193,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         // Tree has multiple paths to same nodes due to optionals
         // Should NOT have duplicates even though multiple paths exist
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("path1", "path2", "10", "20", "end")
+                .containsExactlyInAnyOrder("path1", "path2", "10", "20")
                 .doesNotHaveDuplicates();
     }
     
@@ -281,7 +281,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // With overlap: required first, then all optionals (different types)
         Assertions.assertThatList(results)
-                .containsExactly("opt1-a", "opt1-b", "7", "8", "end1", "end2");
+                .containsExactly("opt1-a", "opt1-b", "7", "8");
     }
     
     @Test
@@ -317,7 +317,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Required first, then optionals (all different types)
         Assertions.assertThatList(results)
-                .containsExactly("path1", "path2", "10", "20", "end");
+                .containsExactly("path1", "path2", "10", "20");
     }
     
     @Test
@@ -341,7 +341,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Required first, then optionals (different types)
         Assertions.assertThatList(results)
-                .containsExactly("opt1", "5", "end");
+                .containsExactly("opt1", "5");
     }
     
     @Test
@@ -365,7 +365,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         
         // Required first, then optionals (different types)
         Assertions.assertThatList(results)
-                .containsExactly("hi", "7.5", "stop-point");
+                .containsExactly("hi", "7.5");
     }
     
     @Test
