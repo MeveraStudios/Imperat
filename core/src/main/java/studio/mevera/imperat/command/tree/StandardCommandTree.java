@@ -937,7 +937,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             //System.out.println("NODE= '" + node.format());
             results.addAll(getResolverCached(node.data).autoComplete(context, node.data));
             if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional() && !(node.isTrueFlag()) ) {
-                collectOverlappingSuggestions(node, context, results);
+                collectOverlappingSuggestions(node, node, context, results);
             }
         }else {
             String currentInput = context.arguments().get(inputDepth);
@@ -982,36 +982,42 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Stops at required parameters (inclusive)
      */
     private void collectOverlappingSuggestions(
+            ParameterNode<S, ?> origin,
             ParameterNode<S, ?> currentNode,
             SuggestionContext<S> context,
             List<String> results
     ) {
         for (var nextNode : currentNode.getChildren()) {
             // Skip if same type as current node
-            if (nextNode.data.valueType().equals(currentNode.data.valueType())) {
+            if (nextNode.data.valueType().equals(origin.data.valueType())) {
+                System.out.println("Skipping " + nextNode.format() + " due to having same type as ");
                 continue;
             }
             
             // Check permissions
             if ( !(nextNode.isCommand() && nextNode.data.asCommand().isIgnoringACPerms() )
                     && !hasPermission(context.source(), nextNode)) {
+                System.out.println("Skipping " + nextNode.format() + " due to having no perm for it");
                 continue;
             }
             
             // Collect suggestions from this node
+            System.out.println("Getting from node " + nextNode.format() + "'s overlap:");
             final var resolver = getResolverCached(nextNode.data);
             final var suggestions = resolver.autoComplete(context, nextNode.data);
             if (suggestions != null && !suggestions.isEmpty()) {
                 results.addAll(suggestions);
+                System.out.println("Fetched '" + String.join(",", suggestions)  +"'");
             }
             
             // If this is a required parameter, stop here (it's a stop point)
             if (!nextNode.isOptional()) {
+                System.out.println("Skipping non-optional node " + nextNode.format());
                 continue; // Don't traverse deeper from this branch
             }
             
             // If it's optional, continue recursively
-            collectOverlappingSuggestions(nextNode, context, results);
+            collectOverlappingSuggestions(origin, nextNode, context, results);
         }
     }
     
