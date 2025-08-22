@@ -56,6 +56,9 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
         if (supportBrigadier) {
             applyBrigadier();
         }
+        else {
+            applyAsyncTabListener();
+        }
     }
 
     /**
@@ -155,8 +158,15 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
     }
 
     private void applyBrigadier() {
+        
         if (Version.isOrOver(13)) {
             brigadierManager = BukkitBrigadierManager.load(this);
+        }
+    }
+    
+    private void applyAsyncTabListener() {
+        if(Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
+            plugin.getServer().getPluginManager().registerEvents(new AsyncTabListener(this), plugin);
         }
     }
 

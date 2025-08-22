@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 
+import java.util.Collections;
 import java.util.List;
 
 @ApiStatus.Internal
@@ -72,6 +73,11 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
         final @NotNull String alias,
         final String[] args
     ) throws IllegalArgumentException {
+        if(Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
+            //supports async tab completion
+            //we will tab complete from the async tab completion event
+            return Collections.emptyList();
+        }
         BukkitSource source = dispatcher.wrapSender(sender);
         StringBuilder builder = new StringBuilder(alias).append(" ");
         for(String arg : args) {
