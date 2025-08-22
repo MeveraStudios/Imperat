@@ -45,15 +45,6 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             CommandInputStream<S> stream
     ) throws ImperatException {
         
-        int distanceFromNextOptional = calculateDistanceFromNextOptional(context, currentParameter);
-        if(distanceFromNextOptional >= 2 && (stream.parametersLength()-stream.rawsLength()) >= 2) {
-            //there's middle required args
-            //shift parameter only, we resolve current as its default or null
-            context.resolveArgument(stream, getDefaultValue(context, stream, currentParameter));
-            stream.skipParameter();
-            return;
-        }
-        
         if(     stream.peekParameter().isPresent() && // means there is next required/optional argument, while current is optional too, lets check if there's matching with input for smart switching of values
                 context.imperatConfig().handleExecutionMiddleOptionalSkipping() &&
                 (!currentParameter.type().matchesInput(currentRaw, currentParameter) )
@@ -74,32 +65,6 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         stream.skip();
     }
     
-    private boolean hasNextOptionalMatchingParam(
-            CommandInputStream<S> stream,
-            String raw
-    ) {
-        CommandParameter<S> next;
-        
-        while ((next = stream.popParameter().orElse(null)) != null) {
-            
-            if(next.type().matchesInput(raw, next)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    private int calculateDistanceFromNextOptional(ExecutionContext<S> context, CommandParameter<S> curr) {
-        var usage = context.getDetectedUsage();
-        for(int i = curr.position()+1; i < usage.getParameters().size(); i++) {
-            var other = usage.getParameter(i);
-            if(other != null && other.isOptional()) {
-                return i-curr.position();
-            }
-        }
-        
-        return -1;
-    }
     
     @SuppressWarnings("unchecked")
     private <T> T getDefaultValue(ExecutionContext<S> context, CommandInputStream<S> stream, CommandParameter<S> parameter) throws ImperatException {
