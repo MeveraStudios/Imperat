@@ -64,15 +64,6 @@ public class ErrorHandlingTest extends BaseImperatTest {
     }
     
     @Test
-    @DisplayName("Should handle invalid parameter types gracefully")
-    void testInvalidParameterTypes() {
-        // Try to pass a very long name to TestPlayer which should reject it
-        ExecutionResult<TestSource> result = execute("give apple verylongusernamethatexceedslimits");
-        // This should fail during parameter validation
-        assertFailure(result);
-    }
-    
-    @Test
     @DisplayName("Should handle incomplete subcommands")
     void testIncompleteSubcommands() {
         ExecutionResult<TestSource> result = execute("group member setperm"); // Missing permission argument

@@ -15,13 +15,13 @@ import java.util.List;
 public final class TestPlayerParamType extends BaseParameterType<TestSource, TestPlayer> {
     
     @Override
-    public @Nullable TestPlayer resolve(
+    public TestPlayer resolve(
             @NotNull ExecutionContext<TestSource> context,
             @NotNull CommandInputStream<TestSource> inputStream,
             @NotNull String input
-    ) {
+    ) throws NotPlayerException {
         if(!matchesInput(input, inputStream.currentParameterIfPresent())) {
-            return null;
+            throw new NotPlayerException(context);
         }
         return new TestPlayer(input);
     }

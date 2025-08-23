@@ -31,6 +31,18 @@ public abstract class EnhancedBaseImperatTest {
     protected ExecutionResult<TestSource> execute(String commandLine) {
         return IMPERAT.execute(SOURCE, commandLine);
     }
+    protected ExecutionResult<TestSource> execute(
+            Object cmd,
+            Consumer<ImperatConfig<TestSource>> cfgConsumer,
+            String commandLine
+    ) {
+        TestImperat newImperat = TestImperatConfig.builder()
+                .applyOnConfig(cfgConsumer)
+                .build();
+        newImperat.registerCommand(cmd);
+        return IMPERAT.execute(SOURCE, commandLine);
+    }
+    
     protected List<String> tabComplete(String commandLine) {
         return IMPERAT.autoComplete(SOURCE, commandLine).join();
     }

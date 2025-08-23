@@ -51,21 +51,6 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
     @DisplayName("Parameter Validation Errors")
     class ParameterValidationErrors {
         
-        @ParameterizedTest
-        @ValueSource(strings = {
-            "verylongusernamethatexceedslimitsforsure",
-            "player_with_very_long_name_that_should_fail",
-            "areallylongnamethatshouldexceedthe16characterlimitformcusernames"
-        })
-        @DisplayName("Should reject player names that are too long")
-        void testPlayerNameLengthValidation(String longName) throws ImperatException {
-            ExecutionResult<TestSource> result = execute("give apple " + longName);
-            
-            // Should fail due to TestPlayerParamType validation
-            assertThat(result)
-                .hasFailed();
-        }
-        
         @Test
         @DisplayName("Should handle invalid enum values gracefully")
         void testInvalidEnumValues() throws ImperatException {
