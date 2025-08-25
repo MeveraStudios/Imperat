@@ -11,15 +11,15 @@ public final class AnnotatedGroupCommand {
     public void defaultUsage(TestSource source, CommandHelp<TestSource> commandHelp) {
         //default execution = no args
         // /group help
-        commandHelp.display(
+        /*commandHelp.display(
                 HelpQuery.<TestSource>builder()
                         .filter(HelpFilters.hasPermission(source, commandHelp.getContext()))
                         .build(),
                 
-                HelpRenderOptions.<TestSource>builder()
-                        .layout(HelpRenderOptions.Layout.LIST)
-                        .theme(HelpTheme.defaultTheme())
-        );
+                HelpRenderOptions.of(
+                
+                )
+        );*/
     }
 
     @Usage

@@ -11,16 +11,16 @@ import studio.mevera.imperat.context.Source;
  *
  * @param <S> The type of {@link Source} from which the command was executed.
  */
-public class HelpRenderOptions<S extends Source> {
+public class HelpRenderOptions<S extends Source, C> {
     
-    private HelpTheme<S> theme = HelpTheme.defaultTheme();
-    private Layout layout = Layout.LIST;
-    
+    private final HelpTheme<S, C> theme;
+    private final Layout layout;
     /**
      * Private constructor to enforce the use of the static builder method.
      */
-    private HelpRenderOptions() {
-    
+    private HelpRenderOptions(HelpTheme<S, C> theme, Layout layout) {
+        this.theme = theme;
+        this.layout = layout;
     }
     
     /**
@@ -29,8 +29,11 @@ public class HelpRenderOptions<S extends Source> {
      * @param <S> The type of {@link Source}.
      * @return A new instance of {@code HelpRenderOptions}.
      */
-    public static <S extends Source> HelpRenderOptions<S> builder() {
-        return new HelpRenderOptions<S>();
+    public static <S extends Source, C> HelpRenderOptions<S, C> of(
+            HelpTheme<S, C> theme,
+            Layout layout
+    ) {
+        return new HelpRenderOptions<>(theme, layout);
     }
     
     /**
@@ -49,7 +52,7 @@ public class HelpRenderOptions<S extends Source> {
      *
      * @return The configured {@link HelpTheme}.
      */
-    public HelpTheme<S> getTheme() {
+    public HelpTheme<S, C> getTheme() {
         return theme;
     }
     
@@ -62,25 +65,4 @@ public class HelpRenderOptions<S extends Source> {
         return layout;
     }
     
-    /**
-     * Sets the rendering theme for the help output.
-     *
-     * @param theme The new help theme.
-     * @return This builder instance for method chaining.
-     */
-    public HelpRenderOptions<S> theme(HelpTheme<S> theme) {
-        this.theme = theme;
-        return this;
-    }
-    
-    /**
-     * Sets the layout for the help output.
-     *
-     * @param layout The new help layout.
-     * @return This builder instance for method chaining.
-     */
-    public HelpRenderOptions<S> layout(Layout layout) {
-        this.layout = layout;
-        return this;
-    }
 }

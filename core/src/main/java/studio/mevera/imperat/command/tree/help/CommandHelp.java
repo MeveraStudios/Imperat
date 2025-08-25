@@ -20,9 +20,9 @@ public final class CommandHelp<S extends Source> {
         return new CommandHelp<>(context);
     }
     
-    public void display(
+    public <C> void display(
             HelpQuery<S> query,
-            HelpRenderOptions<S> options
+            HelpRenderOptions<S, C> options
     ) {
         coordinator.showHelp(context, query, options);
     }
