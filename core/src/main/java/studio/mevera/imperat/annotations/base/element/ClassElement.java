@@ -45,7 +45,7 @@ public final class ClassElement extends ParseElement<Class<?>> {
         this.injectDependencies();
     }
 
-    private void injectDependencies() {
+    private <S extends Source> void injectDependencies() {
         Exception exception = null;
         for (Field field : element.getDeclaredFields()) {
             if (!field.isAnnotationPresent(Dependency.class)) {
@@ -58,7 +58,9 @@ public final class ClassElement extends ParseElement<Class<?>> {
 
             field.setAccessible(true);
             try {
-                var supplied = parser.getImperat().config().getInstanceFactory().createInstance(field.getType());
+                ImperatConfig<S> config = (ImperatConfig<S>) parser.getImperat().config();
+                InstanceFactory<S> instanceFactory = config.getInstanceFactory();
+                var supplied = instanceFactory.createInstance(config, field.getType());
                 field.set(Objects.requireNonNull(instance), supplied);
             } catch (IllegalAccessException e) {
                 exception = e;
@@ -75,7 +77,7 @@ public final class ClassElement extends ParseElement<Class<?>> {
         
         InstanceFactory<S> factory = config.getInstanceFactory();
         try {
-            return factory.createInstance(this.element);
+            return factory.createInstance(config, this.element);
         }catch (UnknownDependencyException e) {
             return loadInstanceFromConstructor(parent, constructorArgs);
         }

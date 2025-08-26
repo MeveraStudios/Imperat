@@ -9,31 +9,25 @@ import studio.mevera.imperat.exception.UnknownDependencyException;
 /**
  * Functional interface for creating instances of a given class.
  */
-public abstract class InstanceFactory<S extends Source> {
-    
-    protected final ImperatConfig<S> config;
-    
-    protected InstanceFactory(ImperatConfig<S> config) {
-        this.config = config;
-    }
+public interface InstanceFactory<S extends Source> {
     
     /**
      * Creates an instance of the specified class.
      *
-     * @param cls the class to instantiate
-     * @param <T> the type of the instance
+     * @param <T>    the type of the instance
+     * @param config the config to use for dependency resolution
+     * @param cls    the class to instantiate
      * @return a new instance of the specified class
      */
-    public abstract <T> @NotNull T createInstance(Class<T> cls) throws UnknownDependencyException;
+    <T> @NotNull T createInstance(ImperatConfig<S> config, Class<T> cls) throws UnknownDependencyException;
     
     /**
      * Creates a default instance factory that uses the provided ImperatConfig for dependency resolution.
      *
-     * @param config the ImperatConfig to use for resolving dependencies
      * @param <S>    the type of Source
      * @return a default InstanceFactory
      */
-    public static <S extends Source> InstanceFactory<S> defaultFactory(ImperatConfig<S> config) {
-        return new DefaultInstanceFactory<>(config);
+    static <S extends Source> InstanceFactory<S> defaultFactory() {
+        return new DefaultInstanceFactory<>();
     }
 }

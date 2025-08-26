@@ -103,7 +103,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         globalPostProcessors = CommandProcessingChain.<S>postProcessors()
             .build();
         
-        this.instanceFactory = InstanceFactory.defaultFactory(this);
+        this.instanceFactory = InstanceFactory.defaultFactory();
     }
 
     private void regDefThrowableResolvers() {

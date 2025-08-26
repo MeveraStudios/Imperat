@@ -5,15 +5,11 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownDependencyException;
 
-final class DefaultInstanceFactory<S extends Source> extends InstanceFactory<S> {
-    
-    DefaultInstanceFactory(ImperatConfig<S> config) {
-        super(config);
-    }
+final class DefaultInstanceFactory<S extends Source> implements InstanceFactory<S> {
     
     @Override
     @SuppressWarnings("unchecked")
-    public <T> @NotNull T createInstance(Class<T> cls) throws UnknownDependencyException {
+    public <T> @NotNull T createInstance(ImperatConfig<S> config, Class<T> cls) throws UnknownDependencyException {
         var dependencyResolved = config.resolveDependency(cls);
         if (dependencyResolved != null) {
             return (T) dependencyResolved;

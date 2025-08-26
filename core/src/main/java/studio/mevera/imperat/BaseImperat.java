@@ -98,7 +98,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     @Override
     public void registerCommand(Class<?> commandClass) {
         Preconditions.notNull(commandClass, "commandClass");
-        Object classInstance = config.getInstanceFactory().createInstance(commandClass);
+        Object classInstance = config.getInstanceFactory().createInstance(config, commandClass);
         annotationParser.parseCommandClass(
                 Objects.requireNonNull(classInstance)
         );
