@@ -24,7 +24,6 @@ import studio.mevera.imperat.verification.UsageVerifier;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 
 /**
  * A generic abstract builder class for configuring instances of ImperatConfig and creating
@@ -174,7 +173,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     
     /**
      * Sets the {@link HelpCoordinator} that coordinates all the core-components of the
-     * new help API, to create a coordinator call {@link HelpCoordinator#create(UnaryOperator)}
+     * new help API, to create a coordinator call {@link HelpCoordinator#create()}
      * @param coordinator the coordinator
      * @since 2.0.0
      * @return the current instance of {@code ConfigBuilder} for method chaining

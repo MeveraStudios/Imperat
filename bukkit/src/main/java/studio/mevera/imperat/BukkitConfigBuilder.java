@@ -1,17 +1,20 @@
 package studio.mevera.imperat;
 
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.adventure.AdventureHelpComponent;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.adventure.CastingAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.*;
 import studio.mevera.imperat.exception.selector.InvalidSelectorFieldCriteriaFormat;
 import studio.mevera.imperat.exception.selector.UnknownEntitySelectionTypeException;
@@ -137,7 +140,18 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     private @NotNull AdventureProvider<CommandSender> loadAdventure() {
         if (Reflections.findClass("net.kyori.adventure.audience.Audience")) {
             if (Audience.class.isAssignableFrom(CommandSender.class)) {
-                return new CastingAdventure<>();
+                return new CastingAdventure<>() {
+                    @Override
+                    public <SRC extends Source> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
+                        return new AdventureHelpComponent<>(component, (source, comp) -> {
+                            if (source instanceof BukkitSource bukkitSource) {
+                                bukkitSource.reply(comp);
+                            } else {
+                                source.reply(comp.toString());
+                            }
+                        });
+                    }
+                };
             } else if (Reflections.findClass("net.kyori.adventure.platform.bukkit.BukkitAudiences")) {
                 return new BukkitAdventure(plugin);
             }
