@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
+import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.command.*;
 import studio.mevera.imperat.command.parameters.NumericRange;
@@ -81,6 +82,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
     
+    private InstanceFactory<S> instanceFactory;
+    
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault();
         paramTypeRegistry = ParamTypeRegistry.createDefault();
@@ -99,6 +102,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
         globalPostProcessors = CommandProcessingChain.<S>postProcessors()
             .build();
+        
+        this.instanceFactory = InstanceFactory.defaultFactory(this);
     }
 
     private void regDefThrowableResolvers() {
@@ -814,6 +819,16 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @Override
     public void setHelpCoordinator(@NotNull HelpCoordinator<S> coordinator) {
         this.helpCoordinator = coordinator;
+    }
+    
+    @Override
+    public InstanceFactory<S> getInstanceFactory() {
+        return instanceFactory;
+    }
+    
+    @Override
+    public void setInstanceFactory(InstanceFactory<S> factory) {
+        this.instanceFactory = factory;
     }
     
     @Override

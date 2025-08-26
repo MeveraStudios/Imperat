@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
+import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
@@ -420,5 +421,17 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @param coordinator the new coordinator to set.
      */
     void setHelpCoordinator(@NotNull HelpCoordinator<S> coordinator);
+    
+    /**
+     * The factory for creating instances of types to be dependency injected.
+     * @return the instance factory
+     */
+    InstanceFactory<S> getInstanceFactory();
+    
+    /**
+     * Sets the instance factory for creating instances of types to be dependency injected.
+     * @param factory the instance factory to set
+     */
+    void setInstanceFactory(InstanceFactory<S> factory);
     
 }

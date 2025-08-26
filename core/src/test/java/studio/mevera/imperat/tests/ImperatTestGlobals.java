@@ -3,8 +3,6 @@ package studio.mevera.imperat.tests;
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
-import studio.mevera.imperat.command.tree.help.HelpCoordinator;
-import studio.mevera.imperat.command.tree.help.HelpRenderOptions;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.*;
@@ -63,37 +61,42 @@ public class ImperatTestGlobals {
         });
         IMPERAT.registerCommand(MULTIPLE_OPTIONAL_CMD);
         IMPERAT.registerCommand(CHAINED_SUBCOMMANDS_CMD);
-        IMPERAT.registerCommand(new AnnotatedGroupCommand());
-        IMPERAT.registerCommand(new OptionalArgCommand());
-        //;
-        IMPERAT.registerCommand(new GitCommand());
-        IMPERAT.registerCommand(new MessageCmd());
-        IMPERAT.registerCommand(new EmptyCmd());
-        IMPERAT.registerCommand(new KitCommand());
+        IMPERAT.registerCommand(AnnotatedGroupCommand.class);
+        IMPERAT.registerCommand(OptionalArgCommand.class);
+//;
+        IMPERAT.registerCommand(GitCommand.class);
+        IMPERAT.registerCommand(MessageCmd.class);
+        IMPERAT.registerCommand(EmptyCmd.class);
+        IMPERAT.registerCommand(KitCommand.class);
         
-        IMPERAT.registerCommands(new TestCommand(), new Test2Command(), new Test3Command(), new TestCustomAnnotationCmd());
-        IMPERAT.registerCommand(new GiveCmd());
-        IMPERAT.registerCommand(new BanCommand());
-        IMPERAT.registerCommand(new KingdomChatCommand());
-        IMPERAT.registerCommand(new Ban2Command());
-        IMPERAT.registerCommands(new TestAC(), new TestAC2());
-        IMPERAT.registerCommand(new PartyCommand());
-        IMPERAT.registerCommand(new GuildMOTDCommand());
+        IMPERAT.registerCommands(TestCommand.class, Test2Command.class, Test3Command.class, TestCustomAnnotationCmd.class);
+        
+        IMPERAT.registerCommand(GiveCmd.class);
+        IMPERAT.registerCommand(BanCommand.class);
+        IMPERAT.registerCommand(KingdomChatCommand.class);
+        IMPERAT.registerCommand(Ban2Command.class);
+        
+        IMPERAT.registerCommands(TestAC.class, TestAC2.class);
+        
+        IMPERAT.registerCommand(PartyCommand.class);
+        IMPERAT.registerCommand(GuildMOTDCommand.class);
+        
         IMPERAT.registerCommands(
-                new TestJavaOptionalParamTypeCmd(),
-                new TestCFParamTypeCmd(),
-                new UpperCaseCmd(),
-                new CustomEnumCommand(),
-                new SetRankCmd(),
-                new RankCommand(),
-                new ContextResolvingCmd(),
-                new FirstOptionalArgumentCmd(),
-                new SomeClass(),
-                new TestPerm(),
-                new FailingCmd()
+                TestJavaOptionalParamTypeCmd.class,
+                TestCFParamTypeCmd.class,
+                UpperCaseCmd.class,
+                CustomEnumCommand.class,
+                SetRankCmd.class,
+                RankCommand.class,
+                ContextResolvingCmd.class,
+                FirstOptionalArgumentCmd.class,
+                SomeClass.class,
+                TestPerm.class,
+                FailingCmd.class
         );
         
-        IMPERAT.registerCommands(new EconomyCommand(), new BalanceCmd());
+        IMPERAT.registerCommands(EconomyCommand.class, BalanceCmd.class);
+        
         
         ImperatDebugger.setEnabled(true);
         IMPERAT.debug(false);

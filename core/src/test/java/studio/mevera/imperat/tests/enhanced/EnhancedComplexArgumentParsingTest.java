@@ -11,7 +11,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
     
     @BeforeEach
     void registerCommands() {
-        IMPERAT.registerCommand(new MultipleOptionals());
+        IMPERAT.registerCommand(MultipleOptionals.class);
     }
     
     // === Basic Obligation Calculation Tests ===
@@ -279,7 +279,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
         // This might fail at runtime due to type mismatch
         assertThat(
                 execute(
-                        new MultipleOptionals(),
+                        MultipleOptionals.class,
                         (cfg)-> cfg.setHandleExecutionConsecutiveOptionalArgumentsSkip(false),
                         "multopts 999 stop-point"
                 )

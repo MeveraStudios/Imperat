@@ -34,7 +34,7 @@ public sealed interface CommandRegistrar<S extends Source> permits Imperat {
      *
      * @param command the annotated command instance to parse
      */
-    void registerCommand(Object command);
+    void registerCommand(Class<?> command);
 
     /**
      * Registers some commands into the dispatcher
@@ -42,7 +42,8 @@ public sealed interface CommandRegistrar<S extends Source> permits Imperat {
      *
      * @param commands the commands to register
      */
-    default void registerCommands(Object... commands) {
+    
+    default void registerCommands(Class<?>... commands) {
         for (final var command : commands) {
             this.registerCommand(command);
         }

@@ -32,21 +32,21 @@ public abstract class EnhancedBaseImperatTest {
         return IMPERAT.execute(SOURCE, commandLine);
     }
     protected ExecutionResult<TestSource> execute(
-            Object cmd,
+            Class<?> cmdClass,
             Consumer<ImperatConfig<TestSource>> cfgConsumer,
             String commandLine
     ) {
         TestImperat newImperat = TestImperatConfig.builder()
                 .applyOnConfig(cfgConsumer)
                 .build();
-        newImperat.registerCommand(cmd);
+        newImperat.registerCommand(cmdClass);
         return IMPERAT.execute(SOURCE, commandLine);
     }
     
     protected List<String> tabComplete(String commandLine) {
         return IMPERAT.autoComplete(SOURCE, commandLine).join();
     }
-    protected List<String> tabComplete(Object cmd, Consumer<ImperatConfig<TestSource>> cfgConsumer, String commandLine) {
+    protected List<String> tabComplete(Class<?> cmd, Consumer<ImperatConfig<TestSource>> cfgConsumer, String commandLine) {
         TestImperat newImperat = TestImperatConfig.builder()
                 .applyOnConfig(cfgConsumer)
                 .build();

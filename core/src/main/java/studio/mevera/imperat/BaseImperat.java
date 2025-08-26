@@ -94,16 +94,15 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
      * Registers a command class built by the
      * annotations using a parser
      *
-     * @param command the annotated command instance to parse
+     * @param commandClass the annotated command instance to parse
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public void registerCommand(Object command) {
-        if (command instanceof Command<?> commandObj) {
-            this.registerCommand((Command<S>) commandObj);
-            return;
-        }
-        annotationParser.parseCommandClass(command);
+    public void registerCommand(Class<?> commandClass) {
+        Preconditions.notNull(commandClass, "commandClass");
+        Object classInstance = config.getInstanceFactory().createInstance(commandClass);
+        annotationParser.parseCommandClass(
+                Objects.requireNonNull(classInstance)
+        );
     }
 
     /**

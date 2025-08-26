@@ -2,17 +2,20 @@ package studio.mevera.imperat.annotations.base.element;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.Dependency;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
+import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownDependencyException;
+import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.reflection.Reflections;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -27,7 +30,7 @@ public final class ClassElement extends ParseElement<Class<?>> {
         @NotNull Class<?> element
     ) {
         super(parser, parent, element);
-        this.instance = newInstance(parent);
+        this.instance = newInstance(parser.getImperat().config(), parent);
         this.injectDependencies();
     }
 
@@ -55,11 +58,8 @@ public final class ClassElement extends ParseElement<Class<?>> {
 
             field.setAccessible(true);
             try {
-                var supplied = parser.getImperat().config().resolveDependency(field.getType());
-                if(supplied == null) {
-                    throw new UnknownDependencyException("In class '" + this.element.getTypeName() + "', Field '" + field.getName()  +"' of type '" + field.getType().getTypeName() + "'" + " has no dependency registered for its type.");
-                }
-                field.set(instance, supplied);
+                var supplied = parser.getImperat().config().getInstanceFactory().createInstance(field.getType());
+                field.set(Objects.requireNonNull(instance), supplied);
             } catch (IllegalAccessException e) {
                 exception = e;
                 break;
@@ -71,7 +71,17 @@ public final class ClassElement extends ParseElement<Class<?>> {
         }
     }
     
-    private Object newInstance(ClassElement parent, Object... constructorArgs) {
+    private <S extends Source> Object newInstance(ImperatConfig<S> config, ClassElement parent, Object... constructorArgs) {
+        
+        InstanceFactory<S> factory = config.getInstanceFactory();
+        try {
+            return factory.createInstance(this.element);
+        }catch (UnknownDependencyException e) {
+            return loadInstanceFromConstructor(parent, constructorArgs);
+        }
+    }
+    
+    private @NotNull Object loadInstanceFromConstructor(ClassElement parent, Object[] constructorArgs) {
         boolean isStaticClass = this.isStaticClass();
         boolean external = !this.element.isMemberClass();
         
@@ -119,14 +129,14 @@ public final class ClassElement extends ParseElement<Class<?>> {
             }
             
             if (cons == null) {
-                throw new IllegalCallerException("Class " + element.getSimpleName() +
+                throw new UnknownDependencyException("Class " + element.getSimpleName() +
                         " doesn't have a constructor matching the arguments");
             }
             
             return cons.newInstance(finalArgs);
             
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException("Failed to create instance of " + element.getSimpleName(), e);
+            throw new UnknownDependencyException("Failed to create instance of " + element.getSimpleName(), e);
         }
     }
     
@@ -142,7 +152,7 @@ public final class ClassElement extends ParseElement<Class<?>> {
         try {
             return visitor.visitCommandClass(this);
         } catch (Throwable ex) {
-            ex.printStackTrace();
+            ImperatDebugger.error(ClassElement.class, "ClassElement#accept", ex);
             return null;
         }
     }

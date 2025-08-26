@@ -3,6 +3,7 @@ package studio.mevera.imperat;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
+import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
@@ -579,6 +580,21 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     public B defaultAttachmentMode(AttachmentMode attachmentMode) {
         config.setDefaultAttachmentMode(attachmentMode);
+        return (B) this;
+    }
+    
+    /**
+     * Sets the instance factory used for creating instances of classes
+     * during command processing and dependency resolution.
+     *
+     * @param instanceFactory the {@link InstanceFactory} implementation to be used
+     *                        for instantiating classes. Must not be {@code null}.
+     * @return this builder instance for method chaining
+     * @throws NullPointerException if {@code instanceFactory} is {@code null}
+     * @see InstanceFactory
+     */
+    public B instanceFactory(InstanceFactory<S> instanceFactory) {
+        config.setInstanceFactory(instanceFactory);
         return (B) this;
     }
     
