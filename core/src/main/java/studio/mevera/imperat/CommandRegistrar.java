@@ -48,6 +48,26 @@ public sealed interface CommandRegistrar<S extends Source> permits Imperat {
             this.registerCommand(command);
         }
     }
+    
+    /**
+     * Registers a command instance built by the
+     * annotations using a parser
+     *
+     * @param commandInstance the annotated command instance to parse
+     */
+    void registerCommand(Object commandInstance);
+    
+    /**
+     * Registers some command instances built by the
+     * annotations using a parser
+     *
+     * @param commandInstances the annotated command instances to parse
+     */
+    default void registerCommands(Object... commandInstances) {
+        for(var obj : commandInstances) {
+            registerCommand(obj);
+        }
+    }
 
     /**
      * Unregisters a command from the internal registry

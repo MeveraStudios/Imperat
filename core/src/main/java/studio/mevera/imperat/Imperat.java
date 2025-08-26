@@ -31,8 +31,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * Shuts down the platform
      */
     void shutdownPlatform();
-
-
+    
     /**
      * The config for imperat
      *

@@ -17,7 +17,6 @@ import studio.mevera.imperat.exception.*;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -104,7 +103,22 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                 Objects.requireNonNull(classInstance)
         );
     }
-
+    
+    @Override
+    public void registerCommand(Object commandInstance) {
+        if(commandInstance instanceof Command<?> command) {
+            registerCommand(command);
+        }
+        else if(commandInstance instanceof Class<?> cls) {
+            registerCommand(cls);
+        }
+        else {
+            annotationParser.parseCommandClass(
+                    Objects.requireNonNull(commandInstance)
+            );
+        }
+    }
+    
     /**
      * Unregisters a command from the internal registry
      *
