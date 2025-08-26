@@ -852,24 +852,23 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (results.size() >= query.getLimit()) {
             return;
         }
-        
+        System.out.println("Visiting node: " + node.format());
         // Apply filters to current node
         if (!passesFilters(node, query.getFilters())) {
+            System.out.println("Filtering out node: " + node.format());
             return;
         }
         
         // Add current node ONLY if it has executableUsage (truly executable)
         if (node.isExecutable()) {
             if(!node.isRoot() || /*Root Node :D*/ query.getRootUsagePredicate().test(node.getExecutableUsage())) {
+                System.out.println("Adding help entry for node: " + node.format());
                 results.add(helpEntryFactory.createEntry(node));
             }
         }
         
         // Recursively process children (DFS traversal) - continues even through command nodes
         for (var child : node.getChildren()) {
-            if (results.size() >= query.getLimit()) {
-                break;
-            }
             collectHelpEntries(child, query, results);
         }
     }

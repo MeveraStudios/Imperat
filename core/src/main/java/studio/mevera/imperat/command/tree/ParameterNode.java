@@ -174,16 +174,6 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         return parent;
     }
     
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof ParameterNode<?, ?> that)) return false;
-        return Objects.equals(data.name(), that.data.name()) && this.depth == that.depth && Objects.equals(nextNodes, that.nextNodes);
-    }
-    
-    @Override
-    public int hashCode() {
-        return Objects.hash(data.name(), this.depth,  nextNodes);
-    }
     
     public @Nullable ParameterNode<S,?> getTopChild() {
         if(nextNodes.isEmpty())return null;
@@ -193,4 +183,16 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     public boolean isRoot() {
         return parent == null;
     }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ParameterNode<?, ?> that)) return false;
+        return Objects.equals(this.parent, that.parent) && Objects.equals(data.name(), that.data.name()) && this.depth == that.depth && Objects.equals(nextNodes, that.nextNodes);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.parent, data.name(), this.depth,  nextNodes);
+    }
+
 }

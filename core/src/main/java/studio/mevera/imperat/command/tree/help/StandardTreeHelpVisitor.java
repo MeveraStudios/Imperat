@@ -7,10 +7,10 @@ import java.util.Objects;
 /**
  * Standard help provider that queries the command tree.
  */
-public class StandardHelpProvider<S extends Source> implements HelpProvider<S> {
+public class StandardTreeHelpVisitor<S extends Source> implements TreeHelpVisitor<S> {
     
     @Override
-    public HelpEntryList<S> provide(Command<S> command, HelpQuery<S> query) {
+    public HelpEntryList<S> visit(Command<S> command, HelpQuery<S> query) {
         // Just retrieves data, no rendering logic
         if(command.parent() != null) {
             return HelpEntryList.empty();

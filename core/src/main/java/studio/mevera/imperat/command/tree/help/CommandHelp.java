@@ -20,11 +20,17 @@ public final class CommandHelp<S extends Source> {
         return new CommandHelp<>(context);
     }
     
+    /**
+     * Displays help using the provided query and theme.
+     *
+     * @param query the help query specifying what help to show
+     * @param theme the theme controlling how help is displayed
+     */
     public <C> void display(
             HelpQuery<S> query,
-            HelpRenderOptions<S, C> options
+            HelpTheme<S, C> theme
     ) {
-        coordinator.showHelp(context, query, options);
+        coordinator.showHelp(context, query, theme);
     }
     
     public @NotNull ExecutionContext<S> getContext() {
@@ -34,5 +40,4 @@ public final class CommandHelp<S extends Source> {
     public @NotNull HelpCoordinator<S> getCoordinator() {
         return coordinator;
     }
-    
 }

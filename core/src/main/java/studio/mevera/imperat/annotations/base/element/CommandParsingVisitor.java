@@ -348,13 +348,13 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     }
 
     /*@SuppressWarnings("unchecked")
-    private HelpProvider<S> loadHelpProviderInstance(Class<? extends HelpProvider<?>> clazz) {
+    private TreeHelpVisitor<S> loadHelpProviderInstance(Class<? extends TreeHelpVisitor<?>> clazz) {
         var constructor = Reflections.getConstructor(clazz);
         if (constructor == null)
             throw new UnsupportedOperationException("Couldn't find constructor in class `" + clazz.getSimpleName() + "`");
 
         try {
-            return (HelpProvider<S>) constructor.newInstance();
+            return (TreeHelpVisitor<S>) constructor.newInstance();
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }

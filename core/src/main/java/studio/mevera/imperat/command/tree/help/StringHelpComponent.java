@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.tree.help;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.Source;
 
-public final class StringHelpComponent extends HelpComponent<String> {
+public final class StringHelpComponent<S extends Source> extends HelpComponent<S, String> {
     
     StringHelpComponent(@NotNull String componentValue) {
         super(componentValue);
@@ -11,18 +11,23 @@ public final class StringHelpComponent extends HelpComponent<String> {
     
     
     @Override
-    public <S extends Source> void send(S source) {
+    public void send(S source) {
         source.reply(componentValue);
     }
     
     @Override
-    public @NotNull HelpComponent<String> append(String other) {
+    public @NotNull HelpComponent<S, String> append(String other) {
         this.componentValue = componentValue + other;
         return this;
     }
     
     @Override
-    public @NotNull HelpComponent<String> repeat(int times) {
+    public HelpComponent<S, String> appendText(String text) {
+        return this.append(text);
+    }
+    
+    @Override
+    public @NotNull HelpComponent<S, String> repeat(int times) {
         this.componentValue = componentValue.repeat(times);
         return this;
     }

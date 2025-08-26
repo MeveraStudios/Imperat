@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.tree.help.renderers.layouts.UsageDecorator;
+import studio.mevera.imperat.command.tree.help.renderers.UsageFormatter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 
@@ -12,34 +12,50 @@ import studio.mevera.imperat.context.Source;
  */
 public interface HelpTheme<S extends Source, C> {
     
+    /**
+     * Available presentation styles for help display.
+     */
+    enum PresentationStyle {
+        /** Tree structure view that shows command nesting and hierarchy. */
+        TREE,
+        
+        /** Simple flat list where commands are displayed one after another. */
+        FLAT
+    }
+    
+    HelpComponent<S, C> createEmptyComponent();
+    
+    /**
+     * Gets the preferred presentation style for this theme.
+     *
+     * @return the presentation style to use
+     */
+    @NotNull PresentationStyle getPreferredStyle();
+    
     // FOR TREE LAYOUTS
     
     int getIndentMultiplier();
     
-    @NotNull HelpComponent<C> getBranch();
-    @NotNull HelpComponent<C> getLastBranch();
-    @NotNull HelpComponent<C> getIndent();
-    @NotNull HelpComponent<C> getEmptyIndent();
-    default @NotNull HelpComponent<C> getTreeBranch(boolean isLast) {
+    @NotNull HelpComponent<S, C> getBranch();
+    @NotNull HelpComponent<S, C> getLastBranch();
+    @NotNull HelpComponent<S, C> getIndent();
+    @NotNull HelpComponent<S, C> getEmptyIndent();
+    default @NotNull HelpComponent<S, C> getTreeBranch(boolean isLast) {
         return isLast ? getLastBranch() : getBranch();
     }
     
-    @SuppressWarnings("unchecked")
-    default @NotNull HelpComponent<C> getTreeIndent(boolean hasMore) {
-        HelpComponent<C> base = hasMore ? getIndent() : getEmptyIndent();
+    default @NotNull HelpComponent<S, C> getTreeIndent(boolean hasMore) {
+        HelpComponent<S, C> base = hasMore ? getIndent() : getEmptyIndent();
         if (getIndentMultiplier() > 1) {
-            return (HelpComponent<C>) base.repeat(getIndentMultiplier());
+            return base.repeat(getIndentMultiplier());
         }
         return base;
     }
     
-    //FOR LIST FORMATTING
-    @NotNull HelpComponent<C> getPathSeparator();
-    
     //GENERAL HELP PARTS
-    @NotNull HelpComponent<C> getHeader(ExecutionContext<S> context);
+    @NotNull HelpComponent<S, C> getHeader(ExecutionContext<S> context);
     
-    @NotNull HelpComponent<C> getFooter(ExecutionContext<S> context);
+    @NotNull HelpComponent<S, C> getFooter(ExecutionContext<S> context);
     
     boolean isOptionEnabled(@NotNull Option option);
     
@@ -50,5 +66,5 @@ public interface HelpTheme<S extends Source, C> {
         SHOW_FOOTER;
     }
     
-    @NotNull UsageDecorator<S, C> getUsageDecorator();
+    @NotNull UsageFormatter<S, C> getUsageFormatter();
 }

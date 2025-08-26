@@ -115,7 +115,7 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
             return;
         }
 
-        String defValue = flagParameter.getDefaultValueSupplier().supply(context.source(), flagParameter);
+        String defValue = flagParameter.getDefaultValueSupplier().supply(context, flagParameter);
         if (defValue != null) {
             Object flagValueResolved = flagParameter.getDefaultValueSupplier().isEmpty() ? null :
                     Objects.requireNonNull(flagDataFromRaw.inputType()).resolve(

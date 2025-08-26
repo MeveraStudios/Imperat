@@ -181,7 +181,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         if (optionalSupplier.isEmpty()) {
             return null;
         }
-        String value = optionalSupplier.supply(context.source(), parameter);
+        String value = optionalSupplier.supply(context, parameter);
         
         if (value != null) {
             return (T) parameter.type().resolve(context, stream, value);

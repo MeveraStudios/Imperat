@@ -58,7 +58,7 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
                 assert flagInputType != null;
                 
                 String defaultStrValue = flagParameter.getDefaultValueSupplier()
-                    .supply(context.source(), flagParameter);
+                    .supply(context, flagParameter);
                 if (defaultStrValue != null) {
                     value = flagInputType.resolve(context, CommandInputStream.subStream(stream, defaultStrValue), defaultStrValue);
                 }
@@ -76,7 +76,7 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
         if (optionalSupplier.isEmpty()) {
             return null;
         }
-        String value = optionalSupplier.supply(context.source(), parameter);
+        String value = optionalSupplier.supply(context, parameter);
         
         if (value != null) {
             return (T) parameter.type().resolve(context, stream, value);

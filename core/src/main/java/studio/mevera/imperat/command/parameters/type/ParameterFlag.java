@@ -71,7 +71,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
                 assert inputType != null;
                 objInput = inputType.resolve(context, commandInputStream, rawInput);
                 if(objInput == null && !flagParameter.getDefaultValueSupplier().isEmpty()) {
-                    String defValue = flagParameter.getDefaultValueSupplier().supply(context.source(), flagParameter);
+                    String defValue = flagParameter.getDefaultValueSupplier().supply(context, flagParameter);
                     if(defValue != null) {
                         objInput = inputType.resolve(context, commandInputStream, defValue);
                     }

@@ -47,14 +47,6 @@ final class SyntaxDataLoader {
         for (int i = 0; i < parameters.size(); i++) {
             CommandParameter<MinestomSource> parameter = parameters.get(i);
             Argument<T> arg = (Argument<T>) argFromParameter(parameter);
-            if (parameter.isOptional()) {
-                arg.setDefaultValue(
-                    commandSender -> {
-                        var supplier = parameter.getDefaultValueSupplier();
-                        return (T) supplier.supply(imperat.wrapSender(commandSender), parameter);
-                    });
-
-            }
             arg.setSuggestionCallback((sender, context, suggestion) -> {
                 var source = imperat.wrapSender(sender);
                 for (var completion : imperat.autoComplete(source, context.getCommandName() + " " + context.getInput()).join()) {
