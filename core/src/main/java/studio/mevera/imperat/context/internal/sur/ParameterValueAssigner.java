@@ -30,7 +30,7 @@ public final class ParameterValueAssigner<S extends Source> {
     private static <S extends Source> ParameterChain<S> createDefaultChainWithFreeFlagHandler() {
         return ChainFactory.<S>builder()
             .withHandler(new EmptyInputHandler<>())
-            .withHandler(new CommandParameterHandler<>())
+            .withHandler(new SubCommandHandler<>())
             .withHandler(new FlagInputHandler<>())
             .withHandler(new NonFlagWhenExpectingFlagHandler<>())
             .withHandler(new RequiredParameterHandler<>())

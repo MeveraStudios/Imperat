@@ -67,14 +67,4 @@ public abstract class ContextFactory<S extends Source> {
             @NotNull CommandPathSearch<S> dispatch
     );
     
-    /**
-     * @param plainContext the context plain
-     * @param usage     the proper {@link CommandUsage}
-     * @return the context after resolving args into values for
-     * later on parsing it into the execution
-     */
-    public abstract ExecutionContext<S> createExecutionContext(
-            @NotNull Context<S> plainContext,
-            @NotNull CommandUsage<S> usage
-    );
 }

@@ -11,7 +11,7 @@ public class ChainFactory {
     public static <S extends Source> ParameterChain<S> createDefaultChain() {
         return ChainFactory.<S>builder()
             .withHandler(new EmptyInputHandler<>())
-            .withHandler(new CommandParameterHandler<>())
+            .withHandler(new SubCommandHandler<>())
             .withHandler(new FlagInputHandler<>())
             .withHandler(new NonFlagWhenExpectingFlagHandler<>())
             .withHandler(new RequiredParameterHandler<>())

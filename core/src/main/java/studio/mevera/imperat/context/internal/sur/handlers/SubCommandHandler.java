@@ -8,16 +8,19 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
 import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.parse.UnknownSubCommandException;
 
-public final class CommandParameterHandler<S extends Source> implements ParameterHandler<S> {
+public final class SubCommandHandler<S extends Source> implements ParameterHandler<S> {
     
     @Override
     public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
         CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         String currentRaw = stream.currentRawIfPresent();
-        
-        if (currentParameter == null || currentRaw == null || !currentParameter.isCommand()) {
+        if(currentParameter == null) {
+            return HandleResult.TERMINATE;
+        }
+        else if(currentRaw == null || !currentParameter.isCommand()) {
             return HandleResult.NEXT_HANDLER;
         }
         

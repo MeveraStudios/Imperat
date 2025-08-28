@@ -8,6 +8,7 @@ import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedInputFlag;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
 import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
 
 public final class RequiredParameterHandler<S extends Source> implements ParameterHandler<S> {
     
@@ -16,9 +17,18 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
         CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         String currentRaw = stream.currentRawIfPresent();
         
-        if (currentParameter == null || currentRaw == null || currentParameter.isOptional()) {
+        if(currentParameter == null ) {
+            return HandleResult.TERMINATE;
+        }else if(!currentParameter.isRequired()) {
             return HandleResult.NEXT_HANDLER;
         }
+        else if(currentRaw == null) {
+            // Required parameter missing
+            return HandleResult.failure(
+                    new InvalidSyntaxException(context.getPathwaySearch(), context)
+            );
+        }
+        
         
         try {
             var value = currentParameter.type().resolve(context, stream, stream.readInput());
