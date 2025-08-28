@@ -81,6 +81,7 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
             ExternalSubCommand externalSubCommand = root.getAnnotation(ExternalSubCommand.class);
             assert externalSubCommand != null;
             for (Class<?> subClass : externalSubCommand.value()) {
+                ImperatDebugger.debug("Found %s's external sub command class '%s'", root.getElement().getTypeName(), subClass.getTypeName());
                 root.addChild(
                     readClass(imperat, parser, root, subClass)
                 );

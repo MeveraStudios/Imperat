@@ -27,9 +27,8 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
-import studio.mevera.imperat.util.reflection.Reflections;
+
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -323,28 +322,12 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
     @SuppressWarnings("unchecked")
     private CommandPreProcessor<S> loadPreProcessorInstance(Class<? extends CommandPreProcessor<?>> clazz) {
-        var constructor = Reflections.getConstructor(clazz);
-        if (constructor == null)
-            throw new UnsupportedOperationException("Couldn't find constructor in class `" + clazz.getSimpleName() + "`");
-
-        try {
-            return (CommandPreProcessor<S>) constructor.newInstance();
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        return (CommandPreProcessor<S>) config.getInstanceFactory().createInstance(config, clazz);
     }
 
     @SuppressWarnings("unchecked")
     private CommandPostProcessor<S> loadPostProcessorInstance(Class<? extends CommandPostProcessor<?>> clazz) {
-        var constructor = Reflections.getConstructor(clazz);
-        if (constructor == null)
-            throw new UnsupportedOperationException("Couldn't find constructor in class `" + clazz.getSimpleName() + "`");
-
-        try {
-            return (CommandPostProcessor<S>) constructor.newInstance();
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        return (CommandPostProcessor<S>) config.getInstanceFactory().createInstance(config, clazz);
     }
 
     /*@SuppressWarnings("unchecked")

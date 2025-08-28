@@ -18,6 +18,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public final class ClassElement extends ParseElement<Class<?>> {
 
@@ -167,6 +168,17 @@ public final class ClassElement extends ParseElement<Class<?>> {
 
     public void addChild(ParseElement<?> element) {
         children.add(element);
+        if(element instanceof ClassElement) {
+            ImperatDebugger.debug("Class '" + this.element.getTypeName()
+                    + "' has children: ["
+                    + String.join(",",
+                    children.stream()
+                            .filter((pe) -> pe instanceof ClassElement)
+                            .map(ParseElement::getName)
+                            .collect(Collectors.toUnmodifiableSet()))
+                    + "]"
+            );
+        }
     }
 
     public boolean isRootClass() {
