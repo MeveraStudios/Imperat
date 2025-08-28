@@ -40,7 +40,9 @@ import java.util.*;
 import java.util.function.Supplier;
 
 final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
-
+    
+    private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
+    
     private @NotNull SuggestionResolver<S> defaultSuggestionResolver =
             (context, input) ->
             Collections.emptyList();
@@ -79,10 +81,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     
     private PermissionLoader<S> permissionLoader = PermissionLoader.defaultLoader();
     private NodePermissionAssigner<S> permissionAssigner = NodePermissionAssigner.defaultAssigner();
-    
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
-    
-    private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
     
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault();
@@ -102,8 +101,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
         globalPostProcessors = CommandProcessingChain.<S>postProcessors()
             .build();
-        
-
     }
 
     private void regDefThrowableResolvers() {
