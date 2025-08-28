@@ -6,13 +6,13 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.VelocitySource;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
-
 import java.util.List;
 
 public final class ParameterPlayer extends BaseParameterType<VelocitySource, Player> {
@@ -42,7 +42,12 @@ public final class ParameterPlayer extends BaseParameterType<VelocitySource, Pla
     }
 
     @Override
-    public boolean matchesInput(String input, CommandParameter<VelocitySource> parameter) {
+    public boolean matchesInput(int rawPosition, Context<VelocitySource> context, CommandParameter<VelocitySource> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+
         return input.length() < 16;
     }
 

@@ -1,9 +1,9 @@
 package studio.mevera.imperat.tests.parameters;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
@@ -20,14 +20,27 @@ public final class TestPlayerParamType extends BaseParameterType<TestSource, Tes
             @NotNull CommandInputStream<TestSource> inputStream,
             @NotNull String input
     ) throws NotPlayerException {
-        if(!matchesInput(input, inputStream.currentParameterIfPresent())) {
+        // Note: We can't easily call matchesInput here without the raw position and context,
+        // so we'll just validate the input directly
+        if (input.length() > 16) {
             throw new NotPlayerException(context);
+        }
+        try {
+            Double.parseDouble(input);
+            throw new NotPlayerException(context); // Numbers are not valid player names
+        } catch (NumberFormatException e) {
+            // Good, it's not a number
         }
         return new TestPlayer(input);
     }
     
     @Override
-    public boolean matchesInput(String input, CommandParameter<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, Context<TestSource> context, CommandParameter<TestSource> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+        
         try{
             Double.parseDouble(input);
             return false;

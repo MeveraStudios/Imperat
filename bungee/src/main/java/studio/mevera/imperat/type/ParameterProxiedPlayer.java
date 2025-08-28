@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BungeeSource;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -44,7 +45,12 @@ public final class ParameterProxiedPlayer extends BaseParameterType<BungeeSource
     }
 
     @Override
-    public boolean matchesInput(String input, CommandParameter<BungeeSource> parameter) {
+    public boolean matchesInput(int rawPosition, Context<BungeeSource> context, CommandParameter<BungeeSource> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+
         return ProxyServer.getInstance().getPlayer(input) != null;
     }
 

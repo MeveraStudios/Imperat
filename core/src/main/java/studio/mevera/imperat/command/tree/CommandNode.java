@@ -15,12 +15,6 @@ public final class CommandNode<S extends Source> extends ParameterNode<S, Comman
     }
 
     @Override
-    public boolean matchesInput(String raw) {
-        return data.hasName(raw);
-    }
-
-
-    @Override
     public String format() {
         return data.format();
     }

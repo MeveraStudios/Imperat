@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.context.ArgumentInput;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeCapturer;
@@ -83,14 +84,15 @@ public abstract class BaseParameterType<S extends Source, T>
 
     /**
      * Determines whether the provided input matches the expected format or criteria
-     * for a given command parameter. this is used during {@link CommandTree#contextMatch(Source, ArgumentInput)}
+     * for a given command parameter. this is used during {@link CommandTree#contextMatch(Context, ArgumentInput)}
      *
-     * @param input     The input string to be matched against the parameter criteria.
+     * @param rawPosition The raw position of the argument in the input.
+     * @param context The context to be matched, providing necessary information about the command execution environment.
      * @param parameter The command parameter that provides context for the input handling.
      * @return true if the input matches the expected criteria; false otherwise.
      */
     @Override
-    public boolean matchesInput(String input, CommandParameter<S> parameter) {
+    public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
         return true;
     }
 

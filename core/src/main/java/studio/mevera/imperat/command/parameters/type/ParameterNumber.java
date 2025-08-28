@@ -3,6 +3,7 @@ package studio.mevera.imperat.command.parameters.type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -41,7 +42,12 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
     }
 
     @Override
-    public boolean matchesInput(String input, CommandParameter<S> parameter) {
+    public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+        
         try {
             parse(input);
             return true;

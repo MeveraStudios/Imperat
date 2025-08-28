@@ -38,20 +38,17 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     //last command used
     private final Command<S> lastCommand;
     
-    ExecutionContextImpl(Context<S> context, CommandUsage<S> usage) {
-        super(context.imperat(), context.command(), context.source(), context.label(), context.arguments());
-        this.lastCommand = context.command();
-        this.usage = usage;
-    }
+    private final CommandPathSearch<S> pathSearch;
     
     ExecutionContextImpl(
         Context<S> context,
-        CommandPathSearch<S> result
+        CommandPathSearch<S> pathSearch
     ) {
         super(context.imperat(), context.command(), context.source(), context.label(), context.arguments());
-        var lastCmdNode = result.getLastCommandNode();
-        this.lastCommand = lastCmdNode == null ? context.command() : lastCmdNode.getData();
-        this.usage = result.getFoundUsage();
+        this.pathSearch = pathSearch;
+        var lastCmdNode = pathSearch.getLastCommandNode();
+        this.lastCommand = lastCmdNode.getData();
+        this.usage = pathSearch.getFoundUsage();
     }
 
     /**
@@ -144,8 +141,13 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     public Collection<? extends ExtractedInputFlag> getResolvedFlags() {
         return flagRegistry.getAll();
     }
-
-
+    
+    
+    @Override
+    public @NotNull CommandPathSearch<S> getPathwaySearch() {
+        return pathSearch;
+    }
+    
     @Override
     public Optional<ExtractedInputFlag> getFlag(String flagName) {
         return flagRegistry.getData(flagName);

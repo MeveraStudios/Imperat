@@ -67,7 +67,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         }
         
         // Step 3: Smart skipping enabled - check type compatibility
-        if (currentParameter.type().matchesInput(currentRaw, currentParameter)) {
+        if (currentParameter.type().matchesInput(stream.currentRawPosition(), context, currentParameter)) {
             // Type matches - CAN consume input
             ImperatDebugger.debug("IT MATCHES TYPE, CONSUMING RIGHT AWAY");
             consumeInput(currentRaw, currentParameter, context, stream);
@@ -75,7 +75,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         }
         
         // Step 4: Type doesn't match - check if downstream optional can handle it
-        CommandParameter<S> bestMatch = findBestDownstreamMatch(stream, currentRaw);
+        CommandParameter<S> bestMatch = findBestDownstreamMatch(stream, context);
         
         if (bestMatch != null && !hasRequiredParametersBetween(stream, bestMatch)) {
             // Found better match downstream with no required parameters in between
@@ -126,14 +126,14 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
     /**
      * Step 4: Find the best downstream optional parameter that can handle current input
      */
-    private CommandParameter<S> findBestDownstreamMatch(CommandInputStream<S> stream, String currentRaw) {
+    private CommandParameter<S> findBestDownstreamMatch(CommandInputStream<S> stream, ExecutionContext<S> ctx) {
         int currentParamPos = stream.currentParameterPosition();
-        
+        int currRawPos = stream.currentRawPosition();
         // Look for downstream optional parameters that match the input type
         for (int i = currentParamPos + 1; i < stream.parametersLength(); i++) {
             CommandParameter<S> param = stream.getParametersList().get(i);
             if (param.isOptional() && !param.isFlag() &&
-                    param.type().matchesInput(currentRaw, param)) {
+                    param.type().matchesInput(currRawPos, ctx, param)) {
                 return param;
             }
         }

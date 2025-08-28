@@ -157,7 +157,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
         if (tree != null) {
             var copy = context.arguments().copy();
             copy.removeIf(String::isBlank);
-            return tree.contextMatch(context.source(), copy);
+            return tree.contextMatch(context, copy);
         } else {
             throw new IllegalCallerException("Cannot match a sub command in a root's execution !");
         }

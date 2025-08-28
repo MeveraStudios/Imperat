@@ -5,7 +5,6 @@ import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ArgumentTypeResolver;
 import studio.mevera.imperat.command.parameters.NumericRange;
-import studio.mevera.imperat.command.parameters.type.ParameterWord;
 import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
@@ -20,7 +19,6 @@ class DefaultArgTypeResolvers {
 
     public final static ArgumentTypeResolver STRING = (parameter -> {
         if (parameter.isGreedy()) return StringArgumentType.greedyString();
-        if (parameter.type() instanceof ParameterWord<?>) return StringArgumentType.word();
         return StringArgumentType.string();
     });
 

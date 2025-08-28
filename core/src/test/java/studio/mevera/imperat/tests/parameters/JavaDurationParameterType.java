@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
@@ -25,22 +26,19 @@ public final class JavaDurationParameterType extends BaseParameterType<TestSourc
     ) throws ImperatException {
         return JavaDurationParser.parseDuration(input);
     }
-
-    /**
-     * Determines whether the provided input matches the expected format or criteria
-     * for a given command parameter. this is used during
-     *
-     * @param input     The input strings to be matched against the parameter criteria.
-     * @param parameter The command parameter that provides context for the input handling.
-     * @return true if the input matches the expected criteria; false otherwise.
-     */
+    
     @Override
-    public boolean matchesInput(String input, CommandParameter<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, Context<TestSource> context, CommandParameter<TestSource> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+
         try {
             System.out.println("MATCHING DURATION");
             JavaDurationParser.parseDuration(input);
             return true;
-        }catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             return false;
         }
     }

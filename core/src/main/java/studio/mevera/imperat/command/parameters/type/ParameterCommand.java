@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -27,7 +28,8 @@ public final class ParameterCommand<S extends Source> extends BaseParameterType<
     }
 
     @Override
-    public boolean matchesInput(String input, CommandParameter<S> parameter) {
+    public boolean matchesInput(int rawPosition, Context<S> ctx, CommandParameter<S> parameter) {
+        String input = ctx.arguments().get(rawPosition);
         return parameter.isCommand() &&
             parameter.asCommand().hasName(input.toLowerCase());
     }

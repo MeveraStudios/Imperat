@@ -18,10 +18,6 @@ public final class ParameterTypes {
     private ParameterTypes() {
     }
 
-    public static <S extends Source> ParameterWord<S> word() {
-        return new ParameterWord<>();
-    }
-
     public static <S extends Source> ParameterString<S> string() {
         return new ParameterString<>();
     }

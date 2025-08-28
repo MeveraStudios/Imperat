@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
@@ -87,7 +88,12 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
     }
     
     @Override
-    public boolean matchesInput(String input, CommandParameter<S> parameter) {
+    public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+        
         if(!parameter.isFlag()) {
             throw new IllegalArgumentException(String.format("Parameter '%s' isn't a flag while having parameter type of '%s'", parameter.format(),
              "ParameterFlag"));
@@ -117,7 +123,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
             var argToComplete = ctx.getArgToComplete();
             if(flagParameter.isSwitch() ||
                     argToComplete.index() == 0 ||
-                    !this.matchesInput(ctx.arguments().get(argToComplete.index()-1), param) ) {
+                    !this.matchesInput(argToComplete.index()-1, ctx, param) ) {
                 return this.suggestions;
             }
             //flag is a true flag AND the next position is its value

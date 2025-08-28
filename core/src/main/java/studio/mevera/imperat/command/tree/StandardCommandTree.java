@@ -584,19 +584,19 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     @Override
     public @NotNull CommandPathSearch<S> contextMatch(
-            S source,
+            Context<S> context,
             @NotNull ArgumentInput input
     ) {
         final var dispatch = CommandPathSearch.unknown(root);
         dispatch.append(root);
-        if(!hasPermission(source, root)) {
+        if(!hasPermission(context.source(), root)) {
             dispatch.setResult(CommandPathSearch.Result.PAUSE);
             dispatch.setDirectUsage(root.getExecutableUsage());
             return dispatch;
         }
         
         if (input.isEmpty()) {
-            var result = !hasPermission(source, root) ? CommandPathSearch.Result.PAUSE : CommandPathSearch.Result.COMPLETE;
+            var result = !hasPermission(context.source(), root) ? CommandPathSearch.Result.PAUSE : CommandPathSearch.Result.COMPLETE;
             dispatch.setResult(result);
             dispatch.setDirectUsage(root.getExecutableUsage());
             return dispatch;
@@ -609,13 +609,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         
         // SAFE OPTIMIZATION: Early validation for obviously invalid commands
-        String firstArg = input.get(0);
         boolean hasMatchingChild = false;
         boolean hasOptionalChild = false;
         
         // Single pass to check both matching and optional children
         for (var child : rootChildren) {
-            if (matchesInput(child, firstArg, imperatConfig.strictCommandTree())) {
+            if (matchesInput(0, context, child, imperatConfig.strictCommandTree())) {
                 hasMatchingChild = true;
                 break; // Found match, can exit early
             }
@@ -634,7 +633,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         int bestDepth = 0;
         
         for (var child : rootChildren) {
-            final var result = dispatchNode(CommandPathSearch.unknown(root), source, input, child, 0);
+            final var result = dispatchNode(CommandPathSearch.unknown(root), context, input, child, 0);
             // Track the best (deepest) match
             if (result.getResult().isStoppable()) {
                 return result; // Return immediately on complete match
@@ -652,7 +651,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     private @NotNull CommandPathSearch<S> dispatchNode(
             CommandPathSearch<S> commandPathSearch,
-            S source,
+            Context<S> context,
             ArgumentInput input,
             @NotNull ParameterNode<S, ?> currentNode,
             int depth
@@ -661,104 +660,60 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final boolean isLastDepth = (depth == inputSize - 1);
         
         if (isLastDepth) {
-            return handleLastDepth(imperatConfig, commandPathSearch, source, currentNode, input.getOr(depth, null));
-        }
-        else if(depth >= inputSize) {
+            return handleLastDepth(imperatConfig, commandPathSearch, context, currentNode, depth);
+        } else if (depth >= inputSize) {
             return commandPathSearch;
         }
         
-        final String rawInput = input.get(depth);
+        // Check permissions BEFORE processing
+        if (!hasPermission(context.source(), currentNode)) {
+            commandPathSearch.setResult(CommandPathSearch.Result.PAUSE);
+            if (currentNode.isExecutable()) {
+                commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
+            }
+            return commandPathSearch;
+        }
         
         // Greedy parameter check
         if (currentNode.isGreedyParam()) {
-            var result = !hasPermission(source, currentNode) ? CommandPathSearch.Result.PAUSE : CommandPathSearch.Result.COMPLETE;
             commandPathSearch.append(currentNode);
-            commandPathSearch.setResult(result);
+            commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
             commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
             return commandPathSearch;
         }
         
-        // Input matching loop with reduced overhead
-        var workingNode = currentNode;
-        final boolean strictMode = imperatConfig.strictCommandTree();
+        // NEW: Use the enhanced matchesInput with full context
+        boolean nodeMatches = currentNode.getData().type().matchesInput(depth, context, currentNode.data);
         
-        
-        while (!matchesInput(workingNode, rawInput, strictMode)) {
-            if (workingNode.isOptional()) {
-                commandPathSearch.append(workingNode);
-                var nextWorkingNode = workingNode.getNextParameterChild();
-                if (nextWorkingNode == null) {
-                    if (workingNode.isExecutable()) {
-                        //var result = !hasPermission(source, workingNode.data) ? CommandPathSearch.Result.PAUSE : CommandPathSearch.Result.COMPLETE;
-                        commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
-                        commandPathSearch.setDirectUsage(workingNode.executableUsage);
-                    }
-                    return commandPathSearch;
-                }
-                workingNode = nextWorkingNode;
-            } else {
-                return commandPathSearch;
-            }
+        if (!nodeMatches) {
+            // Handle optional parameter skipping with proper logic
+            return handleOptionalParameterSkipping(commandPathSearch, context, input, currentNode, depth);
         }
         
-        // Flag handling with cached lookup
-        if (!workingNode.isFlag() && isFlag(rawInput)) {
-            final var flagData = flagCache.get(rawInput.substring(1));
-            if (flagData == null) {
-                return commandPathSearch;
-            }
-            final int depthIncrease = flagData.isSwitch() ? 1 : 2;
-            return dispatchNode(commandPathSearch, source, input, workingNode, depth + depthIncrease);
-        }
+        // Node matches - append and continue
+        commandPathSearch.append(currentNode);
         
-        commandPathSearch.append(workingNode);
-        if(!hasPermission(source, workingNode)) {
-            commandPathSearch.setResult(CommandPathSearch.Result.PAUSE);
-            if(workingNode.isExecutable()) {
-                commandPathSearch.setDirectUsage(workingNode.getExecutableUsage());
-            }
-            return commandPathSearch;
-        }
-        
-        
-        if(workingNode.isTrueFlag()) {
+        // Handle flag depth increment
+        if (currentNode.isTrueFlag()) {
             depth++;
         }
         
-        if(workingNode.isExecutable() && depth == inputSize-1) {
-            var result = !hasPermission(source, workingNode) ? CommandPathSearch.Result.PAUSE : CommandPathSearch.Result.COMPLETE;
-            commandPathSearch.setResult(result);
-            commandPathSearch.setDirectUsage(workingNode.getExecutableUsage());
+        // Check if we can execute at this point
+        if (currentNode.isExecutable() && depth == inputSize - 1) {
+            commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
+            commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
             return commandPathSearch;
         }
         
-        // Process children with early termination
-        final var children = workingNode.getChildren();
+        // Continue with children
+        final var children = currentNode.getChildren();
         if (children.isEmpty()) {
-            return commandPathSearch; // No children to process
+            return commandPathSearch;
         }
         
-        // SAFE OPTIMIZATION: More efficient validation for next input
-        final int nextDepth = depth + 1;
-        if (nextDepth < inputSize) {
-            final String nextInput = input.get(nextDepth);
-            boolean hasValidChild = false;
-            
-            // Single pass to check for valid children
-            for (var child : children) {
-                if (child.isOptional() || matchesInput(child, nextInput, strictMode)) {
-                    hasValidChild = true;
-                    break; // Found valid child, can exit early
-                }
-            }
-            
-            if (!hasValidChild) {
-                return commandPathSearch; // No valid path forward, terminate early
-            }
-        }
-        
+        // Process children
         for (var child : children) {
-            final var result = dispatchNode(commandPathSearch, source, input, child, depth + 1);
+            final var result = dispatchNode(commandPathSearch, context, input, child, depth + 1);
             if (result.getResult().isStoppable()) {
                 return result;
             }
@@ -773,17 +728,17 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private CommandPathSearch<S> handleLastDepth(
             ImperatConfig<S> cfg,
             CommandPathSearch<S> search,
-            S source,
+            Context<S> context,
             ParameterNode<S, ?> node,
-            String lastArg
+            int depth
     ) {
-        if(!matchesInput(node, lastArg, cfg.strictCommandTree())) {
+        if(!matchesInput(depth, context, node, cfg.strictCommandTree())) {
             return search;
         }
         
         search.append(node);
         var result = CommandPathSearch.Result.COMPLETE;
-        if (!hasPermission(source, node)) {
+        if (!hasPermission(context.source(), node)) {
             //we know now the node is certainly executable
             result = CommandPathSearch.Result.PAUSE;
         }
@@ -803,22 +758,56 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
     
     /**
-     * Fast flag checking
+     * NEW: Proper optional parameter skipping logic
      */
-    private static boolean isFlag(String input) {
-        return input.length() > 1 && input.charAt(0) == '-';
+    private CommandPathSearch<S> handleOptionalParameterSkipping(
+            CommandPathSearch<S> commandPathSearch,
+            Context<S> context,
+            ArgumentInput input,
+            ParameterNode<S, ?> currentNode,
+            int depth
+    ) {
+        // If node is required and doesn't match, fail immediately
+        if (!currentNode.isOptional()) {
+            return commandPathSearch;
+        }
+        
+        // For optional parameters that don't match, try to skip to next parameter
+        final var children = currentNode.getChildren();
+        
+        // First, try to execute at current node if possible (optional parameter not provided)
+        if (currentNode.isExecutable()) {
+            commandPathSearch.append(currentNode);
+            commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
+            commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
+            return commandPathSearch;
+        }
+        
+        for (var child : children) {
+            if (!hasPermission(context.source(), child)) {
+                continue; // Skip children without permission
+            }
+            
+            if (matchesInput(depth, context, child, imperatConfig.strictCommandTree())) {
+                // Found a matching child, continue with it
+                return dispatchNode(commandPathSearch, context, input, child, depth);
+            }
+        }
+        
+        return commandPathSearch;
     }
     
     /**
      * Optimized input matching
      */
     private static <S extends Source> boolean matchesInput(
+            int depth,
+            Context<S> context,
             ParameterNode<S, ?> node,
-            String input,
             boolean strictMode
     ) {
         if (node instanceof CommandNode || strictMode || node.isFlag()) {
-            return node.matchesInput(input);
+            return node.matchesInput(depth, context);
         }
         return true;
     }
@@ -852,17 +841,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (results.size() >= query.getLimit()) {
             return;
         }
-        System.out.println("Visiting node: " + node.format());
         // Apply filters to current node
         if (!passesFilters(node, query.getFilters())) {
-            System.out.println("Filtering out node: " + node.format());
             return;
         }
         
         // Add current node ONLY if it has executableUsage (truly executable)
         if (node.isExecutable()) {
             if(!node.isRoot() || /*Root Node :D*/ query.getRootUsagePredicate().test(node.getExecutableUsage())) {
-                System.out.println("Adding help entry for node: " + node.format());
                 results.add(helpEntryFactory.createEntry(node));
             }
         }
@@ -946,7 +932,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 return;
             }
             
-            if (!node.matchesInput(currentInput)) {
+            if (!node.matchesInput(inputDepth, context)) {
             
                 if(node.isRequired()) {
                     return;
@@ -954,7 +940,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 String prevInput = context.arguments().getOr(inputDepth-1, null);
                 boolean isCurrentInputTrueFlagValue = prevInput != null
                         && node.isTrueFlag()
-                        && node.matchesInput(prevInput);
+                        && node.matchesInput(inputDepth-1, context);
                 
                 if(!isCurrentInputTrueFlagValue) {
                     inputDepth--; //back tracking with optional nodes.
@@ -1074,16 +1060,16 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final var queue = context.arguments();
         final String firstArg = queue.getOr(0, null);
         
-        final var startingNode = (firstArg == null) ? root : findStartingNode(root, firstArg);
+        final var startingNode = (firstArg == null) ? root : findStartingNode(context, root);
         
         return (startingNode == null)
                 ? Set.of(rootCommand.getDefaultUsage())
                 : getClosestUsagesRecursively(new LinkedHashSet<>(), startingNode, context);
     }
     
-    private ParameterNode<S, ?> findStartingNode(ParameterNode<S, ?> root, String raw) {
+    private ParameterNode<S, ?> findStartingNode(Context<S> context, ParameterNode<S, ?> root) {
         for (var child : root.getChildren()) {
-            if (child.matchesInput(raw)) {
+            if (child.matchesInput(child.getDepth(), context)) {
                 return child;
             }
         }
@@ -1111,7 +1097,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                     if (child.isRequired()) {
                         addPermittedUsages(currentUsages, child, context);
                     }
-                } else if (child.matchesInput(correspondingInput)) {
+                } else if (child.matchesInput(child.getDepth(), context)) {
                     addPermittedUsages(currentUsages, child, context);
                 }
             }

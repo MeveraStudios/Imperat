@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 
 import java.util.LinkedList;
@@ -119,7 +120,10 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         return nextNodes;
     }
 
-    public abstract boolean matchesInput(String input);
+    public boolean matchesInput(int depth, Context<S> ctx) {
+        return this.data.type()
+                .matchesInput(depth, ctx, data);
+    }
 
     public abstract String format();
 

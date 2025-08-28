@@ -9,6 +9,7 @@ import studio.mevera.imperat.BukkitUtil;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -81,7 +82,12 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
     }
     
     @Override
-    public boolean matchesInput(String input, CommandParameter<BukkitSource> parameter) {
+    public boolean matchesInput(int rawPosition, Context<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+        
         return BukkitUtil.PLAYER_USERNAME_PATTERN.matcher(input).matches()
                 && Bukkit.getPlayer(input) != null;
     }

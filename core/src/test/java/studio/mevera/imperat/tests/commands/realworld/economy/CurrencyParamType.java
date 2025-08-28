@@ -3,6 +3,7 @@ package studio.mevera.imperat.tests.commands.realworld.economy;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
@@ -26,7 +27,12 @@ public final class CurrencyParamType extends BaseParameterType<TestSource, Curre
     }
     
     @Override
-    public boolean matchesInput(String input, CommandParameter<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, Context<TestSource> context, CommandParameter<TestSource> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+        
         return CurrencyManager.getInstance().getCurrencyByName(input.toLowerCase()) != null;
     }
     

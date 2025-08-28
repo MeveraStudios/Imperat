@@ -85,11 +85,11 @@ public interface CommandTree<S extends Source> {
     /**
      * Matches the given input against this command tree and returns a dispatch context.
      *
-     * @param source the source/sender/executor executing the command.
+     * @param context The context to match against
      * @param input  the argument input to match against
      * @return a command dispatch context containing matching results, never null
      */
-    @NotNull CommandPathSearch<S> contextMatch(S source, @NotNull ArgumentInput input);
+    @NotNull CommandPathSearch<S> contextMatch(Context<S> context, @NotNull ArgumentInput input);
     
     /**
      * Generates tab-completion suggestions based on the current command context.

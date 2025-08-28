@@ -3,6 +3,7 @@ package studio.mevera.imperat.command.parameters.type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -47,15 +48,19 @@ public final class ParameterBoolean<S extends Source> extends BaseParameterType<
     }
 
     @Override
-    public boolean matchesInput(String input, CommandParameter<S> parameter) {
-
-        if (!allowVariants && (input.equalsIgnoreCase("true") || input.equalsIgnoreCase("false")))
+    public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
+        String currentInput = context.arguments().get(rawPosition);
+        if(currentInput == null) {
+            return false;
+        }
+        
+        if (!allowVariants && (currentInput.equalsIgnoreCase("true") || currentInput.equalsIgnoreCase("false")))
             return true;
         else if (allowVariants) {
-            return VARIANTS.get(input.toLowerCase(Locale.ENGLISH)) != null;
+            return VARIANTS.get(currentInput.toLowerCase(Locale.ENGLISH)) != null;
         }
 
-        return Boolean.parseBoolean(input);
+        return Boolean.parseBoolean(currentInput);
     }
 
     public ParameterBoolean<S> setAllowVariants(boolean allowVariants) {

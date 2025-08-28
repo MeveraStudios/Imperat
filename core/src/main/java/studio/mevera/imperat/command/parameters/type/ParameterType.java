@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -53,11 +54,12 @@ public interface ParameterType<S extends Source, T> {
     /**
      * Checks if the given input string matches this parameter type for the specified parameter.
      *
-     * @param input the input string.
+     * @param rawPosition the raw position of the argument in the input.
+     * @param context the context to be matched.
      * @param parameter the command parameter.
      * @return {@code true} if the input matches, {@code false} otherwise.
      */
-    boolean matchesInput(String input, CommandParameter<S> parameter);
+    boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter);
 
     /**
      * Returns the default value supplier for the given source and command parameter.

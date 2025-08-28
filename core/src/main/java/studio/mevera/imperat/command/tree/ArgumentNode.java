@@ -22,13 +22,7 @@ public final class ArgumentNode<S extends Source> extends ParameterNode<S, Comma
         }
         return res;
     }
-
-    @Override
-    public boolean matchesInput(String input) {
-        var type = data.type();
-        return type.matchesInput(input, data);
-    }
-
+    
     @Override
     public String format() {
         return data.format();
