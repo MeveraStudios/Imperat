@@ -82,7 +82,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
     
-    private InstanceFactory<S> instanceFactory;
+    private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
     
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault();
@@ -103,7 +103,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         globalPostProcessors = CommandProcessingChain.<S>postProcessors()
             .build();
         
-        this.instanceFactory = InstanceFactory.defaultFactory();
+
     }
 
     private void regDefThrowableResolvers() {
