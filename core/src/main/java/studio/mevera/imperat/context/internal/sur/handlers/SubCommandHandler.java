@@ -8,7 +8,6 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
 import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.parse.UnknownSubCommandException;
 
 public final class SubCommandHandler<S extends Source> implements ParameterHandler<S> {
