@@ -65,7 +65,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> globalPreProcessors;
     private @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> globalPostProcessors;
 
-    private boolean strictCommandTree = false;
     private boolean overlapOptionalParameterSuggestions = false;
     private boolean handleExecutionConsecutiveOptionalArgumentsSkip = false;
     
@@ -590,39 +589,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         this.handleExecutionConsecutiveOptionalArgumentsSkip = toggle;
     }
     
-    /**
-     * Checks whether the command tree operates in strict mode.
-     * <p>
-     * In strict mode, the command tree may enforce additional validation rules (syntax checks) during command context validation.
-     * strict mode ensures that when the input is executed.
-     * the command tree doesn't consider type differences in usage-parameter lookups.
-     * </p>
-     *
-     * @return {@code true} if the command tree is in strict mode, {@code false} otherwise.
-     * @see #setStrictCommandTree(boolean)
-     */
-    @Override
-    public boolean strictCommandTree() {
-        return strictCommandTree;
-    }
-
-    /**
-     * Enables or disables strict mode for the command tree.
-     * <p>
-     * When enabled ({@code strict = true}), the command tree may perform rigorous validation
-     * checks. Disabling strict mode ({@code strict = false}) may allow for more flexible command
-     * usages parsing.
-     * </p>
-     *
-     * @param strict {@code true} to enable strict mode, {@code false} to disable it.
-     * @throws UnsupportedOperationException If the strict mode cannot be changed at runtime
-     *                                       (e.g., after the command tree has been finalized or locked).
-     * @see #strictCommandTree()
-     */
-    @Override
-    public void setStrictCommandTree(boolean strict) {
-        this.strictCommandTree = strict;
-    }
 
     /**
      * Fetches the suggestion provider/resolver for a specific valueType of

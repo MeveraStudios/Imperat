@@ -614,7 +614,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // Single pass to check both matching and optional children
         for (var child : rootChildren) {
-            if (matchesInput(0, context, child, imperatConfig.strictCommandTree())) {
+            if (matchesInput(0, context, child)) {
                 hasMatchingChild = true;
                 break; // Found match, can exit early
             }
@@ -683,7 +683,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         
         // NEW: Use the enhanced matchesInput with full context
-        boolean nodeMatches = currentNode.getData().type().matchesInput(depth, context, currentNode.data);
+        boolean nodeMatches = matchesInput(depth, context, currentNode);
         
         if (!nodeMatches) {
             // Handle optional parameter skipping with proper logic
@@ -732,7 +732,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             ParameterNode<S, ?> node,
             int depth
     ) {
-        if(!matchesInput(depth, context, node, cfg.strictCommandTree())) {
+        if(!matchesInput(depth, context, node)) {
             return search;
         }
         
@@ -788,7 +788,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 continue; // Skip children without permission
             }
             
-            if (matchesInput(depth, context, child, imperatConfig.strictCommandTree())) {
+            if (matchesInput(depth, context, child)) {
                 // Found a matching child, continue with it
                 return dispatchNode(commandPathSearch, context, input, child, depth);
             }
@@ -803,13 +803,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private static <S extends Source> boolean matchesInput(
             int depth,
             Context<S> context,
-            ParameterNode<S, ?> node,
-            boolean strictMode
+            ParameterNode<S, ?> node
     ) {
-        if (node instanceof CommandNode || strictMode || node.isFlag()) {
-            return node.matchesInput(depth, context);
-        }
-        return true;
+        return node.matchesInput(depth, context);
     }
   
     @Override
@@ -937,9 +933,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 if(node.isRequired()) {
                     return;
                 }
-                String prevInput = context.arguments().getOr(inputDepth-1, null);
-                boolean isCurrentInputTrueFlagValue = prevInput != null
-                        && node.isTrueFlag()
+                boolean isCurrentInputTrueFlagValue = node.isTrueFlag()
                         && node.matchesInput(inputDepth-1, context);
                 
                 if(!isCurrentInputTrueFlagValue) {

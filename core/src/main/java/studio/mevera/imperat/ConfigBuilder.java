@@ -525,16 +525,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.registerPlaceholder(placeholder);
         return (B) this;
     }
-
-    /**
-     * Sets the command tree to be strict
-     * @param strict whether the command tree will be strict or not
-     * @return the current instance of {@link ConfigBuilder}, for method chaining.
-     */
-    public B strictCommandTree(boolean strict) {
-        this.config.setStrictCommandTree(strict);
-        return (B) this;
-    }
     
     /**
      * Sets the global default usage builder that will be used for all commands
