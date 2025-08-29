@@ -614,7 +614,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // Single pass to check both matching and optional children
         for (var child : rootChildren) {
-            if (matchesInput(0, context, child)) {
+            if (child.matchesInput(0, context)) {
                 hasMatchingChild = true;
                 break; // Found match, can exit early
             }
@@ -660,7 +660,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final boolean isLastDepth = (depth == inputSize - 1);
         
         if (isLastDepth) {
-            return handleLastDepth(imperatConfig, commandPathSearch, context, currentNode, depth);
+            return handleLastDepth(commandPathSearch, context, currentNode, depth);
         } else if (depth >= inputSize) {
             return commandPathSearch;
         }
@@ -682,8 +682,8 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return commandPathSearch;
         }
         
-        // NEW: Use the enhanced matchesInput with full context
-        boolean nodeMatches = matchesInput(depth, context, currentNode);
+        // NEW: Use the enhanced matchesInput with full context AND strict for handling optional skipping
+        boolean nodeMatches = currentNode.matchesInput(depth, context, currentNode.isOptional());
         
         if (!nodeMatches) {
             // Handle optional parameter skipping with proper logic
@@ -726,13 +726,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Optimized last depth handling
      */
     private CommandPathSearch<S> handleLastDepth(
-            ImperatConfig<S> cfg,
             CommandPathSearch<S> search,
             Context<S> context,
             ParameterNode<S, ?> node,
             int depth
     ) {
-        if(!matchesInput(depth, context, node)) {
+        if(!node.matchesInput(depth, context)) {
             return search;
         }
         
@@ -788,7 +787,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                 continue; // Skip children without permission
             }
             
-            if (matchesInput(depth, context, child)) {
+            if (child.matchesInput(depth, context)) {
                 // Found a matching child, continue with it
                 return dispatchNode(commandPathSearch, context, input, child, depth);
             }
@@ -797,16 +796,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         return commandPathSearch;
     }
     
-    /**
-     * Optimized input matching
-     */
-    private static <S extends Source> boolean matchesInput(
-            int depth,
-            Context<S> context,
-            ParameterNode<S, ?> node
-    ) {
-        return node.matchesInput(depth, context);
-    }
   
     @Override
     public HelpEntryList<S> queryHelp(@NotNull HelpQuery<S> query) {
