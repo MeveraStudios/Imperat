@@ -29,7 +29,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private final static int INITIAL_SUGGESTIONS_CAPACITY = 20;
     
     // Optimized flag cache with better hashing
-    private final Map<String, FlagData<S>> flagCache;
     
     // Pre-sized collections for common operations
     private final ThreadLocal<ArrayList<ParameterNode<S, ?>>> pathBuffer =
@@ -49,27 +48,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
         this.rootCommand = command;
         this.root = ParameterNode.createCommandNode(null, command, -1, command.getDefaultUsage());
-        this.flagCache = initializeFlagCache();
         this.imperatConfig = imperatConfig;
         this.permissionChecker = imperatConfig.getPermissionChecker();
         this.uniqueRoot = root.copy();
     }
     
-    private Map<String, FlagData<S>> initializeFlagCache() {
-        // Use HashMap instead of concurrent map for better performance in single-threaded access
-        final Map<String, FlagData<S>> cache = new HashMap<>();
-        for (var usage : rootCommand.usages()) {
-            for (var flag : usage.getUsedFreeFlags()) {
-                for (String alias : flag.aliases()) {
-                    cache.put(alias, flag);
-                }
-            }
-        }
-        return Collections.unmodifiableMap(cache); // Make immutable
-    }
-    
     // Optimized parsing with reduced allocations
-    
     public void parseCommandUsages() {
         final var usages = root.data.usages();
         for (var usage : usages) {
