@@ -109,4 +109,8 @@ public interface ParameterType<S extends Source, T> {
     default TypeWrap<T> wrappedType() {
         return (TypeWrap<T>) TypeWrap.of(type());
     }
+    
+    default boolean isGreedy(CommandParameter<S> parameter) {
+        return false;
+    }
 }

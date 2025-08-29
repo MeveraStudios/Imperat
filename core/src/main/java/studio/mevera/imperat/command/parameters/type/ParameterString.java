@@ -92,4 +92,10 @@ public final class ParameterString<S extends Source> extends BaseParameterType<S
             }
         }
     }
+    
+    @Override
+    public boolean isGreedy(CommandParameter<S> parameter) {
+        return parameter.isGreedyString();
+    }
+    
 }

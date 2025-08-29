@@ -143,7 +143,7 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
             //it must be strict in a specific scenario
             //REGARDING complex middle optional arguments resolvation
             //we get the primary param type.
-            var primaryType = supportedTypes.peek();
+            var primaryType = getPrimaryType();
             return primaryType != null && matchesInput(primaryType, depth, ctx);
         }
         // Check supported types in LIFO order
@@ -164,7 +164,7 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     
     public void addSupportedType(ParameterType<S, ?> type) {
         if (!supportedTypes.contains(type)) {
-            supportedTypes.addFirst(type);
+            supportedTypes.add(type);
         }
     }
     
@@ -177,6 +177,10 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         return supportedTypes;
     }
     
+    public @Nullable ParameterType<S, ?> getPrimaryType() {
+        return supportedTypes.peekLast();
+    }
+    
     public abstract String format();
 
     public boolean isLast() {
@@ -186,7 +190,7 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     public abstract int priority();
 
     public boolean isGreedyParam() {
-        return (this instanceof ArgumentNode<?> param) && param.data.isGreedy();
+        return data.isGreedy();
     }
 
     public boolean isOptional() {

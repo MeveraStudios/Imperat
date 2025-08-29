@@ -6,6 +6,7 @@ import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
@@ -93,5 +94,9 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
 
         return new Location(world, x, y, z);
     }
-
+    
+    @Override
+    public boolean isGreedy(CommandParameter<BukkitSource> parameter) {
+        return true;
+    }
 }

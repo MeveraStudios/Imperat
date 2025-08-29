@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.context.Source;
 
 @ApiStatus.Internal
@@ -31,6 +32,14 @@ public final class ArgumentNode<S extends Source> extends ParameterNode<S, Comma
     @Override
     public int priority() {
         return priority;
+    }
+    
+    @Override
+    public boolean isGreedyParam() {
+        ParameterType<S, ?> type = this.getPrimaryType();
+        if(type != null)
+            System.out.println("type: " + type.type().getTypeName() + " isGreedy: " + type.isGreedy(data));
+        return type != null && type.isGreedy(data);
     }
     
 }

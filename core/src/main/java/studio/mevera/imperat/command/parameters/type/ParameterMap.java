@@ -2,6 +2,7 @@ package studio.mevera.imperat.command.parameters.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -67,5 +68,10 @@ public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends B
         }
         return newMap;
     }
-
+    
+    @Override
+    public boolean isGreedy(CommandParameter<S> parameter) {
+        System.out.println("Running greedy check for map param-type for param : '" + parameter.format() + "'%n");
+        return true;
+    }
 }

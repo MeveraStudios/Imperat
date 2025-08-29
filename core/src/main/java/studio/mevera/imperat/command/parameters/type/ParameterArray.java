@@ -2,6 +2,7 @@ package studio.mevera.imperat.command.parameters.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -47,5 +48,9 @@ public abstract class ParameterArray<S extends Source, E> extends BaseParameterT
 
         return array;
     }
-
+    
+    @Override
+    public boolean isGreedy(CommandParameter<S> parameter) {
+        return true;
+    }
 }

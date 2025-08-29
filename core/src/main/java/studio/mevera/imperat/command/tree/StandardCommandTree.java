@@ -675,6 +675,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         
         // Greedy parameter check
+        System.out.println("is current node '" + currentNode.format() + "' greedy? " + currentNode.isGreedyParam());
         if (currentNode.isGreedyParam()) {
             commandPathSearch.append(currentNode);
             commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
@@ -771,8 +772,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return commandPathSearch;
         }
         
-        // For optional parameters that don't match, try to skip to next parameter
-        final var children = currentNode.getChildren();
         
         // First, try to execute at current node if possible (optional parameter not provided)
         if (currentNode.isExecutable()) {
@@ -781,6 +780,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
             return commandPathSearch;
         }
+        
+        // For optional parameters that don't match, try to skip to next parameter
+        final var children = currentNode.getChildren();
         
         for (var child : children) {
             if (!hasPermission(context.source(), child)) {
