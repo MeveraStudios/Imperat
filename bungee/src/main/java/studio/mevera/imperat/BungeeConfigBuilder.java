@@ -51,7 +51,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private AdventureProvider<CommandSender> loadAdventure() {
-        if (Reflections.findClass(() -> BungeeAudiences.class)) {
+        if (Reflections.findClass("net.kyori.adventure.platform.bungeecord.BungeeAudiences")) {
             return new BungeeAdventure(plugin);
         }
         return new EmptyAdventure<>();

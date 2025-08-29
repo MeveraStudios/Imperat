@@ -44,6 +44,11 @@ final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command imp
         for(String arg : args) {
             builder.append(arg).append(" ");
         }
+        
+        if(!builder.isEmpty()) {
+            builder.deleteCharAt(builder.length()-1);
+        }
+        
         return bungeeCommandDispatcher.autoComplete(
                 bungeeCommandDispatcher.wrapSender(sender),
                 builder.toString()
