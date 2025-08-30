@@ -1,4 +1,4 @@
-package studio.mevera.imperat.types;
+package studio.mevera.imperat.type;
 
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -31,7 +31,7 @@ public final class ParameterPlayer extends BaseParameterType<VelocitySource, Pla
             @NotNull ExecutionContext<VelocitySource> context,
             @NotNull CommandInputStream<VelocitySource> commandInputStream,
             @NotNull String input) throws ImperatException {
-
+        
         if (input.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
                 throw new UnknownPlayerException(input, context);
