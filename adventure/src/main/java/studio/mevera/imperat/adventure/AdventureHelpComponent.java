@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.Source;
 
 import java.util.function.BiConsumer;
 
-public final class AdventureHelpComponent<S extends Source> extends HelpComponent<S, Component> {
+public class AdventureHelpComponent<S extends Source> extends HelpComponent<S, Component> {
     
     private final BiConsumer<S, Component> sendMessageToSourceFunc;
     public AdventureHelpComponent(@NotNull Component componentValue, BiConsumer<S, Component> sendMessageToSourceFunc) {

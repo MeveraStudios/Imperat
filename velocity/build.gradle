@@ -13,6 +13,7 @@ dependencies {
     compileOnly project(":core")
     compileOnly("com.mojang:brigadier:1.0.18")
     api project(":brigadier")
+    api project(":adventure")
 
     compileOnly 'com.velocitypowered:velocity-api:3.4.0-SNAPSHOT'
     annotationProcessor 'com.velocitypowered:velocity-api:3.4.0-SNAPSHOT'

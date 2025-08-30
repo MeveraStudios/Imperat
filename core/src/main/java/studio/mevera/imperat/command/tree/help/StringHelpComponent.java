@@ -3,9 +3,9 @@ package studio.mevera.imperat.command.tree.help;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.Source;
 
-public final class StringHelpComponent<S extends Source> extends HelpComponent<S, String> {
+public class StringHelpComponent<S extends Source> extends HelpComponent<S, String> {
     
-    StringHelpComponent(@NotNull String componentValue) {
+    protected StringHelpComponent(@NotNull String componentValue) {
         super(componentValue);
     }
     

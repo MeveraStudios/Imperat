@@ -10,15 +10,72 @@ import studio.mevera.imperat.util.StringUtils;
 
 import java.util.HashSet;
 
+/**
+ * Main Imperat implementation for BungeeCord proxy servers.
+ * This class serves as the primary entry point for integrating the Imperat command framework
+ * with BungeeCord proxy networks, providing cross-server command management capabilities.
+ *
+ * <p>Key Features:</p>
+ * <ul>
+ *   <li>Full integration with BungeeCord's command system</li>
+ *   <li>Adventure API support for rich text messaging</li>
+ *   <li>Built-in parameter types for BungeeCord objects (ProxiedPlayer, ServerInfo)</li>
+ *   <li>Cross-server player management commands</li>
+ *   <li>Automatic command registration and cleanup</li>
+ *   <li>Legacy BaseComponent support for backward compatibility</li>
+ * </ul>
+ *
+ * <p>Usage Example:</p>
+ * <pre>{@code
+ * public class MyBungeePlugin extends Plugin {
+ *     private BungeeImperat imperat;
+ *
+ *     @Override
+ *     public void onEnable() {
+ *         imperat = BungeeImperat.builder(this)
+ *             .build();
+ *
+ *         imperat.registerCommand(MyCommand.class);
+ *     }
+ *
+ *     @Override
+ *     public void onDisable() {
+ *         if (imperat != null) {
+ *             imperat.shutdownPlatform();
+ *         }
+ *     }
+ * }
+ * }</pre>
+ *
+ * @since 1.0
+ * @author Imperat Framework
+ * @see BungeeConfigBuilder
+ * @see BungeeSource
+ */
 public final class BungeeImperat extends BaseImperat<BungeeSource> {
 
     private final Plugin plugin;
     private final AdventureProvider<CommandSender> adventureProvider;
 
+    /**
+     * Creates a new configuration builder for BungeeImperat.
+     * This is the recommended way to create and configure a BungeeImperat instance.
+     *
+     * @param plugin the plugin instance that will own this Imperat instance
+     * @return a new BungeeConfigBuilder for further configuration
+     */
     public static BungeeConfigBuilder builder(Plugin plugin) {
         return new BungeeConfigBuilder(plugin, null);
     }
 
+    /**
+     * Package-private constructor used by BungeeConfigBuilder.
+     * Use {@link #builder(Plugin)} to create instances.
+     *
+     * @param plugin the plugin instance
+     * @param adventureProvider the Adventure provider for rich text messaging
+     * @param config the Imperat configuration
+     */
     BungeeImperat(
         Plugin plugin,
         @NotNull AdventureProvider<CommandSender> adventureProvider,

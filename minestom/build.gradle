@@ -8,6 +8,7 @@ compileJava.targetCompatibility = '21'
 
 dependencies {
     compileOnly project(":core")
+    compileOnly project(":adventure")
     compileOnly 'net.minestom:minestom-snapshots:620ebe5d6b'
 }
 

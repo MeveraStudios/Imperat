@@ -19,6 +19,49 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.jar.JarFile;
 
+/**
+ * Main Imperat implementation for Bukkit/Spigot/Paper servers.
+ * This class serves as the primary entry point for integrating the Imperat command framework
+ * with Bukkit-based server platforms, providing comprehensive command management capabilities.
+ *
+ * <p>Key Features:</p>
+ * <ul>
+ *   <li>Full integration with Bukkit's command system</li>
+ *   <li>Adventure API support for rich text messaging</li>
+ *   <li>Brigadier integration for Paper servers (optional)</li>
+ *   <li>Built-in parameter types for Bukkit objects (Players, Locations, etc.)</li>
+ *   <li>Entity selector support (@p, @a, @e, @r)</li>
+ *   <li>Automatic command registration and cleanup</li>
+ * </ul>
+ *
+ * <p>Usage Example:</p>
+ * <pre>{@code
+ * public class MyPlugin extends JavaPlugin {
+ *     private BukkitImperat imperat;
+ *
+ *     @Override
+ *     public void onEnable() {
+ *         imperat = BukkitImperat.builder(this)
+ *             .applyBrigadier(true)  // Enable for Paper
+ *             .build();
+ *
+ *         imperat.registerCommand(MyCommand.class);
+ *     }
+ *
+ *     @Override
+ *     public void onDisable() {
+ *         if (imperat != null) {
+ *             imperat.shutdownPlatform();
+ *         }
+ *     }
+ * }
+ * }</pre>
+ *
+ * @since 1.0
+ * @author Imperat Framework
+ * @see BukkitConfigBuilder
+ * @see BukkitSource
+ */
 public final class BukkitImperat extends BaseImperat<BukkitSource> {
 
     private final Plugin plugin;
@@ -27,6 +70,13 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
     private BukkitBrigadierManager brigadierManager;
     private Map<String, org.bukkit.command.Command> bukkitCommands = new HashMap<>();
 
+    /**
+     * Creates a new configuration builder for BukkitImperat.
+     * This is the recommended way to create and configure a BukkitImperat instance.
+     *
+     * @param plugin the plugin instance that will own this Imperat instance
+     * @return a new BukkitConfigBuilder for further configuration
+     */
     public static BukkitConfigBuilder builder(Plugin plugin) {
         return new BukkitConfigBuilder(plugin);
     }

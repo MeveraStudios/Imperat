@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,32 @@ import studio.mevera.imperat.type.ParameterTargetSelector;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.reflection.Reflections;
 
+/**
+ * Configuration builder for BukkitImperat instances.
+ * This builder provides a fluent API for configuring and customizing the behavior
+ * of Imperat commands in a Bukkit/Spigot/Paper environment.
+ *
+ * <p>The builder automatically sets up:</p>
+ * <ul>
+ *   <li>Bukkit-specific parameter types (Player, Location, OfflinePlayer, TargetSelector)</li>
+ *   <li>Exception handlers for common Bukkit scenarios</li>
+ *   <li>Source resolvers for type-safe command source handling</li>
+ *   <li>Adventure API integration with automatic detection</li>
+ *   <li>Entity selector support (@p, @a, @e, @r)</li>
+ *   <li>Permission system integration</li>
+ * </ul>
+ *
+ * <p>Usage Example:</p>
+ * <pre>{@code
+ * BukkitImperat imperat = BukkitImperat.builder(plugin)
+ *     .applyBrigadier(true)  // Enable Brigadier for Paper
+ *     .build();
+ * }</pre>
+ *
+ * @since 1.0
+ * @author Imperat Framework
+ * @see BukkitImperat
+ */
 public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, BukkitImperat, BukkitConfigBuilder> {
 
     private final static BukkitPermissionChecker DEFAULT_PERMISSION_RESOLVER = new BukkitPermissionChecker();
@@ -54,10 +81,23 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
                 new TypeWrap<CommandHelp<BukkitSource>>() {}.getType(),
                 (ctx, paramElement)-> CommandHelp.create(ctx)
         );
+        
+        // Enhanced context resolvers similar to Velocity
+        config.registerContextResolver(Plugin.class, (ctx, paramElement) -> plugin);
+        config.registerContextResolver(org.bukkit.Server.class, (ctx, paramElement) -> plugin.getServer());
     }
     
     private void registerSourceResolvers() {
         config.registerSourceResolver(CommandSender.class, (bukkitSource, ctx) -> bukkitSource.origin());
+        
+        // Enhanced source resolver for console similar to Velocity
+        config.registerSourceResolver(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
+            if (!bukkitSource.isConsole()) {
+                throw new OnlyConsoleAllowedException(ctx);
+            }
+            return (ConsoleCommandSender) bukkitSource.origin();
+        });
+        
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new OnlyPlayerAllowedException(ctx);
@@ -69,6 +109,11 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     private void addThrowableHandlers() {
         config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
             context.source().error("Only players can do this!");
+        });
+        
+        // Enhanced exception handling similar to Velocity
+        config.setThrowableResolver(OnlyConsoleAllowedException.class, (ex, context)-> {
+            context.source().error("Only console can do this!");
         });
         
         config.setThrowableResolver(InvalidSelectorFieldCriteriaFormat.class, (ex, context)-> {

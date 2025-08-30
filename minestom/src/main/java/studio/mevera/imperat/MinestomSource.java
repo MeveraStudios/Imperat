@@ -10,15 +10,56 @@ import studio.mevera.imperat.context.Source;
 
 import java.util.UUID;
 
+/**
+ * A Minestom-specific implementation of {@link Source} that wraps a Minestom {@link CommandSender}.
+ * This class provides a bridge between Minestom's command system and the Imperat framework,
+ * with full Adventure API integration for rich text messaging.
+ *
+ * <p>Features:</p>
+ * <ul>
+ *   <li>Support for both Player and Console command sources</li>
+ *   <li>Native Adventure API integration for rich text messaging</li>
+ *   <li>Type-safe casting to Player or ConsoleSender</li>
+ *   <li>UUID-based identification for players</li>
+ *   <li>Modern Minecraft server support with full component messaging</li>
+ * </ul>
+ *
+ * <p>Usage Example:</p>
+ * <pre>{@code
+ * // In a command method
+ * @Command("teleport")
+ * public void teleport(MinestomSource source, Player target) {
+ *     if (source.isConsole()) {
+ *         source.error("Only players can teleport!");
+ *         return;
+ *     }
+ *     Player player = source.asPlayer();
+ *     // ... teleport logic
+ * }
+ * }</pre>
+ *
+ * @since 1.0
+ * @author Imperat Framework
+ * @see Source
+ * @see CommandSender
+ * @see Player
+ */
 public final class MinestomSource implements Source {
     private final CommandSender sender;
 
+    /**
+     * Creates a new MinestomSource wrapping the specified CommandSender.
+     *
+     * @param sender the Minestom CommandSender to wrap (player or console)
+     */
     MinestomSource(CommandSender sender) {
         this.sender = sender;
     }
 
     /**
-     * @return name of a command source
+     * Gets the name of this command source.
+     *
+     * @return the username if this is a player, or "CONSOLE" if this is the console
      */
     @Override
     public String name() {
@@ -26,7 +67,9 @@ public final class MinestomSource implements Source {
     }
 
     /**
-     * @return The original command sender valueType instance
+     * Gets the original Minestom CommandSender that this MinestomSource wraps.
+     *
+     * @return the underlying Minestom CommandSender
      */
     @Override
     public CommandSender origin() {
