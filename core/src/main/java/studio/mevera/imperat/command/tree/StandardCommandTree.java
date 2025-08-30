@@ -6,11 +6,18 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.tree.help.*;
-import studio.mevera.imperat.context.*;
+import studio.mevera.imperat.command.tree.help.HelpEntryFactory;
+import studio.mevera.imperat.command.tree.help.HelpEntryList;
+import studio.mevera.imperat.command.tree.help.HelpFilter;
+import studio.mevera.imperat.command.tree.help.HelpQuery;
+import studio.mevera.imperat.context.ArgumentInput;
+import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.resolvers.PermissionChecker;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeUtility;
+
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -659,7 +666,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         
         // Greedy parameter check
-        System.out.println("is current node '" + currentNode.format() + "' greedy? " + currentNode.isGreedyParam());
+        //System.out.println("is current node '" + currentNode.format() + "' greedy? " + currentNode.isGreedyParam());
         if (currentNode.isGreedyParam()) {
             commandPathSearch.append(currentNode);
             commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
