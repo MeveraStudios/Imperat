@@ -2,6 +2,7 @@ package studio.mevera.imperat.command.tree.help;
 
 import studio.mevera.imperat.command.tree.help.renderers.HelpLayoutRenderer;
 import studio.mevera.imperat.command.tree.help.renderers.StandardHelpRenderer;
+import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 
@@ -83,7 +84,7 @@ public class HelpCoordinator<S extends Source> {
         HelpLayoutRenderer<S, C> typedRenderer = (HelpLayoutRenderer<S, C>) renderer;
         
         // Header
-        if (theme.isOptionEnabled(HelpTheme.Option.SHOW_HEADER)) {
+        if (theme.getOptionValue(HelpTheme.Option.SHOW_HEADER)) {
             theme.getHeader(context).send(context.source());
         }
         
@@ -91,7 +92,7 @@ public class HelpCoordinator<S extends Source> {
         typedRenderer.render(context, entries, theme);
         
         // Footer
-        if (theme.isOptionEnabled(HelpTheme.Option.SHOW_FOOTER)) {
+        if (theme.getOptionValue(HelpTheme.Option.SHOW_FOOTER)) {
             theme.getFooter(context).send(context.source());
         }
     }

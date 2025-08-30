@@ -2,7 +2,7 @@ package studio.mevera.imperat.help;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BungeeSource;
-import studio.mevera.imperat.command.tree.help.StringHelpComponent;
+import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
 /**
  * BungeeCord-specific implementation of string-based help components.

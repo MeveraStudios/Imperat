@@ -2,7 +2,7 @@ package studio.mevera.imperat.help;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.ConsoleSource;
-import studio.mevera.imperat.command.tree.help.StringHelpComponent;
+import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
 /**
  * Command-line interface implementation of string-based help components.

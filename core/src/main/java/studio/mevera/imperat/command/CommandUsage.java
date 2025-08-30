@@ -320,14 +320,20 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         private UsageCooldown cooldown = null;
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
         private final Set<FlagData<S>> flags = new HashSet<>();
-        private final List<String> examples = new ArrayList<>(2);
+        private final List<String> examples = new ArrayList<>(3);
         
         Builder() {
 
         }
+        
 
         public Builder<S> coordinator(CommandCoordinator<S> commandCoordinator) {
             this.commandCoordinator = commandCoordinator;
+            return this;
+        }
+        
+        public Builder<S> examples(String... examples) {
+            this.examples.addAll(Arrays.asList(examples));
             return this;
         }
 

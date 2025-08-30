@@ -9,8 +9,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Represents the Fallback attachment mode that will be set for all subcommands that have
- * their attachment mode = `UNSET`.
+ * Sets a default attachment mode for all subcommands under the annotated type or method
+ * when their own attachment mode is {@link AttachmentMode#UNSET}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})

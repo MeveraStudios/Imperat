@@ -7,6 +7,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Restricts a parameter to a predefined set of allowed string values.
+ * Matching may be case-sensitive depending on {@link #caseSensitive()}.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 @ApiStatus.AvailableSince("1.7.6")

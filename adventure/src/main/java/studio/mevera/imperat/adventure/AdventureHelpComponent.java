@@ -2,7 +2,7 @@ package studio.mevera.imperat.adventure;
 
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.tree.help.HelpComponent;
+import studio.mevera.imperat.command.tree.help.theme.HelpComponent;
 import studio.mevera.imperat.context.Source;
 
 import java.util.function.BiConsumer;

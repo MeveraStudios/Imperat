@@ -1,5 +1,6 @@
 package studio.mevera.imperat.command.tree.help;
 
+import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
 import studio.mevera.imperat.context.Source;
 
 /**

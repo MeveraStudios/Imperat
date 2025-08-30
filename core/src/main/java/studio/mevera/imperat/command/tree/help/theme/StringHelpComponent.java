@@ -1,4 +1,4 @@
-package studio.mevera.imperat.command.tree.help;
+package studio.mevera.imperat.command.tree.help.theme;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.Source;

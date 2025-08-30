@@ -2,7 +2,10 @@ package studio.mevera.imperat.command.tree.help.renderers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.tree.help.*;
+import studio.mevera.imperat.command.tree.help.HelpEntry;
+import studio.mevera.imperat.command.tree.help.HelpEntryList;
+import studio.mevera.imperat.command.tree.help.theme.HelpComponent;
+import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 

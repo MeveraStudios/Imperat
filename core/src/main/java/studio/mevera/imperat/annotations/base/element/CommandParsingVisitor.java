@@ -351,8 +351,8 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         @NotNull studio.mevera.imperat.command.Command<S> loadedCmd,
         MethodElement method
     ) {
+ 
         MethodUsageData<S> usageData = loadParameters(method, parentCmd);
-
         var execution = MethodCommandExecutor.of(imperat, method, usageData.inheritedTotalParameters());
 
         studio.mevera.imperat.annotations.Description description = method.getAnnotation(studio.mevera.imperat.annotations.Description.class);
@@ -363,7 +363,16 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         var builder = CommandUsage.<S>builder()
             .parameters(usageData.personalParameters())
             .execute(execution);
-
+        
+        Usage usageAnn = method.getAnnotation(Usage.class);
+        
+        if(usageAnn != null) {
+            String[] examples = Arrays.stream(usageAnn.examples())
+                    .map(config::replacePlaceholders)
+                    .toArray(String[]::new);
+            builder.examples(examples);
+        }
+        
         if (description != null)
             builder.description(
                 config.replacePlaceholders(description.value())

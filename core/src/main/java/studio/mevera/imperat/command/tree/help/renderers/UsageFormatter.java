@@ -3,8 +3,8 @@ package studio.mevera.imperat.command.tree.help.renderers;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.tree.help.HelpComponent;
-import studio.mevera.imperat.command.tree.help.HelpTheme;
+import studio.mevera.imperat.command.tree.help.theme.HelpComponent;
+import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 

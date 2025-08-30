@@ -1,4 +1,4 @@
-package studio.mevera.imperat.command.tree.help;
+package studio.mevera.imperat.command.tree.help.theme;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.renderers.UsageFormatter;
@@ -40,6 +40,9 @@ public interface HelpTheme<S extends Source, C> {
     @NotNull HelpComponent<S, C> getLastBranch();
     @NotNull HelpComponent<S, C> getIndent();
     @NotNull HelpComponent<S, C> getEmptyIndent();
+    
+    <T> void setOptionValue(@NotNull Option<T> option, T value);
+    
     default @NotNull HelpComponent<S, C> getTreeBranch(boolean isLast) {
         return isLast ? getLastBranch() : getBranch();
     }
@@ -57,13 +60,39 @@ public interface HelpTheme<S extends Source, C> {
     
     @NotNull HelpComponent<S, C> getFooter(ExecutionContext<S> context);
     
-    boolean isOptionEnabled(@NotNull Option option);
+    <T> T getOptionValue(@NotNull Option<T> option);
     
-    enum Option {
+    interface Option<T> {
         
-        SHOW_HEADER,
+        //to string constants
+        @NotNull
+        String id();
         
-        SHOW_FOOTER;
+        @NotNull T defaultValue();
+        
+        Option<Boolean> SHOW_HEADER = new Option<>() {
+            @Override
+            public @NotNull String id() {
+                return "show_header";
+            }
+            
+            @Override
+            public @NotNull Boolean defaultValue() {
+                return false;
+            }
+        };
+        Option<Boolean> SHOW_FOOTER = new Option<>() {
+            @Override
+            public @NotNull String id() {
+                return "show_footer";
+            }
+            
+            @Override
+            public @NotNull Boolean defaultValue() {
+                return false;
+            }
+        };
+   
     }
     
     @NotNull UsageFormatter<S, C> getUsageFormatter();
