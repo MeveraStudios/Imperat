@@ -687,14 +687,18 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
             type = ConstrainedParameterTypeDecorator.of(type, values, valuesAnnotation.caseSensitive());
         }
-
-        CommandParameter<S> param =
-            AnnotationParameterDecorator.decorate(
-                CommandParameter.of(
-                    name, type, permission, desc,
-                    optional, greedy, optionalValueSupplier, suggestionResolver
-                ), parameter
-            );
+        
+        CommandParameter<S> delegate = CommandParameter.of(
+                name, type, permission, desc,
+                optional, greedy, optionalValueSupplier, suggestionResolver
+        );
+        if (parameter.isAnnotationPresent(Format.class)) {
+            Format formatAnnotation = parameter.getAnnotation(Format.class);
+            assert formatAnnotation != null;
+            delegate.setFormat(config.replacePlaceholders(formatAnnotation.value()));
+        }
+        
+        CommandParameter<S> param = AnnotationParameterDecorator.decorate(delegate, parameter);
 
         if (TypeUtility.isNumericType(TypeWrap.of(param.valueType()))
             && parameter.isAnnotationPresent(Range.class)) {

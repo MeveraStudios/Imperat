@@ -21,6 +21,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
 
     protected Command<S> parentCommand;
     protected final String name;
+    protected String format;
     protected final ParameterType<S, ?> type;
     protected final boolean optional, flag, greedy;
     protected final OptionalValueSupplier optionalValueSupplier;
@@ -39,6 +40,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
         @Nullable SuggestionResolver<S> suggestionResolver
     ) {
         this.name = name;
+        this.format = name;
         this.type = type;
         this.permission = permission;
         this.description = description;
@@ -57,7 +59,17 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     public String name() {
         return name;
     }
-
+    
+    @Override
+    public String format() {
+        return format;
+    }
+    
+    @Override
+    public final void setFormat(String format) {
+        this.format = format;
+    }
+    
     @Override
     public @Nullable Command<S> parent() {
         return parentCommand;

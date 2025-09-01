@@ -31,6 +31,10 @@ class NormalCommandParameter<S extends Source> extends InputParameter<S> {
      */
     @Override
     public String format() {
+        if(!this.format.equals(this.name)) {
+            return super.format();
+        }
+        
         var content = name();
         if (isGreedy())
             content += "...";

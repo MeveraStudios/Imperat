@@ -16,7 +16,7 @@ final class AnnotationRegistry {
     AnnotationRegistry() {
         this.registerAnnotationTypes(
             Command.class, ExternalSubCommand.class, Usage.class, SubCommand.class,
-            Cooldown.class, Description.class, Permission.class,
+            Cooldown.class, Description.class, Permission.class, Format.class,
             Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
             Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, ContextResolved.class, Range.class, Async.class,
             PostProcessor.class, PreProcessor.class, GlobalAttachmentMode.class, ExceptionHandler.class

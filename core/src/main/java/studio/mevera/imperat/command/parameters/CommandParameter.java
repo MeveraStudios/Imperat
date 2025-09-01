@@ -126,7 +126,8 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
      * @return the name of the parameter
      */
     String name();
-
+    
+    
     /**
      * @return the parent of this parameter
      */
@@ -257,11 +258,21 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
     SuggestionResolver<S> getSuggestionResolver();
 
     /**
-     * Formats the usage parameter*
+     * Formats the usage parameter, the default value is the name of the parameter
      *
+     * @see #name()
      * @return the formatted parameter
      */
     String format();
+    
+    /**
+     * Sets a custom format for this parameter
+     * the default value is the name of the parameter
+     *
+     * @see #name()
+     * @param format the format to set
+     */
+    void setFormat(String format);
 
     default boolean isNumeric() {
         return this instanceof NumericParameter;

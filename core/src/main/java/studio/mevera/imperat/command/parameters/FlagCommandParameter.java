@@ -37,6 +37,9 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
 
     @Override
     public String format() {
+        if(!this.format.equals(this.name)) {
+            return super.format();
+        }
         return flag.format();
     }
 
