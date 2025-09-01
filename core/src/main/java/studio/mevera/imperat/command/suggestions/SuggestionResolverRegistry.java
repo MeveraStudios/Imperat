@@ -4,8 +4,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.FlagParameter;
-import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
@@ -19,7 +17,6 @@ public final class SuggestionResolverRegistry<S extends Source> {
     private final Map<String, SuggestionResolver<S>> resolversPerName;
 
     private final EnumSuggestionResolver enumSuggestionResolver = new EnumSuggestionResolver();
-    private final FlagSuggestionResolver flagSuggestionResolver = new FlagSuggestionResolver();
 
     private final ImperatConfig<S> imperat;
 
@@ -31,10 +28,6 @@ public final class SuggestionResolverRegistry<S extends Source> {
 
     public static <S extends Source> SuggestionResolverRegistry<S> createDefault(ImperatConfig<S> imperat) {
         return new SuggestionResolverRegistry<>(imperat);
-    }
-
-    public FlagSuggestionResolver getFlagSuggestionResolver() {
-        return flagSuggestionResolver;
     }
 
     public EnumSuggestionResolver getEnumSuggestionResolver() {
@@ -72,51 +65,6 @@ public final class SuggestionResolverRegistry<S extends Source> {
                     registerEnumResolver(type);
                     return getResults(type).orElse(Collections.emptyList());
                 });
-        }
-    }
-
-    public final class FlagSuggestionResolver implements SuggestionResolver<S> {
-
-
-        @Override
-        public List<String> autoComplete(SuggestionContext<S> context, CommandParameter<S> parameter) {
-            assert parameter.isFlag();
-            FlagParameter<S> flagParameter = parameter.asFlagParameter();
-            CompletionArg arg = context.getArgToComplete();
-            FlagData<S> data = flagParameter.flagData();
-
-            if (flagParameter.isSwitch()) {
-                //normal one arg
-                return autoCompleteFlagNames(data);
-            }
-
-            //normal flag with a value next!
-            int paramPos = parameter.position();
-            int argPos = arg.index();
-            if (argPos > paramPos) {
-                //auto-complete the value for the flag
-                var inputType = imperat.getParameterType(data.inputType().type());
-                SuggestionResolver<S> flagInputResolver = inputType == null ? null : inputType.getSuggestionResolver();
-                //flag parameter's suggestion resolver is the same resolver for its data input.
-                if (flagInputResolver == null)
-                    flagInputResolver = flagParameter.inputSuggestionResolver();
-
-                if (flagInputResolver == null) return List.of();
-                else return flagInputResolver.autoComplete(context, parameter);
-            } else {
-                //auto-complete the flag-names
-                return autoCompleteFlagNames(data);
-            }
-
-        }
-
-        private List<String> autoCompleteFlagNames(FlagData<S> data) {
-            List<String> results = new ArrayList<>();
-            results.add("-" + data.name());
-            for (var alias : data.aliases()) {
-                results.add("-" + alias);
-            }
-            return results;
         }
     }
 

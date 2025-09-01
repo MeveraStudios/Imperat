@@ -28,7 +28,7 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
             permission, description,
             true, true, false,
             OptionalValueSupplier.empty(),
-            inputValueSuggestionResolver
+            null
         );
         this.flag = flag;
         this.inputValueSupplier = inputValueSupplier;
