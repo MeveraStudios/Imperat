@@ -51,9 +51,10 @@ public final class TextSyntaxParser<S extends Source> {
      *
      * <p>
      * NOTE: For custom parameter types, ensure they are registered in the Imperat configuration,
-     * Moreover, custom GENERIC-BASED parameter-types ARE NOT SUPPORTED in this syntax parser, EXCEPT
-     * The only supported generic-based parameter types arethe one who are SPECIFICALLY set/registered:
+     * The only supported generic-based parameter types arethe one which are set/registered:
      * - Primitive Array typesONLY (e.g., String[], Integer[]) are also supported.
+     * - Parameterized types like List<String>, Map<String, Integer> etc are supported.
+     * - Custom generic types like CustomType<AnotherType> are supported if specifically set.
      * </p>
      *
      * @param syntax the syntax string to parse into a {@link CommandUsage}
@@ -72,11 +73,12 @@ public final class TextSyntaxParser<S extends Source> {
         if (parts.length == 0) {
             throw new IllegalArgumentException("Invalid command syntax: " + syntax);
         }
-        
+        boolean registerNewCommand = false;
         Command<S> command = imperat.getCommand(parts[0]);
         if(command == null) {
             command = Command.create(imperat, parts[0])
                     .build();
+            registerNewCommand = true;
         }
         
         CommandUsage.Builder<S> commandUsage = CommandUsage.builder();
@@ -116,12 +118,46 @@ public final class TextSyntaxParser<S extends Source> {
             parameters.add(parameter);
         }
         
-        return commandUsage
+        var usage = commandUsage
                 .parameterBuilders(parameters)
                 .build(command);
+        
+        command.addUsage(usage);
+        if(registerNewCommand) {
+            imperat.registerCommand(command);
+        }
+        
+        return usage;
     }
     
-    //e.g: "/rank setperm <user> <perm> [value]
+
+    /**
+     * Parses a shortcut command syntax string into a Command object.
+     * The syntax string should follow the format:
+     * <ul>
+     *   <li>It must start with the command name, optionally prefixed by the command prefix (e.g., {@code "/"}).</li>
+     *   <li>Followed by parameters which can be:
+     *     <ul>
+     *       <li>Required arguments: {@code <argName>}</li>
+     *       <li>Optional arguments: {@code [argName]}</li>
+     *       <li>True-flags (flags with input): {@code [-flag <value>]}</li>
+     *       <li>Switches (boolean flags): {@code [--switchFlag]}</li>
+     *     </ul>
+     *   </li>
+     *   <li>Parameters are separated by spaces.</li>
+     * </ul>
+     *
+     * <p>
+     * <strong>NOTE:</strong> This method does not support specifying parameter types in the syntax.
+     * It infers parameter types from the provided shortcutOwner command's usages.
+     * The only supported parameter types are those already defined in the shortcutOwner command.
+     * </p>
+     *
+     * @param shortcutOwner the command whose parameters will be used to infer types
+     * @param syntax the syntax string to parse into a {@link Command}
+     * @return the parsed {@link Command} object
+     * @throws IllegalArgumentException if the syntax string is invalid or if parameters cannot be matched
+     */
     public Command<S> parseShortcutSyntax(Command<S> shortcutOwner, final String syntax) {
         String trimmedSyntax = syntax.trim();
         final String cmdPrefix = imperat.config().commandPrefix();
@@ -278,7 +314,8 @@ public final class TextSyntaxParser<S extends Source> {
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
-            }else {
+            }
+            else {
                 ParameterType<S, ?> customType;
                 try {
                     customType = cfg.getParameterType(Class.forName(typeName));
