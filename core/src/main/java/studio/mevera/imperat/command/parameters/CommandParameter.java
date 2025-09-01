@@ -16,6 +16,7 @@ import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 
 /**
  * Represents the command parameter required
@@ -121,7 +122,25 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
     static <S extends Source> FlagBuilder<S, Boolean> flagSwitch(String name) {
         return FlagBuilder.ofSwitch(name);
     }
-
+    
+    static <S extends Source> CommandParameter<S> literal(String part) {
+        Preconditions.notNull(part, "part");
+        Preconditions.checkArgument(!part.isEmpty(), "Literal part cannot be empty");
+        Preconditions.checkArgument(part.chars().allMatch(c -> Character.isLetterOrDigit(c) || c == '_'),
+            "Literal part must be alphanumeric or underscore only");
+        
+        return of(
+            part,
+            ParameterTypes.command(part, new ArrayList<>()),
+            null,
+            Description.EMPTY,
+            false,
+            false,
+            OptionalValueSupplier.empty(),
+            null
+        );
+    }
+    
     /**
      * @return the name of the parameter
      */
@@ -296,4 +315,13 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
     default boolean isRequired() {
         return !isOptional();
     }
+    
+    /**
+     * Creates a copy of this parameter with a different position.
+     * Useful for commands that have multiple syntaxes.
+     *
+     * @param newPosition the new position to set
+     * @return a copy of this parameter with the new position
+     */
+    CommandParameter<S> copyWithDifferentPosition(int newPosition);
 }

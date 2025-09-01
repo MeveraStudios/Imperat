@@ -68,4 +68,20 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
         return SuggestionResolver.staticSuggestions(suggestion);
     }
 
+    /**
+     * Creates a copy of this parameter with a different position.
+     * Useful for commands that have multiple syntaxes.
+     *
+     * @param newPosition the new position to set
+     * @return a copy of this parameter with the new position
+     */
+    @Override
+    public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
+        CommandParameter<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
+        return new NumericParameterDecorator<>(
+            copiedParameter,
+            this.range
+        );
+    }
+
 }

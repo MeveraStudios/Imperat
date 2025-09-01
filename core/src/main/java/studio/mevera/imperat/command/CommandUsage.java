@@ -374,6 +374,12 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
                 Arrays.stream(builders).map(ParameterBuilder::build).toList()
             );
         }
+        
+        public final Builder<S> parameterBuilders(List<? extends ParameterBuilder<S, ?>> builders) {
+            return parameters(
+                    builders.stream().map(ParameterBuilder::build).toList()
+            );
+        }
 
         @SafeVarargs
         public final Builder<S> parameters(CommandParameter<S>... params) {
@@ -394,6 +400,22 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
 
         public Builder<S> registerFlags(Set<FlagData<S>> flags) {
             this.flags.addAll(flags);
+            return this;
+        }
+        
+        public Builder<S> setPropertiesFromCommandMainUsage(Command<S> command) {
+            CommandUsage<S> mainUsage = command.getMainUsage();
+            
+            //copy only meta properties
+            this.description = mainUsage.description().toString();
+            this.permission = mainUsage.getPermissions().stream()
+                    .findAny().orElse(null);
+            
+            this.execution = mainUsage.getExecution();
+            this.cooldown = mainUsage.getCooldown();
+            this.commandCoordinator = mainUsage.getCoordinator();
+            this.execution = mainUsage.getExecution();
+            
             return this;
         }
 

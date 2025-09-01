@@ -83,4 +83,22 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
         return parameter.isFlag();
     }
 
+    /**
+     * Creates a copy of this parameter with a different position.
+     * Useful for commands that have multiple syntaxes.
+     *
+     * @param newPosition the new position to set
+     * @return a copy of this parameter with the new position
+     */
+    @Override
+    public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
+        CommandParameter<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
+        AnnotationParameterDecorator<S> copy = new AnnotationParameterDecorator<>(
+            copiedParameter,
+            this.element
+        );
+        copy.setFormat(this.format);
+        return copy;
+    }
+
 }

@@ -43,11 +43,11 @@ final class CommandImpl<S extends Source> implements Command<S> {
     
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
 
-    private final @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> preProcessors =
+    private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> preProcessors =
             CommandProcessingChain.<S>preProcessors()
             .build();
 
-    private final @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> postProcessors =
+    private @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> postProcessors =
             CommandProcessingChain.<S>postProcessors()
             .build();
 
@@ -262,7 +262,12 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public @NotNull SuggestionResolver<S> getSuggestionResolver() {
         return suggestionResolver;
     }
-
+    
+    @Override
+    public void setFormat(String format) {
+        throw new UnsupportedOperationException("You cannot change the format of a command/literal parameter");
+    }
+    
     @Override
     public boolean similarTo(CommandParameter<?> parameter) {
         return this.name.equalsIgnoreCase(parameter.name());
@@ -385,7 +390,27 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void registerSubCommand(Command<S> command) {
         children.put(command.name(), command);
     }
-
+    
+    @Override
+    public CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors() {
+        return preProcessors;
+    }
+    
+    @Override
+    public CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors() {
+        return postProcessors;
+    }
+    
+    @Override
+    public void setPreProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain) {
+        this.preProcessors = chain;
+    }
+    
+    @Override
+    public void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain) {
+        this.postProcessors = chain;
+    }
+    
     /**
      * Injects a created-subcommand directly into the parent's command usages.
      *
@@ -547,5 +572,51 @@ final class CommandImpl<S extends Source> implements Command<S> {
         return Objects.hash(name);
     }
     
+    /**
+     * Creates a copy of this command with a different position.
+     * Useful for commands that have multiple syntaxes.
+     *
+     * @param newPosition the new position to set
+     * @return a copy of this command with the new position
+     */
+    @Override
+    public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
+        CommandImpl<S> copy = new CommandImpl<>(this.imperat, this.parent, newPosition, this.name);
+        
+        // Copy basic properties
+        copy.permission = this.permission;
+        copy.description = this.description;
+        copy.suppressACPermissionChecks = this.suppressACPermissionChecks;
+        copy.aliases.addAll(this.aliases);
+        
+        // Copy usages
+        for (CommandUsage<S> usage : this.usages()) {
+            copy.addUsage(usage);
+        }
+        
+        // Copy sub-commands
+        for (Command<S> subCommand : this.getSubCommands()) {
+            copy.registerSubCommand(subCommand);
+        }
+        
+        // Copy flags
+        copy.freeFlags.addAll(this.freeFlags);
+        
+        // Copy error handlers
+        copy.errorHandlers.putAll(this.errorHandlers);
+        
+        // Copy processors
+        for (CommandPreProcessor<S> processor : this.preProcessors) {
+            copy.addPreProcessor(processor);
+        }
+        for (CommandPostProcessor<S> processor : this.postProcessors) {
+            copy.addPostProcessor(processor);
+        }
+        
+        // Set default usage if it was customized
+        copy.setDefaultUsage(this.defaultUsage);
+        
+        return copy;
+    }
     
 }

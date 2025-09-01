@@ -13,6 +13,7 @@ import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
+import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.command.tree.CommandTree;
@@ -495,11 +496,32 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
             return this;
         }
         
+        
+        public Builder<S> setMetaPropertiesFromOtherCommand(Command<S> other) {
+            cmd.setSinglePermission(other.getSinglePermission());
+            cmd.setDefaultUsage(other.getDefaultUsage());
+            for(var flag : other.getRegisteredFlags()) {
+                cmd.registerFlag(flag);
+            }
+            cmd.setPreProcessingChain(other.getPreProcessors());
+            cmd.setPostProcessingChain(other.getPostProcessors());
+            
+            cmd.describe(other.description());
+            cmd.ignoreACPermissions(other.isIgnoringACPerms());
+            
+            return this;
+        }
+        
         public Command<S> build() {
             return cmd;
         }
-        
-
     }
-
+    
+    CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors();
+    
+    CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors();
+    
+    void setPreProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain);
+    
+    void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain);
 }

@@ -231,7 +231,8 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
         return this.name.equalsIgnoreCase(parameter.name())
             && type.equalsExactly(parameter.wrappedType().getType());
     }
-
+    
+    
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

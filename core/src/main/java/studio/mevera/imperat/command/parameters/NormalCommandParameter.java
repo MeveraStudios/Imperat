@@ -40,4 +40,28 @@ class NormalCommandParameter<S extends Source> extends InputParameter<S> {
             content += "...";
         return StringUtils.normalizedParameterFormatting(content, isOptional());
     }
+
+    /**
+     * Creates a copy of this parameter with a different position.
+     * Useful for commands that have multiple syntaxes.
+     *
+     * @param newPosition the new position to set
+     * @return a copy of this parameter with the new position
+     */
+    @Override
+    public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
+        NormalCommandParameter<S> copy = new NormalCommandParameter<>(
+            this.name,
+            this.type,
+            this.permission,
+            this.description,
+            this.optional,
+            this.greedy,
+            this.optionalValueSupplier,
+            this.suggestionResolver
+        );
+        copy.position(newPosition);
+        copy.setFormat(this.format);
+        return copy;
+    }
 }

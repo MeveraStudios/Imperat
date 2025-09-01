@@ -66,4 +66,25 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
         else
             return inputValueSuggestionResolver;
     }
+
+    /**
+     * Creates a copy of this parameter with a different position.
+     * Useful for commands that have multiple syntaxes.
+     *
+     * @param newPosition the new position to set
+     * @return a copy of this parameter with the new position
+     */
+    @Override
+    public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
+        FlagCommandParameter<S> copy = new FlagCommandParameter<>(
+            this.flag,
+            this.permission,
+            this.description,
+            this.inputValueSupplier,
+            this.inputValueSuggestionResolver
+        );
+        copy.position(newPosition);
+        copy.setFormat(this.format);
+        return copy;
+    }
 }

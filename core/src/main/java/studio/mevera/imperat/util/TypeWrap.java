@@ -1,7 +1,12 @@
 package studio.mevera.imperat.util;
 
+import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.context.Source;
+
 import java.lang.reflect.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public abstract class TypeWrap<T> {
@@ -32,7 +37,46 @@ public abstract class TypeWrap<T> {
     private static Bounds any(Type[] bounds) {
         return new Bounds(bounds, true);
     }
+    
+    public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, List<ParameterType<S,?>> genericParamTypes) {
+        if(!(rawClass instanceof Class<?> clazz)) {
+            throw new IllegalArgumentException("Raw class must be a class.");
+        }
 
+        if(genericParamTypes.isEmpty()) {
+            return of(rawClass);
+        }
+
+        Type[] typeArgs = new Type[genericParamTypes.size()];
+        for(int i = 0; i < genericParamTypes.size(); i++) {
+            typeArgs[i] = genericParamTypes.get(i).type();
+        }
+
+        ParameterizedType parameterizedType = new ParameterizedType() {
+            @Override
+            public Type @NotNull [] getActualTypeArguments() {
+                return typeArgs;
+            }
+
+            @Override
+            public Type getRawType() {
+                return clazz;
+            }
+
+            @Override
+            public Type getOwnerType() {
+                return null;
+            }
+        };
+
+        return of(parameterizedType);
+    }
+    
+    public static TypeWrap<?> ofArray(Type type) {
+        Type arrayType = Array.newInstance(of(type).getRawType(), 0).getClass();
+        return of(arrayType);
+    }
+    
     private Type extractType() {
         final Type superclass = getClass().getGenericSuperclass();
         if (superclass instanceof ParameterizedType parameterizedType) {
