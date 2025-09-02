@@ -93,7 +93,6 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
     public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
         String input = context.arguments().getOr(rawPosition, null);
         if (input == null) {
-            System.out.println("NO INPUT AT #"+ rawPosition);
             return false;
         }
         
@@ -110,16 +109,11 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
         if (inputType != null && !flagParameter.isSwitch() && nextPos < context.arguments().size()) {
             String nextInput = context.arguments().getOr(nextPos, null);
             if (nextInput == null) {
-                System.out.println("NEXT INPUT IS NULL WHAT ?");
                 matchesForFlagInput = false;
             }else {
-                System.out.println("NEXT INPUT = '" + nextInput + "'");
-                System.out.println("Param= '" + parameter.format());
                 matchesForFlagInput = inputType.matchesInput(nextPos, context, parameter);
             }
         }
-        System.out.println("matchesForFlagInput = " + matchesForFlagInput);
-        System.out.println("accepts input -> '" + input + "' : " + parameter.asFlagParameter().flagData().acceptsInput(input));
         return parameter.asFlagParameter().flagData()
             .acceptsInput(input) && matchesForFlagInput;
     }

@@ -71,7 +71,6 @@ public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends B
     
     @Override
     public boolean isGreedy(CommandParameter<S> parameter) {
-        System.out.println("Running greedy check for map param-type for param : '" + parameter.format() + "'%n");
         return true;
     }
 }

@@ -651,7 +651,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final boolean isLastDepth = (depth == inputSize - currentNode.getConsumedArguments());
         
         if (isLastDepth) {
-            System.out.println("Reached last depth at node '" + currentNode.format() + "' with depth " + depth);
             return handleLastDepth(commandPathSearch, context, currentNode, depth);
         } else if (depth >= inputSize) {
             return commandPathSearch;
@@ -675,11 +674,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return commandPathSearch;
         }
         
-        System.out.println("Checking if node '" + currentNode.format() + "' matches input at depth " + depth);
         boolean nodeMatches = currentNode.matchesInput(depth, context, currentNode.isOptional());
         
         if (!nodeMatches) {
-            System.out.println("Node '" + currentNode.format() + "' Doesn't match input at depth " + depth);
             // Handle optional parameter skipping with proper logic
             return handleOptionalParameterSkipping(commandPathSearch, context, input, currentNode, depth);
         }
