@@ -244,6 +244,12 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         return parent == null;
     }
     
+    public int getConsumedArguments() {
+        int incrementation = this.data.type().getConsumedArguments();
+        if(incrementation < 1) incrementation = 1;
+        return incrementation;
+    }
+    
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof ParameterNode<?, ?> that)) return false;
@@ -254,5 +260,5 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     public int hashCode() {
         return Objects.hash(this.parent, data.name(), this.depth,  nextNodes);
     }
-
+    
 }

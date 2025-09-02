@@ -648,9 +648,10 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             int depth
     ) {
         final int inputSize = input.size();
-        final boolean isLastDepth = (depth == inputSize - 1);
+        final boolean isLastDepth = (depth == inputSize - currentNode.getConsumedArguments());
         
         if (isLastDepth) {
+            System.out.println("Reached last depth at node '" + currentNode.format() + "' with depth " + depth);
             return handleLastDepth(commandPathSearch, context, currentNode, depth);
         } else if (depth >= inputSize) {
             return commandPathSearch;
@@ -674,10 +675,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return commandPathSearch;
         }
         
-        // NEW: Use the enhanced matchesInput with full context AND strict for handling optional skipping
+        System.out.println("Checking if node '" + currentNode.format() + "' matches input at depth " + depth);
         boolean nodeMatches = currentNode.matchesInput(depth, context, currentNode.isOptional());
         
         if (!nodeMatches) {
+            System.out.println("Node '" + currentNode.format() + "' Doesn't match input at depth " + depth);
             // Handle optional parameter skipping with proper logic
             return handleOptionalParameterSkipping(commandPathSearch, context, input, currentNode, depth);
         }
@@ -685,13 +687,8 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         // Node matches - append and continue
         commandPathSearch.append(currentNode);
         
-        // Handle flag depth increment
-        if (currentNode.isTrueFlag()) {
-            depth++;
-        }
-        
         // Check if we can execute at this point
-        if (currentNode.isExecutable() && depth == inputSize - 1) {
+        if (currentNode.isExecutable() && depth == inputSize - currentNode.getConsumedArguments()) {
             commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
             commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
             return commandPathSearch;
@@ -705,7 +702,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // Process children
         for (var child : children) {
-            final var result = dispatchNode(commandPathSearch, context, input, child, depth + 1);
+            final var result = dispatchNode(commandPathSearch, context, input, child, depth + currentNode.getConsumedArguments());
             if (result.getResult().isStoppable()) {
                 return result;
             }
@@ -893,46 +890,30 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return;
         }
         
-        //System.out.println("Reading matching node '" + node.format() +"'");
-        //System.out.println("LAST INDEX= " + lastIndex + ", input depth= " + inputDepth);
-        
         if(inputDepth == lastIndex) {
-            //System.out.println("NODE= '" + node.format());
             results.addAll(getResolverCached(node.data).autoComplete(context, node.data));
             if(imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional() && !(node.isTrueFlag()) ) {
                 collectOverlappingSuggestions(node, node, context, results);
             }
         }else {
-            String currentInput = context.arguments().get(inputDepth);
+            String currentInput = context.arguments().getOr(inputDepth, null);
             assert currentInput != null;
             if(!hasAutoCompletionPermission(context.source(), node)) {
                 //System.out.println("NO PERM");
                 return;
             }
             
-            if (!node.matchesInput(inputDepth, context)) {
-            
-                if(node.isRequired()) {
-                    return;
-                }
-                boolean isCurrentInputTrueFlagValue = node.isTrueFlag()
-                        && node.matchesInput(inputDepth-1, context);
-                
-                if(!isCurrentInputTrueFlagValue) {
-                    inputDepth--; //back tracking with optional nodes.
-                }
-                
+            if(node.isGreedyParam()) {
+                tabCompleteNode(node, context, lastIndex, results);
+                return;
             }
-            else if(node.isTrueFlag()) {
-                //node is matching
-                //if the node is a true flag that matches the corresponding input WHILE not being on last index
-                //Then go tab complete the SAME node but with incrementing the next input
-                tabCompleteNode(node, context, inputDepth+1, results);
+            
+            if (!node.matchesInput(inputDepth, context, node.isOptional()) && node.isRequired()) {
                 return;
             }
             
             for (var child : node.getChildren()) {
-                tabCompleteNode(child, context, inputDepth+1, results);
+                tabCompleteNode(child, context, inputDepth+node.getConsumedArguments(), results);
             }
             
         }

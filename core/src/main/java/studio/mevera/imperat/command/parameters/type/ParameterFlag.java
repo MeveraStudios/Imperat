@@ -13,13 +13,15 @@ import studio.mevera.imperat.context.internal.ExtractedInputFlag;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
-import studio.mevera.imperat.util.Patterns;
+
 import java.util.Collections;
 
 public class ParameterFlag<S extends Source> extends BaseParameterType<S, ExtractedInputFlag> {
 
+    private final FlagData<S> flagData;
     protected ParameterFlag(FlagData<S> flagData) {
         super();
+        this.flagData = flagData;
         suggestions.add("-" + flagData.name());
         for(var alias : flagData.aliases())
             suggestions.add("-" + alias);
@@ -89,8 +91,9 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
     
     @Override
     public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
-        String input = context.arguments().get(rawPosition);
+        String input = context.arguments().getOr(rawPosition, null);
         if (input == null) {
+            System.out.println("NO INPUT AT #"+ rawPosition);
             return false;
         }
         
@@ -98,19 +101,27 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
             throw new IllegalArgumentException(String.format("Parameter '%s' isn't a flag while having parameter type of '%s'", parameter.format(),
              "ParameterFlag"));
         }
-
-        int subStringIndex;
-        if (Patterns.SINGLE_FLAG.matcher(input).matches())
-            subStringIndex = 1;
-        else if (Patterns.DOUBLE_FLAG.matcher(input).matches())
-            subStringIndex = 2;
-        else
-            subStringIndex = 0;
-
-        String flagInput = input.substring(subStringIndex);
-
+        
+        FlagParameter<S> flagParameter = parameter.asFlagParameter();
+        ParameterType<S, ?> inputType = flagParameter.flagData().inputType();
+        boolean matchesForFlagInput = true;
+        int nextPos = rawPosition + 1;
+        
+        if (inputType != null && !flagParameter.isSwitch() && nextPos < context.arguments().size()) {
+            String nextInput = context.arguments().getOr(nextPos, null);
+            if (nextInput == null) {
+                System.out.println("NEXT INPUT IS NULL WHAT ?");
+                matchesForFlagInput = false;
+            }else {
+                System.out.println("NEXT INPUT = '" + nextInput + "'");
+                System.out.println("Param= '" + parameter.format());
+                matchesForFlagInput = inputType.matchesInput(nextPos, context, parameter);
+            }
+        }
+        System.out.println("matchesForFlagInput = " + matchesForFlagInput);
+        System.out.println("accepts input -> '" + input + "' : " + parameter.asFlagParameter().flagData().acceptsInput(input));
         return parameter.asFlagParameter().flagData()
-            .acceptsInput(flagInput);
+            .acceptsInput(input) && matchesForFlagInput;
     }
     
     @Override
@@ -123,7 +134,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
             var argToComplete = ctx.getArgToComplete();
             if(flagParameter.isSwitch() ||
                     argToComplete.index() == 0 ||
-                    !this.matchesInput(argToComplete.index()-1, ctx, param) ) {
+                    !flagParameter.flagData().acceptsInput(ctx.arguments().get(argToComplete.index()-1))) {
                 return this.suggestions;
             }
             //flag is a true flag AND the next position is its value
@@ -137,5 +148,10 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
             }
             return Collections.emptyList();
         };
+    }
+    
+    @Override
+    public int getConsumedArguments() {
+        return flagData.isSwitch() ? 1 : 2;
     }
 }

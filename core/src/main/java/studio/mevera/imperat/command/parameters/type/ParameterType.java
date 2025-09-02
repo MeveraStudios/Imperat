@@ -110,7 +110,27 @@ public interface ParameterType<S extends Source, T> {
         return (TypeWrap<T>) TypeWrap.of(type());
     }
     
+    /**
+     * Determines if this parameter type is greedy, meaning it consumes multiple arguments.
+     * By default, returns {@code false}.
+     *
+     * @param parameter the command parameter.
+     * @return {@code true} if greedy, {@code false} otherwise.
+     */
+    @ApiStatus.AvailableSince("2.1.0")
     default boolean isGreedy(CommandParameter<S> parameter) {
         return false;
     }
+    
+    /**
+     * Returns the number of arguments consumed by this parameter type.
+     * By default, returns {@code 1}.
+     *
+     * @return the number of consumed arguments.
+     */
+    @ApiStatus.AvailableSince("2.1.0")
+    default int getConsumedArguments() {
+        return 1;
+    }
+    
 }

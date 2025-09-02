@@ -45,7 +45,9 @@ public final class TestPlayerParamType extends BaseParameterType<TestSource, Tes
             Double.parseDouble(input);
             return false;
         }catch (Exception exception) {
-            return input.length() <= 16;
+            System.out.println("Matching input = '" + input  +"'");
+            System.out.println("Contains '-' ? " + input.contains("-"));
+            return !input.contains("-");
         }
     }
     
