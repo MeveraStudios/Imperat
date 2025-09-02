@@ -97,8 +97,12 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
         }
         
         if(!parameter.isFlag()) {
-            throw new IllegalArgumentException(String.format("Parameter '%s' isn't a flag while having parameter type of '%s'", parameter.format(),
-             "ParameterFlag"));
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Parameter '%s' isn't a flag while having parameter type of '%s'",
+                            parameter.format(), "ParameterFlag"
+                    )
+            );
         }
         
         FlagParameter<S> flagParameter = parameter.asFlagParameter();
