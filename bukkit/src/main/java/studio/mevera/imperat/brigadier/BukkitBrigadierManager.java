@@ -19,7 +19,7 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSou
 
     public BukkitBrigadierManager(BukkitImperat dispatcher) {
         super(dispatcher);
-        this.commodore = CommodoreProvider.getCommodore(dispatcher.getPlatform());
+        this.commodore = CommodoreProvider.getCommodore(dispatcher);
         if (isSupported()) {
             registerArgumentResolver(String.class, DefaultArgTypeResolvers.STRING);
             registerArgumentResolver(DefaultArgTypeResolvers.NUMERIC);

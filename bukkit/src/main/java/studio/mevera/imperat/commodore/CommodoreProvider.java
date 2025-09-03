@@ -28,6 +28,7 @@ package studio.mevera.imperat.commodore;
 import org.bukkit.command.Command;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.BukkitImperat;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.util.Objects;
@@ -43,7 +44,9 @@ public final class CommodoreProvider {
             Class.forName("com.mojang.brigadier.CommandDispatcher");
             SUPPORTED = true;
         } catch (Throwable e) {
-            printDebugInfo(e);
+            if (System.getProperty("commodore.visualize") != null) {
+                ImperatDebugger.error(CommodoreProvider.class, "static<init>", e);
+            }
             SUPPORTED = false;
         }
     }
@@ -52,20 +55,22 @@ public final class CommodoreProvider {
         throw new AssertionError();
     }
 
-    private static @Nullable Commodore<Command> load(Plugin plugin) {
+    private static @Nullable Commodore<Command> load(BukkitImperat imperat) {
         if (!SUPPORTED) {
             return null;
         }
 
+        Plugin plugin = imperat.getPlatform();
+
         try {
             return new ModernPaperCommodore(plugin);
         } catch (Throwable e) {
-            printDebugInfo(e);
+            printDebugInfo(imperat, e);
         }
 
         // try the paper impl
         try {
-            return new LegacyPaperCommodore(plugin);
+            return new LegacyPaperCommodore(imperat);
         } catch (Throwable e) {
             //printDebugInfo(e);
             ImperatDebugger.warning("Paper not found, falling back to Reflection for brigadier");
@@ -76,16 +81,16 @@ public final class CommodoreProvider {
             ReflectionCommodore.ensureSetup();
             return new ReflectionCommodore(plugin);
         } catch (Throwable e) {
-            printDebugInfo(e);
+            printDebugInfo(imperat, e);
         }
 
         return null;
     }
 
-    private static void printDebugInfo(Throwable e) {
+    private static void printDebugInfo(BukkitImperat imperat, Throwable e) {
         if (System.getProperty("commodore.visualize") != null) {
             System.err.println("Exception while initialising commodore:");
-            e.printStackTrace(System.err);
+            imperat.config().getThrowablePrinter().print(e);
         }
     }
 
@@ -99,16 +104,16 @@ public final class CommodoreProvider {
     }
 
     /**
-     * Obtains a {@link Commodore} instance for the given plugin.
+     * Obtains a {@link Commodore} instance for the given Imperat dispatcher.
      *
-     * @param plugin the plugin
+     * @param imperat the BukkitImperat dispatcher
      * @return the commodore instance
      * @throws BrigadierUnsupportedException if brigadier is not {@link #isSupported() supported}
      *                                       by the server.
      */
-    public static Commodore<Command> getCommodore(Plugin plugin) throws BrigadierUnsupportedException {
-        Objects.requireNonNull(plugin, "plugin");
-        Commodore<Command> commodore = load(plugin);
+    public static Commodore<Command> getCommodore(BukkitImperat imperat) throws BrigadierUnsupportedException {
+        Objects.requireNonNull(imperat, "imperat");
+        Commodore<Command> commodore = load(imperat);
         if (commodore == null) {
             throw new BrigadierUnsupportedException(
                 "Brigadier is not supported by the server. " +

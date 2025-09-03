@@ -52,7 +52,7 @@ final class ThrowableParsingVisitor<S extends Source> extends CommandClassVisito
             return new MethodThrowableResolver<>(caller, exceptionType);
         } catch (Throwable e) {
             ImperatDebugger.warning("Failed to register throwable-method '" + methodElement.getName() + "' in class '" + owner.getChildren() + "'");
-            e.printStackTrace();
+            imperat.config().getThrowablePrinter().print(e);
             return null;
         }
     }
