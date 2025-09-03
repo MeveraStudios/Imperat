@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
@@ -28,7 +29,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
         try{
             execute("completely_unknown_command with args");
         }catch (Exception ex) {
-            ex.printStackTrace();
+            ThrowablePrinter.simple().print(ex);
             Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
         }
     }
@@ -95,7 +96,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     void testPermissions1() {
         ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"),"testperm hi bye"); // Should fail due to missing Group context
         assertNotNull(result.getError());
-        result.getError().printStackTrace();
+        ThrowablePrinter.simple().print(result.getError());
     }*/
    /*
     @Test
@@ -104,7 +105,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
         ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"), "testperm a b"); // Should fail due to missing Group context
         assertFailure(result, PermissionDeniedException.class);
         assertNotNull(result.getError());
-        result.getError().printStackTrace();
+        ThrowablePrinter.simple().print(result.getError());
     }
     
     @Test

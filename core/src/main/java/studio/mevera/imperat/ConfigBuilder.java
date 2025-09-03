@@ -56,6 +56,17 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     }
 
     /**
+     * Sets the {@link ThrowablePrinter} used to print unhandled exceptions.
+     *
+     * @param printer the printer to use
+     * @return the current builder instance for chaining
+     */
+    public B throwablePrinter(ThrowablePrinter printer) {
+        config.setThrowablePrinter(printer);
+        return (B) this;
+    }
+
+    /**
      * Sets a custom {@link PermissionChecker} to determine and resolve permissions
      * for the command sender/source within the platform's configuration.
      *
