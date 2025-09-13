@@ -51,7 +51,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
         try {
             execute(input.trim());
         }catch (Exception ex) {
-            assertInstanceOf(IllegalArgumentException.class, ex);
+            assertInstanceOf(UnknownCommandException.class, ex);
         }
     }
     
