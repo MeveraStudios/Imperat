@@ -220,7 +220,12 @@ public final class TypeUtility {
     public static <S extends Source> boolean areTrueFlagsOfSameInputTpe(Set<FlagData<S>> flagDataSet) {
         ParameterType<S, ?> inputType = null;
         for(FlagData<S> flagData : flagDataSet) {
-            if(inputType != null && !flagData.inputType().equalsExactly(inputType.type())) {
+            ParameterType<S, ?> otherInputType = flagData.inputType();
+            if( (inputType != null && otherInputType == null) || (inputType == null && otherInputType != null) ) {
+                return false;
+            }
+
+            if(inputType != null && !otherInputType.equalsExactly(inputType.type())) {
                return false;
             }
             inputType = flagData.inputType();
