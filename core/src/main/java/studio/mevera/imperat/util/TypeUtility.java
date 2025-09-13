@@ -221,7 +221,7 @@ public final class TypeUtility {
         ParameterType<S, ?> inputType = null;
         for(FlagData<S> flagData : flagDataSet) {
             ParameterType<S, ?> otherInputType = flagData.inputType();
-            if( (inputType != null && otherInputType == null) || (inputType == null && otherInputType != null) ) {
+            if(otherInputType == null) {
                 return false;
             }
 
