@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.UnknownCommandException;
-import studio.mevera.imperat.exception.parse.UnknownSubCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.TestSource;
 

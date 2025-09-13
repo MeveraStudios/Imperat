@@ -69,7 +69,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
             try {
                 execute(input);
             }catch (Exception ex) {
-                Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
+                Assertions.assertInstanceOf(UnknownCommandException.class, ex);
             }
         }
     }
