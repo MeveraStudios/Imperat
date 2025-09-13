@@ -347,7 +347,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull String commandName, String[] rawInput)  {
         Command<S> command = getCommand(commandName);
         if (command == null) {
-            throw new IllegalArgumentException("Unknown command input: '" + commandName + "'");
+            throw new UnknownCommandException(commandName);
         }
         return execute(source, command, commandName, rawInput);
     }

@@ -104,6 +104,12 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     private void regDefThrowableResolvers() {
 
+        // This throwable resolver is intended for CLI applications that lack a low-level command dispatcher
+        // to validate whether a command exists. It is needed for non-minecraft java applications.
+        this.setThrowableResolver(UnknownCommandException.class, (exception, context) -> {
+            context.source().error("No command named '" + exception.getCommand() + "' is registered");
+        });
+
         this.setThrowableResolver(InvalidSourceException.class, (exception, context) -> {
             throw new UnsupportedOperationException("Couldn't find any source resolver for valueType `"
                 + exception.getTargetType().getTypeName() + "'");
