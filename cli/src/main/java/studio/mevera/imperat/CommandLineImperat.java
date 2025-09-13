@@ -86,23 +86,23 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
      * Wraps a sender object into a ConsoleSource.
      * For CLI applications, all sources are console sources.
      *
-     * @param sender the sender object (typically a PrintStream)
+     * @param sender the sender object (typically a ConsoleLogger)
      * @return a new ConsoleSource wrapping the sender
      */
     @Override
     public ConsoleSource wrapSender(Object sender) {
-        return new ConsoleSource((PrintStream) sender);
+        return new ConsoleSource((ConsoleLogger) sender);
     }
 
     /**
      * Dispatches the command-line from the input stream provided
      *
-     * @param outputStream the output stream/command-source origin
+     * @param consoleLogger the console logger to write to
      */
-    public void dispatch(OutputStream outputStream) {
+    public void dispatch(ConsoleLogger consoleLogger) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
             String line = reader.readLine();
-            ConsoleSource prompt = wrapSender(outputStream);
+            ConsoleSource prompt = wrapSender(consoleLogger);
             super.execute(prompt, line);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -111,11 +111,20 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
 
     /**
      * Dispatches the command-line from the input stream provided
-     * while using {@link System#out} as an {@link OutputStream}
      *
+     * @param outputStream the output stream/command-source origin
+     * @deprecated Use {@link #dispatch(ConsoleLogger)} instead
      */
-    public void dispatch() {
-        dispatch(System.out);
+    @Deprecated
+    public void dispatch(OutputStream outputStream) {
+        dispatch(ConsoleLogger.SYSTEM);
     }
 
+    /**
+     * Dispatches the command-line from the input stream provided
+     * while using {@link ConsoleLogger#SYSTEM} for output.
+     */
+    public void dispatch() {
+        dispatch(ConsoleLogger.SYSTEM);
+    }
 }
