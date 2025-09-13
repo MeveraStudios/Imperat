@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -23,7 +24,7 @@ public final class ConstrainedParameterTypeDecorator<S extends Source, T> extend
     private final Set<String> allowedValues;
 
     private ConstrainedParameterTypeDecorator(ParameterType<S, T> original, Set<String> allowedValues, boolean caseSensitive) {
-        super();
+        super(original.type());
         this.original = original;
         this.allowedValues = allowedValues;
         this.caseSensitive = caseSensitive;
@@ -77,6 +78,16 @@ public final class ConstrainedParameterTypeDecorator<S extends Source, T> extend
     @Override
     public TypeWrap<T> wrappedType() {
         return original.wrappedType();
+    }
+
+    @Override
+    public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
+        return original.matchesInput(rawPosition, context, parameter);
+    }
+
+    @Override
+    public @NotNull ParameterType<S, T> withSuggestions(String... suggestions) {
+        return original.withSuggestions(suggestions);
     }
 
 }
