@@ -41,14 +41,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import studio.mevera.imperat.BukkitImperat;
 
 @SuppressWarnings("ALL")
 final class LegacyPaperCommodore extends AbstractCommodore implements Listener {
 
     private final List<CommodoreCommand> commands = new ArrayList<>();
+    private final BukkitImperat imperat;
 
-    LegacyPaperCommodore(Plugin plugin) throws ClassNotFoundException {
+    LegacyPaperCommodore(BukkitImperat imperat) throws ClassNotFoundException {
         Class.forName("com.destroystokyo.paper.event.brigadier.AsyncPlayerSendCommandsEvent");
+        this.imperat = imperat;
+        Plugin plugin = imperat.getPlatform();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
@@ -67,7 +71,7 @@ final class LegacyPaperCommodore extends AbstractCommodore implements Listener {
         try {
             setRequiredHackyFieldsRecursively(node, DUMMY_SUGGESTION_PROVIDER);
         } catch (Throwable e) {
-            e.printStackTrace();
+            imperat.config().getThrowablePrinter().print(e);
         }
 
         Collection<String> aliases = getAliases(command);
