@@ -32,15 +32,15 @@ import java.io.PrintStream;
  */
 public class ConsoleSource implements Source {
 
-    private final PrintStream outputStream;
+    private final ConsoleLogger consoleLogger;
 
     /**
      * Creates a new ConsoleSource that outputs to the specified PrintStream.
      *
-     * @param outputStream the PrintStream to write output to (e.g., System.out)
+     * @param consoleLogger the logger to write output to (e.g., ConsoleLogger.SYSTEM)
      */
-    public ConsoleSource(final PrintStream outputStream) {
-        this.outputStream = outputStream;
+    public ConsoleSource(final ConsoleLogger consoleLogger) {
+        this.consoleLogger = consoleLogger;
     }
 
     /**
@@ -55,13 +55,13 @@ public class ConsoleSource implements Source {
     }
 
     /**
-     * Gets the original PrintStream that this ConsoleSource wraps.
+     * Gets the original ConsoleLogger that this ConsoleSource wraps.
      *
-     * @return the underlying PrintStream
+     * @return the underlying ConsoleLogger
      */
     @Override
-    public PrintStream origin() {
-        return outputStream;
+    public ConsoleLogger origin() {
+        return consoleLogger;
     }
 
     /**
@@ -71,29 +71,29 @@ public class ConsoleSource implements Source {
      */
     @Override
     public void reply(final String message) {
-        outputStream.println(message);
+        consoleLogger.info(message);
     }
 
     /**
-     * Sends a warning message to the console output stream.
+     * Sends a warning message to the console logger.
      * Warning messages are prefixed with "[WARN]".
      *
      * @param message the warning message to send
      */
     @Override
     public void warn(final String message) {
-        outputStream.println("[WARN] " + message);
+        consoleLogger.warn(message);
     }
 
     /**
-     * Sends an error message to the console output stream.
+     * Sends an error message to the console logger.
      * Error messages are prefixed with "[ERROR]".
      *
      * @param message the error message to send
      */
     @Override
     public void error(final String message) {
-        outputStream.println("[ERROR] " + message);
+        consoleLogger.error(message);
     }
 
     /**
