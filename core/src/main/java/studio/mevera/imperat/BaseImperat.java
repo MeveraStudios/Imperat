@@ -360,7 +360,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String line) {
         if(line.isBlank()) {
-            throw new IllegalArgumentException("Empty Command Line");
+            throw new UnknownCommandException(line);
         }
         String[] lineArgs = line.split(" ");
         String[] argumentsOnly = new String[lineArgs.length - 1];

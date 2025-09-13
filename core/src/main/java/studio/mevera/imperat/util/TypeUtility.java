@@ -198,6 +198,7 @@ public final class TypeUtility {
     }
 
     public static boolean isAcceptableGreedyWrapper(Type type) {
+        Preconditions.notNull(type, "type");
         return ACCEPTED_GENERIC_WRAPPERS.contains(TypeWrap.of(type).getRawType());
     }
 
