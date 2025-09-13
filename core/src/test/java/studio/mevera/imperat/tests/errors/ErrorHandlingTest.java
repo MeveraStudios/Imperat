@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
+import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
@@ -30,7 +31,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
             execute("completely_unknown_command with args");
         }catch (Exception ex) {
             ThrowablePrinter.simple().print(ex);
-            Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
+            Assertions.assertInstanceOf(UnknownCommandException.class, ex);
         }
     }
     
@@ -60,7 +61,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
         try {
             execute("nonexistent command args");
         }catch (Exception ex) {
-            assertInstanceOf(IllegalArgumentException.class, ex);
+            assertInstanceOf(UnknownCommandException.class, ex);
         }
     }
     

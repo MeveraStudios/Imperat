@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Enhanced Error Validation Tests")
@@ -25,7 +26,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
                 execute("completely_unknown_command with args");
             }catch (Exception ex) {
                 ThrowablePrinter.simple().print(ex);
-                Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
+                Assertions.assertInstanceOf(UnknownCommandException.class, ex);
             }
         }
         

@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.context.ExecutionResult;
+import studio.mevera.imperat.exception.UnknownCommandException;
+import studio.mevera.imperat.exception.parse.UnknownSubCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.TestSource;
 
@@ -25,7 +27,7 @@ public class BasicCommandExecutionTest extends BaseImperatTest {
         try {
             execute("nonexistent");
         }catch (Exception ex) {
-            Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
+            Assertions.assertInstanceOf(UnknownCommandException.class, ex);
         }
     }
     
