@@ -81,6 +81,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private PermissionLoader<S> permissionLoader = PermissionLoader.defaultLoader();
     private NodePermissionAssigner<S> permissionAssigner = NodePermissionAssigner.defaultAssigner();
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
+
+    private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
     
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault();
@@ -799,7 +801,17 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public void setInstanceFactory(InstanceFactory<S> factory) {
         this.instanceFactory = factory;
     }
-    
+
+    @Override
+    public @NotNull ThrowablePrinter getThrowablePrinter() {
+        return throwablePrinter;
+    }
+
+    @Override
+    public void setThrowablePrinter(@NotNull ThrowablePrinter printer) {
+        this.throwablePrinter = printer;
+    }
+
     @Override
     public <E extends Throwable> boolean handleExecutionThrowable(@NotNull E throwable, Context<S> context, Class<?> owning, String methodName) {
         
@@ -818,7 +830,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         //Trying to handle the error from the Central Throwable Handler.
         var res = ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
         if(!res) {
-            ImperatDebugger.error(owning, methodName, throwable);
+            throwablePrinter.print(throwable);
         }
         return true;
     }

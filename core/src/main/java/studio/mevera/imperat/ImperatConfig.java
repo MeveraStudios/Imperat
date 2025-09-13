@@ -57,6 +57,18 @@ public sealed interface ImperatConfig<S extends Source> extends
     String commandPrefix();
 
     void setCommandPrefix(String cmdPrefix);
+
+    /**
+     * @return the printer used for unhandled throwables
+     */
+    @NotNull ThrowablePrinter getThrowablePrinter();
+
+    /**
+     * Sets the printer used for unhandled throwables.
+     *
+     * @param printer the throwable printer to use
+     */
+    void setThrowablePrinter(@NotNull ThrowablePrinter printer);
     
     /**
      * Fetches {@link ParameterType} for a certain value

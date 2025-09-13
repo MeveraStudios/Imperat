@@ -233,7 +233,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
                 return jar.getEntry("paper-plugin.yml") != null;
             }
         } catch (IOException | URISyntaxException e) {
-            e.printStackTrace();
+            config().getThrowablePrinter().print(e);
             return false;
         }
     }

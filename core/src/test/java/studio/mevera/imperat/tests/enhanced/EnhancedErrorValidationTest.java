@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.tests.TestSource;
@@ -23,7 +24,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
             try {
                 execute("completely_unknown_command with args");
             }catch (Exception ex) {
-                ex.printStackTrace();
+                ThrowablePrinter.simple().print(ex);
                 Assertions.assertInstanceOf(IllegalArgumentException.class, ex);
             }
         }
