@@ -6,7 +6,7 @@ dependencies {
     compileOnly "org.jetbrains:annotations:24.1.0"
     annotationProcessor "org.jetbrains:annotations:24.1.0"
 
-    api 'org.ow2.asm:asm:9.6'
+    api 'org.ow2.asm:asm:9.8'
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
