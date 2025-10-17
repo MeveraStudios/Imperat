@@ -8,34 +8,38 @@ import java.util.*;
 
 public final class SourceOrderHelper {
 
-    private static final Comparator<AnnotatedElement> PRIORITY_COMPARATOR = Comparator
-            .comparingInt((AnnotatedElement e) -> {
-                Priority p = e.getAnnotation(Priority.class);
-                return p != null ? p.value() : Integer.MAX_VALUE;
-            })
-            .thenComparing(e -> {
-                if (e instanceof Class<?>) {
-                    return ((Class<?>) e).getSimpleName();
-                } else if (e instanceof Method) {
-                    return ((Method) e).getName();
-                } else {
-                    return "";
-                }
-            });
-
     private SourceOrderHelper() {
         throw new AssertionError();
+    }
+
+    private static int priorityOf(AnnotatedElement element) {
+        Priority priority = element.getAnnotation(Priority.class);
+        return priority != null ? priority.value() : Integer.MAX_VALUE;
     }
 
     /**
      * Gets methods in order based on @Priority value (lowest = first),
      * and includes all methods if no annotation is present.
      */
+    @SuppressWarnings("all")
     public static List<Method> getMethodsInSourceOrder(Class<?> clazz) {
         Method[] declared = clazz.getDeclaredMethods();
-        List<Method> methods = new ArrayList<>(Arrays.asList(declared));
-        methods.removeIf(Method::isSynthetic);
-        methods.sort(PRIORITY_COMPARATOR);
+        Map<Method, Integer> declarationOrder = new LinkedHashMap<>(declared.length);
+        List<Method> methods = new ArrayList<>(declared.length);
+
+        for (Method method : declared) {
+            if (method.isSynthetic()) {
+                continue;
+            }
+
+            declarationOrder.put(method, declarationOrder.size());
+            methods.add(method);
+        }
+
+        methods.sort(
+                Comparator.comparingInt(SourceOrderHelper::priorityOf)
+                        .thenComparingInt(method -> declarationOrder.getOrDefault(method, Integer.MAX_VALUE))
+        );
         return methods;
     }
 
@@ -43,17 +47,32 @@ public final class SourceOrderHelper {
      * Gets inner classes (both static and non-static) based on @Priority annotations.
      * Falls back to reflection order if no annotation present.
      */
+    @SuppressWarnings("all")
     public static List<Class<?>> getInnerClassesInSourceOrder(Class<?> outerClass) {
-        Set<Class<?>> innerSet = new HashSet<>(Arrays.asList(outerClass.getDeclaredClasses()));
+        Map<Class<?>, Integer> declarationOrder = new LinkedHashMap<>();
 
-        for (Class<?> nest : outerClass.getNestMembers()) {
-            if (!nest.equals(outerClass)) {
-                innerSet.add(nest);
+        for (Class<?> declared : outerClass.getDeclaredClasses()) {
+            if (declared.isSynthetic()) {
+                continue;
             }
+            declarationOrder.putIfAbsent(declared, declarationOrder.size());
         }
 
-        List<Class<?>> innerClasses = new ArrayList<>(innerSet);
-        innerClasses.sort(PRIORITY_COMPARATOR);
+        for (Class<?> nest : outerClass.getNestMembers()) {
+            if (nest.equals(outerClass)) {
+                continue;
+            }
+            if (nest.getEnclosingClass() != outerClass || nest.isSynthetic()) {
+                continue;
+            }
+            declarationOrder.putIfAbsent(nest, declarationOrder.size());
+        }
+
+        List<Class<?>> innerClasses = new ArrayList<>(declarationOrder.keySet());
+        innerClasses.sort(
+                Comparator.comparingInt(SourceOrderHelper::priorityOf)
+                        .thenComparingInt(clazz -> declarationOrder.getOrDefault(clazz, Integer.MAX_VALUE))
+        );
         return innerClasses;
     }
 
