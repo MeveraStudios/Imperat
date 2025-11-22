@@ -50,6 +50,10 @@ class SlashCommandMapperTest {
         Assertions.assertThat(options)
                 .extracting(OptionData::isRequired)
                 .containsExactly(true, true, false, false);
+
+        SlashCommandMapper.Invocation invocation = mapping.invocationFor(null, null);
+        Assertions.assertThat(invocation.optionOrder())
+                .containsExactly("first", "middle", "count", "trail");
     }
 
     @Test

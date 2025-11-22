@@ -8,6 +8,7 @@ include 'velocity'
 include 'brigadier'
 include 'adventure'
 include 'cli'
+include 'velocity'
 include 'minestom'
 include 'jda'
 

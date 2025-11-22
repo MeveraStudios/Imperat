@@ -37,6 +37,31 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
         syncCommands();
     }
 
+    @SafeVarargs
+    @Override
+    public final void registerCommands(Command<JdaSource>... commands) {
+        for (final var command : commands) {
+            super.registerCommand(command);
+        }
+        syncCommands();
+    }
+
+    @Override
+    public void registerCommands(Class<?>... commands) {
+        for (final var command : commands) {
+            this.registerCommand(command);
+        }
+        syncCommands();
+    }
+
+    @Override
+    public void registerCommands(Object... commandInstances) {
+        for(var obj : commandInstances) {
+            super.registerCommand(obj);
+        }
+        syncCommands();
+    }
+
     @Override
     public void unregisterCommand(String name) {
         super.unregisterCommand(name);

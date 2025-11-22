@@ -40,11 +40,11 @@ final class SlashCommandMapper {
 
         boolean onlyRootLevel = usagePaths.stream().allMatch(usage -> usage.path().isEmpty());
         if (onlyRootLevel) {
-            List<OptionData> options = mergeOptions(usagePaths);
-            if (!options.isEmpty()) {
-                data.addOptions(options);
+            OptionsBuild options = mergeOptions(usagePaths);
+            if (!options.options().isEmpty()) {
+                data.addOptions(options.options());
             }
-            invocations.put(new InvocationKey(null, null), new Invocation(List.of(), optionNames(options)));
+            invocations.put(new InvocationKey(null, null), new Invocation(List.of(), options.invocationOrder()));
             return new SlashMapping(commandName, data, invocations);
         }
 
@@ -55,11 +55,11 @@ final class SlashCommandMapper {
             }
 
             if (path.size() == 1) {
-                List<OptionData> options = bucket.toOptions();
+                OptionsBuild options = bucket.toOptions();
                 SubcommandData sub = new SubcommandData(path.get(0), bucket.description());
-                sub.addOptions(options);
+                sub.addOptions(options.options());
                 data.addSubcommands(sub);
-                invocations.put(new InvocationKey(null, path.get(0)), new Invocation(List.copyOf(path), optionNames(options)));
+                invocations.put(new InvocationKey(null, path.get(0)), new Invocation(List.copyOf(path), options.invocationOrder()));
                 return;
             }
 
@@ -74,11 +74,11 @@ final class SlashCommandMapper {
                         return created;
                     });
 
-            List<OptionData> options = bucket.toOptions();
+            OptionsBuild options = bucket.toOptions();
             SubcommandData sub = new SubcommandData(subName, bucket.description());
-            sub.addOptions(options);
+            sub.addOptions(options.options());
             group.addSubcommands(sub);
-            invocations.put(new InvocationKey(groupName, subName), new Invocation(List.copyOf(path), optionNames(options)));
+            invocations.put(new InvocationKey(groupName, subName), new Invocation(List.copyOf(path), options.invocationOrder()));
         });
 
         return new SlashMapping(commandName, data, invocations);
@@ -94,18 +94,10 @@ final class SlashCommandMapper {
         return buckets;
     }
 
-    private List<OptionData> mergeOptions(Collection<UsagePath> usagePaths) {
+    private OptionsBuild mergeOptions(Collection<UsagePath> usagePaths) {
         UsageBucket bucket = new UsageBucket();
         usagePaths.forEach(usage -> bucket.includeUsage(usage.parameters()));
         return bucket.toOptions();
-    }
-
-    private List<String> optionNames(List<OptionData> options) {
-        List<String> names = new ArrayList<>(options.size());
-        for (OptionData option : options) {
-            names.add(option.getName());
-        }
-        return names;
     }
 
     private List<UsagePath> collectUsagePaths(
@@ -153,7 +145,7 @@ final class SlashCommandMapper {
             return OptionType.STRING;
         } else if (Boolean.class.isAssignableFrom(raw) || raw == boolean.class) {
             return OptionType.BOOLEAN;
-        } else if (Number.class.isAssignableFrom(raw) || raw.isPrimitive() && raw != boolean.class && raw != char.class) {
+        } else if (Number.class.isAssignableFrom(raw) || raw.isPrimitive() && raw != char.class) {
             if (raw == Double.class || raw == double.class || raw == Float.class || raw == float.class) {
                 return OptionType.NUMBER;
             }
@@ -202,11 +194,13 @@ final class SlashCommandMapper {
             }
         }
 
-        List<OptionData> toOptions() {
+        OptionsBuild toOptions() {
             List<OptionData> required = new ArrayList<>();
             List<OptionData> optional = new ArrayList<>();
+            List<String> invocationOrder = new ArrayList<>(options.size());
 
             for (OptionSpec spec : options.values()) {
+                invocationOrder.add(spec.name());
                 OptionData option = new OptionData(spec.type(), spec.name(), spec.description(), spec.required());
                 if (spec.required()) {
                     required.add(option);
@@ -216,7 +210,7 @@ final class SlashCommandMapper {
             }
 
             required.addAll(optional);
-            return required;
+            return new OptionsBuild(required, invocationOrder);
         }
 
         String description() {
@@ -276,6 +270,8 @@ final class SlashCommandMapper {
             return OptionType.STRING;
         }
     }
+
+    private record OptionsBuild(List<OptionData> options, List<String> invocationOrder) {}
 
     record SlashMapping(String commandName, SlashCommandData commandData, Map<InvocationKey, Invocation> invocations) {
         Invocation invocationFor(String group, String subcommand) {

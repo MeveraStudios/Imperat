@@ -9,7 +9,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.exception.NoDMSExceptionn;
+import studio.mevera.imperat.exception.NoDMSException;
 import studio.mevera.imperat.exception.UnknownMemberException;
 
 public final class ParameterMember extends BaseParameterType<JdaSource, Member> {
@@ -17,7 +17,7 @@ public final class ParameterMember extends BaseParameterType<JdaSource, Member> 
     @Override
     public @NotNull Member resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws ImperatException {
         if (context.source().isConsole()) {
-            throw new NoDMSExceptionn(context);
+            throw new NoDMSException(context);
         }
         var guild = context.source().origin().getGuild();
         String memberId = input.replaceAll("\\D", "");
