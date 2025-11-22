@@ -13,10 +13,19 @@ import studio.mevera.imperat.exception.UnknownMemberException;
 
 public final class ParameterMember extends BaseParameterType<JdaSource, Member> {
 
+    /**
+     * Exception thrown when a member is requested in a non-guild (console) context.
+     */
+    public static class MemberNotAvailableInConsoleException extends ImperatException {
+        public MemberNotAvailableInConsoleException() {
+            super("Members are only available in guild commands");
+        }
+    }
+
     @Override
     public @NotNull Member resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws ImperatException {
         if (context.source().isConsole()) {
-            throw new IllegalStateException("Members are only available in guild commands");
+            throw new MemberNotAvailableInConsoleException();
         }
         var guild = context.source().origin().getGuild();
         String memberId = input.replaceAll("\\D", "");
