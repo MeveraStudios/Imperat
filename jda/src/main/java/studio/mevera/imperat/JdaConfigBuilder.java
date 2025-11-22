@@ -41,7 +41,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
         config.registerSourceResolver(Member.class, (source, ctx) -> {
             Member member = source.member();
             if (member == null) {
-                throw new IllegalStateException("Command must be used inside a guild");
+                throw new ParameterMember.MemberNotAvailableInConsoleException(ctx);
             }
             return member;
         });
@@ -60,6 +60,10 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
 
         config.setThrowableResolver(UnknownMemberException.class, (ex, ctx) ->
             ctx.source().error("Member '" + ex.getIdentifier() + "' could not be found")
+        );
+
+        config.setThrowableResolver(ParameterMember.MemberNotAvailableInConsoleException.class, (ex, ctx) ->
+            ctx.source().error(ex.getMessage())
         );
     }
 

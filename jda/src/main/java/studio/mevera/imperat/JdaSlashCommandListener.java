@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 final class JdaSlashCommandListener implements EventListener {
@@ -30,6 +31,8 @@ final class JdaSlashCommandListener implements EventListener {
         if (command == null) {
             return;
         }
+
+        event.deferReply().queue();
 
         JdaSource source = imperat.wrapSender(event);
         if (!imperat.config().getPermissionChecker().hasPermission(
@@ -55,7 +58,14 @@ final class JdaSlashCommandListener implements EventListener {
             return;
         }
 
-        List<String> arguments = new ArrayList<>(invocation.path());
+        List<String> arguments = new ArrayList<>();
+        for (String segment : invocation.path()) {
+            if (segment.contains("-")) {
+                arguments.addAll(Arrays.asList(segment.split("-")));
+            } else {
+                arguments.add(segment);
+            }
+        }
         for (String optionName : invocation.optionOrder()) {
             OptionMapping option = event.getOption(optionName);
             if (option != null) {

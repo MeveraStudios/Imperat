@@ -9,19 +9,33 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.exception.NoDMSException;
 import studio.mevera.imperat.exception.UnknownMemberException;
 
 public final class ParameterMember extends BaseParameterType<JdaSource, Member> {
 
+    /**
+     * Exception thrown when a member is requested in a non-guild (console) context.
+     */
+    public static class MemberNotAvailableInConsoleException extends ImperatException {
+        public MemberNotAvailableInConsoleException(Context<JdaSource> context) {
+            super("Members are only available in guild commands", context);
+        }
+    }
+
     @Override
     public @NotNull Member resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws ImperatException {
-        if (context.source().isConsole()) {
-            throw new NoDMSException(context);
-        }
         var guild = context.source().origin().getGuild();
+        if (guild == null) {
+            throw new MemberNotAvailableInConsoleException(context);
+        }
+
         String memberId = input.replaceAll("\\D", "");
-        Member member = guild != null ? guild.getMemberById(memberId.isEmpty() ? input : memberId) : null;
+        String lookupId = memberId.isEmpty() ? input : memberId;
+        if (!lookupId.matches("\\d{17,20}")) {
+            throw new UnknownMemberException(input, context);
+        }
+
+        Member member = guild.getMemberById(lookupId);
         if (member == null) {
             throw new UnknownMemberException(input, context);
         }

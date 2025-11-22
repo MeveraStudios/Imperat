@@ -7,8 +7,10 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Imperat implementation for Discord using JDA slash commands.
@@ -19,6 +21,7 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     private final JdaSlashCommandListener listener;
     private final SlashCommandMapper slashCommandMapper = new SlashCommandMapper();
     private final Map<String, SlashCommandMapper.SlashMapping> slashMappings = new ConcurrentHashMap<>();
+    private final AtomicBoolean syncScheduled = new AtomicBoolean(false);
 
     public static JdaConfigBuilder builder(@NotNull JDA jda) {
         return new JdaConfigBuilder(jda);
@@ -34,7 +37,7 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     @Override
     public void registerCommand(Command<JdaSource> command) {
         super.registerCommand(command);
-        syncCommands();
+        scheduleSync();
     }
 
     @SafeVarargs
@@ -43,7 +46,7 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
         for (final var command : commands) {
             super.registerCommand(command);
         }
-        syncCommands();
+        scheduleSync();
     }
 
     @Override
@@ -51,7 +54,7 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
         for (final var command : commands) {
             this.registerCommand(command);
         }
-        syncCommands();
+        scheduleSync();
     }
 
     @Override
@@ -59,13 +62,13 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
         for(var obj : commandInstances) {
             super.registerCommand(obj);
         }
-        syncCommands();
+        scheduleSync();
     }
 
     @Override
     public void unregisterCommand(String name) {
         super.unregisterCommand(name);
-        syncCommands();
+        scheduleSync();
     }
 
     @Override
@@ -85,6 +88,18 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
 
     SlashCommandMapper.SlashMapping getSlashMapping(String name) {
         return slashMappings.get(name.toLowerCase());
+    }
+
+    private void scheduleSync() {
+        if (syncScheduled.compareAndSet(false, true)) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    syncCommands();
+                } finally {
+                    syncScheduled.set(false);
+                }
+            });
+        }
     }
 
     private void syncCommands() {

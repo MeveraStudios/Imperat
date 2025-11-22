@@ -23,7 +23,12 @@ public final class ParameterUser extends BaseParameterType<JdaSource, User> {
     @Override
     public @NotNull User resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws ImperatException {
         String userId = input.replaceAll("\\D", "");
-        User user = jda.getUserById(userId.isEmpty() ? input : userId);
+        String lookupId = userId.isEmpty() ? input : userId;
+        if (!lookupId.matches("\\d{17,20}")) {
+            throw new UnknownUserException(input, context);
+        }
+
+        User user = jda.getUserById(lookupId);
         if (user == null) {
             throw new UnknownUserException(input, context);
         }
