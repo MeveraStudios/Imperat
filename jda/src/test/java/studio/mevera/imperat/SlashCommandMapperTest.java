@@ -29,93 +29,101 @@ class SlashCommandMapperTest {
     @Test
     void flattensOptionalParametersAfterRequiredOnRoot() {
         Command<JdaSource> command = Command.create(imperat, "mix")
-            .usage(CommandUsage.<JdaSource>builder()
-                .parameters(
-                    CommandParameter.requiredText("first"),
-                    CommandParameter.optionalText("middle"),
-                    CommandParameter.requiredInt("count"),
-                    CommandParameter.optionalText("trail")
+                .usage(CommandUsage.<JdaSource>builder()
+                        .parameters(
+                                CommandParameter.requiredText("first"),
+                                CommandParameter.optionalText("middle"),
+                                CommandParameter.requiredInt("count"),
+                                CommandParameter.optionalText("trail")
+                        )
+                        .execute((source, ctx) -> {})
                 )
-                .execute((source, ctx) -> {})
-            )
-            .build();
+                .build();
 
-        SlashCommandData data = (SlashCommandData) mapper.toSlashData(command);
+        SlashCommandMapper.SlashMapping mapping = mapper.mapCommand(command);
+        SlashCommandData data = mapping.commandData();
         List<OptionData> options = data.getOptions();
 
         Assertions.assertThat(options)
-            .extracting(OptionData::getName)
-            .containsExactly("first", "count", "middle", "trail");
+                .extracting(OptionData::getName)
+                .containsExactly("first", "count", "middle", "trail");
         Assertions.assertThat(options)
-            .extracting(OptionData::isRequired)
-            .containsExactly(true, true, false, false);
+                .extracting(OptionData::isRequired)
+                .containsExactly(true, true, false, false);
     }
 
     @Test
     void preservesDeepSubcommandPaths() {
         Command<JdaSource> command = Command.create(imperat, "root")
-            .subCommand(
-                Command.create(imperat, "alpha")
-                    .usage(CommandUsage.<JdaSource>builder()
-                        .parameters(CommandParameter.requiredText("alphaArg"))
-                        .execute((source, ctx) -> {})
-                    )
-                    .subCommand(
-                        Command.create(imperat, "beta")
-                            .usage(CommandUsage.<JdaSource>builder()
-                                .parameters(CommandParameter.requiredText("betaArg"))
-                                .execute((source, ctx) -> {})
-                            )
-                            .subCommand(
-                                Command.create(imperat, "gamma")
-                                    .usage(CommandUsage.<JdaSource>builder()
-                                        .parameters(CommandParameter.requiredText("gammaArg"))
+                .subCommand(
+                        Command.create(imperat, "alpha")
+                                .usage(CommandUsage.<JdaSource>builder()
+                                        .parameters(CommandParameter.requiredText("alphaArg"))
                                         .execute((source, ctx) -> {})
-                                    )
-                                    .build()
-                            )
-                            .build()
-                    )
-                    .build()
-            )
-            .build();
+                                )
+                                .subCommand(
+                                        Command.create(imperat, "beta")
+                                                .usage(CommandUsage.<JdaSource>builder()
+                                                        .parameters(CommandParameter.requiredText("betaArg"))
+                                                        .execute((source, ctx) -> {})
+                                                )
+                                                .subCommand(
+                                                        Command.create(imperat, "gamma")
+                                                                .usage(CommandUsage.<JdaSource>builder()
+                                                                        .parameters(CommandParameter.requiredText("gammaArg"))
+                                                                        .execute((source, ctx) -> {})
+                                                                )
+                                                                .build()
+                                                )
+                                                .build()
+                                )
+                                .build()
+                )
+                .build();
 
-        SlashCommandData data = (SlashCommandData) mapper.toSlashData(command);
+        SlashCommandMapper.SlashMapping mapping = mapper.mapCommand(command);
+        SlashCommandData data = mapping.commandData();
         Assertions.assertThat(data.getSubcommandGroups()).hasSize(1);
 
         SubcommandGroupData group = data.getSubcommandGroups().get(0);
         Assertions.assertThat(group.getName()).isEqualTo("alpha");
 
         Assertions.assertThat(group.getSubcommands())
-            .anySatisfy(sub -> {
-                Assertions.assertThat(sub.getName()).isEqualTo("beta-gamma");
-                Assertions.assertThat(sub.getOptions())
-                    .extracting(OptionData::getName)
-                    .contains("betaarg", "gammaarg", "alphaarg");
-            });
+                .anySatisfy(sub -> {
+                    Assertions.assertThat(sub.getName()).isEqualTo("beta-gamma");
+                    Assertions.assertThat(sub.getOptions())
+                            .extracting(OptionData::getName)
+                            .contains("betaarg", "gammaarg", "alphaarg");
+                });
+
+        SlashCommandMapper.Invocation invocation = mapping.invocationFor("alpha", "beta-gamma");
+        Assertions.assertThat(invocation.path()).containsExactly("alpha", "beta", "gamma");
+        Assertions.assertThat(invocation.optionOrder())
+                .containsExactly("alphaarg", "betaarg", "gammaarg");
     }
 
     @Test
     void combinesMultipleUsagesIntoOptionalOptions() {
         Command<JdaSource> command = Command.create(imperat, "variants")
-            .usage(CommandUsage.<JdaSource>builder()
-                .parameters(CommandParameter.requiredText("first"))
-                .execute((source, ctx) -> {})
-            )
-            .usage(CommandUsage.<JdaSource>builder()
-                .parameters(CommandParameter.optionalText("second"))
-                .execute((source, ctx) -> {})
-            )
-            .build();
+                .usage(CommandUsage.<JdaSource>builder()
+                        .parameters(CommandParameter.requiredText("first"))
+                        .execute((source, ctx) -> {})
+                )
+                .usage(CommandUsage.<JdaSource>builder()
+                        .parameters(CommandParameter.optionalText("second"))
+                        .execute((source, ctx) -> {})
+                )
+                .build();
 
-        SlashCommandData data = (SlashCommandData) mapper.toSlashData(command);
+        SlashCommandMapper.SlashMapping mapping = mapper.mapCommand(command);
+        SlashCommandData data = mapping.commandData();
         List<OptionData> options = data.getOptions();
 
         Assertions.assertThat(options)
-            .extracting(OptionData::getName)
-            .containsExactly("first", "second");
+                .extracting(OptionData::getName)
+                .containsExactly("first", "second");
         Assertions.assertThat(options)
-            .extracting(OptionData::isRequired)
-            .containsExactly(false, false);
+                .extracting(OptionData::isRequired)
+                .containsExactly(false, false);
     }
 }

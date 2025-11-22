@@ -29,9 +29,14 @@ import java.util.Set;
 final class SlashCommandMapper {
 
     CommandData toSlashData(Command<JdaSource> command) {
+        return mapCommand(command).commandData();
+    }
+
+    SlashMapping mapCommand(Command<JdaSource> command) {
         String commandName = command.name().toLowerCase();
         SlashCommandData data = Commands.slash(commandName, command.description().toString());
         List<UsagePath> usagePaths = collectUsagePaths(command, List.of(), List.of());
+        Map<InvocationKey, Invocation> invocations = new LinkedHashMap<>();
 
         boolean onlyRootLevel = usagePaths.stream().allMatch(usage -> usage.path().isEmpty());
         if (onlyRootLevel) {
@@ -39,7 +44,8 @@ final class SlashCommandMapper {
             if (!options.isEmpty()) {
                 data.addOptions(options);
             }
-            return data;
+            invocations.put(new InvocationKey(null, null), new Invocation(List.of(), optionNames(options)));
+            return new SlashMapping(commandName, data, invocations);
         }
 
         Map<List<String>, UsageBucket> buckets = bucketize(usagePaths);
@@ -49,29 +55,33 @@ final class SlashCommandMapper {
             }
 
             if (path.size() == 1) {
+                List<OptionData> options = bucket.toOptions();
                 SubcommandData sub = new SubcommandData(path.get(0), bucket.description());
-                sub.addOptions(bucket.toOptions());
+                sub.addOptions(options);
                 data.addSubcommands(sub);
+                invocations.put(new InvocationKey(null, path.get(0)), new Invocation(List.copyOf(path), optionNames(options)));
                 return;
             }
 
             String groupName = path.get(0);
             String subName = String.join("-", path.subList(1, path.size()));
             SubcommandGroupData group = data.getSubcommandGroups().stream()
-                .filter(existing -> existing.getName().equals(groupName))
-                .findFirst()
-                .orElseGet(() -> {
-                    SubcommandGroupData created = new SubcommandGroupData(groupName, bucket.description());
-                    data.addSubcommandGroups(created);
-                    return created;
-                });
+                    .filter(existing -> existing.getName().equals(groupName))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        SubcommandGroupData created = new SubcommandGroupData(groupName, bucket.description());
+                        data.addSubcommandGroups(created);
+                        return created;
+                    });
 
+            List<OptionData> options = bucket.toOptions();
             SubcommandData sub = new SubcommandData(subName, bucket.description());
-            sub.addOptions(bucket.toOptions());
+            sub.addOptions(options);
             group.addSubcommands(sub);
+            invocations.put(new InvocationKey(groupName, subName), new Invocation(List.copyOf(path), optionNames(options)));
         });
 
-        return data;
+        return new SlashMapping(commandName, data, invocations);
     }
 
     private Map<List<String>, UsageBucket> bucketize(Collection<UsagePath> usagePaths) {
@@ -90,10 +100,18 @@ final class SlashCommandMapper {
         return bucket.toOptions();
     }
 
+    private List<String> optionNames(List<OptionData> options) {
+        List<String> names = new ArrayList<>(options.size());
+        for (OptionData option : options) {
+            names.add(option.getName());
+        }
+        return names;
+    }
+
     private List<UsagePath> collectUsagePaths(
-        Command<JdaSource> command,
-        List<String> path,
-        List<CommandParameter<JdaSource>> inherited
+            Command<JdaSource> command,
+            List<String> path,
+            List<CommandParameter<JdaSource>> inherited
     ) {
         List<UsagePath> paths = new ArrayList<>();
         List<CommandParameter<JdaSource>> inheritedForChildren = new ArrayList<>(inherited);
@@ -226,8 +244,8 @@ final class SlashCommandMapper {
         void merge(CommandParameter<JdaSource> parameter, OptionType resolvedType) {
             type = compatibleType(type, resolvedType);
             description = description == null || description.isEmpty()
-                ? parameter.description().toString()
-                : description;
+                    ? parameter.description().toString()
+                    : description;
             required = required && !parameter.isOptional();
         }
 
@@ -258,4 +276,13 @@ final class SlashCommandMapper {
             return OptionType.STRING;
         }
     }
+
+    record SlashMapping(String commandName, SlashCommandData commandData, Map<InvocationKey, Invocation> invocations) {
+        Invocation invocationFor(String group, String subcommand) {
+            return invocations.get(new InvocationKey(group, subcommand));
+        }
+    }
+
+    record InvocationKey(String group, String subcommand) {}
+    record Invocation(List<String> path, List<String> optionOrder) {}
 }

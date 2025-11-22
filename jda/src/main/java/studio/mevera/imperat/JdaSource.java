@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.Source;
 
@@ -76,7 +77,7 @@ public final class JdaSource implements Source {
         return event.getMember();
     }
 
-    public @Nullable JDA jda() {
+    public @NotNull JDA jda() {
         return event.getJDA();
     }
 }

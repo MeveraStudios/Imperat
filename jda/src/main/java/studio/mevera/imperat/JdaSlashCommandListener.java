@@ -33,25 +33,34 @@ final class JdaSlashCommandListener implements EventListener {
 
         JdaSource source = imperat.wrapSender(event);
         if (!imperat.config().getPermissionChecker().hasPermission(
-            source,
-            imperat.config().isAutoPermissionAssignMode()
-                ? imperat.config().getPermissionLoader().load(command)
-                : command.getMainPermission()
+                source,
+                imperat.config().isAutoPermissionAssignMode()
+                        ? imperat.config().getPermissionLoader().load(command)
+                        : command.getMainPermission()
         )) {
             source.error("You don't have permission to use this command.");
             return;
         }
 
-        List<String> arguments = new ArrayList<>();
-        if (event.getSubcommandGroup() != null) {
-            arguments.add(event.getSubcommandGroup());
-        }
-        if (event.getSubcommandName() != null) {
-            arguments.add(event.getSubcommandName());
+        SlashCommandMapper.SlashMapping mapping = imperat.getSlashMapping(event.getName());
+        if (mapping == null) {
+            return;
         }
 
-        for (OptionMapping option : event.getOptions()) {
-            arguments.add(mapOption(option));
+        SlashCommandMapper.Invocation invocation = mapping.invocationFor(
+                event.getSubcommandGroup(),
+                event.getSubcommandName()
+        );
+        if (invocation == null) {
+            return;
+        }
+
+        List<String> arguments = new ArrayList<>(invocation.path());
+        for (String optionName : invocation.optionOrder()) {
+            OptionMapping option = event.getOption(optionName);
+            if (option != null) {
+                arguments.add(mapOption(option));
+            }
         }
 
         imperat.execute(source, event.getName(), arguments.toArray(String[]::new));

@@ -6,7 +6,9 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Imperat implementation for Discord using JDA slash commands.
@@ -16,6 +18,7 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     private final JDA jda;
     private final JdaSlashCommandListener listener;
     private final SlashCommandMapper slashCommandMapper = new SlashCommandMapper();
+    private final Map<String, SlashCommandMapper.SlashMapping> slashMappings = new ConcurrentHashMap<>();
 
     public static JdaConfigBuilder builder(@NotNull JDA jda) {
         return new JdaConfigBuilder(jda);
@@ -55,10 +58,21 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
         return new JdaSource((SlashCommandInteractionEvent) sender);
     }
 
+    SlashCommandMapper.SlashMapping getSlashMapping(String name) {
+        return slashMappings.get(name.toLowerCase());
+    }
+
     private void syncCommands() {
-        List<CommandData> data = getRegisteredCommands().stream()
-            .map(slashCommandMapper::toSlashData)
-            .collect(Collectors.toList());
+        List<SlashCommandMapper.SlashMapping> mappings = getRegisteredCommands().stream()
+                .map(slashCommandMapper::mapCommand)
+                .toList();
+
+        slashMappings.clear();
+        mappings.forEach(mapping -> slashMappings.put(mapping.commandName(), mapping));
+
+        List<CommandData> data = mappings.stream()
+                .map(SlashCommandMapper.SlashMapping::commandData)
+                .collect(Collectors.toList());
         jda.updateCommands().addCommands(data).queue();
     }
 }
