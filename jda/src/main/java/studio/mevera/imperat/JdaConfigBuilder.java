@@ -8,9 +8,11 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.exception.NoDMSException;
 import studio.mevera.imperat.exception.UnknownMemberException;
 import studio.mevera.imperat.exception.UnknownUserException;
 import studio.mevera.imperat.type.ParameterMember;
+import studio.mevera.imperat.type.ParameterRole;
 import studio.mevera.imperat.type.ParameterUser;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -42,7 +44,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
         config.registerSourceResolver(Member.class, (source, ctx) -> {
             Member member = source.member();
             if (member == null) {
-                throw new ParameterMember.MemberNotAvailableInConsoleException(ctx);
+                throw new NoDMSException(ctx);
             }
             return member;
         });
@@ -50,6 +52,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
     }
 
     private void registerParameterTypes() {
+        config.registerParamType(Member.class, new ParameterRole());
         config.registerParamType(User.class, new ParameterUser(jda));
         config.registerParamType(Member.class, new ParameterMember());
     }
@@ -63,7 +66,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
             ctx.source().error("Member '" + ex.getIdentifier() + "' could not be found")
         );
 
-        config.setThrowableResolver(ParameterMember.MemberNotAvailableInConsoleException.class, (ex, ctx) ->
+        config.setThrowableResolver(NoDMSException.class, (ex, ctx) ->
             ctx.source().error(ex.getMessage())
         );
     }
