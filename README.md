@@ -260,7 +260,7 @@ public class RankCommand {
 | **BungeeCord** | `imperat-bungee` | ✅ Stable |
 | **Minestom** | `imperat-minestom` | ✅ Stable |
 | **CLI Applications** | `imperat-cli` | ✅ Stable |
-| **Discord (JDA)** | `imperat-jda` | 🚧 Coming Soon |
+| **Discord (JDA)** | `imperat-jda` | ✅ Beta |
 | **Sponge** | `imperat-sponge` | 🚧 Planned |
 
 </div>
