@@ -27,6 +27,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
         registerSourceResolvers();
         registerParameterTypes();
         registerThrowableResolvers();
+        config.registerDependencyResolver(JDA.class, () -> jda);
     }
 
     private void registerContextResolvers() {
