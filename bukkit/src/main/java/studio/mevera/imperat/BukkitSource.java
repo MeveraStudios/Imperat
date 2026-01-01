@@ -5,6 +5,7 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import studio.mevera.imperat.adventure.AdventureProvider;
+import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.context.Source;
 
 import java.util.Objects;
@@ -43,7 +44,7 @@ import java.util.UUID;
  * @see Source
  * @see CommandSender
  */
-public class BukkitSource implements Source {
+public class BukkitSource implements AdventureSource {
 
     protected final CommandSender sender;
     protected final AdventureProvider<CommandSender> provider;

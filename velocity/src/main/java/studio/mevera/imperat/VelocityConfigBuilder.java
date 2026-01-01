@@ -9,6 +9,7 @@ import com.velocitypowered.api.proxy.config.ProxyConfig;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.util.ProxyVersion;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
@@ -98,6 +99,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      * This enables automatic casting and validation of command sources.
      */
     private void registerSourceResolvers() {
+        config.registerSourceResolver(AdventureSource.class, (velocitySource, ctx) -> velocitySource);
         config.registerSourceResolver(ConsoleCommandSource.class, (velocitySource, ctx) -> {
             if (!velocitySource.isConsole()) {
                 throw new OnlyConsoleAllowedException(ctx);

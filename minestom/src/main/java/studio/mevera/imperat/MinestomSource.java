@@ -6,6 +6,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
+import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.context.Source;
 
 import java.util.UUID;
@@ -44,7 +45,7 @@ import java.util.UUID;
  * @see CommandSender
  * @see Player
  */
-public final class MinestomSource implements Source {
+public final class MinestomSource implements AdventureSource {
     private final CommandSender sender;
 
     /**
@@ -108,7 +109,13 @@ public final class MinestomSource implements Source {
         sender.sendMessage(Component.text(message, NamedTextColor.RED));
     }
 
-    public void sendMessage(ComponentLike componentLike) {
+    /**
+     * Sends a message to this command source using Adventure components.
+     *
+     * @param componentLike the component to send
+     */
+    @Override
+    public void reply(ComponentLike componentLike) {
         sender.sendMessage(componentLike);
     }
 

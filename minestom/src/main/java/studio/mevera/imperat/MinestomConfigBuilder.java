@@ -5,6 +5,7 @@ import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
@@ -77,6 +78,7 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
         config.registerSourceResolver(CommandSender.class, (minestomSource, ctx) -> minestomSource.origin());
 
         // Enhanced source resolver for console similar to Velocity
+        config.registerSourceResolver(AdventureSource.class, (minestomSource, ctx) -> minestomSource);
         config.registerSourceResolver(ConsoleSender.class, (minestomSource, ctx) -> {
             if (!minestomSource.isConsole()) {
                 throw new OnlyConsoleAllowedException(ctx);

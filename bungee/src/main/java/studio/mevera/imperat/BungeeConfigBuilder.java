@@ -8,6 +8,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.adventure.AdventureProvider;
+import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.adventure.BungeeAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
@@ -99,6 +100,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void registerSourceResolvers() {
+        config.registerSourceResolver(AdventureSource.class, (bungeeSource, ctx) -> bungeeSource);
         config.registerSourceResolver(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
         
         // Enhanced source resolver for console similar to Velocity

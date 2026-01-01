@@ -9,10 +9,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.adventure.AdventureHelpComponent;
-import studio.mevera.imperat.adventure.AdventureProvider;
-import studio.mevera.imperat.adventure.CastingAdventure;
-import studio.mevera.imperat.adventure.EmptyAdventure;
+import studio.mevera.imperat.adventure.*;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -88,6 +85,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
     
     private void registerSourceResolvers() {
+        config.registerSourceResolver(AdventureSource.class, (bukkitSource, ctx) -> bukkitSource);
         config.registerSourceResolver(CommandSender.class, (bukkitSource, ctx) -> bukkitSource.origin());
         
         // Enhanced source resolver for console similar to Velocity

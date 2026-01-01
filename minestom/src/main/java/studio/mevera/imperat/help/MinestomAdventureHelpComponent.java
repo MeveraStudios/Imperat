@@ -58,6 +58,6 @@ public class MinestomAdventureHelpComponent extends AdventureHelpComponent<Mines
     public static MinestomAdventureHelpComponent of(
             @NotNull Component componentValue
     ) {
-        return new MinestomAdventureHelpComponent(componentValue, MinestomSource::sendMessage);
+        return new MinestomAdventureHelpComponent(componentValue, MinestomSource::reply);
     }
 }

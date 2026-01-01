@@ -4,6 +4,7 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.ComponentLike;
+import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.context.Source;
 
 import java.util.UUID;
@@ -24,7 +25,7 @@ import java.util.UUID;
  * @since 1.0
  * @author Imperat Framework
  */
-public class VelocitySource implements Source {
+public class VelocitySource implements AdventureSource {
 
     private final CommandSource origin;
 

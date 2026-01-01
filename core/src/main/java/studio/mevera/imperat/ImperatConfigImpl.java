@@ -27,7 +27,6 @@ import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
 import studio.mevera.imperat.resolvers.*;
-import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
 import studio.mevera.imperat.util.TypeWrap;
@@ -94,7 +93,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         contextFactory = ContextFactory.defaultFactory();
 
         verifier = UsageVerifier.typeTolerantVerifier();
-        regDefThrowableResolvers();
 
         globalPreProcessors = CommandProcessingChain.<S>preProcessors()
             .then(DefaultProcessors.preUsageCooldown())
@@ -102,6 +100,10 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
         globalPostProcessors = CommandProcessingChain.<S>postProcessors()
             .build();
+
+        // register some defaults:
+        this.regDefThrowableResolvers();
+        this.registerSourceResolver(Source.class, (source, ctx) -> source);
     }
 
     private void regDefThrowableResolvers() {
