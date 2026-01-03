@@ -20,12 +20,12 @@ public class AsyncTabListener implements Listener {
         }
 
         BukkitSource src = imperat.wrapSender(event.getSender());
-        var automplete = imperat.autoComplete(src, commandLine).join();
-        if (automplete.isEmpty()) {
+        var autocomplete = imperat.autoComplete(src, commandLine).join();
+        if (autocomplete.isEmpty()) {
             return;
         }
 
-        event.setCompletions(automplete);
+        event.setCompletions(autocomplete);
     }
 
 }
