@@ -25,8 +25,15 @@ import java.util.UUID;
 final class SyntaxDataLoader {
 
     static CommandExecutor loadExecutor(MinestomImperat imperat) {
-        return (sender, context) -> {
-            imperat.execute(imperat.wrapSender(sender), context.getCommandName(), context.getInput());
+        return (sender, commandContext) -> {
+            String input = commandContext.getInput();
+            String rawArgsLine = commandContext.getInput().substring(input.indexOf(' '));
+
+            imperat.execute(
+                    imperat.wrapSender(sender),
+                    commandContext.getCommandName(),
+                    rawArgsLine
+            );
         };
     }
 
