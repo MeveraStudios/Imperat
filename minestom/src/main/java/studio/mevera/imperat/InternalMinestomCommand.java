@@ -19,16 +19,7 @@ final class InternalMinestomCommand extends Command {
             )
         );
 
-        this.setDefaultExecutor(
-            (commandSender, commandContext) -> {
-                String input = commandContext.getInput();
-                String rawArgsLine = commandContext.getInput().substring(input.indexOf(' '));
-
-                imperat.execute(imperat.wrapSender(commandSender),
-                        commandContext.getCommandName(), rawArgsLine);
-                
-            }
-        );
+        this.setDefaultExecutor(loadExecutor(imperat));
 
         for (var usage : imperatCommand.usages()) {
             addConditionalSyntax(

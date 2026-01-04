@@ -27,13 +27,25 @@ final class SyntaxDataLoader {
     static CommandExecutor loadExecutor(MinestomImperat imperat) {
         return (sender, commandContext) -> {
             String input = commandContext.getInput();
-            String rawArgsLine = commandContext.getInput().substring(input.indexOf(' '));
+            int index = input.indexOf(' ');
+            String rawArgsOneLine = "";
+            if(index != -1) {
+                rawArgsOneLine = input.substring(input.indexOf(' '));
+            }
 
-            imperat.execute(
-                    imperat.wrapSender(sender),
-                    commandContext.getCommandName(),
-                    rawArgsLine
-            );
+            var imperatSender = imperat.wrapSender(sender);
+            if(rawArgsOneLine.isBlank()) {
+                imperat.execute(
+                        imperatSender,
+                        commandContext.getCommandName()
+                );
+            }else {
+                imperat.execute(
+                        imperatSender,
+                        commandContext.getCommandName(),
+                        rawArgsOneLine
+                );
+            }
         };
     }
 
