@@ -22,11 +22,17 @@ final class InternalMinestomCommand extends Command {
         this.setDefaultExecutor(
             (commandSender, commandContext) -> {
                 String input = commandContext.getInput();
-                String rawArgsLine = commandContext.getInput().substring(input.indexOf(' '));
+                String commandName = commandContext.getCommandName();
+
+                String argsOnly;
+                if (input.startsWith(commandName)) {
+                    argsOnly = input.substring(commandName.length()).trim();
+                } else {
+                    argsOnly = input;
+                }
 
                 imperat.execute(imperat.wrapSender(commandSender),
-                        commandContext.getCommandName(), rawArgsLine);
-                
+                        commandName, argsOnly);
             }
         );
 

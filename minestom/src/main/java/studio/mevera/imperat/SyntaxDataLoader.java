@@ -26,7 +26,17 @@ final class SyntaxDataLoader {
 
     static CommandExecutor loadExecutor(MinestomImperat imperat) {
         return (sender, context) -> {
-            imperat.execute(imperat.wrapSender(sender), context.getCommandName(), context.getInput());
+            String input = context.getInput();
+            String commandName = context.getCommandName();
+
+            String argsOnly;
+            if (input.startsWith(commandName)) {
+                argsOnly = input.substring(commandName.length()).trim();
+            } else {
+                argsOnly = input;
+            }
+
+            imperat.execute(imperat.wrapSender(sender), commandName, argsOnly);
         };
     }
 
