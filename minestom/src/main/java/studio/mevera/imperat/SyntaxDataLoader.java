@@ -106,10 +106,6 @@ final class SyntaxDataLoader {
     }
 
     private static Argument<?> from(String id, Type type) {
-
-        if (TypeUtility.matches(type, String.class))
-            return ArgumentType.String(id);
-
         if (TypeUtility.matches(type, Integer.class)) {
             return ArgumentType.Integer(id);
         }
@@ -154,7 +150,7 @@ final class SyntaxDataLoader {
             return ArgumentType.RelativeVec2(id);
         */
 
-        throw new IllegalArgumentException("Unsupported parameter valueType: " + type);
+        return ArgumentType.String(id);
     }
 
 }
