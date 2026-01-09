@@ -67,8 +67,12 @@ final class SyntaxDataLoader {
             CommandParameter<MinestomSource> parameter = parameters.get(i);
             Argument<T> arg = (Argument<T>) argFromParameter(parameter);
             arg.setSuggestionCallback((sender, context, suggestion) -> {
+                String in = context.getInput();
+                if(in.charAt(0) == '/') {
+                    in = in.substring(1);
+                }
                 var source = imperat.wrapSender(sender);
-                for (var completion : imperat.autoComplete(source, context.getCommandName() + " " + context.getInput()).join()) {
+                for (var completion : imperat.autoComplete(source, in).join()) {
                     suggestion.addEntry(new SuggestionEntry(completion));
                 }
             });
@@ -106,6 +110,11 @@ final class SyntaxDataLoader {
     }
 
     private static Argument<?> from(String id, Type type) {
+
+        if (TypeUtility.matches(type, String.class)) {
+            return ArgumentType.String(id);
+        }
+
         if (TypeUtility.matches(type, Integer.class)) {
             return ArgumentType.Integer(id);
         }
@@ -150,7 +159,7 @@ final class SyntaxDataLoader {
             return ArgumentType.RelativeVec2(id);
         */
 
-        return ArgumentType.String(id);
+        return ArgumentType.Word(id);
     }
 
 }
