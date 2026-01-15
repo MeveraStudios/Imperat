@@ -3,16 +3,16 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 
-compileJava.sourceCompatibility = '21'
-compileJava.targetCompatibility = '21'
+compileJava.sourceCompatibility = '25'
+compileJava.targetCompatibility = '25'
 
 dependencies {
     compileOnly project(":core")
     compileOnly project(":adventure")
-    compileOnly 'net.minestom:minestom-snapshots:620ebe5d6b'
+    implementation("net.minestom:minestom:2026.01.08-1.21.11")
 }
 
-def targetJavaVersion = 21
+def targetJavaVersion = 25
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion

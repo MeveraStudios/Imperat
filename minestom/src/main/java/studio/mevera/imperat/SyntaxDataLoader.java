@@ -1,5 +1,7 @@
 package studio.mevera.imperat;
 
+
+
 import net.kyori.adventure.text.Component;
 import net.minestom.server.color.Color;
 import net.minestom.server.command.builder.CommandExecutor;
