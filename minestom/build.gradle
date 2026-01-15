@@ -8,7 +8,7 @@ compileJava.targetCompatibility = '25'
 
 dependencies {
     compileOnly project(":core")
-    compileOnly project(":adventure")
+    api project(":adventure")
     implementation("net.minestom:minestom:2026.01.08-1.21.11")
 }
 
