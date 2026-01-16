@@ -9,6 +9,7 @@ import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.exception.InvalidLocationFormatException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -104,6 +105,23 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
                                 Message.translation("server.commands.errors.noSuchPlayer").param("username", exception.getName())
                         )
         );
+
+        config.setThrowableResolver(InvalidLocationFormatException.class, (exception, context) -> {
+
+            InvalidLocationFormatException.Reason reason = exception.getReason();
+            String msg = switch (reason) {
+                case INVALID_X_COORDINATE -> "Invalid X coordinate '" + exception.getInputX() + "'";
+                case INVALID_Y_COORDINATE -> "Invalid Y coordinate '" + exception.getInputY() + "'";
+                case INVALID_Z_COORDINATE -> "Invalid Z coordinate '" + exception.getInputZ() + "'";
+                case INVALID_YAW_COORDINATE -> "Invalid Yaw coordinate '" + exception.getInputYaw() + "'";
+                case INVALID_PITCH_COORDINATE -> "Invalid Pitch coordinate '" + exception.getInputPitch() + "'";
+                case NO_WORLDS_AVAILABLE -> "Failed to fetch the world of the given location";
+                case WRONG_FORMAT -> "Wrong location format!";
+                case SELF_LOCATION_NOT_AVAILABLE -> null;
+            };
+
+            context.source().reply("&4Failed to parse location '" + exception.getInput() + "' due to: &c" + msg);
+        });
     }
 
 

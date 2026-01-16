@@ -4,6 +4,7 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
@@ -81,7 +82,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         
         // Enhanced context resolvers similar to Velocity
         config.registerContextResolver(Plugin.class, (ctx, paramElement) -> plugin);
-        config.registerContextResolver(org.bukkit.Server.class, (ctx, paramElement) -> plugin.getServer());
+        config.registerContextResolver(Server.class, (ctx, paramElement) -> plugin.getServer());
     }
     
     private void registerSourceResolvers() {
@@ -133,8 +134,11 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
                 case INVALID_X_COORDINATE -> "Invalid X coordinate '" + exception.getInputX() + "'";
                 case INVALID_Y_COORDINATE -> "Invalid Y coordinate '" + exception.getInputY() + "'";
                 case INVALID_Z_COORDINATE -> "Invalid Z coordinate '" + exception.getInputZ() + "'";
+                case INVALID_YAW_COORDINATE -> "Invalid Yaw coordinate '" + exception.getInputYaw() + "'";
+                case INVALID_PITCH_COORDINATE -> "Invalid Pitch coordinate '" + exception.getInputPitch() + "'";
                 case NO_WORLDS_AVAILABLE -> "Failed to fetch the world of the given location";
                 case WRONG_FORMAT -> "Wrong location format!";
+                case SELF_LOCATION_NOT_AVAILABLE -> null;
             };
 
             context.source().reply("&4Failed to parse location '" + exception.getInput() + "' due to: &c" + msg);

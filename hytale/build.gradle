@@ -6,6 +6,7 @@ dependencies {
 
     compileOnly project(":core")
     compileOnly(files("libs/HytaleServer.jar"))
+    compileOnly("org.jetbrains:annotations:26.0.2-1")
 
 }
 
