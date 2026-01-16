@@ -1,0 +1,21 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    compileOnly project(":core")
+    compileOnly(files("libs/HytaleServer.jar"))
+
+}
+
+def targetJavaVersion = 25
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+

@@ -613,4 +613,8 @@ public interface CommandInputStream<S extends Source> {
         }
         return ofSingleString(param, input);
     }
+
+    default boolean hasFinished() {
+        return !hasNextRaw();
+    }
 }

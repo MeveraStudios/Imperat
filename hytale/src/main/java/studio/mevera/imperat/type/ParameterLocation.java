@@ -1,11 +1,13 @@
 package studio.mevera.imperat.type;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
+import com.hypixel.hytale.math.vector.Location;
+import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.HytaleSource;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
@@ -19,21 +21,29 @@ import studio.mevera.imperat.util.TypeUtility;
 
 import java.util.Objects;
 
-@SuppressWarnings("unchecked")
-public class ParameterLocation extends BaseParameterType<BukkitSource, Location> {
+public class ParameterLocation extends BaseParameterType<HytaleSource, Location> {
 
     private final static String SINGLE_STRING_SEPARATOR = ";";
     private final static String SELF_LOCATION_SYMBOL = "~";
 
-    private final ParameterType<BukkitSource, Double> doubleParser;
+    private final ParameterType<HytaleSource, Double> doubleParser;
 
     public ParameterLocation() {
         super();
         doubleParser = ParameterTypes.numeric(Double.class);
     }
 
+    private static World getWorldByName(String in) {
+        return Universe.get().getWorld(in);
+    }
+    private static Location getPlayerLocation(PlayerRef playerRef) {
+        return new Location(playerRef.getTransform().getPosition(), playerRef.getTransform().getRotation());
+    }
+
     @Override
-    public @Nullable Location resolve(@NotNull ExecutionContext<BukkitSource> context, @NotNull CommandInputStream<BukkitSource> stream, @NotNull String input) throws ImperatException {
+    @SuppressWarnings("unchecked")
+    public @Nullable Location resolve(@NotNull ExecutionContext<HytaleSource> context, @NotNull CommandInputStream<HytaleSource> stream, @NotNull String input) throws
+            ImperatException {
         try {
             String currentRaw = stream.currentRaw().orElseThrow();
             return locFromStr(context, stream, currentRaw);
@@ -41,27 +51,27 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
             World world;
             String currentRaw = stream.currentRaw().orElseThrow();
 
-            if (!TypeUtility.isNumber(currentRaw) && !currentRaw.equals(SELF_LOCATION_SYMBOL) && Bukkit.getWorld(currentRaw) != null) {
-                world = Bukkit.getWorld(currentRaw);
+            if (!TypeUtility.isNumber(currentRaw) && !currentRaw.equals(SELF_LOCATION_SYMBOL) && getWorldByName(currentRaw) != null) {
+                world = getWorldByName(currentRaw);
                 stream.skipRaw();
             } else if (context.source().isConsole()) {
-                var worlds = Bukkit.getWorlds();
+                var worlds = Universe.get().getWorlds().values();
                 if (worlds.isEmpty()) {
                     throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.NO_WORLDS_AVAILABLE, context);
                 }
-                world = Bukkit.getWorlds().get(0);
+                world = Universe.get().getDefaultWorld();
             } else {
                 world = context.source().asPlayer().getWorld();
             }
 
-            ParameterType<BukkitSource, Double> doubleParser = (ParameterType<BukkitSource, Double>) context.imperatConfig().getParameterType(Double.class);
+            ParameterType<HytaleSource, Double> doubleParser = (ParameterType<HytaleSource, Double>) context.imperatConfig().getParameterType(Double.class);
             if (doubleParser == null) {
                 throw new IllegalArgumentException("Failed to find a parser for type '" + Double.class.getTypeName() + "'");
             }
 
             Location playerLocation = null;
             if (!context.source().isConsole()) {
-                playerLocation = context.source().asPlayer().getLocation();
+                playerLocation = getPlayerLocation(context.source().asPlayerRef());
             }
 
             String inputX = stream.readInput();
@@ -70,7 +80,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                 if (playerLocation == null) {
                     throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, inputX, null, null, null, null, context);
                 }
-                x = playerLocation.getX();
+                x = playerLocation.getPosition().getX();
             } else {
                 x = doubleParser.resolve(context, stream, inputX);
                 if (x == null) {
@@ -85,7 +95,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                 if (playerLocation == null) {
                     throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, inputY, null, null, null, context);
                 }
-                y = playerLocation.getY();
+                y = playerLocation.getPosition().getY();
             } else {
                 y = doubleParser.resolve(context, stream, inputY);
                 if (y == null) {
@@ -100,7 +110,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                 if (playerLocation == null) {
                     throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, inputZ, null, null, context);
                 }
-                z = playerLocation.getZ();
+                z = playerLocation.getPosition().getZ();
             } else {
                 z = doubleParser.resolve(context, stream, inputZ);
                 if (z == null) {
@@ -122,7 +132,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                     if (playerLocation == null) {
                         throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, null, null, inputYaw, context);
                     }
-                    yaw = playerLocation.getYaw();
+                    yaw = playerLocation.getRotation().getYaw();
                 } else {
                     Double yawDouble = doubleParser.resolve(context, stream, inputYaw);
                     if (yawDouble == null) {
@@ -138,7 +148,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                         if (playerLocation == null) {
                             throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, null, inputPitch, null, context);
                         }
-                        pitch = playerLocation.getPitch();
+                        pitch = playerLocation.getRotation().getPitch();
                     } else {
                         Double pitchDouble = doubleParser.resolve(context, stream, inputPitch);
                         if (pitchDouble == null) {
@@ -153,20 +163,20 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
         }
     }
 
-    private @NotNull Location locFromStr(ExecutionContext<BukkitSource> context, CommandInputStream<BukkitSource> stream, String currentRaw) throws ImperatException {
+    private @NotNull Location locFromStr(ExecutionContext<HytaleSource> context, CommandInputStream<HytaleSource> stream, String currentRaw) throws ImperatException {
         String[] split = currentRaw.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
             throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.WRONG_FORMAT, context);
         }
 
-        World world = Bukkit.getWorld(split[0]);
+        World world = getWorldByName(split[0]);
         if (world == null) {
             throw new UnknownWorldException(split[0], context);
         }
 
         Location playerLocation = null;
         if (!context.source().isConsole()) {
-            playerLocation = context.source().asPlayer().getLocation();
+            playerLocation = getPlayerLocation(context.source().asPlayerRef());
         }
 
         double x;
@@ -174,7 +184,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
             if (playerLocation == null) {
                 throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, split[1], null, null, null, null, context);
             }
-            x = playerLocation.getX();
+            x = playerLocation.getPosition().getX();
         } else {
             x = Objects.requireNonNull(doubleParser.resolve(context, stream, split[1]));
         }
@@ -184,7 +194,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
             if (playerLocation == null) {
                 throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, split[2], null, null, null, context);
             }
-            y = playerLocation.getY();
+            y = playerLocation.getPosition().getY();
         } else {
             y = Objects.requireNonNull(doubleParser.resolve(context, stream, split[2]));
         }
@@ -194,7 +204,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
             if (playerLocation == null) {
                 throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, split[3], null, null, context);
             }
-            z = playerLocation.getZ();
+            z = playerLocation.getPosition().getZ();
         } else {
             z = Objects.requireNonNull(doubleParser.resolve(context, stream, split[3]));
         }
@@ -207,7 +217,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                 if (playerLocation == null) {
                     throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, null, null, split[4], context);
                 }
-                yaw = playerLocation.getYaw();
+                yaw = playerLocation.getRotation().getYaw();
             } else {
                 yaw = (float) Objects.requireNonNull(doubleParser.resolve(context, stream, split[4])).doubleValue();
             }
@@ -218,21 +228,23 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                 if (playerLocation == null) {
                     throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, null, split[5], null, context);
                 }
-                pitch = playerLocation.getPitch();
+                pitch = playerLocation.getRotation().getPitch();
             } else {
                 pitch = (float) Objects.requireNonNull(doubleParser.resolve(context, stream, split[5])).doubleValue();
             }
         }
 
-        return createLocation(world, x, y, z, yaw, pitch);
+        return createLocation(world, x, y, z,  yaw,  pitch);
     }
 
     private Location createLocation(World world, double x, double y, double z, float yaw, float pitch) {
-        return new Location(world, x, y, z, yaw, pitch);
+        Location location = new Location(world == null ? null : world.getName(), x, y, z);
+        location.setRotation(new Vector3f(yaw, pitch));
+        return location;
     }
 
     @Override
-    public boolean isGreedy(CommandParameter<BukkitSource> parameter) {
+    public boolean isGreedy(CommandParameter<HytaleSource> parameter) {
         return true;
     }
 }
