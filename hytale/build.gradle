@@ -1,11 +1,14 @@
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://repo.gravemc.net/releases")
+    }
 }
 
 dependencies {
 
     compileOnly project(":core")
-    compileOnly(files("libs/HytaleServer.jar"))
+    compileOnly "com.hypixel:hytale-server:1.0.0"
     compileOnly("org.jetbrains:annotations:26.0.2-1")
 
 }
