@@ -32,7 +32,8 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
     public @Nullable Player resolve(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream,
-            @NotNull String input) throws ImperatException {
+            @NotNull String input
+    ) throws ImperatException {
 
         if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
