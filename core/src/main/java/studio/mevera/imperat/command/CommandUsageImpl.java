@@ -34,7 +34,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     private Description description = Description.of("N/A");
     private @NotNull CooldownHandler<S> cooldownHandler;
     private @Nullable UsageCooldown cooldown = null;
-    private CommandCoordinator<S> commandCoordinator;
+    private CommandCoordinator<S> commandCoordinator ;
 
     private final Set<FlagData<S>> freeFlags = new HashSet<>(EXPECTED_FREE_FLAGS_CAPACITY);
     private final FlagExtractor<S> flagExtractor;
@@ -48,7 +48,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     CommandUsageImpl(@NotNull CommandExecution<S> execution, boolean help) {
         this.execution = execution;
         this.cooldownHandler = CooldownHandler.createDefault(this);
-        this.commandCoordinator = CommandCoordinator.sync();
+        this.commandCoordinator = null;
         this.help = help;
         this.flagExtractor = FlagExtractor.createNative(this);
     }
@@ -345,7 +345,11 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      */
     @Override
     public void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws ImperatException {
-        commandCoordinator.coordinate(imperat, source, context, this.execution);
+        CommandCoordinator<S> coordinator = commandCoordinator;
+        if(coordinator == null) {
+            coordinator = imperat.config().getGlobalCommandCoordinator();
+        }
+        coordinator.coordinate(imperat, source, context, this.execution);
     }
 
     @Override

@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.command.AttachmentMode;
+import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.CommandParameter;
@@ -63,6 +64,11 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     public B throwablePrinter(ThrowablePrinter printer) {
         config.setThrowablePrinter(printer);
+        return (B) this;
+    }
+
+    public B globalCoordinator(CommandCoordinator<S> commandCoordinator) {
+        config.setGlobalCommandCoordinator(commandCoordinator);
         return (B) this;
     }
 

@@ -8,6 +8,7 @@ import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.CommandParameter;
@@ -413,5 +414,12 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @param factory the instance factory to set
      */
     void setInstanceFactory(InstanceFactory<S> factory);
-    
+
+    /**
+     * @return the default global command coordinator
+     */
+    CommandCoordinator<S> getGlobalCommandCoordinator();
+
+    void setGlobalCommandCoordinator(CommandCoordinator<S> commandCoordinator);
+
 }

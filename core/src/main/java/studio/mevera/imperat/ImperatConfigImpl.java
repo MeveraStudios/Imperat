@@ -82,7 +82,9 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
 
     private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
-    
+
+    private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
+
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault();
         paramTypeRegistry = ParamTypeRegistry.createDefault();
@@ -803,6 +805,17 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public void setInstanceFactory(InstanceFactory<S> factory) {
         this.instanceFactory = factory;
     }
+
+    @Override
+    public CommandCoordinator<S> getGlobalCommandCoordinator() {
+        return commandCoordinator;
+    }
+
+    @Override
+    public void setGlobalCommandCoordinator(CommandCoordinator<S> commandCoordinator) {
+        this.commandCoordinator = commandCoordinator;
+    }
+
 
     @Override
     public @NotNull ThrowablePrinter getThrowablePrinter() {

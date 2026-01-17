@@ -70,12 +70,6 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
             }
             return source.as(Player.class);
         });
-        config.registerSourceResolver(PlayerRef.class, (source, ctx)-> {
-            if(source.isConsole()) {
-                throw new OnlyConsoleAllowedException(ctx);
-            }
-            return source.asPlayerRef();
-        });
     }
 
     private void registerDefaultParamTypes() {

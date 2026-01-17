@@ -59,11 +59,6 @@ public class HytaleSource implements Source {
     }
 
     public PlayerRef asPlayerRef() {
-        Player pl = asPlayer();
-        var ref = pl.getReference();
-        if(ref == null) {
-            throw new NullPointerException("Player ref is null");
-        }
-        return ref.getStore().getComponent(ref, PlayerRef.getComponentType());
+       return asPlayer().getPlayerRef();
     }
 }
