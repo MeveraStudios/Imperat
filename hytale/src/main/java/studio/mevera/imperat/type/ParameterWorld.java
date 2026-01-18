@@ -41,7 +41,7 @@ public class ParameterWorld extends BaseParameterType<HytaleSource, World> {
 
     @Override
     public SuggestionResolver<HytaleSource> getSuggestionResolver() {
-        return (_, _)->
+        return (ignored, ignoredToo)->
                 new ArrayList<>(Universe.get().getWorlds().keySet());
     }
 }
