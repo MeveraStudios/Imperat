@@ -5,6 +5,7 @@ import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.console.ConsoleSender;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
 import studio.mevera.imperat.context.Source;
 
 import java.awt.Color;
@@ -63,6 +64,7 @@ public class HytaleSource implements Source {
     }
 
     public PlayerRef asPlayerRef() {
-       return asPlayer().getPlayerRef();
+       return Universe.get().getPlayer(sender.getUuid());
     }
+
 }
