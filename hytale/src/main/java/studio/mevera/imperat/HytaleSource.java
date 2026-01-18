@@ -34,6 +34,10 @@ public class HytaleSource implements Source {
         sender.sendMessage(Message.raw(message));
     }
 
+    public void reply(Message message) {
+        sender.sendMessage(message);
+    }
+
     @Override
     public void warn(String message) {
         sender.sendMessage(Message.raw(message).color(Color.YELLOW));
