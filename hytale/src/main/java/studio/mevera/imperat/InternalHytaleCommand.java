@@ -9,8 +9,8 @@ final class InternalHytaleCommand extends CommandBase {
 
     private final HytaleImperat imperat;
 
-    InternalHytaleCommand(HytaleImperat imperat, Command<HytaleSource> imperatCmd) {
-        super(imperatCmd.name(), imperatCmd.description().toString());
+    InternalHytaleCommand(HytaleImperat imperat, String alias, Command<HytaleSource> imperatCmd) {
+        super(alias, imperatCmd.description().toString());
         this.imperat = imperat;
         setAllowsExtraArguments(true);
     }
