@@ -1,5 +1,6 @@
 package studio.mevera.imperat.type;
 
+import com.hypixel.hytale.server.core.NameMatching;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import org.jetbrains.annotations.NotNull;
@@ -15,8 +16,6 @@ import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
-import studio.mevera.imperat.util.PlayerUtil;
-
 import java.util.List;
 
 public class ParameterPlayer extends BaseParameterType<HytaleSource, PlayerRef> {
@@ -26,6 +25,10 @@ public class ParameterPlayer extends BaseParameterType<HytaleSource, PlayerRef> 
 
     public ParameterPlayer() {
         super();
+    }
+
+    private static @Nullable PlayerRef getPlayerByName(String in) {
+        return Universe.get().getPlayer(in, NameMatching.DEFAULT);
     }
 
     @Override
@@ -41,7 +44,7 @@ public class ParameterPlayer extends BaseParameterType<HytaleSource, PlayerRef> 
             return context.source().asPlayerRef();
         }
 
-        PlayerRef player = PlayerUtil.getPlayerRefByName(input);
+        PlayerRef player = getPlayerByName(input);
         if (player != null) return player;
 
         throw new UnknownPlayerException(input, context);
@@ -88,7 +91,7 @@ public class ParameterPlayer extends BaseParameterType<HytaleSource, PlayerRef> 
             return false;
         }
 
-        return PlayerUtil.getPlayerRefByName(input) != null;
+        return getPlayerByName(input) != null;
     }
 }
 
