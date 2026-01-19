@@ -47,6 +47,7 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
      */
     MinestomConfigBuilder(@NotNull ServerProcess serverProcess) {
         this.serverProcess = serverProcess;
+        this.permissionChecker((src, perm)-> perm == null || src.isConsole());
         registerDefaultResolvers();
         addThrowableHandlers();
         registerContextResolvers();
