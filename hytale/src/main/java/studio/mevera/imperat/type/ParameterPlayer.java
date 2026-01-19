@@ -1,10 +1,8 @@
 package studio.mevera.imperat.type;
 
-import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.server.core.NameMatching;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
-import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleSource;
@@ -43,12 +41,7 @@ public class ParameterPlayer extends BaseParameterType<HytaleSource, PlayerRef> 
             if (context.source().isConsole()) {
                 throw new UnknownPlayerException(input, context);
             }
-            Ref<EntityStore> ref = context.source().asPlayer().getReference();
-            if(ref != null) {
-                return ref.getStore().getComponent(ref, PlayerRef.getComponentType());
-            }else {
-                throw new IllegalStateException("Sender player does not exist for some reason.");
-            }
+            return context.source().asPlayerRef();
         }
 
         PlayerRef player = getPlayerByName(input);
