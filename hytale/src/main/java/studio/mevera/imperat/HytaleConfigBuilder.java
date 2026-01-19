@@ -26,6 +26,12 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
 
     HytaleConfigBuilder(JavaPlugin plugin) {
         this.plugin = plugin;
+        this.permissionChecker((src, perm)-> {
+            if(perm == null || src.isConsole()) {
+                return true;
+            }
+            return src.asPlayer().hasPermission(perm);
+        });
         this.registerContextResolvers();
         this.registerDefaultSourceResolvers();
         this.registerDefaultParamTypes();
