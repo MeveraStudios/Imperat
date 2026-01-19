@@ -58,6 +58,12 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
     VelocityConfigBuilder(@NotNull P plugin, @NotNull ProxyServer proxyServer) {
         this.plugin = plugin;
         this.proxyServer = proxyServer;
+        this.permissionChecker((src, perm)-> {
+            if(perm == null || src.isConsole()) {
+                return true;
+            }
+            return src.asPlayer().hasPermission(perm);
+        });
         addThrowableHandlers();
         registerSourceResolvers();
         registerParameterTypes();
