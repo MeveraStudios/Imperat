@@ -7,6 +7,7 @@ import studio.mevera.imperat.HytaleSource;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.exception.UnknownWorldException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+
 import java.util.ArrayList;
 
 public class ParameterWorld extends HytaleParameterType<World> {
@@ -27,7 +28,6 @@ public class ParameterWorld extends HytaleParameterType<World> {
 
     @Override
     public SuggestionResolver<HytaleSource> getSuggestionResolver() {
-        return (ignored, ignoredToo)->
-                new ArrayList<>(Universe.get().getWorlds().keySet());
+        return (ignored, ignoredToo) -> new ArrayList<>(Universe.get().getWorlds().keySet());
     }
 }

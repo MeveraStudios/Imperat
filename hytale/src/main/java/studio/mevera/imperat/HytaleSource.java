@@ -8,7 +8,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import studio.mevera.imperat.context.Source;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.UUID;
 
 public class HytaleSource implements Source {
@@ -18,7 +18,6 @@ public class HytaleSource implements Source {
     HytaleSource(CommandSender sender) {
         this.sender = sender;
     }
-
 
     @Override
     public String name() {
@@ -64,7 +63,7 @@ public class HytaleSource implements Source {
     }
 
     public PlayerRef asPlayerRef() {
-       return Universe.get().getPlayer(sender.getUuid());
+        return Universe.get().getPlayer(sender.getUuid());
     }
 
 }

@@ -6,7 +6,6 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleSource;
-import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.context.Context;
@@ -14,6 +13,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.PlayerUtil;
 
@@ -57,19 +57,6 @@ public class ParameterPlayer extends HytaleParameterType<PlayerRef> {
         return SUGGESTION_RESOLVER;
     }
 
-    private final static class PlayerSuggestionResolver implements SuggestionResolver<HytaleSource> {
-
-        /**
-         * @param context   the context for suggestions
-         * @param parameter the parameter of the value to complete
-         * @return the auto-completed suggestions of the current argument
-         */
-        @Override
-        public List<String> autoComplete(SuggestionContext<HytaleSource> context, CommandParameter<HytaleSource> parameter) {
-            return Universe.get().getPlayers().stream().map(PlayerRef::getUsername).toList();
-        }
-    }
-
     /**
      * Returns the default value supplier for the given source and command parameter.
      * By default, this returns an empty supplier, indicating no default value.
@@ -89,6 +76,19 @@ public class ParameterPlayer extends HytaleParameterType<PlayerRef> {
         }
 
         return PlayerUtil.getPlayerRefByName(input) != null;
+    }
+
+    private final static class PlayerSuggestionResolver implements SuggestionResolver<HytaleSource> {
+
+        /**
+         * @param context   the context for suggestions
+         * @param parameter the parameter of the value to complete
+         * @return the auto-completed suggestions of the current argument
+         */
+        @Override
+        public List<String> autoComplete(SuggestionContext<HytaleSource> context, CommandParameter<HytaleSource> parameter) {
+            return Universe.get().getPlayers().stream().map(PlayerRef::getUsername).toList();
+        }
     }
 }
 

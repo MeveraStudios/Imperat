@@ -47,20 +47,23 @@ public class HytaleImperat extends BaseImperat<HytaleSource> {
 
     @Override
     public void unregisterCommand(String name) {
-        Command<HytaleSource> command = getCommand(name);
-        if(command == null) return;
+        final Command<HytaleSource> command = getCommand(name);
+        if (command == null) return;
 
         List<String> aliases = new ArrayList<>(command.aliases());
         aliases.addFirst(name.toLowerCase());
-        aliases.forEach((alias)-> HytaleServer.get().getCommandManager()
-                .getCommandRegistration().remove(alias.toLowerCase()));
+
+        var commandManager = HytaleServer.get().getCommandManager();
+        aliases.forEach(
+                (alias) -> commandManager.getCommandRegistration().remove(alias.toLowerCase())
+        );
 
         super.unregisterCommand(name);
     }
 
     @Override
     public HytaleSource wrapSender(Object sender) {
-        if(!(sender instanceof CommandSender cmdSender)) {
+        if (!(sender instanceof CommandSender cmdSender)) {
             throw new IllegalArgumentException("Sender object is not of type '" + CommandSender.class.getName() + "'");
         }
         return new HytaleSource(cmdSender);

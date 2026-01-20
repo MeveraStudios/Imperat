@@ -36,6 +36,7 @@ public class ParameterLocation extends BaseParameterType<HytaleSource, Location>
     private static World getWorldByName(String in) {
         return Universe.get().getWorld(in);
     }
+
     private static Location getPlayerLocation(PlayerRef playerRef) {
         return new Location(playerRef.getTransform().getPosition(), playerRef.getTransform().getRotation());
     }
@@ -234,7 +235,7 @@ public class ParameterLocation extends BaseParameterType<HytaleSource, Location>
             }
         }
 
-        return createLocation(world, x, y, z,  yaw,  pitch);
+        return createLocation(world, x, y, z, yaw, pitch);
     }
 
     private Location createLocation(World world, double x, double y, double z, float yaw, float pitch) {

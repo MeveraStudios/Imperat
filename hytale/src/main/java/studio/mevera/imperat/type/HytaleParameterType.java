@@ -20,16 +20,18 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
     private final ArgumentType<T> hytaleArgType;
     private final ExceptionProvider exceptionProvider;
     private final SuggestionResolver<HytaleSource> suggestionResolver;
+
     public HytaleParameterType(Class<T> type, ArgumentType<T> hytaleArgType, ExceptionProvider provider) {
         super(type);
         this.hytaleArgType = hytaleArgType;
         this.exceptionProvider = provider;
-        this.suggestionResolver = (ctx, commandParameter)-> {
+        this.suggestionResolver = (ctx, commandParameter) -> {
             SuggestionResult result = new SuggestionResult();
             hytaleArgType.suggest(ctx.source().origin(), ctx.getArgToComplete().value(), ctx.arguments().size(), result);
             return result.getSuggestions();
         };
     }
+
     public HytaleParameterType(Data<T> data) {
         this(data.type, data.argumentType, data.provider);
     }
@@ -78,7 +80,7 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
     @FunctionalInterface
     public interface ExceptionProvider {
 
-        ExceptionProvider DEFAULT = (in, ctx)-> new ParseException(in, ctx) {};
+        ExceptionProvider DEFAULT = (in, ctx) -> new ParseException(in, ctx) {};
 
         ImperatException fetch(String input, Context<HytaleSource> context);
     }

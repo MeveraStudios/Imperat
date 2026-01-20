@@ -1,12 +1,9 @@
 package studio.mevera.imperat;
 
 import com.hypixel.hytale.server.core.command.system.CommandContext;
-import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
-import com.hypixel.hytale.server.core.universe.world.World;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
@@ -28,7 +25,7 @@ final class InternalHytaleCommand extends CommandBase {
         addAliases(imperatCmd.aliases().toArray(String[]::new));
 
         String cmdPerm;
-        if((cmdPerm = imperatCmd.getMainPermission()) != null) {
+        if ((cmdPerm = imperatCmd.getMainPermission()) != null) {
             this.requirePermission(cmdPerm);
         }
 
@@ -39,51 +36,42 @@ final class InternalHytaleCommand extends CommandBase {
         this.hookSubcommands(imperatCmd);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static ArgumentType<?> loadArgType(CommandParameter<HytaleSource> parameter) {
+        final Type type = parameter.valueType();
+        if (parameter.type() instanceof ParameterEnum parameterEnum) {
+            var typeStr = type.getTypeName();
+            var enumTypeName = typeStr.substring(typeStr.lastIndexOf('.') + 1);
+            return ArgTypes.forEnum(enumTypeName, parameterEnum.wrappedType().getRawType());
+        }
+
+        if (parameter.isNumeric()) {
+            if (TypeUtility.matches(type, Double.class)) {
+                return ArgTypes.DOUBLE;
+            } else if (TypeUtility.matches(type, Float.class)) {
+                return ArgTypes.FLOAT;
+            } else {
+                return ArgTypes.INTEGER;
+            }
+        } else {
+            if (parameter.type() instanceof HytaleParameterType<?> hytaleParameterType) {
+                return hytaleParameterType.getHytaleArgType();
+            }
+        }
+        return ArgTypes.STRING;
+    }
+
     private void hookRequiredArgs(Command<HytaleSource> imperatCmd) {
         CommandUsage<HytaleSource> mainUsage = imperatCmd.getMainUsage();
-        for(CommandParameter<HytaleSource> parameter : mainUsage) {
+        for (CommandParameter<HytaleSource> parameter : mainUsage) {
             withRequiredArg(parameter.name(), parameter.description().toString(), loadArgType(parameter));
         }
     }
 
-    private static ArgumentType<?> loadArgType(CommandParameter<HytaleSource> parameter) {
-
-        Type type = parameter.valueType();
-        if(parameter.type() instanceof ParameterEnum parameterEnum) {
-            var typeStr = type.getTypeName();
-            var enumTypeName = typeStr.substring(typeStr.lastIndexOf('.')+1);
-            return ArgTypes.forEnum(enumTypeName, parameterEnum.wrappedType().getRawType());
-        }
-
-        if(parameter.isNumeric()) {
-            if(TypeUtility.matches(type, Double.class)) {
-                return ArgTypes.DOUBLE;
-            }
-
-            else if (TypeUtility.matches(type, Float.class)) {
-                return ArgTypes.FLOAT;
-            }
-            else {
-                return ArgTypes.INTEGER;
-            }
-        }else {
-
-            //Genius solution
-            if(parameter.type() instanceof HytaleParameterType<?> hytaleParameterType) {
-                return hytaleParameterType.getHytaleArgType();
-            }
-
-        }
-
-        return ArgTypes.STRING;
-    }
-
     private void hookSubcommands(Command<HytaleSource> imperatCmd) {
-
         for (var sub : imperatCmd.getSubCommands()) {
-            this.addSubCommand(new InternalHytaleCommand(imperat,  sub));
+            this.addSubCommand(new InternalHytaleCommand(imperat, sub));
         }
-
     }
 
     @Override
