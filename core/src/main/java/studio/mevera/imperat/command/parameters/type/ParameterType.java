@@ -129,7 +129,7 @@ public interface ParameterType<S extends Source, T> {
      * @return the number of consumed arguments.
      */
     @ApiStatus.AvailableSince("2.1.0")
-    default int getConsumedArguments() {
+    default int getNumberOfParametersToConsume() {
         return 1;
     }
     

@@ -648,7 +648,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             int depth
     ) {
         final int inputSize = input.size();
-        final boolean isLastDepth = (depth == inputSize - currentNode.getConsumedArguments());
+        final boolean isLastDepth = (depth == inputSize - currentNode.getNumberOfParametersToConsume());
         
         if (isLastDepth) {
             return handleLastDepth(commandPathSearch, context, currentNode, depth);
@@ -685,7 +685,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         commandPathSearch.append(currentNode);
         
         // Check if we can execute at this point
-        if (currentNode.isExecutable() && depth == inputSize - currentNode.getConsumedArguments()) {
+        if (currentNode.isExecutable() && depth == inputSize - currentNode.getNumberOfParametersToConsume()) {
             commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
             commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
             return commandPathSearch;
@@ -699,7 +699,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         
         // Process children
         for (var child : children) {
-            final var result = dispatchNode(commandPathSearch, context, input, child, depth + currentNode.getConsumedArguments());
+            final var result = dispatchNode(commandPathSearch, context, input, child, depth + currentNode.getNumberOfParametersToConsume());
             if (result.getResult().isStoppable()) {
                 return result;
             }
@@ -910,7 +910,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
             
             for (var child : node.getChildren()) {
-                tabCompleteNode(child, context, inputDepth+node.getConsumedArguments(), results);
+                tabCompleteNode(child, context, inputDepth+node.getNumberOfParametersToConsume(), results);
             }
             
         }

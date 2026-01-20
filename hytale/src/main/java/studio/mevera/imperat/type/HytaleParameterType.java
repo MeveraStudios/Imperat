@@ -57,7 +57,7 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
     }
 
     @Override
-    public int getConsumedArguments() {
+    public int getNumberOfParametersToConsume() {
         return hytaleArgType.getNumberOfParameters();
     }
 

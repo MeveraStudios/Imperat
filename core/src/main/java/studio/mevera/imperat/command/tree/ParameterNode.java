@@ -244,8 +244,8 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         return parent == null;
     }
     
-    public int getConsumedArguments() {
-        int incrementation = this.data.type().getConsumedArguments();
+    public int getNumberOfParametersToConsume() {
+        int incrementation = this.data.type().getNumberOfParametersToConsume();
         if(incrementation < 1) incrementation = 1;
         return incrementation;
     }

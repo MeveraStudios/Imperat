@@ -149,7 +149,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
     }
     
     @Override
-    public int getConsumedArguments() {
+    public int getNumberOfParametersToConsume() {
         return flagData.isSwitch() ? 1 : 2;
     }
 }
