@@ -1,5 +1,6 @@
 package studio.mevera.imperat.type;
 
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import org.jetbrains.annotations.NotNull;
@@ -8,7 +9,6 @@ import studio.mevera.imperat.HytaleSource;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
-import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
@@ -19,13 +19,13 @@ import studio.mevera.imperat.util.PlayerUtil;
 
 import java.util.List;
 
-public class ParameterPlayer extends BaseParameterType<HytaleSource, PlayerRef> {
+public class ParameterPlayer extends HytaleParameterType<PlayerRef> {
 
     private final PlayerSuggestionResolver SUGGESTION_RESOLVER = new PlayerSuggestionResolver();
     private final OptionalValueSupplier DEFAULT_VALUE_SUPPLIER = OptionalValueSupplier.of("~");
 
     public ParameterPlayer() {
-        super();
+        super(PlayerRef.class, ArgTypes.PLAYER_REF, UnknownPlayerException::new);
     }
 
     @Override
