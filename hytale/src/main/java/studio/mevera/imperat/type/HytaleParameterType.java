@@ -6,6 +6,7 @@ import com.hypixel.hytale.server.core.command.system.suggestion.SuggestionResult
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleSource;
+import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -67,6 +68,11 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
 
     public ArgumentType<T> getHytaleArgType() {
         return hytaleArgType;
+    }
+
+    @Override
+    public boolean isGreedy(CommandParameter<HytaleSource> parameter) {
+        return hytaleArgType.isListArgument();
     }
 
     @FunctionalInterface
