@@ -40,11 +40,7 @@ final class InternalHytaleCommand extends CommandBase {
     private void hookRequiredArgs(Command<HytaleSource> imperatCmd) {
         CommandUsage<HytaleSource> mainUsage = imperatCmd.getMainUsage();
         for(CommandParameter<HytaleSource> parameter : mainUsage) {
-            RequiredArg<?> hytaleRequiredArg = withRequiredArg(parameter.name(), parameter.description().toString(), loadArgType(parameter));
-            System.out.println(
-                    "CMD '" + imperatCmd.name() + "' Adding arg '" + parameter.format() + ":" + parameter.valueType().getTypeName() + "' of "
-                    + "hytale-type '" + hytaleRequiredArg.getName() + "'"
-            );
+            withRequiredArg(parameter.name(), parameter.description().toString(), loadArgType(parameter));
         }
     }
 
