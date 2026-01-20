@@ -2,6 +2,7 @@ package studio.mevera.imperat.type;
 
 import com.hypixel.hytale.server.core.command.system.ParseResult;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType;
+import com.hypixel.hytale.server.core.command.system.suggestion.SuggestionResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleSource;
@@ -11,21 +12,25 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.ImperatException;
 import studio.mevera.imperat.exception.ParseException;
+import studio.mevera.imperat.resolvers.SuggestionResolver;
 
 public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
 
     private final ArgumentType<T> hytaleArgType;
     private final ExceptionProvider exceptionProvider;
-
+    private final SuggestionResolver<HytaleSource> suggestionResolver;
     public HytaleParameterType(Class<T> type, ArgumentType<T> hytaleArgType, ExceptionProvider provider) {
         super(type);
         this.hytaleArgType = hytaleArgType;
         this.exceptionProvider = provider;
+        this.suggestionResolver = (ctx, commandParameter)-> {
+            SuggestionResult result = new SuggestionResult();
+            hytaleArgType.suggest(ctx.source().origin(), ctx.getArgToComplete().value(), ctx.arguments().size(), result);
+            return result.getSuggestions();
+        };
     }
     public HytaleParameterType(Data<T> data) {
-        super(data.type);
-        this.hytaleArgType = data.argumentType;
-        this.exceptionProvider = data.provider;
+        this(data.type, data.argumentType, data.provider);
     }
 
 
@@ -48,6 +53,16 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
             }
             return parsedArg;
         }
+    }
+
+    @Override
+    public int getConsumedArguments() {
+        return hytaleArgType.getNumberOfParameters();
+    }
+
+    @Override
+    public SuggestionResolver<HytaleSource> getSuggestionResolver() {
+        return suggestionResolver;
     }
 
     public ArgumentType<T> getHytaleArgType() {
