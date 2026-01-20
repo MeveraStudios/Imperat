@@ -10,6 +10,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterEnum;
+import studio.mevera.imperat.type.HytaleParameterType;
 import studio.mevera.imperat.util.TypeUtility;
 
 import java.lang.reflect.Type;
@@ -45,6 +46,7 @@ final class InternalHytaleCommand extends CommandBase {
     }
 
     private static ArgumentType<?> loadArgType(CommandParameter<HytaleSource> parameter) {
+
         Type type = parameter.valueType();
         if(parameter.type() instanceof ParameterEnum parameterEnum) {
             var typeStr = type.getTypeName();
@@ -52,11 +54,25 @@ final class InternalHytaleCommand extends CommandBase {
             return ArgTypes.forEnum(enumTypeName, parameterEnum.wrappedType().getRawType());
         }
 
+        if(parameter.isNumeric()) {
+            if(TypeUtility.matches(type, Double.class)) {
+                return ArgTypes.DOUBLE;
+            }
 
-        if(TypeUtility.matches(type, Integer.class)) {
-            return ArgTypes.INTEGER;
+            else if (TypeUtility.matches(type, Float.class)) {
+                return ArgTypes.FLOAT;
+            }
+            else {
+                return ArgTypes.INTEGER;
+            }
+        }else {
+
+            //Genius solution
+            if(parameter.type() instanceof HytaleParameterType<?> hytaleParameterType) {
+                return hytaleParameterType.getHytaleArgType();
+            }
+
         }
-        //TODO FIND SOMEONE FREE TO CONTRIBUTE
 
         return ArgTypes.STRING;
     }
