@@ -45,7 +45,6 @@ final class InternalHytaleCommand extends CommandBase {
                     "CMD '" + imperatCmd.name() + "' Adding arg '" + parameter.format() + ":" + parameter.valueType().getTypeName() + "' of "
                     + "hytale-type '" + hytaleRequiredArg.getName() + "'"
             );
-            this.getRequiredArguments().add(hytaleRequiredArg);
         }
     }
 
