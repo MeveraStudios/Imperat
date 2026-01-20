@@ -43,7 +43,7 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
         } else {
             //success, lets skip the same amount
             int numberOfArgs = hytaleArgType.getNumberOfParameters();
-            for (int i = 0; i < numberOfArgs; i++) {
+            for (int i = 1; i < numberOfArgs; i++) {
                 inputStream.skipRaw();
             }
             return parsedArg;
