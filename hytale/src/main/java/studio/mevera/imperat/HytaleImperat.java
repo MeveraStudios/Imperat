@@ -37,13 +37,8 @@ public class HytaleImperat extends BaseImperat<HytaleSource> {
     public void registerCommand(Command<HytaleSource> command) {
         super.registerCommand(command);
         registerHytaleCommand(
-                new InternalHytaleCommand(this, command.name().toLowerCase(), command)
+                new InternalHytaleCommand(this, command)
         );
-        for (String alias : command.aliases()) {
-            registerHytaleCommand(
-                    new InternalHytaleCommand(this, alias.toLowerCase(), command)
-            );
-        }
     }
 
     void registerHytaleCommand(InternalHytaleCommand hytaleCommand) {
