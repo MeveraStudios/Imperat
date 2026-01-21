@@ -18,7 +18,6 @@ final class ArgumentDecorator<T> extends Argument<T> {
         this.argument = argument;
     }
 
-
     @Override
     public @NotNull T parse(@NotNull CommandSender sender, @NotNull String input) throws ArgumentSyntaxException {
         return argument.parse(sender, input);
@@ -28,7 +27,6 @@ final class ArgumentDecorator<T> extends Argument<T> {
     public ArgumentParserType parser() {
         return argument.parser();
     }
-
 
     @Override
     public boolean isOptional() {

@@ -32,9 +32,9 @@ import studio.mevera.imperat.util.TypeWrap;
  *     .build();
  * }</pre>
  *
- * @since 1.0
  * @author Imperat Framework
  * @see MinestomImperat
+ * @since 1.0
  */
 public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, MinestomImperat, MinestomConfigBuilder> {
 
@@ -47,26 +47,28 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
      */
     MinestomConfigBuilder(@NotNull ServerProcess serverProcess) {
         this.serverProcess = serverProcess;
-        this.permissionChecker((src, perm)-> perm == null || src.isConsole());
+        this.permissionChecker((src, perm) -> perm == null || src.isConsole());
         registerDefaultResolvers();
         addThrowableHandlers();
         registerContextResolvers();
     }
-    
+
     /**
      * Registers context resolvers for automatic dependency injection in commands.
      * This allows command methods to receive Minestom-specific objects as parameters.
      */
     private void registerContextResolvers() {
         config.registerContextResolver(
-                new TypeWrap<ExecutionContext<MinestomSource>>() {}.getType(),
-                (ctx, paramElement)-> ctx
+                new TypeWrap<ExecutionContext<MinestomSource>>() {
+                }.getType(),
+                (ctx, paramElement) -> ctx
         );
         config.registerContextResolver(
-                new TypeWrap<CommandHelp<MinestomSource>>() {}.getType(),
-                (ctx, paramElement)-> CommandHelp.create(ctx)
+                new TypeWrap<CommandHelp<MinestomSource>>() {
+                }.getType(),
+                (ctx, paramElement) -> CommandHelp.create(ctx)
         );
-        
+
         // Enhanced context resolvers similar to Velocity
         config.registerContextResolver(ServerProcess.class, (ctx, paramElement) -> serverProcess);
     }
@@ -100,18 +102,14 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
      * This provides user-friendly error messages for various error conditions.
      */
     private void addThrowableHandlers() {
-        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
-            context.source().error("Only players can do this!");
-        });
-        
+        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context) -> context.source().error("Only players can do this!"));
+
         // Enhanced exception handling similar to Velocity
-        config.setThrowableResolver(OnlyConsoleAllowedException.class, (ex, context)-> {
-            context.source().error("Only console can do this!");
-        });
-        
+        config.setThrowableResolver(OnlyConsoleAllowedException.class, (ex, context) -> context.source().error("Only console can do this!"));
+
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, context) ->
-                context.source().error("A player with the name '" + exception.getName() + "' is not online.")
+                UnknownPlayerException.class,
+                (exception, context) -> context.source().error("A player with the name '" + exception.getName() + "' is not online.")
         );
     }
 

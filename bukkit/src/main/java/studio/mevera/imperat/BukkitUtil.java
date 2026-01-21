@@ -15,7 +15,6 @@ import studio.mevera.imperat.util.reflection.Reflections;
 import java.lang.reflect.Field;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class BukkitUtil {
@@ -98,19 +97,6 @@ public final class BukkitUtil {
 
         public static Class<?> obcClass(String className) throws ClassNotFoundException {
             return Class.forName(obc(className));
-        }
-
-        public static int minecraftVersion() {
-            try {
-                final Matcher matcher = Pattern.compile("\\(MC: (\\d)\\.(\\d+)\\.?(\\d+?)?( .*)?\\)").matcher(Bukkit.getVersion());
-                if (matcher.find()) {
-                    return Integer.parseInt(matcher.toMatchResult().group(2), 10);
-                } else {
-                    throw new IllegalArgumentException(String.format("No match found in '%s'", Bukkit.getVersion()));
-                }
-            } catch (final IllegalArgumentException ex) {
-                throw new RuntimeException("Failed to determine Minecraft version", ex);
-            }
         }
 
     }

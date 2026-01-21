@@ -8,6 +8,5 @@ public abstract class CastingAdventure<S> implements AdventureProvider<S> {
     public final Audience audience(final S sender) {
         return (Audience) sender;
     }
-    
-    
+
 }

@@ -43,11 +43,11 @@ import java.util.UUID;
  * }
  * }</pre>
  *
- * @since 1.0
  * @author Imperat Framework
  * @see Source
  * @see CommandSender
  * @see ProxiedPlayer
+ * @since 1.0
  */
 public class BungeeSource implements AdventureSource {
 
@@ -58,7 +58,7 @@ public class BungeeSource implements AdventureSource {
      * Creates a new BungeeSource wrapping the specified CommandSender.
      *
      * @param adventureProvider the Adventure provider for rich text support
-     * @param sender the BungeeCord CommandSender to wrap (player or console)
+     * @param sender            the BungeeCord CommandSender to wrap (player or console)
      */
     BungeeSource(AdventureProvider<CommandSender> adventureProvider, CommandSender sender) {
         this.adventureProvider = adventureProvider;

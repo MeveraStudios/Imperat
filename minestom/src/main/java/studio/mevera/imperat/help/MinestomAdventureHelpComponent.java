@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.MinestomSource;
 import studio.mevera.imperat.adventure.AdventureHelpComponent;
+
 import java.util.function.BiConsumer;
 
 /**
@@ -28,17 +29,17 @@ import java.util.function.BiConsumer;
  * MinestomAdventureHelpComponent help = MinestomAdventureHelpComponent.of(helpText);
  * }</pre>
  *
- * @since 2.1.0
  * @author Imperat Framework
  * @see MinestomSource
  * @see AdventureHelpComponent
+ * @since 2.1.0
  */
 public class MinestomAdventureHelpComponent extends AdventureHelpComponent<MinestomSource> {
-    
+
     /**
      * Creates a new MinestomAdventureHelpComponent with the specified component and message sender.
      *
-     * @param componentValue the Adventure Component to display as help
+     * @param componentValue          the Adventure Component to display as help
      * @param sendMessageToSourceFunc function to send the component to a MinestomSource
      */
     protected MinestomAdventureHelpComponent(
@@ -47,7 +48,7 @@ public class MinestomAdventureHelpComponent extends AdventureHelpComponent<Mines
     ) {
         super(componentValue, sendMessageToSourceFunc);
     }
-    
+
     /**
      * Creates a new MinestomAdventureHelpComponent with the specified Adventure Component.
      * Uses the default MinestomSource sendMessage method for sending messages.

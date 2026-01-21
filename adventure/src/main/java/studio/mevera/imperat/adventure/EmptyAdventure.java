@@ -26,10 +26,10 @@ public class EmptyAdventure<S> implements AdventureProvider<S> {
     public void send(final Source source, final ComponentLike component) {
         // do nothing
     }
-    
+
     @Override
     public <SRC extends Source> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
         return null;
     }
-    
+
 }

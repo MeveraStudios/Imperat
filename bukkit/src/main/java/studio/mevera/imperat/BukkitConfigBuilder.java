@@ -48,9 +48,9 @@ import studio.mevera.imperat.util.reflection.Reflections;
  *     .build();
  * }</pre>
  *
- * @since 1.0
  * @author Imperat Framework
  * @see BukkitImperat
+ * @since 1.0
  */
 public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, BukkitImperat, BukkitConfigBuilder> {
 
@@ -69,34 +69,33 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         registerValueResolvers();
         registerContextResolvers();
     }
-    
+
     private void registerContextResolvers() {
         config.registerContextResolver(
                 new TypeWrap<ExecutionContext<BukkitSource>>() {}.getType(),
-                (ctx, paramElement)-> ctx
+                (ctx, paramElement) -> ctx
         );
         config.registerContextResolver(
                 new TypeWrap<CommandHelp<BukkitSource>>() {}.getType(),
-                (ctx, paramElement)-> CommandHelp.create(ctx)
+                (ctx, paramElement) -> CommandHelp.create(ctx)
         );
-        
+
         // Enhanced context resolvers similar to Velocity
         config.registerContextResolver(Plugin.class, (ctx, paramElement) -> plugin);
         config.registerContextResolver(Server.class, (ctx, paramElement) -> plugin.getServer());
     }
-    
+
     private void registerSourceResolvers() {
         config.registerSourceResolver(AdventureSource.class, (bukkitSource, ctx) -> bukkitSource);
         config.registerSourceResolver(CommandSender.class, (bukkitSource, ctx) -> bukkitSource.origin());
-        
-        // Enhanced source resolver for console similar to Velocity
         config.registerSourceResolver(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
-            if (!bukkitSource.isConsole()) {
+            var origin = bukkitSource.origin();
+            if (!(origin instanceof ConsoleCommandSender console)) {
                 throw new OnlyConsoleAllowedException(ctx);
             }
-            return (ConsoleCommandSender) bukkitSource.origin();
+            return console;
         });
-        
+
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new OnlyPlayerAllowedException(ctx);
@@ -106,29 +105,30 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
 
     private void addThrowableHandlers() {
-        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
-            context.source().error("Only players can do this!");
-        });
-        
-        // Enhanced exception handling similar to Velocity
-        config.setThrowableResolver(OnlyConsoleAllowedException.class, (ex, context)-> {
-            context.source().error("Only console can do this!");
-        });
-        
-        config.setThrowableResolver(InvalidSelectorFieldCriteriaFormat.class, (ex, context)-> {
-            context.source().error("Invalid field-criteria format '" + ex.getFieldCriteriaInput() + "'");
-        });
+        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context) ->
+                context.source().error("Only players can do this!"));
 
-        config.setThrowableResolver(UnknownSelectorFieldException.class, (ex, context)-> {
-            context.source().error("Unknown selection field '" + ex.getFieldEntered() + "'");
-        });
+        config.setThrowableResolver(
+                OnlyConsoleAllowedException.class,
+                (ex, context) -> context.source().error("Only console can do this!")
+        );
 
-        config.setThrowableResolver(UnknownEntitySelectionTypeException.class, ((exception, context) -> {
-            context.source().error("Unknown selection type '" + exception.getInput() + "'");
-        }));
+        config.setThrowableResolver(InvalidSelectorFieldCriteriaFormat.class, (ex, context) ->
+                context.source().error("Invalid field-criteria format '" + ex.getFieldCriteriaInput() + "'"));
+
+        config.setThrowableResolver(
+                UnknownSelectorFieldException.class,
+                (ex, context) ->
+                        context.source().error("Unknown selection field '" + ex.getFieldEntered() + "'")
+        );
+
+        config.setThrowableResolver(
+                UnknownEntitySelectionTypeException.class,
+                (exception, context) ->
+                        context.source().error("Unknown selection type '" + exception.getInput() + "'")
+        );
 
         config.setThrowableResolver(InvalidLocationFormatException.class, (exception, context) -> {
-
             InvalidLocationFormatException.Reason reason = exception.getReason();
             String msg = switch (reason) {
                 case INVALID_X_COORDINATE -> "Invalid X coordinate '" + exception.getInputX() + "'";
@@ -145,16 +145,19 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         });
 
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, context) ->
-                context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
+                UnknownPlayerException.class,
+                (exception, context) ->
+                        context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
         );
         config.setThrowableResolver(
-            UnknownOfflinePlayerException.class, (exception, context) ->
-                context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to exist")
+                UnknownOfflinePlayerException.class,
+                (exception, context) ->
+                        context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to exist")
         );
         config.setThrowableResolver(
-            UnknownWorldException.class, (exception, context) ->
-                context.source().error("A world with the name '" + exception.getName() + "' doesn't seem to exist")
+                UnknownWorldException.class,
+                (exception, context) ->
+                        context.source().error("A world with the name '" + exception.getName() + "' doesn't seem to exist")
         );
 
     }

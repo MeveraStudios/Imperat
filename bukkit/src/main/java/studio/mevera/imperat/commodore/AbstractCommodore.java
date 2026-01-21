@@ -34,6 +34,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import studio.mevera.imperat.BukkitUtil;
+import studio.mevera.imperat.Version;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 
@@ -68,7 +69,7 @@ abstract class AbstractCommodore implements Commodore<Command> {
     static {
         try {
             final Class<?> commandListenerWrapper;
-            if (BukkitUtil.ClassesRefUtil.minecraftVersion() > 16)
+            if (Version.isOver(1, 16, 5))
                 commandListenerWrapper = BukkitUtil.ClassesRefUtil.mcClass("commands.CommandListenerWrapper");
             else
                 commandListenerWrapper = BukkitUtil.ClassesRefUtil.nmsClass("CommandListenerWrapper");
@@ -163,15 +164,15 @@ abstract class AbstractCommodore implements Commodore<Command> {
         if (command == null) return Collections.emptyList();
 
         Stream<String> aliasesStream = Stream.concat(
-            Stream.of(command.getLabel()),
-            command.getAliases().stream()
+                Stream.of(command.getLabel()),
+                command.getAliases().stream()
         );
 
         if (command instanceof PluginCommand) {
             String fallbackPrefix = ((PluginCommand) command).getPlugin().getName().toLowerCase().trim();
             aliasesStream = aliasesStream.flatMap(alias -> Stream.of(
-                alias,
-                fallbackPrefix + ":" + alias
+                    alias,
+                    fallbackPrefix + ":" + alias
             ));
         }
 

@@ -47,15 +47,34 @@ import java.util.HashSet;
  * }
  * }</pre>
  *
- * @since 1.0
  * @author Imperat Framework
  * @see BungeeConfigBuilder
  * @see BungeeSource
+ * @since 1.0
  */
 public final class BungeeImperat extends BaseImperat<BungeeSource> {
 
     private final Plugin plugin;
     private final AdventureProvider<CommandSender> adventureProvider;
+
+    /**
+     * Package-private constructor used by BungeeConfigBuilder.
+     * Use {@link #builder(Plugin)} to create instances.
+     *
+     * @param plugin            the plugin instance
+     * @param adventureProvider the Adventure provider for rich text messaging
+     * @param config            the Imperat configuration
+     */
+    BungeeImperat(
+            Plugin plugin,
+            @NotNull AdventureProvider<CommandSender> adventureProvider,
+            ImperatConfig<BungeeSource> config
+    ) {
+        super(config);
+        this.plugin = plugin;
+        this.adventureProvider = adventureProvider;
+        ImperatDebugger.setLogger(plugin.getLogger());
+    }
 
     /**
      * Creates a new configuration builder for BungeeImperat.
@@ -66,25 +85,6 @@ public final class BungeeImperat extends BaseImperat<BungeeSource> {
      */
     public static BungeeConfigBuilder builder(Plugin plugin) {
         return new BungeeConfigBuilder(plugin, null);
-    }
-
-    /**
-     * Package-private constructor used by BungeeConfigBuilder.
-     * Use {@link #builder(Plugin)} to create instances.
-     *
-     * @param plugin the plugin instance
-     * @param adventureProvider the Adventure provider for rich text messaging
-     * @param config the Imperat configuration
-     */
-    BungeeImperat(
-        Plugin plugin,
-        @NotNull AdventureProvider<CommandSender> adventureProvider,
-        ImperatConfig<BungeeSource> config
-    ) {
-        super(config);
-        this.plugin = plugin;
-        this.adventureProvider = adventureProvider;
-        ImperatDebugger.setLogger(plugin.getLogger());
     }
 
     @Override

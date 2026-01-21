@@ -35,9 +35,9 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
     public ParameterTargetSelector() {
         super();
         SelectionType.TYPES.stream()
-            .filter(type -> type != SelectionType.UNKNOWN)
-            .map(SelectionType::id)
-            .forEach((id) -> suggestions.add(SelectionType.MENTION_CHARACTER + id));
+                .filter(type -> type != SelectionType.UNKNOWN)
+                .map(SelectionType::id)
+                .forEach((id) -> suggestions.add(SelectionType.MENTION_CHARACTER + id));
         suggestionResolver = new TargetSelectorSuggestionResolver();
     }
 
@@ -51,19 +51,20 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
         if (raw == null)
             return TargetSelector.empty();
 
-        if (Version.isOrOver(13)) {
-            SelectionType type = commandInputStream.popLetter()
-                .map((s) -> SelectionType.from(String.valueOf(s))).orElse(SelectionType.UNKNOWN);
+        if (Version.isOrOver(1, 13, 0)) {
+            SelectionType type = commandInputStream.popLetter().map(
+                    s -> SelectionType.from(String.valueOf(s))
+            ).orElse(SelectionType.UNKNOWN);
             return TargetSelector.of(
-                type,
-                Bukkit.selectEntities(context.source().origin(), raw)
+                    type,
+                    Bukkit.selectEntities(context.source().origin(), raw)
             );
         }
 
         char last = raw.charAt(raw.length() - 1);
-
-        if (commandInputStream.currentLetter()
-            .filter((c) -> String.valueOf(c).equalsIgnoreCase(SelectionType.MENTION_CHARACTER)).isEmpty()) {
+        if (commandInputStream.currentLetter().filter(
+                c -> String.valueOf(c).equalsIgnoreCase(SelectionType.MENTION_CHARACTER)
+        ).isEmpty()) {
             Player target = Bukkit.getPlayer(raw);
             if (target == null)
                 return TargetSelector.empty();
@@ -71,21 +72,12 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
             return TargetSelector.of(SelectionType.UNKNOWN, target);
         }
 
-        /*if (context.source().isConsole()) {
-            throw new SourceException("Only players can use this");
-        }*/
-
-
-        SelectionType type = commandInputStream.popLetter()
-            .map((s) -> SelectionType.from(String.valueOf(s))).orElse(SelectionType.UNKNOWN);
-        //update current
-
+        SelectionType type = commandInputStream.popLetter().map((s) -> SelectionType.from(String.valueOf(s))).orElse(SelectionType.UNKNOWN);
         if (type == SelectionType.UNKNOWN) {
             throw new UnknownEntitySelectionTypeException(commandInputStream.currentLetter().orElseThrow() + "", context);
         }
 
         List<SelectionParameterInput<?>> inputParameters = new ArrayList<>();
-
         boolean parameterized = commandInputStream.popLetter().map((c) -> c == PARAMETER_START).orElse(false) && last == PARAMETER_END;
         if (parameterized) {
             commandInputStream.skipLetter();
@@ -108,6 +100,16 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
         return TargetSelector.of(type, selected);
     }
 
+    /**
+     * Returns the suggestion resolver associated with this parameter type.
+     *
+     * @return the suggestion resolver for generating suggestions based on the parameter type.
+     */
+    @Override
+    public SuggestionResolver<BukkitSource> getSuggestionResolver() {
+        return suggestionResolver;
+    }
+
     @SuppressWarnings("unchecked")
     private static @NotNull <V> EntityCondition getEntityPredicate(@NotNull CommandInputStream<BukkitSource> commandInputStream, List<SelectionParameterInput<?>> inputParameters, Context<BukkitSource> ctx) {
         EntityCondition entityPredicted = (sender, entity) -> true;
@@ -115,7 +117,7 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
             if (!(input.getField() instanceof PredicateField<?>)) continue;
             PredicateField<V> predicateField = (PredicateField<V>) input.getField();
             entityPredicted = entityPredicted.and(
-                (sender, entity) -> predicateField.isApplicable(sender, entity, (V) input.getValue(), commandInputStream, ctx)
+                    (sender, entity) -> predicateField.isApplicable(sender, entity, (V) input.getValue(), commandInputStream, ctx)
             );
 
         }
@@ -132,16 +134,6 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
         }
     }
 
-    /**
-     * Returns the suggestion resolver associated with this parameter type.
-     *
-     * @return the suggestion resolver for generating suggestions based on the parameter type.
-     */
-    @Override
-    public SuggestionResolver<BukkitSource> getSuggestionResolver() {
-        return suggestionResolver;
-    }
-
     private final class TargetSelectorSuggestionResolver implements SuggestionResolver<BukkitSource> {
 
         /**
@@ -151,13 +143,12 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
          */
         @Override
         public List<String> autoComplete(
-            SuggestionContext<BukkitSource> context,
-            CommandParameter<BukkitSource> parameter
+                SuggestionContext<BukkitSource> context,
+                CommandParameter<BukkitSource> parameter
         ) {
-            //ImperatDebugger.debug("SUGGESTING for TargetSelector");
             List<String> completions = new ArrayList<>(suggestions);
             Bukkit.getOnlinePlayers().stream().
-                map(Player::getName).forEach(completions::add);
+                    map(Player::getName).forEach(completions::add);
             return completions;
         }
     }

@@ -4,6 +4,7 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BukkitUtil;
+import studio.mevera.imperat.Version;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
@@ -261,7 +262,7 @@ public enum MinecraftArgumentType {
 
     private static @Nullable Class<?> resolveArgumentClass(String name) {
         try {
-            if (BukkitUtil.ClassesRefUtil.minecraftVersion() > 16) {
+            if (Version.isOver(1, 16, 5)) {
                 return BukkitUtil.ClassesRefUtil.mcClass("commands.arguments." + name);
             } else {
                 String stripped;
@@ -313,7 +314,7 @@ public enum MinecraftArgumentType {
         if (argumentType != null)
             return (ArgumentType<T>) argumentType;
         throw new IllegalArgumentException("This argument valueType requires " + parameters.length + " parameter(s) of valueType(s) " +
-            Arrays.stream(parameters).map(Class::getName).collect(Collectors.joining(", ")) + ". Use #create() instead.");
+                Arrays.stream(parameters).map(Class::getName).collect(Collectors.joining(", ")) + ". Use #create() instead.");
     }
 
     /**
@@ -354,7 +355,7 @@ public enum MinecraftArgumentType {
         if (argumentType != null)
             return Optional.of((ArgumentType<T>) argumentType);
         throw new IllegalArgumentException("This argument valueType requires " + parameters.length + " parameter(s) of valueType(s) " +
-            Arrays.stream(parameters).map(Class::getName).collect(Collectors.joining(", ")) + ". Use #create() instead.");
+                Arrays.stream(parameters).map(Class::getName).collect(Collectors.joining(", ")) + ". Use #create() instead.");
     }
 
     /**

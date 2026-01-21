@@ -10,17 +10,17 @@ import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.UnknownServerException;
 
 public final class ParameterServerInfo extends BaseParameterType<BungeeSource, ServerInfo> {
-    
+
     private final ProxyServer server;
-    
+
     public ParameterServerInfo(ProxyServer server) {
         this.server = server;
     }
-    
+
     public ParameterServerInfo() {
         this(ProxyServer.getInstance());
     }
-    
+
     @Override
     public @NotNull ServerInfo resolve(
             @NotNull ExecutionContext<BungeeSource> context,

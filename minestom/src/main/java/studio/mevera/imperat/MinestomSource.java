@@ -46,6 +46,7 @@ import java.util.UUID;
  * @see Player
  */
 public final class MinestomSource implements AdventureSource {
+
     private final CommandSender sender;
 
     /**

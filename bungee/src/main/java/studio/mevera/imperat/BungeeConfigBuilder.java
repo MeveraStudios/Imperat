@@ -44,9 +44,9 @@ import studio.mevera.imperat.util.reflection.Reflections;
  *     .build();
  * }</pre>
  *
- * @since 1.0
  * @author Imperat Framework
  * @see BungeeImperat
+ * @since 1.0
  */
 public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, BungeeImperat, BungeeConfigBuilder> {
 
@@ -64,17 +64,17 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
         registerValueResolvers();
         registerContextResolvers();
     }
-    
+
     private void registerContextResolvers() {
         config.registerContextResolver(
                 new TypeWrap<ExecutionContext<BungeeSource>>() {}.getType(),
-                (ctx, paramElement)-> ctx
+                (ctx, paramElement) -> ctx
         );
         config.registerContextResolver(
                 new TypeWrap<CommandHelp<BungeeSource>>() {}.getType(),
-                (ctx, paramElement)-> CommandHelp.create(ctx)
+                (ctx, paramElement) -> CommandHelp.create(ctx)
         );
-        
+
         // Enhanced context resolvers similar to Velocity
         config.registerContextResolver(Plugin.class, (ctx, paramElement) -> plugin);
         config.registerContextResolver(ProxyServer.class, (ctx, paramElement) -> ProxyServer.getInstance());
@@ -102,15 +102,6 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     private void registerSourceResolvers() {
         config.registerSourceResolver(AdventureSource.class, (bungeeSource, ctx) -> bungeeSource);
         config.registerSourceResolver(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
-        
-        // Enhanced source resolver for console similar to Velocity
-        config.registerSourceResolver(net.md_5.bungee.api.CommandSender.class, (bungeeSource, ctx) -> {
-            if (!bungeeSource.isConsole()) {
-                throw new OnlyConsoleAllowedException(ctx);
-            }
-            return ProxyServer.getInstance().getConsole();
-        });
-        
         config.registerSourceResolver(ProxiedPlayer.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new OnlyPlayerAllowedException(ctx);
@@ -120,24 +111,28 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void addThrowableHandlers() {
-        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
-            context.source().error("Only players can do this!");
-        });
-        
-        // Enhanced exception handling similar to Velocity
-        config.setThrowableResolver(OnlyConsoleAllowedException.class, (ex, context)-> {
-            context.source().error("Only console can do this!");
-        });
-        
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, context) ->
-                context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
+                OnlyPlayerAllowedException.class,
+                (ex, context) -> context.source().error("Only players can do this!")
         );
-        
+
+        // Enhanced exception handling similar to Velocity
+        config.setThrowableResolver(
+                OnlyConsoleAllowedException.class,
+                (ex, context) -> context.source().error("Only console can do this!")
+        );
+
+        config.setThrowableResolver(
+                UnknownPlayerException.class,
+                (exception, context) ->
+                        context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
+        );
+
         // Enhanced server exception handling similar to Velocity
         config.setThrowableResolver(
-            UnknownServerException.class, (exception, context) ->
-                context.source().error("A server with the name '" + exception.getInput() + "' doesn't seem to exist")
+                UnknownServerException.class,
+                (exception, context) ->
+                        context.source().error("A server with the name '" + exception.getInput() + "' doesn't seem to exist")
         );
     }
 

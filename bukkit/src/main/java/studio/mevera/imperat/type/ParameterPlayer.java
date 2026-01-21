@@ -20,7 +20,7 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import java.util.List;
 
 public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
-    
+
     private final PlayerSuggestionResolver SUGGESTION_RESOLVER = new PlayerSuggestionResolver();
     private final OptionalValueSupplier DEFAULT_VALUE_SUPPLIER = OptionalValueSupplier.of("~");
 
@@ -58,6 +58,28 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
         return SUGGESTION_RESOLVER;
     }
 
+    /**
+     * Returns the default value supplier for the given source and command parameter.
+     * By default, this returns an empty supplier, indicating no default value.
+     *
+     * @return an {@link OptionalValueSupplier} providing the default value, or empty if none.
+     */
+    @Override
+    public OptionalValueSupplier supplyDefaultValue() {
+        return DEFAULT_VALUE_SUPPLIER;
+    }
+
+    @Override
+    public boolean matchesInput(int rawPosition, Context<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
+        String input = context.arguments().get(rawPosition);
+        if (input == null) {
+            return false;
+        }
+
+        return BukkitUtil.PLAYER_USERNAME_PATTERN.matcher(input).matches()
+                && Bukkit.getPlayer(input) != null;
+    }
+
     private final static class PlayerSuggestionResolver implements SuggestionResolver<BukkitSource> {
 
         /**
@@ -69,27 +91,5 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
         public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         }
-    }
-
-    /**
-     * Returns the default value supplier for the given source and command parameter.
-     * By default, this returns an empty supplier, indicating no default value.
-     *
-     * @return an {@link OptionalValueSupplier} providing the default value, or empty if none.
-     */
-    @Override
-    public OptionalValueSupplier supplyDefaultValue() {
-        return DEFAULT_VALUE_SUPPLIER;
-    }
-    
-    @Override
-    public boolean matchesInput(int rawPosition, Context<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
-        String input = context.arguments().get(rawPosition);
-        if (input == null) {
-            return false;
-        }
-        
-        return BukkitUtil.PLAYER_USERNAME_PATTERN.matcher(input).matches()
-                && Bukkit.getPlayer(input) != null;
     }
 }

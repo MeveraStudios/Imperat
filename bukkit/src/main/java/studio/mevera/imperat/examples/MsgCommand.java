@@ -20,7 +20,7 @@ class MsgCommand {
 
     @Usage
     public void mainUsage(BukkitSource sender, Player player, @Greedy String message) {
-        String fullMsg = sender.name() + "-> " + player.getName()  + ": " + message;
+        String fullMsg = sender.name() + "-> " + player.getName() + ": " + message;
         sender.reply(fullMsg);
         player.sendMessage(fullMsg);
     }

@@ -65,6 +65,6 @@ public interface AdventureProvider<S> {
      */
     default void close() {
     }
-    
+
     <SRC extends Source> AdventureHelpComponent<SRC> createHelpComponent(Component component);
 }

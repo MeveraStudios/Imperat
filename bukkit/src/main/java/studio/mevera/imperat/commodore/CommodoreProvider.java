@@ -116,8 +116,8 @@ public final class CommodoreProvider {
         Commodore<Command> commodore = load(imperat);
         if (commodore == null) {
             throw new BrigadierUnsupportedException(
-                "Brigadier is not supported by the server. " +
-                    "Set -Dcommodore.visualize=true for visualize info."
+                    "Brigadier is not supported by the server. " +
+                            "Set -Dcommodore.visualize=true for visualize info."
             );
         }
         return commodore;

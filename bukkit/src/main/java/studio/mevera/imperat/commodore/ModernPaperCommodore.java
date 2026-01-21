@@ -75,8 +75,8 @@ final class ModernPaperCommodore extends AbstractCommodore {
             String desc = command == null ? null : command.getDescription().toString();
 
             registrar.register(
-                plugin.getPluginMeta(), (LiteralCommandNode<CommandSourceStack>) node,
-                desc, getAliases(command)
+                    plugin.getPluginMeta(), (LiteralCommandNode<CommandSourceStack>) node,
+                    desc, getAliases(command)
             );
 
         });

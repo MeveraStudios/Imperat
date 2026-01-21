@@ -22,6 +22,7 @@ import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.util.TypeUtility;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -48,11 +49,11 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
     @SuppressWarnings("unchecked")
     private <T> LiteralArgumentBuilder<T> convertRoot(CommandNode<S> root) {
         LiteralArgumentBuilder<T> builder = (LiteralArgumentBuilder<T>) literal(root.getData().name())
-            .requires((obj) -> {
-                var source = wrapCommandSource(obj);
-                return root.getData().isIgnoringACPerms()
-                    || dispatcher.config().getPermissionChecker().hasPermission(source, root.getPermission());
-            });
+                .requires((obj) -> {
+                    var source = wrapCommandSource(obj);
+                    return root.getData().isIgnoringACPerms()
+                            || dispatcher.config().getPermissionChecker().hasPermission(source, root.getPermission());
+                });
         executor(builder);
 
         for (var child : root.getChildren()) {
@@ -62,13 +63,12 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
     }
 
     private <T> com.mojang.brigadier.tree.CommandNode<T> convertNode(CommandNode<S> root, ParameterNode<?, ?> parent, ParameterNode<S, ?> node) {
-
         var argType = getArgumentType(node.getData());
 
         ArgumentBuilder<T, ?> childBuilder = node instanceof CommandNode<?> ?
-            LiteralArgumentBuilder.literal(node.getData().name())
-            : RequiredArgumentBuilder.argument(node.getData().name(), argType);
-        
+                LiteralArgumentBuilder.literal(node.getData().name())
+                : RequiredArgumentBuilder.argument(node.getData().name(), argType);
+
         childBuilder.requires((obj) -> {
             var permissionResolver = dispatcher.config().getPermissionChecker();
             var source = wrapCommandSource(obj);
@@ -77,18 +77,18 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
                     && commandNode.getData().isIgnoringACPerms()) {
                 return true;
             }
-            
+
             return (permissionResolver.hasPermission(source, node.getPermission()));
         });
 
         executor(childBuilder);
         if (!(node instanceof CommandNode<?>)) {
             ((RequiredArgumentBuilder<T, ?>) childBuilder).suggests(
-                createSuggestionProvider(root.getData(), node.getData())
+                    createSuggestionProvider(root.getData(), node.getData())
             );
         }
 
-        if(node.isTrueFlag()) {
+        if (node.isTrueFlag()) {
             String name = node.getData().name() + "_value";
             ArgumentNode<S> flagValueNode =
                     ParameterNode.createArgumentNode(
@@ -97,18 +97,18 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
                                             .getParameterType(node.getData().asFlagParameter().inputValueType()))
                                     .permission(node.getPermission())
                                     .build(),
-                            node.getDepth()+1,
+                            node.getDepth() + 1,
                             node.getExecutableUsage()
                     );
-            
-            for(var trueFlagChildren : node.getChildren()) {
+
+            for (var trueFlagChildren : node.getChildren()) {
                 flagValueNode.addChild(trueFlagChildren);
             }
-            
+
             childBuilder.then(convertNode(root, node, flagValueNode));
             return childBuilder.build();
         }
-        
+
         for (var innerChild : node.getChildren()) {
             childBuilder.then(convertNode(root, node, innerChild));
         }
@@ -118,39 +118,37 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
 
 
     private @NotNull <T> SuggestionProvider<T> createSuggestionProvider(
-        Command<S> command,
-        CommandParameter<S> parameter
+            Command<S> command,
+            CommandParameter<S> parameter
     ) {
-        
         return (context, builder) -> {
-            
             S source = this.wrapCommandSource(context.getSource());
             String paramFormat = parameter.format();
             String desc = parameter.description() != Description.EMPTY ? parameter.description().toString() : "";
             Message tooltip = new LiteralMessage(paramFormat + (desc.isEmpty() ? "" : " - " + desc));
-            
+
             String input = context.getInput();
             while (input.startsWith("/")) {
                 input = input.substring(1);
             }
-            
+
             int firstSpaceIndex = input.indexOf(' ');
             String label = input.substring(0, firstSpaceIndex);
-            
+
             String argsInput = input.substring(firstSpaceIndex);
             ArgumentInput args = ArgumentInput.parseAutoCompletion(argsInput, false);
-            
+
             SuggestionContext<S> ctx = dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
             CompletionArg arg = ctx.getArgToComplete();
-            
+
             return dispatcher.config().getParameterSuggestionResolver(parameter).asyncAutoComplete(ctx, parameter)
-                .thenCompose((results) -> {
-                    results
-                    .stream()
-                    .filter((c)-> arg.isEmpty() || c.toLowerCase().startsWith(arg.value().toLowerCase()))
-                    .forEachOrdered((res) -> builder.suggest(res, tooltip));
-                    return builder.buildFuture();
-                });
+                    .thenCompose((results) -> {
+                        results
+                                .stream()
+                                .filter((c) -> arg.isEmpty() || c.toLowerCase().startsWith(arg.value().toLowerCase()))
+                                .forEachOrdered((res) -> builder.suggest(res, tooltip));
+                        return builder.buildFuture();
+                    });
         };
     }
 
@@ -168,8 +166,8 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
     @Override
     @SuppressWarnings("unchecked")
     public <T> void registerArgumentResolver(
-        Class<T> type,
-        ArgumentTypeResolver argumentTypeResolver
+            Class<T> type,
+            ArgumentTypeResolver argumentTypeResolver
     ) {
         resolvers.add((param) -> {
             if (param.isFlag()) {
@@ -180,7 +178,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
                 }
 
                 return param.valueType() == Objects.requireNonNull(flagParameter.flagData().inputType()).type()
-                    ? argumentTypeResolver.resolveArgType(param) : null;
+                        ? argumentTypeResolver.resolveArgType(param) : null;
             }
             return TypeUtility.matches(param.valueType(), type) ? argumentTypeResolver.resolveArgType(param) : null;
         });
@@ -206,6 +204,5 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
         if (parameter.isGreedy()) return StringArgumentType.greedyString();
         else return StringArgumentType.string();
     }
-
 
 }

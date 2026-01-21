@@ -24,13 +24,13 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * );
  * }</pre>
  *
- * @since 2.1.0
  * @author Imperat Framework
  * @see BungeeSource
  * @see StringHelpComponent
+ * @since 2.1.0
  */
 public class BungeeStringHelpComponent extends StringHelpComponent<BungeeSource> {
-    
+
     /**
      * Creates a new BungeeStringHelpComponent with the specified string content.
      *
@@ -39,7 +39,7 @@ public class BungeeStringHelpComponent extends StringHelpComponent<BungeeSource>
     protected BungeeStringHelpComponent(@NotNull String componentValue) {
         super(componentValue);
     }
-    
+
     /**
      * Creates a new BungeeStringHelpComponent with the specified string content.
      *

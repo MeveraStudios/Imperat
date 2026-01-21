@@ -24,13 +24,13 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * );
  * }</pre>
  *
- * @since 2.1.0
  * @author Imperat Framework
  * @see MinestomSource
  * @see StringHelpComponent
+ * @since 2.1.0
  */
 public class MinestomStringHelpComponent extends StringHelpComponent<MinestomSource> {
-    
+
     /**
      * Creates a new MinestomStringHelpComponent with the specified string content.
      *
@@ -39,7 +39,7 @@ public class MinestomStringHelpComponent extends StringHelpComponent<MinestomSou
     protected MinestomStringHelpComponent(@NotNull String componentValue) {
         super(componentValue);
     }
-    
+
     /**
      * Creates a new MinestomStringHelpComponent with the specified string content.
      *

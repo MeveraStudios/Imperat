@@ -1,7 +1,6 @@
 package studio.mevera.imperat;
 
 
-
 import net.kyori.adventure.text.Component;
 import net.minestom.server.color.Color;
 import net.minestom.server.command.builder.CommandExecutor;
@@ -31,17 +30,17 @@ final class SyntaxDataLoader {
             String input = commandContext.getInput();
             int index = input.indexOf(' ');
             String rawArgsOneLine = "";
-            if(index != -1) {
+            if (index != -1) {
                 rawArgsOneLine = input.substring(input.indexOf(' '));
             }
 
             var imperatSender = imperat.wrapSender(sender);
-            if(rawArgsOneLine.isBlank()) {
+            if (rawArgsOneLine.isBlank()) {
                 imperat.execute(
                         imperatSender,
                         commandContext.getCommandName()
                 );
-            }else {
+            } else {
                 imperat.execute(
                         imperatSender,
                         commandContext.getCommandName(),
@@ -52,17 +51,14 @@ final class SyntaxDataLoader {
     }
 
     static @NotNull CommandCondition loadCondition(MinestomImperat imperat, CommandUsage<MinestomSource> usage) {
-        return (sender, commandString) ->
-            imperat.config().getPermissionChecker()
-                .hasUsagePermission(imperat.wrapSender(sender), usage).right();
+        return (sender, commandString) -> imperat.config().getPermissionChecker().hasUsagePermission(imperat.wrapSender(sender), usage).right();
     }
 
     static <T> Argument<?>[] loadArguments(
-        MinestomImperat imperat,
-        Command<MinestomSource> imperatCommand,
-        CommandUsage<MinestomSource> usage
+            MinestomImperat imperat,
+            Command<MinestomSource> imperatCommand,
+            CommandUsage<MinestomSource> usage
     ) {
-
         Argument<?>[] args = new Argument[usage.size()];
         List<CommandParameter<MinestomSource>> parameters = usage.getParameters();
         for (int i = 0; i < parameters.size(); i++) {
@@ -70,7 +66,7 @@ final class SyntaxDataLoader {
             Argument<T> arg = (Argument<T>) argFromParameter(parameter);
             arg.setSuggestionCallback((sender, context, suggestion) -> {
                 String in = context.getInput();
-                if(in.charAt(0) == '/') {
+                if (in.charAt(0) == '/') {
                     in = in.substring(1);
                 }
                 var source = imperat.wrapSender(sender);
@@ -97,14 +93,13 @@ final class SyntaxDataLoader {
         }
 
         if (parameter.isFlag()) {
-
             if (parameter.asFlagParameter().isSwitch()) {
                 return ArgumentType.Word(id).filter(Patterns::isInputFlag);
             }
 
             return ArgumentType.Group(
-                id, ArgumentType.Word(id).filter(Patterns::isInputFlag),
-                from("value", parameter.asFlagParameter().inputValueType())
+                    id, ArgumentType.Word(id).filter(Patterns::isInputFlag),
+                    from("value", parameter.asFlagParameter().inputValueType())
             );
         }
 

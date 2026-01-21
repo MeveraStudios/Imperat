@@ -71,7 +71,7 @@ public class InvalidLocationFormatException extends ParseException {
 
         WRONG_FORMAT,
 
-        SELF_LOCATION_NOT_AVAILABLE;
+        SELF_LOCATION_NOT_AVAILABLE
 
     }
 

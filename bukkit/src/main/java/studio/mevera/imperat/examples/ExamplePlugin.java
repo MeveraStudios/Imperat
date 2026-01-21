@@ -7,32 +7,17 @@ import studio.mevera.imperat.type.ParameterPlayer;
 
 class ExamplePlugin extends JavaPlugin {
 
-    
-
     private BukkitImperat imperat;
 
-
-
     @Override
-
     public void onEnable() {
-
-
-
-        //setting up our imperat
-
+        // Setting up our imperat
         imperat = BukkitImperat.builder(this)
-
                 .parameterType(Player.class, new ParameterPlayer())
-
                 .build();
 
-        
-
-        //registering rank command.
-
+        // Registering rank command.
         imperat.registerCommand(new MsgCommand());
-
     }
 
 }

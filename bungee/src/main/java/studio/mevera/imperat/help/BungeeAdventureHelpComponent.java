@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BungeeSource;
 import studio.mevera.imperat.adventure.AdventureHelpComponent;
+
 import java.util.function.BiConsumer;
 
 /**
@@ -28,17 +29,17 @@ import java.util.function.BiConsumer;
  * BungeeAdventureHelpComponent help = BungeeAdventureHelpComponent.of(helpText);
  * }</pre>
  *
- * @since 2.1.0
  * @author Imperat Framework
  * @see BungeeSource
  * @see AdventureHelpComponent
+ * @since 2.1.0
  */
 public class BungeeAdventureHelpComponent extends AdventureHelpComponent<BungeeSource> {
-    
+
     /**
      * Creates a new BungeeAdventureHelpComponent with the specified component and message sender.
      *
-     * @param componentValue the Adventure Component to display as help
+     * @param componentValue          the Adventure Component to display as help
      * @param sendMessageToSourceFunc function to send the component to a BungeeSource
      */
     protected BungeeAdventureHelpComponent(
@@ -47,7 +48,7 @@ public class BungeeAdventureHelpComponent extends AdventureHelpComponent<BungeeS
     ) {
         super(componentValue, sendMessageToSourceFunc);
     }
-    
+
     /**
      * Creates a new BungeeAdventureHelpComponent with the specified Adventure Component.
      * Uses the default BungeeSource reply method for sending messages.

@@ -13,17 +13,11 @@ import java.lang.reflect.Type;
 
 class DefaultArgTypeResolvers {
 
-
-    private static final ArgumentType<?> SINGLE_PLAYER = entity(true, true);
-    private static final ArgumentType<?> MULTI_ENTITY = entity(false, false);
-
     public final static ArgumentTypeResolver STRING = (parameter -> {
         if (parameter.isGreedy()) return StringArgumentType.greedyString();
         return StringArgumentType.string();
     });
-
     public final static ArgumentTypeResolver BOOLEAN = (parameter -> BoolArgumentType.bool());
-
     public final static ArgumentTypeResolver NUMERIC = (parameter) -> {
 
         if (parameter.isNumeric()) {
@@ -33,19 +27,19 @@ class DefaultArgTypeResolvers {
 
         return null;
     };
-
+    private static final ArgumentType<?> SINGLE_PLAYER = entity(true, true);
     public static final ArgumentTypeResolver PLAYER = parameter -> SINGLE_PLAYER;
-
+    private static final ArgumentType<?> MULTI_ENTITY = entity(false, false);
     public static final ArgumentTypeResolver ENTITY_SELECTOR = parameter -> {
 
-        if(TypeUtility.matches(parameter.valueType(), TargetSelector.class) || TypeWrap.of(Entity.class).isSupertypeOf(parameter.valueType()))
+        if (TypeUtility.matches(parameter.valueType(), TargetSelector.class) || TypeWrap.of(Entity.class).isSupertypeOf(parameter.valueType()))
             return MULTI_ENTITY;
         return null;
     };
 
     private static ArgumentType<? extends Number> numeric(
-        Type type,
-        @Nullable NumericRange range) {
+            Type type,
+            @Nullable NumericRange range) {
         if (TypeUtility.matches(type, int.class)) {
             return IntegerArgumentType.integer((int) getMin(range), (int) getMax(range));
         } else if (TypeUtility.matches(type, long.class)) {

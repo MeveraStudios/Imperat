@@ -209,8 +209,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
     
 
     private void applyBrigadier() {
-        
-        if (Version.isOrOver(13)) {
+        if (Version.isOrOver(1, 13, 0)) {
             brigadierManager = BukkitBrigadierManager.load(this);
         }
     }
@@ -222,7 +221,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
     }
 
     private boolean isPaperPlugin(Plugin plugin) {
-        if (!Version.IS_PAPER || Version.isOrBelow(13)) {
+        if (!Version.IS_PAPER || Version.isOrBelow(1, 13, 0)){
             return false;
         }
 

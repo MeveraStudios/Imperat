@@ -26,7 +26,7 @@ public final class BukkitAdventure implements AdventureProvider<CommandSender> {
     public void close() {
         this.audiences.close();
     }
-    
+
     @Override
     public <SRC extends Source> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
         return new AdventureHelpComponent<>(component, (source, comp) -> {
@@ -37,5 +37,5 @@ public final class BukkitAdventure implements AdventureProvider<CommandSender> {
             }
         });
     }
-    
+
 }

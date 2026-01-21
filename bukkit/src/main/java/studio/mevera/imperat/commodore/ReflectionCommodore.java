@@ -39,6 +39,7 @@ import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.Plugin;
 import studio.mevera.imperat.BukkitUtil;
+import studio.mevera.imperat.Version;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.lang.reflect.Constructor;
@@ -71,7 +72,7 @@ final class ReflectionCommodore extends AbstractCommodore {
             final Class<?> minecraftServer;
             final Class<?> commandDispatcher;
 
-            if (BukkitUtil.ClassesRefUtil.minecraftVersion() > 16) {
+            if (Version.isOver(1, 16, 5)) {
                 minecraftServer = BukkitUtil.ClassesRefUtil.mcClass("server.MinecraftServer");
                 commandDispatcher = BukkitUtil.ClassesRefUtil.mcClass("commands.CommandDispatcher");
             } else {
@@ -84,15 +85,15 @@ final class ReflectionCommodore extends AbstractCommodore {
             CONSOLE_FIELD.setAccessible(true);
 
             GET_COMMAND_DISPATCHER_METHOD = Arrays.stream(minecraftServer.getDeclaredMethods())
-                .filter(method -> method.getParameterCount() == 0)
-                .filter(method -> commandDispatcher.isAssignableFrom(method.getReturnType()))
-                .findFirst().orElseThrow(NoSuchMethodException::new);
+                    .filter(method -> method.getParameterCount() == 0)
+                    .filter(method -> commandDispatcher.isAssignableFrom(method.getReturnType()))
+                    .findFirst().orElseThrow(NoSuchMethodException::new);
             GET_COMMAND_DISPATCHER_METHOD.setAccessible(true);
 
             GET_BRIGADIER_DISPATCHER_METHOD = Arrays.stream(commandDispatcher.getDeclaredMethods())
-                .filter(method -> method.getParameterCount() == 0)
-                .filter(method -> CommandDispatcher.class.isAssignableFrom(method.getReturnType()))
-                .findFirst().orElseThrow(NoSuchMethodException::new);
+                    .filter(method -> method.getParameterCount() == 0)
+                    .filter(method -> CommandDispatcher.class.isAssignableFrom(method.getReturnType()))
+                    .findFirst().orElseThrow(NoSuchMethodException::new);
             GET_BRIGADIER_DISPATCHER_METHOD.setAccessible(true);
 
             Class<?> commandWrapperClass = BukkitUtil.ClassesRefUtil.obcClass("command.BukkitCommandWrapper");
@@ -176,7 +177,7 @@ final class ReflectionCommodore extends AbstractCommodore {
         @SuppressWarnings({"rawtypes", "unchecked"})
         @EventHandler
         public void onLoad(ServerLoadEvent e) {
-            if(e.getType() == ServerLoadEvent.LoadType.STARTUP) {
+            if (e.getType() == ServerLoadEvent.LoadType.STARTUP) {
                 return;
             }
             CommandDispatcher dispatcher = this.commodore.getDispatcher();

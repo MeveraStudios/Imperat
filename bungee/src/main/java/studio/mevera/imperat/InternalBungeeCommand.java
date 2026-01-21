@@ -11,15 +11,15 @@ final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command imp
     private final Command<BungeeSource> bungeeCommand;
 
     InternalBungeeCommand(
-        BungeeImperat commandDispatcher,
-        Command<BungeeSource> bungeeCommand
+            BungeeImperat commandDispatcher,
+            Command<BungeeSource> bungeeCommand
     ) {
         super(
-            bungeeCommand.name(),
+                bungeeCommand.name(),
                 commandDispatcher.config().isAutoPermissionAssignMode()
                         ? commandDispatcher.config().getPermissionLoader().load(bungeeCommand)
                         : bungeeCommand.getMainPermission(),
-            bungeeCommand.aliases().toArray(new String[0])
+                bungeeCommand.aliases().toArray(new String[0])
         );
         this.bungeeCommandDispatcher = commandDispatcher;
         this.bungeeCommand = bungeeCommand;
@@ -28,27 +28,27 @@ final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command imp
     @Override
     public void execute(CommandSender sender, String[] args) {
         bungeeCommandDispatcher.execute(
-            bungeeCommandDispatcher.wrapSender(sender),
-            bungeeCommand.name(),
-            args
+                bungeeCommandDispatcher.wrapSender(sender),
+                bungeeCommand.name(),
+                args
         );
     }
 
 
     @Override
     public Iterable<String> onTabComplete(
-        CommandSender sender,
-        String[] args
+            CommandSender sender,
+            String[] args
     ) {
         StringBuilder builder = new StringBuilder(this.bungeeCommand.name()).append(" ");
-        for(String arg : args) {
+        for (String arg : args) {
             builder.append(arg).append(" ");
         }
-        
-        if(!builder.isEmpty()) {
-            builder.deleteCharAt(builder.length()-1);
+
+        if (!builder.isEmpty()) {
+            builder.deleteCharAt(builder.length() - 1);
         }
-        
+
         return bungeeCommandDispatcher.autoComplete(
                 bungeeCommandDispatcher.wrapSender(sender),
                 builder.toString()

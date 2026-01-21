@@ -35,13 +35,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
+import studio.mevera.imperat.BukkitImperat;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-import studio.mevera.imperat.BukkitImperat;
 
 @SuppressWarnings("ALL")
 final class LegacyPaperCommodore extends AbstractCommodore implements Listener {
@@ -84,8 +84,8 @@ final class LegacyPaperCommodore extends AbstractCommodore implements Listener {
                 this.commands.add(new CommodoreCommand(node, permissionTest));
             } else {
                 LiteralCommandNode<Object> redirectNode = LiteralArgumentBuilder.literal(alias)
-                    .redirect((LiteralCommandNode<Object>) node)
-                    .build();
+                        .redirect((LiteralCommandNode<Object>) node)
+                        .build();
                 this.commands.add(new CommodoreCommand(redirectNode, permissionTest));
             }
         }

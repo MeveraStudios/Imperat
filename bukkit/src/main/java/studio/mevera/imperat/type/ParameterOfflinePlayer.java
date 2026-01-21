@@ -21,6 +21,7 @@ public class ParameterOfflinePlayer extends BaseParameterType<BukkitSource, Offl
 
 
     private final PlayerSuggestionResolver playerSuggestionResolver = new PlayerSuggestionResolver();
+
     public ParameterOfflinePlayer() {
         super();
     }
@@ -53,8 +54,8 @@ public class ParameterOfflinePlayer extends BaseParameterType<BukkitSource, Offl
         @Override
         public List<String> autoComplete(SuggestionContext<BukkitSource> context, CommandParameter<BukkitSource> parameter) {
             return Arrays.stream(Bukkit.getOfflinePlayers())
-                .map(OfflinePlayer::getName)
-                .toList();
+                    .map(OfflinePlayer::getName)
+                    .toList();
         }
     }
 }

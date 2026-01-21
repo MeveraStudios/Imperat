@@ -16,20 +16,19 @@ import java.util.List;
 final class InternalBukkitCommand extends org.bukkit.command.Command implements PluginIdentifiableCommand {
 
     @NotNull
+    final Command<BukkitSource> imperatCommand;
+    @NotNull
     private final BukkitImperat dispatcher;
 
-    @NotNull
-    final Command<BukkitSource> imperatCommand;
-
     InternalBukkitCommand(
-        final @NotNull BukkitImperat dispatcher,
-        final @NotNull Command<BukkitSource> imperatCommand
+            final @NotNull BukkitImperat dispatcher,
+            final @NotNull Command<BukkitSource> imperatCommand
     ) {
         super(
-            imperatCommand.name(),
-            imperatCommand.description().toString(),
-            CommandUsage.format((String) null, imperatCommand.getDefaultUsage()),
-            imperatCommand.aliases()
+                imperatCommand.name(),
+                imperatCommand.description().toString(),
+                CommandUsage.format((String) null, imperatCommand.getDefaultUsage()),
+                imperatCommand.aliases()
         );
         this.dispatcher = dispatcher;
         this.imperatCommand = imperatCommand;
@@ -69,26 +68,24 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
 
     @Override
     public @NotNull List<String> tabComplete(
-        final @NotNull CommandSender sender,
-        final @NotNull String alias,
-        final String[] args
+            final @NotNull CommandSender sender,
+            final @NotNull String alias,
+            final String[] args
     ) throws IllegalArgumentException {
-        if(Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
+        if (Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
             //supports async tab completion
             //we will tab complete from the async tab completion event
             return Collections.emptyList();
         }
         BukkitSource source = dispatcher.wrapSender(sender);
         StringBuilder builder = new StringBuilder(alias).append(" ");
-        for(String arg : args) {
+        for (String arg : args) {
             builder.append(arg).append(" ");
         }
-        if(!builder.isEmpty()) {
-            builder.deleteCharAt(builder.length()-1);
+        if (!builder.isEmpty()) {
+            builder.deleteCharAt(builder.length() - 1);
         }
         return dispatcher.autoComplete(source, builder.toString()).join();
     }
-
-
 
 }
