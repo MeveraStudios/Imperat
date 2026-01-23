@@ -13,10 +13,22 @@ import studio.mevera.imperat.type.HytaleParameterType;
 import studio.mevera.imperat.util.TypeUtility;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 final class InternalHytaleCommand extends CommandBase {
 
     private final HytaleImperat imperat;
+
+    InternalHytaleCommand(HytaleImperat imperat, List<CommandParameter<HytaleSource> > variant) {
+        super("");
+        this.imperat = imperat;
+        for(var p : variant ) {
+            withRequiredArg(p.name(), p.description().toString(), loadArgType(p));
+        }
+    }
 
     InternalHytaleCommand(HytaleImperat imperat, Command<HytaleSource> imperatCmd) {
         super(imperatCmd.name().toLowerCase(), imperatCmd.description().toString());
@@ -30,7 +42,7 @@ final class InternalHytaleCommand extends CommandBase {
         }
 
         //add the required args
-        this.hookRequiredArgs(imperatCmd);
+        this.deduceVariants(imperatCmd);
 
         //add the sub commands
         this.hookSubcommands(imperatCmd);
@@ -61,12 +73,47 @@ final class InternalHytaleCommand extends CommandBase {
         return ArgTypes.STRING;
     }
 
-    private void hookRequiredArgs(Command<HytaleSource> imperatCmd) {
+    //we split each usage INTO variants
+    //the main usage will be split into multiple usages
+    private void deduceVariants(Command<HytaleSource> imperatCmd) {
         CommandUsage<HytaleSource> mainUsage = imperatCmd.getMainUsage();
-        for (CommandParameter<HytaleSource> parameter : mainUsage) {
+        Map<Integer, CommandParameter<HytaleSource>> optionals = new HashMap<>();
+        for (int i = 0; i < mainUsage.size(); i++) {
+            var parameter = mainUsage.getParameter(i);
+            assert parameter != null;
+            if(parameter.isOptional() && i != mainUsage.size()-1) {
+                optionals.put(i, parameter);
+            }else if(parameter.isOptional()) {
+                //last optional
+                withOptionalArg(parameter.name(), parameter.description().toString(), loadArgType(parameter));
+                break;
+            }
             withRequiredArg(parameter.name(), parameter.description().toString(), loadArgType(parameter));
         }
+
+        List<List<CommandParameter<HytaleSource>>> parameterVariants = new ArrayList<>();
+        for (int i = 0; i < mainUsage.size(); i++) {
+            var parameter = mainUsage.getParameter(i);
+            assert parameter != null;
+            if(optionals.get(i) != null) {
+                //add to a new variant , then remove and skip
+                List<CommandParameter<HytaleSource>> variant = new ArrayList<>();
+                for (int j = 0; j < mainUsage.size(); j++) {
+                    var p = mainUsage.getParameter(j);
+                    if(j != i) {
+                        variant.add(p);
+                    }
+                }
+                parameterVariants.add(variant);
+                optionals.remove(i);
+            }
+        }
+
+        for(var variant : parameterVariants) {
+            addUsageVariant(new InternalHytaleCommand(imperat, variant));
+        }
     }
+
 
     private void hookSubcommands(Command<HytaleSource> imperatCmd) {
         for (var sub : imperatCmd.getSubCommands()) {
