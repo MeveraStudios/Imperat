@@ -622,13 +622,13 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         // Process children efficiently
         CommandPathSearch<S> bestMatch = dispatch;
         int bestDepth = 0;
-        
+
         for (var child : rootChildren) {
             final var result = dispatchNode(CommandPathSearch.unknown(root), context, input, child, 0);
             // Track the best (deepest) match
             if (result.getResult().isStoppable()) {
                 return result; // Return immediately on complete match
-            } else if (result.getLastNode() != null && result.getLastNode().getDepth() > bestDepth) {
+            } else if (result.getLastNode().getDepth() > bestDepth) {
                 bestMatch = result;
                 bestDepth = result.getLastNode().getDepth();
             }
