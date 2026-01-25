@@ -9,7 +9,12 @@ import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @ApiStatus.Internal
 public final class SuggestionResolverRegistry<S extends Source> {

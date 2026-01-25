@@ -1,6 +1,10 @@
 package studio.mevera.imperat.command;
 
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
@@ -15,13 +19,23 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @ApiStatus.Internal
 final class CommandImpl<S extends Source> implements Command<S> {
@@ -192,8 +206,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
         for(var processor : preProcessors) {
             try {
                 processor.process(api, context, usage);
-            } catch (ImperatException e) {
-                throw new ProcessorException(ProcessorException.Type.PRE, this, e, context);
+            } catch (CommandException e) {
+                throw new ProcessorException(ProcessorException.Type.PRE, this, e);
             }
         }
     }
@@ -220,8 +234,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
         for(var processor : postProcessors) {
             try {
                 processor.process(api, context);
-            } catch (ImperatException e) {
-                throw new ProcessorException(ProcessorException.Type.POST, this, e, context);
+            } catch (CommandException e) {
+                throw new ProcessorException(ProcessorException.Type.POST, this, e);
             }
 
         }

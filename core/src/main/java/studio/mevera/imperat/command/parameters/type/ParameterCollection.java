@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Collection;
@@ -24,7 +24,8 @@ public class ParameterCollection<S extends Source, E, C extends Collection<E>> e
     }
 
     @Override
-    public @Nullable C resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
+    public @Nullable C resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+            CommandException {
         C newCollection = collectionSupplier.get();
 
         while (commandInputStream.isCurrentRawInputAvailable()) {

@@ -5,11 +5,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.ExternalSubCommand;
-import studio.mevera.imperat.annotations.base.element.*;
+import studio.mevera.imperat.annotations.base.element.ClassElement;
+import studio.mevera.imperat.annotations.base.element.CommandClassVisitor;
+import studio.mevera.imperat.annotations.base.element.MethodElement;
+import studio.mevera.imperat.annotations.base.element.MethodThrowableResolver;
+import studio.mevera.imperat.annotations.base.element.RootCommandClass;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.lang.reflect.Method;

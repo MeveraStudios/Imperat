@@ -1,15 +1,13 @@
 package studio.mevera.imperat.exception.selector;
 
-import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.exception.ParseException;
 
 public class UnknownSelectorFieldException extends ParseException {
 
     private final String fieldEntered;
 
-    public UnknownSelectorFieldException(String fieldEntered, String input, Context<BukkitSource> ctx) {
-        super(input, ctx);
+    public UnknownSelectorFieldException(String fieldEntered, String input) {
+        super(input);
         this.fieldEntered = fieldEntered;
     }
 

@@ -4,7 +4,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.ImperatDebugger;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @ApiStatus.Internal
 public final class CommandTreeVisualizer<S extends Source> {

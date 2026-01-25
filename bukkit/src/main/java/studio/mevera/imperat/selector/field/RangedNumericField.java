@@ -2,7 +2,7 @@ package studio.mevera.imperat.selector.field;
 
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
@@ -37,10 +37,10 @@ public final class RangedNumericField<N extends Number> extends AbstractField<Ra
      * @param value   the string representation of the value to be parsed
      * @param context the context of the execution
      * @return the parsed value of the field's type
-     * @throws ImperatException if the parsing fails
+     * @throws CommandException if the parsing fails
      */
     @Override
-    public Range<N> parseFieldValue(String value, Context<BukkitSource> context) throws ImperatException {
+    public Range<N> parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
         if(!value.contains(RANGE_CHARACTER_WITHOUT_ESCAPE)) {
             N numericValue = numericField.parseNumber(value, context);
             return Range.atLeast(numericValue);
@@ -55,16 +55,16 @@ public final class RangedNumericField<N extends Number> extends AbstractField<Ra
             } else  {
                 String[] minMaxSplit = value.split(RANGE_CHARACTER);
                 if (minMaxSplit.length > 2) {
-                    throw new SourceException(context, "Invalid distance range format '%s'", value);
+                    throw new SourceException("Invalid distance range format '%s'", value);
                 }
                 String minStr = minMaxSplit[0], maxStr = minMaxSplit[1];
 
                 if (!TypeUtility.isNumber(minStr)) {
-                    throw new SourceException(context, "Invalid min-value '%s'", minStr);
+                    throw new SourceException("Invalid min-value '%s'", minStr);
                 }
 
                 if (!TypeUtility.isNumber(maxStr)) {
-                    throw new SourceException(context, "Invalid max-value '%s'", maxStr);
+                    throw new SourceException("Invalid max-value '%s'", maxStr);
                 }
 
                 N min = numericField.parseFieldValue(minStr, context), max = numericField.parseFieldValue(maxStr, context);

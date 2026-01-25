@@ -1,6 +1,11 @@
 package studio.mevera.imperat.annotations.base.element;
 
-import studio.mevera.imperat.annotations.*;
+import studio.mevera.imperat.annotations.ContextResolved;
+import studio.mevera.imperat.annotations.Default;
+import studio.mevera.imperat.annotations.DefaultProvider;
+import studio.mevera.imperat.annotations.Flag;
+import studio.mevera.imperat.annotations.Optional;
+import studio.mevera.imperat.annotations.Switch;
 import studio.mevera.imperat.annotations.base.AnnotationHelper;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.context.Source;

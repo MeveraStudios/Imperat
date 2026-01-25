@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.selector.field.AbstractField;
 import studio.mevera.imperat.util.TypeWrap;
@@ -42,7 +42,8 @@ public abstract class PredicateField<V> extends AbstractField<V> implements Pred
     @NotNull
     protected abstract EntityCondition getCondition(V value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context);
 
-    public final boolean isApplicable(BukkitSource sender, Entity entity, V value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> ctx) throws ImperatException {
+    public final boolean isApplicable(BukkitSource sender, Entity entity, V value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> ctx) throws
+            CommandException {
         EntityCondition condition = getCondition(value, commandInputStream, ctx);
         return condition.test(sender, entity);
     }

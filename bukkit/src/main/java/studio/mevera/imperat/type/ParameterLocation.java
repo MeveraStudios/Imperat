@@ -12,7 +12,7 @@ import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidLocationFormatException;
 import studio.mevera.imperat.exception.UnknownWorldException;
 import studio.mevera.imperat.util.TypeUtility;
@@ -33,7 +33,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
     }
 
     @Override
-    public @Nullable Location resolve(@NotNull ExecutionContext<BukkitSource> context, @NotNull CommandInputStream<BukkitSource> stream, @NotNull String input) throws ImperatException {
+    public @Nullable Location resolve(@NotNull ExecutionContext<BukkitSource> context, @NotNull CommandInputStream<BukkitSource> stream, @NotNull String input) throws
+            CommandException {
         try {
             String currentRaw = stream.currentRaw().orElseThrow();
             return locFromStr(context, stream, currentRaw);
@@ -153,7 +154,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
         }
     }
 
-    private @NotNull Location locFromStr(ExecutionContext<BukkitSource> context, CommandInputStream<BukkitSource> stream, String currentRaw) throws ImperatException {
+    private @NotNull Location locFromStr(ExecutionContext<BukkitSource> context, CommandInputStream<BukkitSource> stream, String currentRaw) throws
+            CommandException {
         String[] split = currentRaw.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
             throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.WRONG_FORMAT, context);
@@ -161,7 +163,7 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
 
         World world = Bukkit.getWorld(split[0]);
         if (world == null) {
-            throw new UnknownWorldException(split[0], context);
+            throw new UnknownWorldException(split[0]);
         }
 
         Location playerLocation = null;

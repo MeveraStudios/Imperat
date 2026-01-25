@@ -1,14 +1,12 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.MinestomSource;
-import studio.mevera.imperat.context.Context;
 
-public class UnknownPlayerException extends ImperatException {
+public class UnknownPlayerException extends CommandException {
 
     private final String name;
 
-    public UnknownPlayerException(final String name, Context<MinestomSource> context) {
-        super(context);
+    public UnknownPlayerException(final String name) {
+        super();
         this.name = name;
     }
 

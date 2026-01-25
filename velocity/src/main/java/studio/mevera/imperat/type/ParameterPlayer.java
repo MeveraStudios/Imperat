@@ -10,9 +10,10 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+
 import java.util.List;
 
 public final class ParameterPlayer extends BaseParameterType<VelocitySource, Player> {
@@ -31,15 +32,15 @@ public final class ParameterPlayer extends BaseParameterType<VelocitySource, Pla
             @NotNull ExecutionContext<VelocitySource> context,
             @NotNull CommandInputStream<VelocitySource> commandInputStream,
             @NotNull String input
-    ) throws ImperatException {
+    ) throws CommandException {
         
         if (input.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
-                throw new UnknownPlayerException(input, context);
+                throw new UnknownPlayerException(input);
             }
             return context.source().asPlayer();
         }
-        return proxyServer.getPlayer(input.toLowerCase()).orElseThrow(() -> new UnknownPlayerException(input, context));
+        return proxyServer.getPlayer(input.toLowerCase()).orElseThrow(() -> new UnknownPlayerException(input));
     }
 
     @Override

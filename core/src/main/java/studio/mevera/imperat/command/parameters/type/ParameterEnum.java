@@ -6,7 +6,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.parse.InvalidEnumException;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
@@ -25,7 +25,8 @@ public final class ParameterEnum<S extends Source> extends BaseParameterType<S, 
     }
 
     @Override
-    public @NotNull Enum<?> resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
+    public @NotNull Enum<?> resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+            CommandException {
 
         Type enumType = commandInputStream.currentParameter()
             .filter(param -> TypeUtility.matches(type, Enum.class))
@@ -35,7 +36,7 @@ public final class ParameterEnum<S extends Source> extends BaseParameterType<S, 
         try {
             return Enum.valueOf((Class<? extends Enum>) enumType, input);
         } catch (IllegalArgumentException | EnumConstantNotPresentException ex) {
-            throw new InvalidEnumException(input, (Class<? extends Enum>) enumType, context);
+            throw new InvalidEnumException(input, (Class<? extends Enum>) enumType);
         }
     }
 

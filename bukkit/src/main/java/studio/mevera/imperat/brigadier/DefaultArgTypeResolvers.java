@@ -1,6 +1,12 @@
 package studio.mevera.imperat.brigadier;
 
-import com.mojang.brigadier.arguments.*;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.FloatArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.LongArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ArgumentTypeResolver;

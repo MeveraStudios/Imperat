@@ -3,7 +3,7 @@ package studio.mevera.imperat.resolvers;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 
 /**
  * An interface whose single responsibility is to resolve {@link S}
@@ -22,6 +22,6 @@ public interface SourceResolver<S extends Source, R> {
      * @return the resolved source
      */
     @NotNull
-    R resolve(S source, Context<S> ctx) throws ImperatException;
+    R resolve(S source, Context<S> ctx) throws CommandException;
 
 }

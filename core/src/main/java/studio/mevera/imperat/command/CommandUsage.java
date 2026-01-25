@@ -11,11 +11,15 @@ import studio.mevera.imperat.command.parameters.ParameterBuilder;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownFlagException;
 import studio.mevera.imperat.util.Preconditions;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
@@ -263,7 +267,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @param source  the command source/sender
      * @param context the context of the command
      */
-    void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws ImperatException;
+    void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws CommandException;
 
     /**
      * @return Whether this usage is a help-subcommand usage

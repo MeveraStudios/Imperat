@@ -10,11 +10,20 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.adventure.*;
+import studio.mevera.imperat.adventure.AdventureHelpComponent;
+import studio.mevera.imperat.adventure.AdventureProvider;
+import studio.mevera.imperat.adventure.AdventureSource;
+import studio.mevera.imperat.adventure.CastingAdventure;
+import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.*;
+import studio.mevera.imperat.exception.InvalidLocationFormatException;
+import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
+import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
+import studio.mevera.imperat.exception.UnknownOfflinePlayerException;
+import studio.mevera.imperat.exception.UnknownPlayerException;
+import studio.mevera.imperat.exception.UnknownWorldException;
 import studio.mevera.imperat.exception.selector.InvalidSelectorFieldCriteriaFormat;
 import studio.mevera.imperat.exception.selector.UnknownEntitySelectionTypeException;
 import studio.mevera.imperat.exception.selector.UnknownSelectorFieldException;
@@ -91,14 +100,14 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         config.registerSourceResolver(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
             var origin = bukkitSource.origin();
             if (!(origin instanceof ConsoleCommandSender console)) {
-                throw new OnlyConsoleAllowedException(ctx);
+                throw new OnlyConsoleAllowedException();
             }
             return console;
         });
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException(ctx);
+                throw new OnlyPlayerAllowedException();
             }
             return source.asPlayer();
         });

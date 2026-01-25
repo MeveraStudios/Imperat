@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.function.Function;
@@ -23,7 +23,8 @@ public abstract class ParameterArray<S extends Source, E> extends BaseParameterT
     }
 
     @Override @SuppressWarnings("unchecked")
-    public E @Nullable [] resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> stream, @NotNull String input) throws ImperatException {
+    public E @Nullable [] resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> stream, @NotNull String input) throws
+            CommandException {
 
         String currentRaw = stream.currentRaw().orElse(null);
         if(currentRaw == null)

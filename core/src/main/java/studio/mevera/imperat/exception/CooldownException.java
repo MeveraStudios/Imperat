@@ -1,17 +1,15 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.context.Context;
-
 import java.time.Duration;
 import java.time.Instant;
 
-public final class CooldownException extends ImperatException {
+public final class CooldownException extends CommandException {
 
     private final Duration cooldownDuration, remainingDuration;
     private final Instant lastTimeExecuted;
 
-    public CooldownException(final Duration cooldownDuration, Instant lastTimeExecuted, Context<?> ctx) {
-        super(ctx);
+    public CooldownException(final Duration cooldownDuration, Instant lastTimeExecuted) {
+        super();
         this.cooldownDuration = cooldownDuration;
         this.lastTimeExecuted = lastTimeExecuted;
 

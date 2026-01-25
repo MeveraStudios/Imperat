@@ -8,10 +8,9 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleSource;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.BaseParameterType;
-import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ParseException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
@@ -42,12 +41,12 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
             @NotNull ExecutionContext<HytaleSource> context,
             @NotNull CommandInputStream<HytaleSource> inputStream,
             @NotNull String input
-    ) throws ImperatException {
+    ) throws CommandException {
         String[] rawInput = context.arguments().toArray(String[]::new);
         final ParseResult parseResult = new ParseResult();
         T parsedArg = hytaleArgType.parse(rawInput, parseResult);
         if (parseResult.failed()) {
-            throw exceptionProvider.fetch(input, context);
+            throw exceptionProvider.fetch(input);
         } else {
             //success, lets skip the same amount
             int numberOfArgs = hytaleArgType.getNumberOfParameters();
@@ -80,9 +79,9 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
     @FunctionalInterface
     public interface ExceptionProvider {
 
-        ExceptionProvider DEFAULT = (in, ctx) -> new ParseException(in, ctx) {};
+        ExceptionProvider DEFAULT = (in) -> new ParseException(in) {};
 
-        ImperatException fetch(String input, Context<HytaleSource> context);
+        CommandException fetch(String input);
     }
 
     public record Data<T>(Class<T> type, ArgumentType<T> argumentType, ExceptionProvider provider) {

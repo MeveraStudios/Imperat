@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.parse.InvalidNumberFormatException;
 import studio.mevera.imperat.util.TypeUtility;
 
@@ -33,11 +33,12 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
     }
 
     @Override
-    public @Nullable N resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
+    public @Nullable N resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+            CommandException {
         try {
             return parse(input);
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberFormatException(input,ex, display(), this.wrappedType(), context);
+            throw new InvalidNumberFormatException(input,ex, display(), this.wrappedType());
         }
     }
 

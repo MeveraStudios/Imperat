@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.util.TypeWrap;
@@ -37,14 +37,14 @@ final class GamemodeField extends PredicateField<GameMode> {
      * @param value   the string representation of the value to be parsed
      * @param context
      * @return the parsed value of the field's type
-     * @throws ImperatException if the parsing fails
+     * @throws CommandException if the parsing fails
      */
     @Override
-    public GameMode parseFieldValue(String value, Context<BukkitSource> context) throws ImperatException {
+    public GameMode parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
         try {
             return GameMode.valueOf(value);
         } catch (EnumConstantNotPresentException ex) {
-            throw new SourceException(context, "Unknown gamemode '%s'", value);
+            throw new SourceException("Unknown gamemode '%s'", value);
         }
     }
 }

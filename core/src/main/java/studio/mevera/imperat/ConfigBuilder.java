@@ -20,7 +20,11 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.placeholders.Placeholder;
-import studio.mevera.imperat.resolvers.*;
+import studio.mevera.imperat.resolvers.ContextResolver;
+import studio.mevera.imperat.resolvers.DependencySupplier;
+import studio.mevera.imperat.resolvers.PermissionChecker;
+import studio.mevera.imperat.resolvers.SourceResolver;
+import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.verification.UsageVerifier;
 
 import java.lang.annotation.Annotation;

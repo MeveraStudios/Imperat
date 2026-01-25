@@ -1,10 +1,9 @@
 package studio.mevera.imperat.tests.parameters;
 
-import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 
-public class NotPlayerException extends ImperatException {
-    public NotPlayerException(Context<?> ctx) {
-        super(ctx);
+public class NotPlayerException extends CommandException {
+    public NotPlayerException() {
+        super();
     }
 }

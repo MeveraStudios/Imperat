@@ -12,14 +12,31 @@ import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
-import studio.mevera.imperat.context.*;
-import studio.mevera.imperat.exception.*;
+import studio.mevera.imperat.context.ArgumentInput;
+import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.context.ExecutionResult;
+import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.SuggestionContext;
+import studio.mevera.imperat.exception.AmbiguousUsageAdditionException;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
+import studio.mevera.imperat.exception.PermissionDeniedException;
+import studio.mevera.imperat.exception.ProcessorException;
+import studio.mevera.imperat.exception.UnknownCommandException;
+import studio.mevera.imperat.exception.UsageRegistrationException;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class BaseImperat<S extends Source> implements Imperat<S> {
@@ -232,7 +249,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
         return null;
     }
-    private ExecutionResult<S> handleExecution(Context<S> context) throws ImperatException {
+    private ExecutionResult<S> handleExecution(Context<S> context) throws CommandException {
         Command<S> command = context.command();
         S source = context.source();
         
@@ -240,8 +257,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             throw new PermissionDeniedException(
                     command.getDefaultUsage(),
                     Objects.requireNonNull(command.getSinglePermission()),
-                    command,
-                    context
+                    command
             );
         }
         
@@ -249,21 +265,20 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         ImperatDebugger.debug("Search-result: '" + searchResult.getResult().name() + "'");
         
         if(searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
-            throw new PermissionDeniedException(searchResult, context);
+            throw new PermissionDeniedException(searchResult);
         }
         
         CommandUsage<S> usage = searchResult.getFoundUsage();
         
-        if(usage == null || searchResult.getLastNode() == null ||
-                searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
+        if(usage == null || searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
             ImperatDebugger.debug("Usage not found !");
-            throw new InvalidSyntaxException(searchResult, context);
+            throw new InvalidSyntaxException(searchResult);
         }
         
         var usageAccessCheckResult = config.getPermissionChecker().hasUsagePermission(source, usage);
         if(!usageAccessCheckResult.right()) {
             ImperatDebugger.debug("Failed usage permission check !");
-            throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null, context);
+            throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null);
         }
         
         return executeUsage(command, source, context, usage, searchResult);
@@ -275,7 +290,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             final Context<S> context,
             final CommandUsage<S> usage,
             final CommandPathSearch<S> dispatch
-    ) throws ImperatException {
+    ) throws CommandException {
         
         //global preprocessing
         globalPreProcessing(context, usage);
@@ -303,7 +318,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             try {
                 preProcessor.process(this, context, usage);
             } catch (Throwable ex) {
-                throw new ProcessorException(ProcessorException.Type.PRE, null, ex, context);
+                throw new ProcessorException(ProcessorException.Type.PRE, null, ex);
             }
         }
         
@@ -311,12 +326,12 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     
     private void globalPostProcessing(
             @NotNull ExecutionContext<S> context
-    ) throws ImperatException {
+    ) throws CommandException {
         for (CommandPostProcessor<S> postProcessor : config.getPostProcessors()) {
             try {
                 postProcessor.process(this, context);
             }catch (Throwable ex) {
-                throw new ProcessorException(ProcessorException.Type.POST, null, ex, context);
+                throw new ProcessorException(ProcessorException.Type.POST, null, ex);
             }
         }
     }

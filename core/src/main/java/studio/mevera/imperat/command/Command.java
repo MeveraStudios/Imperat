@@ -20,7 +20,7 @@ import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Collection;
@@ -176,7 +176,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
      * @param context the context
      * @param usage   the usage detected being used
      */
-    void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) throws ImperatException;
+    void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) throws CommandException;
 
     /**
      * Sets a post-processor for the command
@@ -192,7 +192,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
      * @param context the context
      * @param usage   the usage detected being used
      */
-    void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) throws ImperatException;
+    void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) throws CommandException;
 
     /**
      * Retrieves a usage with no args for this command

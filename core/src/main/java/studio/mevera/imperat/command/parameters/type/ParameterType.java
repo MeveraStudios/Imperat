@@ -9,7 +9,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
@@ -40,9 +40,10 @@ public interface ParameterType<S extends Source, T> {
      * @param inputStream the command input stream.
      * @param input the raw input string.
      * @return the resolved value, or {@code null} if resolution fails.
-     * @throws ImperatException if resolution fails due to an error.
+     * @throws CommandException if resolution fails due to an error.
      */
-    @Nullable T resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> inputStream, @NotNull String input) throws ImperatException;
+    @Nullable T resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> inputStream, @NotNull String input) throws
+            CommandException;
 
     /**
      * Gets the suggestion resolver for this parameter type.

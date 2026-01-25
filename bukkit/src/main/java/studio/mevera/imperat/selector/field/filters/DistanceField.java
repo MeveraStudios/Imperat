@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.selector.field.NumericField;
@@ -43,7 +43,7 @@ final class DistanceField extends PredicateField<Range<Double>> {
     protected @NotNull EntityCondition getCondition(Range<Double> value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context) {
         return ((sender, entity) -> {
             if (sender.isConsole()) {
-                throw new SourceException(context, "Only players can use the field=`distance`");
+                throw new SourceException("Only players can use the field=`distance`");
             }
             Player commandSource = sender.asPlayer();
             double diffInDistance = commandSource.getLocation().distance(entity.getLocation());
@@ -58,10 +58,10 @@ final class DistanceField extends PredicateField<Range<Double>> {
      * @param value   the string representation of the value to be parsed
      * @param context
      * @return the parsed value of the field's type
-     * @throws ImperatException if the parsing fails
+     * @throws CommandException if the parsing fails
      */
     @Override
-    public Range<Double> parseFieldValue(String value, Context<BukkitSource> context) throws ImperatException {
+    public Range<Double> parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
         return rangedNumericField.parseFieldValue(value, context);
     }
 }

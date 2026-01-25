@@ -5,8 +5,14 @@ import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.context.internal.sur.handlers.*;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.context.internal.sur.handlers.EmptyInputHandler;
+import studio.mevera.imperat.context.internal.sur.handlers.FlagInputHandler;
+import studio.mevera.imperat.context.internal.sur.handlers.FreeFlagHandler;
+import studio.mevera.imperat.context.internal.sur.handlers.NonFlagWhenExpectingFlagHandler;
+import studio.mevera.imperat.context.internal.sur.handlers.OptionalParameterHandler;
+import studio.mevera.imperat.context.internal.sur.handlers.RequiredParameterHandler;
+import studio.mevera.imperat.context.internal.sur.handlers.SubCommandHandler;
+import studio.mevera.imperat.exception.CommandException;
 
 @SuppressWarnings("unchecked")
 public final class ParameterValueAssigner<S extends Source> {
@@ -54,7 +60,7 @@ public final class ParameterValueAssigner<S extends Source> {
         return new ParameterValueAssigner<>(context, usage, customChain);
     }
     
-    public void resolve() throws ImperatException {
+    public void resolve() throws CommandException {
         // ADD: Time the chain execution
         chain.execute(context, stream);
     }

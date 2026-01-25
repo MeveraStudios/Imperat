@@ -1,13 +1,11 @@
 package studio.mevera.imperat.tests.errors;
 
-import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.exception.CommandException;
 
-public class CustomException extends ImperatException {
+public class CustomException extends CommandException {
 
-    public CustomException(Context<TestSource> ctx) {
-        super(ctx);
+    public CustomException() {
+        super();
         
     }
 }

@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 
 import java.util.List;
 
@@ -22,7 +22,8 @@ public final class ParameterCommand<S extends Source> extends BaseParameterType<
     }
 
     @Override
-    public @Nullable Command<S> resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
+    public @Nullable Command<S> resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+            CommandException {
         return commandInputStream.currentParameter()
             .map(CommandParameter::asCommand).orElse(null);
     }

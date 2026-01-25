@@ -3,7 +3,11 @@ package studio.mevera.imperat.examples;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.annotations.*;
+import studio.mevera.imperat.annotations.Command;
+import studio.mevera.imperat.annotations.Default;
+import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.Permission;
+import studio.mevera.imperat.annotations.Usage;
 
 @Command({"gamemode", "gm"})
 @Permission("lobby.gamemode")

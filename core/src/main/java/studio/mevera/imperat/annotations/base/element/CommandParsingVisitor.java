@@ -5,7 +5,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.annotations.*;
+import studio.mevera.imperat.annotations.Async;
+import studio.mevera.imperat.annotations.Command;
+import studio.mevera.imperat.annotations.Cooldown;
+import studio.mevera.imperat.annotations.Default;
+import studio.mevera.imperat.annotations.DefaultProvider;
+import studio.mevera.imperat.annotations.Flag;
+import studio.mevera.imperat.annotations.Format;
+import studio.mevera.imperat.annotations.GlobalAttachmentMode;
+import studio.mevera.imperat.annotations.Greedy;
+import studio.mevera.imperat.annotations.Permission;
+import studio.mevera.imperat.annotations.PostProcessor;
+import studio.mevera.imperat.annotations.PreProcessor;
+import studio.mevera.imperat.annotations.Range;
+import studio.mevera.imperat.annotations.SubCommand;
+import studio.mevera.imperat.annotations.Suggest;
+import studio.mevera.imperat.annotations.SuggestionProvider;
+import studio.mevera.imperat.annotations.Switch;
+import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Values;
 import studio.mevera.imperat.annotations.base.AnnotationHelper;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.MethodCommandExecutor;
@@ -16,13 +34,17 @@ import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.Description;
-import studio.mevera.imperat.command.parameters.*;
+import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.ConstrainedParameterTypeDecorator;
+import studio.mevera.imperat.command.parameters.NumericRange;
+import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.StrictParameterList;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeUtility;
@@ -30,7 +52,14 @@ import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -633,7 +662,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             DefaultProvider provider = parameter.getAnnotation(DefaultProvider.class);
             try {
                 optionalValueSupplier = AnnotationHelper.deduceOptionalValueSupplier(parameter, defaultAnnotation, provider, optionalValueSupplier);
-            } catch (ImperatException e) {
+            } catch (CommandException e) {
                 ImperatDebugger.error(AnnotationHelper.class, "deduceOptionalValueSupplier", e);
             }
         }

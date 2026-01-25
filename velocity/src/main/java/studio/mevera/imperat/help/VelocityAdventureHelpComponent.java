@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.VelocitySource;
 import studio.mevera.imperat.adventure.AdventureHelpComponent;
+
 import java.util.function.BiConsumer;
 
 /**

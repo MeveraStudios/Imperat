@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -26,7 +26,7 @@ public final class ParameterCompletableFuture<S extends Source, T> extends BaseP
     public @NotNull CompletableFuture< @Nullable T> resolve(
             @NotNull ExecutionContext<S> context,
             @NotNull CommandInputStream<S> inputStream,
-            @NotNull String input) throws ImperatException {
+            @NotNull String input) throws CommandException {
 
         if(typeResolver == null) {
             return CompletableFuture.failedFuture(
@@ -38,7 +38,7 @@ public final class ParameterCompletableFuture<S extends Source, T> extends BaseP
         return CompletableFuture.supplyAsync(()-> {
             try {
                 return typeResolver.resolve(context, copyStream, input);
-            } catch (ImperatException e) {
+            } catch (CommandException e) {
                 context.imperatConfig()
                         .handleExecutionThrowable(e,context, ParameterCompletableFuture.class, "resolve");
                 return null;

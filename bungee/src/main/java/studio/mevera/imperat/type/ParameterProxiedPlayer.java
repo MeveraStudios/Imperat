@@ -10,7 +10,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
@@ -28,18 +28,18 @@ public final class ParameterProxiedPlayer extends BaseParameterType<BungeeSource
     public @NotNull ProxiedPlayer resolve(
             @NotNull ExecutionContext<BungeeSource> context,
             @NotNull CommandInputStream<BungeeSource> commandInputStream,
-            @NotNull String input) throws ImperatException {
+            @NotNull String input) throws CommandException {
 
         if (input.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
-                throw new UnknownPlayerException(input, context);
+                throw new UnknownPlayerException(input);
             }
             return context.source().asPlayer();
         }
 
         ProxiedPlayer proxiedPlayer = ProxyServer.getInstance().getPlayer(input);
         if (proxiedPlayer == null) {
-            throw new UnknownPlayerException(input, context);
+            throw new UnknownPlayerException(input);
         }
         return proxiedPlayer;
     }

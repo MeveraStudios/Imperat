@@ -1,7 +1,10 @@
 package studio.mevera.imperat;
 
+import static studio.mevera.imperat.SyntaxDataLoader.loadArguments;
+import static studio.mevera.imperat.SyntaxDataLoader.loadCondition;
+import static studio.mevera.imperat.SyntaxDataLoader.loadExecutor;
+
 import net.minestom.server.command.builder.Command;
-import static studio.mevera.imperat.SyntaxDataLoader.*;
 
 final class InternalMinestomCommand extends Command {
 

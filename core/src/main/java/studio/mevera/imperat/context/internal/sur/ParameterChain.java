@@ -4,7 +4,8 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.sur.handlers.ParameterHandler;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
+
 import java.util.List;
 
 public class ParameterChain<S extends Source> {
@@ -14,7 +15,7 @@ public class ParameterChain<S extends Source> {
         this.handlers = List.copyOf(handlers);
     }
     
-    public void execute(ExecutionContext<S> context, CommandInputStream<S> stream) throws ImperatException {
+    public void execute(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException {
         
         pipeLine:
         while (stream.isCurrentParameterAvailable()) {

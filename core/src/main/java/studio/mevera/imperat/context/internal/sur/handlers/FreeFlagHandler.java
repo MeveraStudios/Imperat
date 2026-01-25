@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.Patterns;
 
 import java.util.Optional;
@@ -30,7 +30,7 @@ public final class FreeFlagHandler<S extends Source> implements ParameterHandler
                     FlagData<S> freeFlag = freeFlagData.get();
                     var value = ParameterTypes.flag(freeFlag).resolveFreeFlag(context, stream, freeFlag);
                     context.resolveFlag(value);
-                } catch (ImperatException e) {
+                } catch (CommandException e) {
                     return HandleResult.failure(e);
                 }
             }

@@ -12,7 +12,7 @@ import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedInputFlag;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 
@@ -120,10 +120,10 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param <R> the target type to resolve to
      * @param type the target type class
      * @return the resolved source, never {@code null}
-     * @throws ImperatException if resolution fails
+     * @throws CommandException if resolution fails
      * @see ImperatConfig#getSourceResolver(Type) (Type)
      */
-    <R> @NotNull R getResolvedSource(Type type) throws ImperatException;
+    <R> @NotNull R getResolvedSource(Type type) throws CommandException;
     
     /**
      * Gets an argument resolved by the context resolver system.
@@ -131,10 +131,10 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param <T> the type of the argument
      * @param type the class of the argument type
      * @return the resolved argument value, or {@code null} if not resolvable
-     * @throws ImperatException if resolution fails
+     * @throws CommandException if resolution fails
      * @see ContextResolver
      */
-    <T> @Nullable T getContextResolvedArgument(Class<T> type) throws ImperatException;
+    <T> @Nullable T getContextResolvedArgument(Class<T> type) throws CommandException;
     
     /**
      * Gets all flags that were resolved from the command input.
@@ -152,7 +152,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param index the argument position
      * @param parameter the parameter definition
      * @param value the resolved value
-     * @throws ImperatException if resolution fails
+     * @throws CommandException if resolution fails
      */
     <T> void resolveArgument(
             Command<S> command,
@@ -160,7 +160,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
             int index,
             CommandParameter<S> parameter,
             @Nullable T value
-    ) throws ImperatException;
+    ) throws CommandException;
     
     /**
      * Resolves and registers a command argument.
@@ -168,12 +168,12 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param <T> the type of the argument value
      * @param stream the stream having the current input's data.
      * @param value the resolved value.
-     * @throws ImperatException if resolution fails.
+     * @throws CommandException if resolution fails.
      */
     default <T> void resolveArgument(
             CommandInputStream<S> stream,
             @Nullable T value
-    ) throws ImperatException {
+    ) throws CommandException {
         resolveArgument(
             getLastUsedCommand(),
             stream.currentRawIfPresent(),
@@ -227,9 +227,9 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
     /**
      * Resolves all arguments and flags from the raw context input.
      *
-     * @throws ImperatException if resolution fails
+     * @throws CommandException if resolution fails
      */
-    void resolve() throws ImperatException;
+    void resolve() throws CommandException;
     
     /**
      * Gets a resolved argument by its owning command and parameter name.

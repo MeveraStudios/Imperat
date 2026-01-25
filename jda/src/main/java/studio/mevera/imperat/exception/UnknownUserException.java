@@ -1,13 +1,10 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.JdaSource;
-import studio.mevera.imperat.context.Context;
-
-public class UnknownUserException extends ImperatException {
+public class UnknownUserException extends CommandException {
     private final String identifier;
 
-    public UnknownUserException(String identifier, Context<JdaSource> context) {
-        super("Unknown user: " + identifier, context);
+    public UnknownUserException(String identifier) {
+        super("Unknown user: " + identifier);
         this.identifier = identifier;
     }
 

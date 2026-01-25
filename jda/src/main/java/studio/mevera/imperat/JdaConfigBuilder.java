@@ -44,7 +44,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
         config.registerSourceResolver(Member.class, (source, ctx) -> {
             Member member = source.member();
             if (member == null) {
-                throw new NoDMSException(ctx);
+                throw new NoDMSException();
             }
             return member;
         });

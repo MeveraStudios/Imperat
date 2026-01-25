@@ -4,7 +4,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.annotations.*;
+import studio.mevera.imperat.annotations.Default;
+import studio.mevera.imperat.annotations.DefaultProvider;
+import studio.mevera.imperat.annotations.Flag;
+import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.Switch;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
@@ -13,7 +17,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -27,7 +31,7 @@ public final class AnnotationHelper {
         S source,
         ExecutionContext<S> context,
         MethodElement method
-    ) throws ImperatException {
+    ) throws CommandException {
         
         Object[] paramsInstances = new Object[method.getParameters().size()];
 
@@ -152,7 +156,7 @@ public final class AnnotationHelper {
         Default defaultAnnotation,
         DefaultProvider provider,
         OptionalValueSupplier fallback
-    ) throws ImperatException {
+    ) throws CommandException {
 
         if (defaultAnnotation != null) {
             String def = defaultAnnotation.value();

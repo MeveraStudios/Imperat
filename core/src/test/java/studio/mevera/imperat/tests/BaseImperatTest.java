@@ -1,11 +1,16 @@
 package studio.mevera.imperat.tests;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import studio.mevera.imperat.context.ExecutionResult;
 
 import java.util.function.Consumer;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Base class for all Imperat command framework tests.

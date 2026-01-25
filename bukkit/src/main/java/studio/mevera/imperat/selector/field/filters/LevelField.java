@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.selector.field.NumericField;
 import studio.mevera.imperat.selector.field.Range;
@@ -37,10 +37,10 @@ final class LevelField extends PredicateField<Range<Integer>> {
      * @param value   the string representation of the value to be parsed
      * @param context
      * @return the parsed value of the field's type
-     * @throws ImperatException if the parsing fails
+     * @throws CommandException if the parsing fails
      */
     @Override
-    public Range<Integer> parseFieldValue(String value, Context<BukkitSource> context) throws ImperatException {
+    public Range<Integer> parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
         return numericField.parseFieldValue(value, context);
     }
 }

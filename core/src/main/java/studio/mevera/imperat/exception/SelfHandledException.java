@@ -6,10 +6,10 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 
 @ApiStatus.AvailableSince("1.0.0")
-public abstract class SelfHandledException extends ImperatException {
+public abstract class SelfHandledException extends CommandException {
     
-    public SelfHandledException(Context<?> ctx) {
-        super(ctx);
+    public SelfHandledException() {
+        super();
     }
     
     /**

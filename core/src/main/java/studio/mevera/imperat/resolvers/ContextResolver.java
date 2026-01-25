@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 
 import java.util.function.Supplier;
 
@@ -39,6 +39,6 @@ public interface ContextResolver<S extends Source, T> {
     T resolve(
         @NotNull ExecutionContext<S> context,
         @Nullable ParameterElement parameter
-    ) throws ImperatException;
+    ) throws CommandException;
 
 }

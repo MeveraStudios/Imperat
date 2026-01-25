@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.parse.InvalidMapEntryFormatException;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -34,7 +34,8 @@ public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends B
     }
 
     @Override
-    public @Nullable M resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
+    public @Nullable M resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+            CommandException {
         M newMap = mapInitializer.get();
 
         while (commandInputStream.isCurrentRawInputAvailable()) {
@@ -43,13 +44,13 @@ public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends B
             if(raw == null) break;
 
             if(!raw.contains(ENTRY_SEPARATOR)) {
-                throw new InvalidMapEntryFormatException(raw, ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR, context);
+                throw new InvalidMapEntryFormatException(raw, ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR);
                 //throw new SourceException("Invalid map entry '%s', entry doesn't contain '%s'", raw, ENTRY_SEPARATOR);
             }
 
             String[] split = raw.split(ENTRY_SEPARATOR);
             if(split.length != 2) {
-                throw new InvalidMapEntryFormatException(raw,ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS, context);
+                throw new InvalidMapEntryFormatException(raw,ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS);
                 //throw new SourceException("Invalid map entry '%s', entry is not made of 2 elements", raw);
             }
 

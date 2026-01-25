@@ -9,7 +9,7 @@ import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownUserException;
 
 public final class ParameterUser extends BaseParameterType<JdaSource, User> {
@@ -21,16 +21,17 @@ public final class ParameterUser extends BaseParameterType<JdaSource, User> {
     }
 
     @Override
-    public @NotNull User resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws ImperatException {
+    public @NotNull User resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws
+            CommandException {
         String userId = input.replaceAll("\\D", "");
         String lookupId = userId.isEmpty() ? input : userId;
         if (!lookupId.matches("\\d{17,20}")) {
-            throw new UnknownUserException(input, context);
+            throw new UnknownUserException(input);
         }
 
         User user = jda.getUserById(lookupId);
         if (user == null) {
-            throw new UnknownUserException(input, context);
+            throw new UnknownUserException(input);
         }
         return user;
     }

@@ -1,13 +1,13 @@
 package studio.mevera.imperat.command.parameters.type;
 
+import static studio.mevera.imperat.util.StringUtils.isQuoteChar;
+
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
-
-import static studio.mevera.imperat.util.StringUtils.isQuoteChar;
+import studio.mevera.imperat.exception.CommandException;
 
 public final class ParameterString<S extends Source> extends BaseParameterType<S, String> {
     
@@ -16,7 +16,8 @@ public final class ParameterString<S extends Source> extends BaseParameterType<S
     }
     
     @Override
-    public @NotNull String resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> inputStream, @NotNull String input) throws ImperatException {
+    public @NotNull String resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> inputStream, @NotNull String input) throws
+            CommandException {
         final CommandParameter<S> parameter = inputStream.currentParameter().orElse(null);
         
         // OPTIMIZATION 1: Fast path for simple strings (90% of cases)

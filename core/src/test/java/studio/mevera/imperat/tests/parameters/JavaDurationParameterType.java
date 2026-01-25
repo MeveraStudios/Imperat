@@ -7,7 +7,7 @@ import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.TestSource;
 
 import java.time.Duration;
@@ -23,7 +23,7 @@ public final class JavaDurationParameterType extends BaseParameterType<TestSourc
             @NotNull ExecutionContext<TestSource> context,
             @NotNull CommandInputStream<TestSource> inputStream,
             @NotNull String input
-    ) throws ImperatException {
+    ) throws CommandException {
         return JavaDurationParser.parseDuration(input);
     }
     

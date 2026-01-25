@@ -1,5 +1,8 @@
 package studio.mevera.imperat.command;
 
+import static studio.mevera.imperat.util.Patterns.DOUBLE_FLAG;
+import static studio.mevera.imperat.util.Patterns.SINGLE_FLAG;
+
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,14 +15,18 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.Patterns;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
-
-import static studio.mevera.imperat.util.Patterns.DOUBLE_FLAG;
-import static studio.mevera.imperat.util.Patterns.SINGLE_FLAG;
 
 @ApiStatus.Internal
 final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
@@ -344,7 +351,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      * @param context the context of the command
      */
     @Override
-    public void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws ImperatException {
+    public void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws CommandException {
         CommandCoordinator<S> coordinator = commandCoordinator;
         if(coordinator == null) {
             coordinator = imperat.config().getGlobalCommandCoordinator();

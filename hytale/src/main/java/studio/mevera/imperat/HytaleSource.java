@@ -8,7 +8,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import studio.mevera.imperat.context.Source;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.UUID;
 
 public class HytaleSource implements Source {

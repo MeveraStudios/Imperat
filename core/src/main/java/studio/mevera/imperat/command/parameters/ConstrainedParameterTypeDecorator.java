@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.parse.ValueOutOfConstraintException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeWrap;
@@ -40,11 +40,12 @@ public final class ConstrainedParameterTypeDecorator<S extends Source, T> extend
     }
 
     @Override
-    public @Nullable T resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
+    public @Nullable T resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+            CommandException {
         if(ConstrainedParameterTypeDecorator.contains(input, allowedValues, caseSensitive)) {
             return original.resolve(context, commandInputStream, commandInputStream.readInput());
         }else {
-            throw new ValueOutOfConstraintException(input, allowedValues, context);
+            throw new ValueOutOfConstraintException(input, allowedValues);
         }
     }
 

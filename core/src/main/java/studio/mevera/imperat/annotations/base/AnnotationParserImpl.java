@@ -11,7 +11,6 @@ import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ThrowableResolver;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;

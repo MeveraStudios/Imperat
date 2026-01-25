@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedInputFlag;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 
 public final class RequiredParameterHandler<S extends Source> implements ParameterHandler<S> {
@@ -25,7 +25,7 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
         else if(currentRaw == null) {
             // Required parameter missing
             return HandleResult.failure(
-                    new InvalidSyntaxException(context.getPathwaySearch(), context)
+                    new InvalidSyntaxException(context.getPathwaySearch())
             );
         }
         
@@ -42,7 +42,7 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
             }
             
             return HandleResult.NEXT_ITERATION;
-        } catch (ImperatException e) {
+        } catch (CommandException e) {
             return HandleResult.failure(e);
         }
     }

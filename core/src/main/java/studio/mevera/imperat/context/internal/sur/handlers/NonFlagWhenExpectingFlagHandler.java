@@ -9,7 +9,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedInputFlag;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownFlagException;
 import studio.mevera.imperat.util.Patterns;
 
@@ -30,7 +30,7 @@ public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements 
             var nextParam = stream.peekParameter().orElse(null);
             
             if (nextParam == null) {
-                return HandleResult.failure(new UnknownFlagException(currentRaw, context));
+                return HandleResult.failure(new UnknownFlagException(currentRaw));
             } else if (!context.hasResolvedFlag(currentParameter)) {
                 resolveFlagDefaultValue(stream, currentParameter.asFlagParameter(), context);
             }
@@ -38,11 +38,12 @@ public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements 
             stream.skipParameter();
             return HandleResult.NEXT_ITERATION;
         } catch (Exception e) {
-            return HandleResult.failure(new ImperatException("Error handling non-flag input when expecting flag", e, context));
+            return HandleResult.failure(new CommandException("Error handling non-flag input when expecting flag", e));
         }
     }
     
-    private void resolveFlagDefaultValue(CommandInputStream<S> stream, FlagParameter<S> flagParameter, ExecutionContext<S> context) throws ImperatException {
+    private void resolveFlagDefaultValue(CommandInputStream<S> stream, FlagParameter<S> flagParameter, ExecutionContext<S> context) throws
+            CommandException {
         FlagData<S> flagDataFromRaw = flagParameter.flagData();
 
         if (flagDataFromRaw.isSwitch()) {

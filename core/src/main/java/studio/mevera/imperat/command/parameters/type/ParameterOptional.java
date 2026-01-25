@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -27,7 +27,7 @@ public final class ParameterOptional<S extends Source, T> extends BaseParameterT
             @NotNull ExecutionContext<S> context,
             @NotNull CommandInputStream<S> inputStream,
             @NotNull String input
-    ) throws ImperatException {
+    ) throws CommandException {
         return Optional.ofNullable(
                 typeResolver.resolve(context,inputStream, input)
         );

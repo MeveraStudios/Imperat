@@ -1,5 +1,8 @@
 package studio.mevera.imperat.tests.errors;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,8 +14,6 @@ import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Error Handling Tests")
 public class ErrorHandlingTest extends BaseImperatTest {

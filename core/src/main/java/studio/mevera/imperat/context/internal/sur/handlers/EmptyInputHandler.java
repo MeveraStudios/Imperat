@@ -10,7 +10,7 @@ import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 
 public final class EmptyInputHandler<S extends Source> implements ParameterHandler<S> {
@@ -35,17 +35,17 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
             }
             else {
                 //required
-                throw new InvalidSyntaxException(CommandPathSearch.freshlyNew(context.getLastUsedCommand()), context);
+                throw new InvalidSyntaxException(CommandPathSearch.freshlyNew(context.getLastUsedCommand()));
             }
             // Handle remaining optional parameters
             return HandleResult.NEXT_ITERATION;
-        } catch (ImperatException e) {
+        } catch (CommandException e) {
             return HandleResult.failure(e);
         }
     }
     
     private void handleEmptyOptional(CommandParameter<S> optionalEmptyParameter, CommandInputStream<S> stream, 
-                                   ExecutionContext<S> context) throws ImperatException {
+                                   ExecutionContext<S> context) throws CommandException {
         if (optionalEmptyParameter.isFlag()) {
             FlagParameter<S> flagParameter = optionalEmptyParameter.asFlagParameter();
             FlagData<S> flag = flagParameter.flagData();
@@ -71,7 +71,7 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
         }
     }
     @SuppressWarnings("unchecked")
-    private <T> T getDefaultValue(ExecutionContext<S> context, CommandInputStream<S> stream, CommandParameter<S> parameter) throws ImperatException {
+    private <T> T getDefaultValue(ExecutionContext<S> context, CommandInputStream<S> stream, CommandParameter<S> parameter) throws CommandException {
         OptionalValueSupplier optionalSupplier = parameter.getDefaultValueSupplier();
         if (optionalSupplier.isEmpty()) {
             return null;

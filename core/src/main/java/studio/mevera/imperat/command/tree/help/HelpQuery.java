@@ -4,7 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.context.Source;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.function.Predicate;
 
 /**

@@ -8,11 +8,11 @@ import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
+import studio.mevera.imperat.command.tree.help.HelpQuery;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.command.tree.help.HelpQuery;
 
 import java.util.List;
 import java.util.Set;

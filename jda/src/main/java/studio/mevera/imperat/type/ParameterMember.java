@@ -8,28 +8,29 @@ import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.NoDMSException;
 import studio.mevera.imperat.exception.UnknownMemberException;
 
 public final class ParameterMember extends BaseParameterType<JdaSource, Member> {
 
     @Override
-    public @NotNull Member resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws ImperatException {
+    public @NotNull Member resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws
+            CommandException {
         var guild = context.source().origin().getGuild();
         if (guild == null) {
-            throw new NoDMSException(context);
+            throw new NoDMSException();
         }
 
         String memberId = input.replaceAll("\\D", "");
         String lookupId = memberId.isEmpty() ? input : memberId;
         if (!lookupId.matches("\\d{17,20}")) {
-            throw new UnknownMemberException(input, context);
+            throw new UnknownMemberException(input);
         }
 
         Member member = guild.getMemberById(lookupId);
         if (member == null) {
-            throw new UnknownMemberException(input, context);
+            throw new UnknownMemberException(input);
         }
         return member;
     }

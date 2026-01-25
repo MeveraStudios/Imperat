@@ -1,10 +1,8 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.context.Context;
-
-public class OnlyConsoleAllowedException extends ImperatException {
+public class OnlyConsoleAllowedException extends CommandException {
     
-    public OnlyConsoleAllowedException(Context<?> ctx) {
-        super(ctx);
+    public OnlyConsoleAllowedException() {
+        super();
     }
 }

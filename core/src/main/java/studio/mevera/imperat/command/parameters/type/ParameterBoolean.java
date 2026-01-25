@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.parse.InvalidBooleanException;
 
 import java.util.Locale;
@@ -31,7 +31,8 @@ public final class ParameterBoolean<S extends Source> extends BaseParameterType<
     }
 
     @Override
-    public @Nullable Boolean resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws ImperatException {
+    public @Nullable Boolean resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+            CommandException {
 
         var raw = commandInputStream.currentRaw().orElse(null);
         assert raw != null;
@@ -43,7 +44,7 @@ public final class ParameterBoolean<S extends Source> extends BaseParameterType<
         if (allowVariants) {
             return VARIANTS.get(raw.toLowerCase());
         } else {
-            throw new InvalidBooleanException(raw, context);
+            throw new InvalidBooleanException(raw);
         }
     }
 

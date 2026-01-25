@@ -12,7 +12,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.selector.UnknownEntitySelectionTypeException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.selector.EntityCondition;
@@ -45,7 +45,7 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
     public @NotNull TargetSelector resolve(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream,
-            @NotNull String input) throws ImperatException {
+            @NotNull String input) throws CommandException {
 
         String raw = commandInputStream.currentRaw().orElse(null);
         if (raw == null)
@@ -74,7 +74,7 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
 
         SelectionType type = commandInputStream.popLetter().map((s) -> SelectionType.from(String.valueOf(s))).orElse(SelectionType.UNKNOWN);
         if (type == SelectionType.UNKNOWN) {
-            throw new UnknownEntitySelectionTypeException(commandInputStream.currentLetter().orElseThrow() + "", context);
+            throw new UnknownEntitySelectionTypeException(commandInputStream.currentLetter().orElseThrow() + "");
         }
 
         List<SelectionParameterInput<?>> inputParameters = new ArrayList<>();

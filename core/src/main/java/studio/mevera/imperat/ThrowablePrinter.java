@@ -1,6 +1,7 @@
 package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

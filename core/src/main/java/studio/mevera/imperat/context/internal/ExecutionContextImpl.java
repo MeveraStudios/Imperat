@@ -6,23 +6,24 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.NumericParameter;
-import studio.mevera.imperat.command.parameters.NumericRange;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.sur.ParameterValueAssigner;
-import studio.mevera.imperat.exception.ImperatException;
-import studio.mevera.imperat.exception.NumberOutOfRangeException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Registry;
-import studio.mevera.imperat.util.TypeUtility;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
 
 
 @ApiStatus.Internal
@@ -110,7 +111,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> @NotNull R getResolvedSource(Type type) throws ImperatException {
+    public <R> @NotNull R getResolvedSource(Type type) throws CommandException {
         if (!imperatConfig.hasSourceResolver(type)) {
             throw new IllegalArgumentException("Found no SourceResolver for valueType `" + type.getTypeName() + "`");
         }
@@ -129,7 +130,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> @Nullable T getContextResolvedArgument(Class<T> type) throws ImperatException {
+    public <T> @Nullable T getContextResolvedArgument(Class<T> type) throws CommandException {
         var resolver = imperatConfig.getContextResolver(type);
         return resolver == null ? null : (T) resolver.resolve(this, null);
     }
@@ -171,7 +172,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     
     
     @Override
-    public void resolve() throws ImperatException {
+    public void resolve() throws CommandException {
         var resolver = ParameterValueAssigner.create(this, usage);
         resolver.resolve();
     }
@@ -185,16 +186,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
         int index,
         CommandParameter<S> parameter,
         @Nullable T value
-    ) throws ImperatException {
-
-        if (value != null && TypeUtility.isNumericType(value.getClass())
-            && parameter instanceof NumericParameter<S> numericParameter
-            && numericParameter.hasRange()
-            && !numericParameter.matchesRange((Number) value)) {
-
-            NumericRange range = numericParameter.getRange();
-            throw new NumberOutOfRangeException(raw, numericParameter, (Number) value, range, this);
-        }
+    ) {
         final Argument<S> argument = new Argument<>(raw, parameter, index, value);
         resolvedArgumentsPerCommand.update(command, (existingResolvedArgs) -> {
             if (existingResolvedArgs != null) {

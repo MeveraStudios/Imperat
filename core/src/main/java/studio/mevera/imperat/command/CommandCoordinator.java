@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +38,7 @@ public interface CommandCoordinator<S extends Source> {
         @NotNull S source,
         @NotNull ExecutionContext<S> context,
         @NotNull CommandExecution<S> execution
-    ) throws ImperatException;
+    ) throws CommandException;
 
     @FunctionalInterface
     interface UnsafeRunnable extends Runnable {

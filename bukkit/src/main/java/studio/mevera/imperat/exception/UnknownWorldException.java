@@ -1,14 +1,11 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
-
-public class UnknownWorldException extends ImperatException {
+public class UnknownWorldException extends CommandException {
 
     private final String name;
 
-    public UnknownWorldException(final String name, Context<BukkitSource> ctx) {
-        super(ctx);
+    public UnknownWorldException(final String name) {
+        super();
         this.name = name;
     }
 

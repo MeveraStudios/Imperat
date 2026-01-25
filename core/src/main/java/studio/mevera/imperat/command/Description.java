@@ -1,12 +1,13 @@
 package studio.mevera.imperat.command;
 
+import org.jetbrains.annotations.Nullable;
+
 public final class Description {
 
-    private final static String NON_APPLICABLE = "N/A";
-    public final static Description EMPTY = Description.of(NON_APPLICABLE);
-    private final String value;
+    public final static Description EMPTY = Description.of(null);
+    private final @Nullable String value;
 
-    Description(String value) {
+    Description(@Nullable String value) {
         this.value = value;
     }
 
@@ -20,6 +21,6 @@ public final class Description {
     }
 
     public boolean isEmpty() {
-        return this == EMPTY || this.value.isBlank() || this.value.equals(NON_APPLICABLE);
+        return this == EMPTY || this.value == null || this.value.isBlank();
     }
 }

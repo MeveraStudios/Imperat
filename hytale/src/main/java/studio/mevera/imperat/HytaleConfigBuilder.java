@@ -17,7 +17,15 @@ import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
 import com.hypixel.hytale.server.core.command.system.CommandSender;
-import com.hypixel.hytale.server.core.command.system.arguments.types.*;
+import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
+import com.hypixel.hytale.server.core.command.system.arguments.types.Coord;
+import com.hypixel.hytale.server.core.command.system.arguments.types.IntCoord;
+import com.hypixel.hytale.server.core.command.system.arguments.types.RelativeChunkPosition;
+import com.hypixel.hytale.server.core.command.system.arguments.types.RelativeDoublePosition;
+import com.hypixel.hytale.server.core.command.system.arguments.types.RelativeFloat;
+import com.hypixel.hytale.server.core.command.system.arguments.types.RelativeIntPosition;
+import com.hypixel.hytale.server.core.command.system.arguments.types.RelativeInteger;
+import com.hypixel.hytale.server.core.command.system.arguments.types.RelativeVector3i;
 import com.hypixel.hytale.server.core.console.ConsoleSender;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.hitboxcollision.HitboxCollisionConfig;
@@ -32,7 +40,11 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.*;
+import studio.mevera.imperat.exception.InvalidIntegerOperator;
+import studio.mevera.imperat.exception.InvalidLocationFormatException;
+import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
+import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
+import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.type.HytaleParameterType;
 import studio.mevera.imperat.type.ParameterLocation;
 import studio.mevera.imperat.type.ParameterPlayer;
@@ -140,21 +152,21 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
 
         config.registerSourceResolver(ConsoleSender.class, (minestomSource, ctx) -> {
             if (!minestomSource.isConsole()) {
-                throw new OnlyConsoleAllowedException(ctx);
+                throw new OnlyConsoleAllowedException();
             }
             return (ConsoleSender) minestomSource.origin();
         });
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException(ctx);
+                throw new OnlyPlayerAllowedException();
             }
             return source.as(Player.class);
         });
 
         config.registerSourceResolver(PlayerRef.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException(ctx);
+                throw new OnlyPlayerAllowedException();
             }
             return source.asPlayerRef();
         });

@@ -1,13 +1,11 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.JdaSource;
-import studio.mevera.imperat.context.Context;
 
-public class UnknownRoleException extends ImperatException {
+public class UnknownRoleException extends CommandException {
     private final String identifier;
 
-    public UnknownRoleException(String identifier, Context<JdaSource> context) {
-        super("Unknown role: " + identifier, context);
+    public UnknownRoleException(String identifier) {
+        super("Unknown role: " + identifier);
         this.identifier = identifier;
     }
 

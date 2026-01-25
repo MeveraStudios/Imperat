@@ -6,7 +6,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidUUIDException;
 
 import java.util.UUID;
@@ -20,12 +20,12 @@ public final class ParameterUUID<S extends Source> extends BaseParameterType<S, 
     public @NotNull UUID resolve(
             @NotNull ExecutionContext<S> context,
             @NotNull CommandInputStream<S> commandInputStream,
-            @NotNull String input) throws ImperatException {
+            @NotNull String input) throws CommandException {
 
         try {
             return UUID.fromString(input);
         } catch (Exception ex) {
-            throw new InvalidUUIDException(input, context);
+            throw new InvalidUUIDException(input);
         }
     }
 

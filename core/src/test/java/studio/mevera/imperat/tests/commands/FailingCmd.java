@@ -12,6 +12,6 @@ public class FailingCmd {
 
     @Usage
     public void t(TestSource src, @ContextResolved Context<TestSource> ctx) throws CustomException {
-        throw new CustomException(ctx);
+        throw new CustomException();
     }
 }

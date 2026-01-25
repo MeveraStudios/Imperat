@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public interface SelectionType {
     @NotNull <E extends Entity> List<E> getTargetEntities(
         @NotNull ExecutionContext<BukkitSource> context,
         @NotNull CommandInputStream<BukkitSource> commandInputStream
-    ) throws ImperatException;
+    ) throws CommandException;
 
 
     SelectionType COMMAND_EXECUTOR = new SelectionType() {
@@ -40,9 +40,9 @@ public interface SelectionType {
         public <E extends Entity> @NotNull List<E> getTargetEntities(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream
-        ) throws ImperatException {
+        ) throws CommandException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException(context);
+                throw new OnlyPlayerAllowedException();
             }
             return List.of((E) context.source().asPlayer());
         }
@@ -59,9 +59,9 @@ public interface SelectionType {
         public @NotNull <E extends Entity> List<E> getTargetEntities(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream
-        ) throws ImperatException {
+        ) throws CommandException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException(context);
+                throw new OnlyPlayerAllowedException();
             }
 
             Player sender = context.source().asPlayer();
@@ -95,7 +95,7 @@ public interface SelectionType {
         public @NotNull <E extends Entity> List<E> getTargetEntities(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream
-        ) throws ImperatException {
+        ) throws CommandException {
             List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
             return List.of((E) onlinePlayers.get(ThreadLocalRandom.current().nextInt(onlinePlayers.size())));
         }
@@ -112,7 +112,7 @@ public interface SelectionType {
         public @NotNull <E extends Entity> List<E> getTargetEntities(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream
-        ) throws ImperatException {
+        ) throws CommandException {
             return (List<E>) new ArrayList<>(Bukkit.getOnlinePlayers());
         }
 
@@ -129,9 +129,9 @@ public interface SelectionType {
         public @NotNull <E extends Entity> List<E> getTargetEntities(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream
-        ) throws ImperatException {
+        ) throws CommandException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException(context);
+                throw new OnlyPlayerAllowedException();
             }
             Player player = context.source().asPlayer();
             World world = player.getWorld();
@@ -151,7 +151,7 @@ public interface SelectionType {
         public @NotNull <E extends Entity> List<E> getTargetEntities(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream
-        ) throws ImperatException {
+        ) throws CommandException {
             return List.of();
         }
 

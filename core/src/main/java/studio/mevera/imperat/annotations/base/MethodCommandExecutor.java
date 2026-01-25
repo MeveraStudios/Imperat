@@ -9,7 +9,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.asm.DefaultMethodCallerFactory;
 import studio.mevera.imperat.util.asm.MethodCaller;
 
@@ -59,7 +59,7 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
      * @param context the context of the command
      */
     @Override
-    public void execute(S source, ExecutionContext<S> context) throws ImperatException {
+    public void execute(S source, ExecutionContext<S> context) throws CommandException {
 
         var instances = AnnotationHelper.loadParameterInstances(
             dispatcher, fullParameters,

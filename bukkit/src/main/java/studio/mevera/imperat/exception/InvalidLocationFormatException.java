@@ -18,7 +18,7 @@ public class InvalidLocationFormatException extends ParseException {
             @Nullable String inputYaw,
             Context<?> ctx
     ) {
-        super(input, ctx);
+        super(input);
         this.reason = reason;
         this.inputX = inputX;
         this.inputY = inputY;

@@ -1,6 +1,12 @@
 package studio.mevera.imperat.tests.commands;
 
-import studio.mevera.imperat.annotations.*;
+import studio.mevera.imperat.annotations.Command;
+import studio.mevera.imperat.annotations.Default;
+import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.Optional;
+import studio.mevera.imperat.annotations.Permission;
+import studio.mevera.imperat.annotations.Switch;
+import studio.mevera.imperat.annotations.Usage;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("setrank")

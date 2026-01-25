@@ -4,7 +4,7 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 
 /**
  * Defines a functional interface that processes a {@link Context}
@@ -21,12 +21,12 @@ public interface CommandPreProcessor<S extends Source> extends CommandProcessor<
      * @param imperat the api
      * @param context the context
      * @param usage   The usage detected
-     * @throws ImperatException the exception to throw if something happens
+     * @throws CommandException the exception to throw if something happens
      */
     void process(
         Imperat<S> imperat,
         Context<S> context,
         CommandUsage<S> usage
-    ) throws ImperatException;
+    ) throws CommandException;
 
 }

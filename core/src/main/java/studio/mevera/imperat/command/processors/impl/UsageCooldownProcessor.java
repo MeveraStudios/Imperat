@@ -5,8 +5,8 @@ import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.CooldownException;
-import studio.mevera.imperat.exception.ImperatException;
 
 public final class UsageCooldownProcessor<S extends Source> implements CommandPreProcessor<S> {
 
@@ -19,14 +19,14 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
      * @param imperat the api
      * @param context the context
      * @param usage   The usage detected
-     * @throws ImperatException the exception to throw if something happens
+     * @throws CommandException the exception to throw if something happens
      */
     @Override
     public void process(
         Imperat<S> imperat,
         Context<S> context,
         CommandUsage<S> usage
-    ) throws ImperatException {
+    ) throws CommandException {
         var source = context.source();
         var handler = usage.getCooldownHandler();
         var cooldown = usage.getCooldown();
@@ -40,8 +40,7 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
 
                 throw new CooldownException(
                         cooldown.toDuration(),
-                        handler.getLastTimeExecuted(source).orElseThrow(),
-                        context
+                        handler.getLastTimeExecuted(source).orElseThrow()
                 );
             }
         }

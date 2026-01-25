@@ -1,5 +1,7 @@
 package studio.mevera.imperat;
 
+import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
+
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.Message;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -26,8 +28,6 @@ import studio.mevera.imperat.util.TypeUtility;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 
 @SuppressWarnings("unchecked")
 public abstract non-sealed class BaseBrigadierManager<S extends Source> implements BrigadierManager<S> {

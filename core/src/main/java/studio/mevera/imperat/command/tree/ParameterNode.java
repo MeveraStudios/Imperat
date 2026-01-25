@@ -10,7 +10,11 @@ import studio.mevera.imperat.command.parameters.type.ParameterTypes;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public abstract class ParameterNode<S extends Source, T extends CommandParameter<S>> {

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.MultipleOptionals;
@@ -29,7 +29,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     
     @Test
     @DisplayName("Should handle give command with complex argument combinations")
-    void testGiveCommandComplexArguments() throws ImperatException {
+    void testGiveCommandComplexArguments() throws CommandException {
         ExecutionResult<TestSource> result = execute("give diamond_sword player123 64");
         
         assertThat(result)
@@ -44,7 +44,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     
     @Test
     @DisplayName("Should handle optional arguments elegantly")
-    void testOptionalArgumentsElegantly() throws ImperatException {
+    void testOptionalArgumentsElegantly() throws CommandException {
         ExecutionResult<TestSource> result = execute("give apple");
         assertThat(result)
                 .isSuccessful()
@@ -384,7 +384,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
             "test2 array guest vip premium ultra, 4"
     })
     @DisplayName("Should parse array arguments with dynamic size validation")
-    void testArrayArgumentsWithValidation(String commandLine, int expectedSize) throws ImperatException {
+    void testArrayArgumentsWithValidation(String commandLine, int expectedSize) throws CommandException {
         ExecutionResult<TestSource> result = execute(commandLine);
         
         assertThat(result)
@@ -399,7 +399,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     
     @Test
     @DisplayName("Should validate greedy arguments capture everything")
-    void testGreedyArgumentsValidation() throws ImperatException {
+    void testGreedyArgumentsValidation() throws CommandException {
         ExecutionResult<TestSource> result = execute("message target_player This is a very long message with many words");
         
         assertThat(result)
@@ -410,7 +410,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     
     @Test
     @DisplayName("Should demonstrate satisfies methods usage")
-    void testSatisfiesMethodsUsage() throws ImperatException {
+    void testSatisfiesMethodsUsage() throws CommandException {
         ExecutionResult<TestSource> result = execute("give diamond_sword player123 64");
         
         assertThat(result)
@@ -430,7 +430,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     
     @Test
     @DisplayName("Should demonstrate satisfiesAll for multiple validations")
-    void testSatisfiesAllUsage() throws ImperatException {
+    void testSatisfiesAllUsage() throws CommandException {
         ExecutionResult<TestSource> result = execute("ban griefer -s -ip 7d Griefing");
         
         this.assertThat(result)
@@ -452,7 +452,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     
     @Test
     @DisplayName("Should handle collection parameters with fluent validation")
-    void testCollectionParametersFluentValidation() throws ImperatException {
+    void testCollectionParametersFluentValidation() throws CommandException {
         ExecutionResult<TestSource> result = execute("test2 collection hello world amazing test");
         
         assertThat(result)
@@ -467,7 +467,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     
     @Test
     @DisplayName("Should handle map parameters with key-value validation")
-    void testMapParametersKeyValueValidation() throws ImperatException {
+    void testMapParametersKeyValueValidation() throws CommandException {
         ExecutionResult<TestSource> result = execute("test2 map name,John age,25 city,Paris");
         
         assertThat(result)

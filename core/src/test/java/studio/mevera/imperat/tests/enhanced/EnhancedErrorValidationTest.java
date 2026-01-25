@@ -8,7 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.TestSource;
 
@@ -32,7 +32,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         
         @Test
         @DisplayName("Should fail for incomplete required arguments")
-        void testIncompleteRequiredArguments() throws ImperatException {
+        void testIncompleteRequiredArguments() throws CommandException {
             ExecutionResult<TestSource> result = execute("test hello"); // Missing second required arg
             
             assertThat(result)
@@ -41,7 +41,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         
         @Test
         @DisplayName("Should fail for incomplete subcommands")
-        void testIncompleteSubcommands() throws ImperatException {
+        void testIncompleteSubcommands() throws CommandException {
             ExecutionResult<TestSource> result = execute("group member setperm"); // Missing permission
             
             assertThat(result)
@@ -55,7 +55,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         
         @Test
         @DisplayName("Should handle invalid enum values gracefully")
-        void testInvalidEnumValues() throws ImperatException {
+        void testInvalidEnumValues() throws CommandException {
             ExecutionResult<TestSource> result = execute("customenum COMPLETELY_INVALID_ENUM_VALUE");
             
             assertThat(result)
@@ -65,7 +65,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         @ParameterizedTest
         @ValueSource(strings = {"", "   ", "\t", "\n"})
         @DisplayName("Should handle empty or whitespace inputs")
-        void testEmptyWhitespaceInputs(String input) throws ImperatException {
+        void testEmptyWhitespaceInputs(String input) throws CommandException {
             try {
                 execute(input);
             }catch (Exception ex) {
@@ -80,7 +80,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         
         @Test
         @DisplayName("Should fail when context resolution is impossible")
-        void testImpossibleContextResolution() throws ImperatException {
+        void testImpossibleContextResolution() throws CommandException {
             ExecutionResult<TestSource> result = execute("ctx sub"); // Requires Group context which isn't available
             
             assertThat(result)

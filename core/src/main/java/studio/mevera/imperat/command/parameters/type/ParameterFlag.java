@@ -10,7 +10,7 @@ import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedInputFlag;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
@@ -31,7 +31,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
         ExecutionContext<S> context,
         @NotNull CommandInputStream<S> commandInputStream,
         FlagData<S> freeFlag
-    ) throws ImperatException {
+    ) throws CommandException {
         String rawFlag = commandInputStream.currentRaw().orElse(null);
         if (rawFlag == null) {
             throw new IllegalArgumentException();
@@ -53,7 +53,8 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
     }
 
     @Override
-    public @Nullable ExtractedInputFlag resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String rawFlag) throws ImperatException {
+    public @Nullable ExtractedInputFlag resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String rawFlag) throws
+            CommandException {
         var currentParameter = commandInputStream.currentParameterIfPresent();
         if (currentParameter == null)
             return null;
@@ -81,7 +82,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
                 }
             }else {
                 //"Please enter the value for flag '%s'"
-                throw new MissingFlagInputException(flagParameter, rawFlag, context);
+                throw new MissingFlagInputException(flagParameter, rawFlag);
             }
         } else {
             objInput = true;

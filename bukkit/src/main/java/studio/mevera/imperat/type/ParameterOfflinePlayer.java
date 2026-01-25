@@ -10,7 +10,7 @@ import studio.mevera.imperat.command.parameters.type.BaseParameterType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
@@ -30,10 +30,10 @@ public class ParameterOfflinePlayer extends BaseParameterType<BukkitSource, Offl
     public @Nullable OfflinePlayer resolve(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull CommandInputStream<BukkitSource> commandInputStream,
-            @NotNull String input) throws ImperatException {
+            @NotNull String input) throws CommandException {
 
         if (input.length() > 16) {
-            throw new UnknownPlayerException(input, context);
+            throw new UnknownPlayerException(input);
         }
 
         return Bukkit.getOfflinePlayer(input);

@@ -1,13 +1,11 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.context.Context;
-
-public abstract class ParseException extends ImperatException {
+public class ParseException extends CommandException {
 
     protected final String input;
 
-    public ParseException(String input, Context<?> ctx) {
-        super("Failed to parse input '" + input + "'", ctx);
+    public ParseException(String input) {
+        super("Failed to parse input '" + input + "'");
         this.input = input;
     }
 

@@ -1,7 +1,7 @@
 package studio.mevera.imperat.context.internal.sur;
 
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 
 /**
  * Represents the result of a parameter handler execution,
@@ -20,7 +20,7 @@ public enum HandleResult {
     /** Indicates an error occurred during handling */
     FAILURE;
     
-    private ImperatException exception;
+    private CommandException exception;
     
     /**
      * Creates a failure result with the specified exception.
@@ -28,7 +28,7 @@ public enum HandleResult {
      * @param exception the exception that caused the failure
      * @return a FAILURE result containing the exception
      */
-    public static HandleResult failure(ImperatException exception) {
+    public static HandleResult failure(CommandException exception) {
         HandleResult result = FAILURE;
         result.exception = exception;
         return result;
@@ -40,7 +40,7 @@ public enum HandleResult {
      * @return the exception if this is a FAILURE result, null otherwise
      */
     @Nullable
-    public ImperatException getException() {
+    public CommandException getException() {
         return exception;
     }
 }

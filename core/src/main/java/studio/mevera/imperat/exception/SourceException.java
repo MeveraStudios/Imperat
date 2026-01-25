@@ -1,28 +1,24 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.context.Context;
-
-public class SourceException extends ImperatException {
+public class SourceException extends CommandException {
 
     private final String message;
     private final ErrorLevel type;
     public SourceException(
-        Context<?> ctx,
         final String msg,
         final Object... args
     ) {
-        super(ctx);
+        super();
         this.type = ErrorLevel.SEVERE;
         this.message = String.format(msg, args);
     }
 
     public SourceException(
-        Context<?> ctx,
         final ErrorLevel type,
         final String msg,
         final Object... args
     ) {
-        super(ctx);
+        super();
         this.type = type;
         this.message = String.format(msg, args);
     }

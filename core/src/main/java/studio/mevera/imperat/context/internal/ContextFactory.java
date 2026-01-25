@@ -7,7 +7,11 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
-import studio.mevera.imperat.context.*;
+import studio.mevera.imperat.context.ArgumentInput;
+import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.SuggestionContext;
 
 /**
  * Represents a way for defining

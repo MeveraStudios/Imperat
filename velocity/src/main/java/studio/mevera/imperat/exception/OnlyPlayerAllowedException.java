@@ -1,10 +1,8 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.context.Context;
-
-public final class OnlyPlayerAllowedException extends ImperatException {
+public final class OnlyPlayerAllowedException extends CommandException {
     
-    public OnlyPlayerAllowedException(Context<?> ctx) {
-        super(ctx);
+    public OnlyPlayerAllowedException() {
+        super();
     }
 }

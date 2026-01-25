@@ -1,13 +1,11 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.context.Context;
-
-public class UnknownOfflinePlayerException extends ImperatException {
+public class UnknownOfflinePlayerException extends CommandException {
 
     private final String name;
 
-    public UnknownOfflinePlayerException(final String name, Context<?> ctx) {
-        super(ctx);
+    public UnknownOfflinePlayerException(final String name) {
+        super();
         this.name = name;
     }
 

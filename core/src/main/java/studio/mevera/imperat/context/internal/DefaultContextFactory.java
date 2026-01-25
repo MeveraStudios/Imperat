@@ -6,7 +6,11 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
-import studio.mevera.imperat.context.*;
+import studio.mevera.imperat.context.ArgumentInput;
+import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.SuggestionContext;
 
 @ApiStatus.Internal
 final class DefaultContextFactory<S extends Source> extends ContextFactory<S> {

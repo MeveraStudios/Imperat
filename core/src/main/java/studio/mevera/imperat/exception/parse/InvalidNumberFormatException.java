@@ -1,7 +1,6 @@
 package studio.mevera.imperat.exception.parse;
 
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.exception.ParseException;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -15,10 +14,9 @@ public class InvalidNumberFormatException extends ParseException {
     public InvalidNumberFormatException(
             String input, @Nullable NumberFormatException originalError,
             String numberTypeDisplay,
-            TypeWrap<? extends Number> numericType,
-            Context<?> ctx
+            TypeWrap<? extends Number> numericType
     ) {
-        super(input, ctx);
+        super(input);
         this.originalError = originalError;
         this.numberTypeDisplay = numberTypeDisplay;
         this.numericType = numericType;

@@ -12,7 +12,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedInputFlag;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.exception.ShortHandFlagException;
 import studio.mevera.imperat.util.Patterns;
@@ -41,11 +41,11 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
             long numberOfTrueFlags = extracted.size() - numberOfSwitches;
             
             if (extracted.size() != numberOfSwitches && extracted.size() != numberOfTrueFlags) {
-                return HandleResult.failure(new ShortHandFlagException("Unsupported use of a mixture of switches and true flags!", context));
+                return HandleResult.failure(new ShortHandFlagException("Unsupported use of a mixture of switches and true flags!"));
             }
             
             if (extracted.size() == numberOfTrueFlags && !TypeUtility.areTrueFlagsOfSameInputTpe(extracted)) {
-                return HandleResult.failure(new ShortHandFlagException("You cannot use compressed true-flags, while they are not of same input type", context));
+                return HandleResult.failure(new ShortHandFlagException("You cannot use compressed true-flags, while they are not of same input type"));
             }
             
             boolean areAllSwitches = extracted.size() == numberOfSwitches;
@@ -53,7 +53,7 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
             
             String inputRaw = areAllSwitches ? currentRaw : stream.peekRawIfPresent();
             if(inputRaw == null) {
-                throw new MissingFlagInputException(currentParameter.asFlagParameter(), currentRaw, context);
+                throw new MissingFlagInputException(currentParameter.asFlagParameter(), currentRaw);
             }
             
             if(extracted.size() == 1 && extracted.contains(currentParameter.asFlagParameter().flagData())) {
@@ -86,7 +86,7 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
             
             stream.skip();
             return HandleResult.NEXT_ITERATION;
-        } catch (ImperatException e) {
+        } catch (CommandException e) {
             return HandleResult.failure(e);
         }
     }
@@ -107,7 +107,8 @@ public final class FlagInputHandler<S extends Source> implements ParameterHandle
         return null;
     }
     
-    private void resolveFlagDefaultValue(CommandInputStream<S> stream, FlagParameter<S> flagParameter, ExecutionContext<S> context) throws ImperatException {
+    private void resolveFlagDefaultValue(CommandInputStream<S> stream, FlagParameter<S> flagParameter, ExecutionContext<S> context) throws
+            CommandException {
         FlagData<S> flagDataFromRaw = flagParameter.flagData();
 
         if (flagDataFromRaw.isSwitch()) {

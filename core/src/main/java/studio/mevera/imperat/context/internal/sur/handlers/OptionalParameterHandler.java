@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedInputFlag;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
-import studio.mevera.imperat.exception.ImperatException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 public final class OptionalParameterHandler<S extends Source> implements ParameterHandler<S> {
@@ -34,7 +34,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
                 resolveOptional(currentRaw, currentParameter, context, stream);
             }
             return HandleResult.NEXT_ITERATION;
-        } catch (ImperatException e) {
+        } catch (CommandException e) {
             return HandleResult.failure(e);
         }
     }
@@ -44,7 +44,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             CommandParameter<S> currentParameter,
             ExecutionContext<S> context,
             CommandInputStream<S> stream
-    ) throws ImperatException {
+    ) throws CommandException {
         ImperatDebugger.debug("Handling " + currentParameter.format());
         // Step 1: Calculate obligation map for all remaining parameters
         boolean isObligatedToSkip = calculateObligationToSkip(stream);
@@ -90,7 +90,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         try {
             consumeInput(currentRaw, currentParameter, context, stream);
             ImperatDebugger.debug("CONSUMING....");
-        } catch (ImperatException e) {
+        } catch (CommandException e) {
             // Type parsing failed - fall back to default value
             ImperatDebugger.debug("FAILED TO CONSUME, SETTING DEFAULT");
             Object defaultValue = getDefaultValue(context, stream, currentParameter);
@@ -166,7 +166,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             CommandParameter<S> currentParameter,
             ExecutionContext<S> context,
             CommandInputStream<S> stream
-    ) throws ImperatException {
+    ) throws CommandException {
         Object value = currentParameter.type().resolve(context, stream, currentRaw);
         context.resolveArgument(stream, value);
         stream.skip();
@@ -176,7 +176,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
      * Get the default value for an optional parameter
      */
     @SuppressWarnings("unchecked")
-    private <T> T getDefaultValue(ExecutionContext<S> context, CommandInputStream<S> stream, CommandParameter<S> parameter) throws ImperatException {
+    private <T> T getDefaultValue(ExecutionContext<S> context, CommandInputStream<S> stream, CommandParameter<S> parameter) throws CommandException {
         OptionalValueSupplier optionalSupplier = parameter.getDefaultValueSupplier();
         if (optionalSupplier.isEmpty()) {
             return null;
