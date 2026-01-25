@@ -1,12 +1,12 @@
 package studio.mevera.imperat.util;
 
+import static java.lang.reflect.Modifier.isStatic;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-
-import static java.lang.reflect.Modifier.isStatic;
 
 public final class Preconditions {
 

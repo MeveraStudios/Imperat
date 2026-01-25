@@ -1,15 +1,47 @@
 package studio.mevera.imperat.tests;
 
+import static studio.mevera.imperat.tests.commands.TestCommands.CHAINED_SUBCOMMANDS_CMD;
+import static studio.mevera.imperat.tests.commands.TestCommands.MULTIPLE_OPTIONAL_CMD;
+
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
-import studio.mevera.imperat.tests.commands.*;
+import studio.mevera.imperat.tests.commands.ContextResolvingCmd;
+import studio.mevera.imperat.tests.commands.CustomEnumCommand;
+import studio.mevera.imperat.tests.commands.EmptyCmd;
+import studio.mevera.imperat.tests.commands.FailingCmd;
+import studio.mevera.imperat.tests.commands.KingdomChatCommand;
+import studio.mevera.imperat.tests.commands.MyCustomAnnotation;
+import studio.mevera.imperat.tests.commands.OptionalArgCommand;
+import studio.mevera.imperat.tests.commands.RankCommand;
+import studio.mevera.imperat.tests.commands.SetRankCmd;
+import studio.mevera.imperat.tests.commands.SomeClass;
+import studio.mevera.imperat.tests.commands.Test2Command;
+import studio.mevera.imperat.tests.commands.Test3Command;
+import studio.mevera.imperat.tests.commands.TestAC;
+import studio.mevera.imperat.tests.commands.TestAC2;
+import studio.mevera.imperat.tests.commands.TestCustomAnnotationCmd;
+import studio.mevera.imperat.tests.commands.TestPerm;
 import studio.mevera.imperat.tests.commands.complex.FirstOptionalArgumentCmd;
 import studio.mevera.imperat.tests.commands.complex.TestCommand;
-import studio.mevera.imperat.tests.commands.realworld.*;
-import studio.mevera.imperat.tests.commands.realworld.economy.*;
+import studio.mevera.imperat.tests.commands.realworld.Ban2Command;
+import studio.mevera.imperat.tests.commands.realworld.BanCommand;
+import studio.mevera.imperat.tests.commands.realworld.GitCommand;
+import studio.mevera.imperat.tests.commands.realworld.GiveCmd;
+import studio.mevera.imperat.tests.commands.realworld.GuildMOTDCommand;
+import studio.mevera.imperat.tests.commands.realworld.KitCommand;
+import studio.mevera.imperat.tests.commands.realworld.MessageCmd;
+import studio.mevera.imperat.tests.commands.realworld.PartyCommand;
+import studio.mevera.imperat.tests.commands.realworld.TestCFParamTypeCmd;
+import studio.mevera.imperat.tests.commands.realworld.TestJavaOptionalParamTypeCmd;
+import studio.mevera.imperat.tests.commands.realworld.UpperCaseCmd;
+import studio.mevera.imperat.tests.commands.realworld.economy.BalanceCmd;
+import studio.mevera.imperat.tests.commands.realworld.economy.BigDecimalParamType;
+import studio.mevera.imperat.tests.commands.realworld.economy.Currency;
+import studio.mevera.imperat.tests.commands.realworld.economy.CurrencyParamType;
+import studio.mevera.imperat.tests.commands.realworld.economy.EconomyCommand;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.AnnotatedGroupCommand;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.ParameterGroup;
@@ -26,9 +58,6 @@ import studio.mevera.imperat.verification.UsageVerifier;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
-
-import static studio.mevera.imperat.tests.commands.TestCommands.CHAINED_SUBCOMMANDS_CMD;
-import static studio.mevera.imperat.tests.commands.TestCommands.MULTIPLE_OPTIONAL_CMD;
 
 /**
  * Global test source and base test infrastructure for Imperat command framework tests.
