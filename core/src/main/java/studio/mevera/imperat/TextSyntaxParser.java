@@ -23,7 +23,7 @@ public final class TextSyntaxParser<S extends Source> {
     //create a  regex pattern that exactly matches [-hello <value>] or [--hello <anything>], call it TRUE_FLAG_PATTERN
     private final static Pattern TRUE_FLAG_PATTERN = Pattern.compile("^--?[a-zA-Z0-9_]+(\\s+<[^>]+>)?$");
     
-    //create regix pattern matching '[-flag]' or '[--flag]'
+    //create regex pattern matching '[-flag]' or '[--flag]'
     private final static Pattern SWITCH_ONLY_PATTERN = Pattern.compile("^--?[a-zA-Z0-9_]+$");
     
     
@@ -185,7 +185,7 @@ public final class TextSyntaxParser<S extends Source> {
         
         //now lets add parameters to the command usage, part by part
         // FOR EACH PART, search for the parameter that suits it, whether literal, or any other type of argument.
-        //the search is by name NOT neccessarily by the position of the parameter.
+        //the search is by name NOT necessarily by the position of the parameter.
         
         Map<String, CommandParameter<S>> params = new HashMap<>();
         
