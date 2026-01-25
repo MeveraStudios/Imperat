@@ -187,7 +187,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
 
         return CommandUsage.<S>builder()
             .coordinator(usage.getCoordinator())
-            .description(subCommand.description().toString())
+            .description(subCommand.description().getValue())
             .cooldown(usage.getCooldown())
             .parameters(comboParams)
             .execute(usage.getExecution())
@@ -411,7 +411,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             CommandUsage<S> mainUsage = command.getMainUsage();
             
             //copy only meta properties
-            this.description = mainUsage.description().toString();
+            this.description = mainUsage.description().getValue();
             this.permission = mainUsage.getPermissions().stream()
                     .findAny().orElse(null);
             

@@ -1,5 +1,6 @@
 package studio.mevera.imperat.command;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class Description {
@@ -15,9 +16,12 @@ public final class Description {
         return new Description(value);
     }
 
-    @Override
-    public String toString() {
+    public @Nullable String getValue() {
         return value;
+    }
+
+    public @NotNull String getValueOrElse(@NotNull String def) {
+        return getValue() != null ? getValue() : def;
     }
 
     public boolean isEmpty() {

@@ -7,8 +7,8 @@ import studio.mevera.imperat.exception.SelfHandledException;
 
 public final class InvalidCurrencyException extends SelfHandledException {
     private final String input;
-    public InvalidCurrencyException(String input, Context<?> ctx) {
-        super(ctx);
+    public InvalidCurrencyException(String input) {
+        super();
         this.input = input;
     }
     

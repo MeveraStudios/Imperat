@@ -17,7 +17,7 @@ import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.exception.UnknownServerException;
 import studio.mevera.imperat.type.ParameterPlayer;
-import studio.mevera.imperat.type.ParmeterServerInfo;
+import studio.mevera.imperat.type.ParameterServerInfo;
 import studio.mevera.imperat.util.TypeWrap;
 
 /**
@@ -90,7 +90,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         config.registerContextResolver(ServerInfo.class, (ctx, paramElement) -> {
             VelocitySource source = ctx.source();
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException(ctx);
+                throw new OnlyPlayerAllowedException();
             }
             Player player = source.asPlayer();
             return player.getCurrentServer()
@@ -108,7 +108,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         config.registerSourceResolver(AdventureSource.class, (velocitySource, ctx) -> velocitySource);
         config.registerSourceResolver(ConsoleCommandSource.class, (velocitySource, ctx) -> {
             if (!velocitySource.isConsole()) {
-                throw new OnlyConsoleAllowedException(ctx);
+                throw new OnlyConsoleAllowedException();
             }
             return velocitySource.asConsole();
         });
@@ -117,7 +117,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException(ctx);
+                throw new OnlyPlayerAllowedException();
             }
             return source.asPlayer();
         });
@@ -150,7 +150,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      */
     private void registerParameterTypes() {
         config.registerParamType(Player.class, new ParameterPlayer(proxyServer));
-        config.registerParamType(ServerInfo.class, new ParmeterServerInfo(proxyServer));
+        config.registerParamType(ServerInfo.class, new ParameterServerInfo(proxyServer));
     }
 
     /**

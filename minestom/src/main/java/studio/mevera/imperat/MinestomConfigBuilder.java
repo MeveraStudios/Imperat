@@ -84,14 +84,14 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
         config.registerSourceResolver(AdventureSource.class, (minestomSource, ctx) -> minestomSource);
         config.registerSourceResolver(ConsoleSender.class, (minestomSource, ctx) -> {
             if (!minestomSource.isConsole()) {
-                throw new OnlyConsoleAllowedException(ctx);
+                throw new OnlyConsoleAllowedException();
             }
             return (ConsoleSender) minestomSource.origin();
         });
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException(ctx);
+                throw new OnlyPlayerAllowedException();
             }
             return source.asPlayer();
         });

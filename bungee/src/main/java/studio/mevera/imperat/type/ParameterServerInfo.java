@@ -29,7 +29,7 @@ public final class ParameterServerInfo extends BaseParameterType<BungeeSource, S
     ) throws UnknownServerException {
         ServerInfo serverInfo = server.getServerInfo(input);
         if (serverInfo == null) {
-            throw new UnknownServerException(input, context);
+            throw new UnknownServerException(input);
         }
         return serverInfo;
     }

@@ -441,7 +441,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
         }
 
         public Builder<S> description(Description description) {
-            return description(description.toString());
+            return description(description.getValue());
         }
 
         public Builder<S> permission(String permission) {

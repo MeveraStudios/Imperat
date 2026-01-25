@@ -34,7 +34,7 @@ final class SlashCommandMapper {
 
     SlashMapping mapCommand(Command<JdaSource> command) {
         String commandName = command.name().toLowerCase();
-        SlashCommandData data = Commands.slash(commandName, command.description().toString());
+        SlashCommandData data = Commands.slash(commandName, command.description().getValueOrElse(""));
         List<UsagePath> usagePaths = collectUsagePaths(command, List.of(), List.of());
         Map<InvocationKey, Invocation> invocations = new LinkedHashMap<>();
 
@@ -122,7 +122,7 @@ final class SlashCommandMapper {
                         parameters.add(parameter);
                     }
                 }
-                paths.add(new UsagePath(List.copyOf(path), List.copyOf(parameters), usage.description().toString()));
+                paths.add(new UsagePath(List.copyOf(path), List.copyOf(parameters), usage.description().getValue()));
             }
             return paths;
         }
@@ -232,13 +232,13 @@ final class SlashCommandMapper {
         }
 
         static OptionSpec from(String name, CommandParameter<JdaSource> parameter, OptionType type) {
-            return new OptionSpec(name, type, parameter.description().toString(), !parameter.isOptional());
+            return new OptionSpec(name, type, parameter.description().getValue(), !parameter.isOptional());
         }
 
         void merge(CommandParameter<JdaSource> parameter, OptionType resolvedType) {
             type = compatibleType(type, resolvedType);
             description = description == null || description.isEmpty()
-                    ? parameter.description().toString()
+                    ? parameter.description().getValue()
                     : description;
             required = required && !parameter.isOptional();
         }

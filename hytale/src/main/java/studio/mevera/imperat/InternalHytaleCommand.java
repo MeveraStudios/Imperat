@@ -26,12 +26,12 @@ final class InternalHytaleCommand extends CommandBase {
         super("");
         this.imperat = imperat;
         for(var p : variant ) {
-            withRequiredArg(p.name(), p.description().toString(), loadArgType(p));
+            withRequiredArg(p.name(), p.description().getValueOrElse(""), loadArgType(p));
         }
     }
 
     InternalHytaleCommand(HytaleImperat imperat, Command<HytaleSource> imperatCmd) {
-        super(imperatCmd.name().toLowerCase(), imperatCmd.description().toString());
+        super(imperatCmd.name().toLowerCase(), imperatCmd.description().getValueOrElse(""));
         this.imperat = imperat;
         setAllowsExtraArguments(true); //TODO IN THE FUTURE , WE MAY NOT ACTUALLY NEED THIS UNLESS THERE'S A GREEDY ARG IN ANY TYPE OF USAGE
         addAliases(imperatCmd.aliases().toArray(String[]::new));
@@ -85,10 +85,10 @@ final class InternalHytaleCommand extends CommandBase {
                 optionals.put(i, parameter);
             }else if(parameter.isOptional()) {
                 //last optional
-                withOptionalArg(parameter.name(), parameter.description().toString(), loadArgType(parameter));
+                withOptionalArg(parameter.name(), parameter.description().getValueOrElse(""), loadArgType(parameter));
                 break;
             }
-            withRequiredArg(parameter.name(), parameter.description().toString(), loadArgType(parameter));
+            withRequiredArg(parameter.name(), parameter.description().getValueOrElse(""), loadArgType(parameter));
         }
 
         List<List<CommandParameter<HytaleSource>>> parameterVariants = new ArrayList<>();

@@ -23,11 +23,11 @@ public final class TestPlayerParamType extends BaseParameterType<TestSource, Tes
         // Note: We can't easily call matchesInput here without the raw position and context,
         // so we'll just validate the input directly
         if (input.length() > 16) {
-            throw new NotPlayerException(context);
+            throw new NotPlayerException();
         }
         try {
             Double.parseDouble(input);
-            throw new NotPlayerException(context); // Numbers are not valid player names
+            throw new NotPlayerException(); // Numbers are not valid player names
         } catch (NumberFormatException e) {
             // Good, it's not a number
         }

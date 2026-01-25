@@ -21,7 +21,7 @@ public final class CurrencyParamType extends BaseParameterType<TestSource, Curre
     ) throws CommandException {
         Currency currency = CurrencyManager.getInstance().getCurrencyByName(input.toLowerCase());
         if(currency == null) {
-            throw new InvalidCurrencyException(input, context);
+            throw new InvalidCurrencyException(input);
         }
         return currency;
     }
