@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.Imperat;
+import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
@@ -54,7 +55,9 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private boolean suppressACPermissionChecks = false;
     private CommandUsage<S> mainUsage = null;
     private CommandUsage<S> defaultUsage;
-    
+
+    private ParseElement<?> annotatedElement = null;
+
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
 
     private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> preProcessors =
@@ -73,15 +76,27 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final Imperat<S> imperat;
     
     CommandImpl(Imperat<S> imperat, String name) {
-        this(imperat, null, name);
+        this(imperat, name, null);
+    }
+
+    CommandImpl(Imperat<S> imperat, String name, ParseElement<?> annotatedElement) {
+        this(imperat, null, name, annotatedElement);
     }
 
     //sub-command constructor
     CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, String name) {
-        this(imperat, parent, -1, name);
+        this(imperat, parent, name, null);
+    }
+
+    CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, String name, ParseElement<?> annotatedElement) {
+        this(imperat, parent, -1, name, annotatedElement);
     }
 
     CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, int position, String name) {
+        this(imperat, parent, position, name, null);
+    }
+
+    CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, int position, String name, @Nullable ParseElement<?> annotatedElement) {
         this.imperat = imperat;
         this.parent = parent;
         this.position = position;
@@ -92,9 +107,9 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.tree = parent != null ? null : CommandTree.create(imperat.config(), this);
         this.visualizer = CommandTreeVisualizer.of(tree);
         this.suggestionResolver = SuggestionResolver.forCommand(this);
-
+        this.annotatedElement = annotatedElement;
     }
-    
+
     @Override
     public @NotNull Imperat<S> imperat() {
         return imperat;
@@ -106,6 +121,20 @@ final class CommandImpl<S extends Source> implements Command<S> {
     @Override
     public String name() {
         return name;
+    }
+
+
+    @Override
+    public @Nullable ParseElement<?> getAnnotatedElement() {
+        return annotatedElement;
+    }
+
+    /**
+     * @return the aliases for this commands
+     */
+    @Override
+    public @UnmodifiableView List<String> aliases() {
+        return aliases;
     }
 
     /**
@@ -287,13 +316,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
         return this.name.equalsIgnoreCase(parameter.name());
     }
 
-    /**
-     * @return the aliases for this commands
-     */
-    @Override
-    public @UnmodifiableView List<String> aliases() {
-        return aliases;
-    }
 
     @Override
     public CommandTree<S> tree() {
@@ -406,12 +428,12 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
     
     @Override
-    public CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors() {
+    public @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors() {
         return preProcessors;
     }
     
     @Override
-    public CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors() {
+    public @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors() {
         return postProcessors;
     }
     

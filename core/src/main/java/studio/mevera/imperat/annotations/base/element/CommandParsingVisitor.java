@@ -156,7 +156,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             final List<String> aliases = List.of(values).subList(1, values.length);
             final boolean ignoreAC = cmdAnn.skipSuggestionsChecks();
 
-            builder = studio.mevera.imperat.command.Command.create(imperat, values[0])
+            builder = studio.mevera.imperat.command.Command.create(imperat, values[0], element)
                 .ignoreACPermissions(ignoreAC)
                 .aliases(aliases);
             
@@ -196,7 +196,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             final List<String> aliases = List.of(values).subList(1, values.length);
             final boolean ignoreAC = subCommand.skipSuggestionsChecks();
 
-            builder = studio.mevera.imperat.command.Command.create(imperat, values[0])
+            builder = studio.mevera.imperat.command.Command.create(imperat, values[0], element)
                 .ignoreACPermissions(ignoreAC)
                 .aliases(aliases);
 

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.BaseThrowableHandler;
 import studio.mevera.imperat.FlagRegistrar;
 import studio.mevera.imperat.Imperat;
+import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
@@ -40,6 +41,10 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
         return create(imperat, null, name);
     }
 
+    static <S extends Source> Command.Builder<S> create(@NotNull Imperat<S> imperat, String name, @Nullable ParseElement<?> annotatedElement) {
+        return create(imperat, null, name, annotatedElement);
+    }
+
     static <S extends Source> Command.Builder<S> create(
         @NotNull Imperat<S> imperat,
         @Nullable Command<S> parent,
@@ -49,12 +54,31 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
     }
 
     static <S extends Source> Command.Builder<S> create(
+            @NotNull Imperat<S> imperat,
+            @Nullable Command<S> parent,
+            @NotNull String name,
+            @Nullable ParseElement<?> annotatedElement
+    ) {
+        return create(imperat, parent, -1, name, annotatedElement);
+    }
+
+    static <S extends Source> Command.Builder<S> create(
         @NotNull Imperat<S> imperat,
         @Nullable Command<S> parent,
         int position,
         @NotNull String name
     ) {
         return new Builder<>(imperat, parent, position, name);
+    }
+
+    static <S extends Source> Command.Builder<S> create(
+            @NotNull Imperat<S> imperat,
+            @Nullable Command<S> parent,
+            int position,
+            @NotNull String name,
+            @Nullable ParseElement<?> annotatedElement
+    ) {
+        return new Builder<>(imperat, parent, position, name, annotatedElement);
     }
     
     @NotNull
@@ -70,6 +94,16 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
      */
     @UnmodifiableView
     List<String> aliases();
+
+    /**
+     * @return the annotated element this object got extracted from, null if it was created from a {@link ParseElement}
+     */
+    @Nullable ParseElement<?> getAnnotatedElement();
+
+    @Override
+    default boolean isAnnotated() {
+        return getAnnotatedElement() != null;
+    }
 
     /**
      * Sets the aliases of a command
@@ -413,11 +447,14 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
 
         private final Imperat<S> imperat;
         private final Command<S> cmd;
-        
-        
-        Builder(@NotNull Imperat<S> imperat, @Nullable Command<S> parent, int position, String name) {
+
+        Builder(@NotNull Imperat<S> imperat, @Nullable Command<S> parent, int position, String name, ParseElement<?> parseElement) {
             this.imperat = imperat;
-            this.cmd = new CommandImpl<>(imperat, parent, position, name);
+            this.cmd = new CommandImpl<>(imperat, parent, position, name, parseElement);
+        }
+
+        Builder(@NotNull Imperat<S> imperat, @Nullable Command<S> parent, int position, String name) {
+            this(imperat, parent, position, name, null);
         }
 
         public Builder<S> ignoreACPermissions(boolean ignore) {
@@ -477,8 +514,22 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
             );
         }
 
+        public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage, AttachmentMode attachmentMode,
+                @Nullable ParseElement<?> annotatedElement) {
+            return subCommand(
+                    Command.create(imperat, name, annotatedElement)
+                            .usage(mainUsage)
+                            .build(),
+                    attachmentMode
+            );
+        }
+
         public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage) {
             return subCommand(name, mainUsage, cmd.imperat().config().getDefaultAttachmentMode());
+        }
+
+        public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage, @Nullable ParseElement<?> annotatedElement) {
+            return subCommand(name, mainUsage, cmd.imperat().config().getDefaultAttachmentMode(), annotatedElement);
         }
 
         public Builder<S> preProcessor(CommandPreProcessor<S> preProcessor) {

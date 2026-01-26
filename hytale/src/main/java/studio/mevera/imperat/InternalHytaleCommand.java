@@ -5,13 +5,14 @@ import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
+import studio.mevera.imperat.annotations.RequireConfirmation;
+import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterEnum;
 import studio.mevera.imperat.type.HytaleParameterType;
 import studio.mevera.imperat.util.TypeUtility;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ final class InternalHytaleCommand extends CommandBase {
     }
 
     InternalHytaleCommand(HytaleImperat imperat, Command<HytaleSource> imperatCmd) {
-        super(imperatCmd.name().toLowerCase(), imperatCmd.description().getValueOrElse(""));
+        super(imperatCmd.name().toLowerCase(), imperatCmd.description().getValueOrElse(""), requiresConfirmation(imperatCmd));
         this.imperat = imperat;
         setAllowsExtraArguments(true); //TODO IN THE FUTURE , WE MAY NOT ACTUALLY NEED THIS UNLESS THERE'S A GREEDY ARG IN ANY TYPE OF USAGE
         addAliases(imperatCmd.aliases().toArray(String[]::new));
@@ -46,6 +47,14 @@ final class InternalHytaleCommand extends CommandBase {
 
         //add the sub commands
         this.hookSubcommands(imperatCmd);
+    }
+    private static boolean requiresConfirmation(Command<HytaleSource> imperatCmd) {
+        if(!imperatCmd.isAnnotated()) {
+            return false;
+        }
+        ParseElement<?> annotatedElement = imperatCmd.getAnnotatedElement();
+        assert annotatedElement != null;
+        return annotatedElement.isAnnotationPresent(RequireConfirmation.class);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
