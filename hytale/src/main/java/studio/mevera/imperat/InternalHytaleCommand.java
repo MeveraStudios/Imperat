@@ -48,6 +48,18 @@ final class InternalHytaleCommand extends CommandBase {
         //add the sub commands
         this.hookSubcommands(imperatCmd);
     }
+    /**
+     * Determines whether the given command requires user confirmation before execution.
+     * <p>
+     * A command is considered to require confirmation if its underlying annotated element
+     * is annotated with {@link RequireConfirmation}. If the command is not annotated at
+     * all (i.e., {@code imperatCmd.isAnnotated()} returns {@code false}), this method
+     * will return {@code false}, meaning no confirmation is required.
+     *
+     * @param imperatCmd the command definition whose confirmation requirement should be checked
+     * @return {@code true} if the command's annotated element is annotated with
+     *         {@link RequireConfirmation}, {@code false} otherwise
+     */
     private static boolean requiresConfirmation(Command<HytaleSource> imperatCmd) {
         if(!imperatCmd.isAnnotated()) {
             return false;
