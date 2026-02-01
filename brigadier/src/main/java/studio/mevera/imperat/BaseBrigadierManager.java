@@ -4,7 +4,6 @@ import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.Message;
-import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
@@ -15,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
 import studio.mevera.imperat.command.tree.ArgumentNode;
 import studio.mevera.imperat.command.tree.CommandNode;
@@ -23,17 +21,11 @@ import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.util.TypeUtility;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 @SuppressWarnings("unchecked")
 public abstract non-sealed class BaseBrigadierManager<S extends Source> implements BrigadierManager<S> {
 
     protected final Imperat<S> dispatcher;
-    protected final List<ArgumentTypeResolver> resolvers = new ArrayList<>();
 
     protected BaseBrigadierManager(Imperat<S> dispatcher) {
         this.dispatcher = dispatcher;
@@ -161,46 +153,9 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
         });
     }
 
-    //resolvers methods
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> void registerArgumentResolver(
-            Class<T> type,
-            ArgumentTypeResolver argumentTypeResolver
-    ) {
-        resolvers.add((param) -> {
-            if (param.isFlag()) {
-
-                FlagParameter<S> flagParameter = (FlagParameter<S>) param.asFlagParameter();
-                if (flagParameter.isSwitch()) {
-                    return argumentTypeResolver.resolveArgType(flagParameter);
-                }
-
-                return param.valueType() == Objects.requireNonNull(flagParameter.flagData().inputType()).type()
-                        ? argumentTypeResolver.resolveArgType(param) : null;
-            }
-            return TypeUtility.matches(param.valueType(), type) ? argumentTypeResolver.resolveArgType(param) : null;
-        });
-    }
-
-    @Override
-    public void registerArgumentResolver(ArgumentTypeResolver argumentTypeResolver) {
-        resolvers.add(argumentTypeResolver);
-    }
-
-    @Override
-    public @NotNull ArgumentType<?> getArgumentType(CommandParameter<S> parameter) {
-        for (var resolver : resolvers) {
-            var resolved = resolver.resolveArgType(parameter);
-            if (resolved != null)
-                return resolved;
-        }
-        return getStringArgType(parameter);
-    }
 
 
-    private StringArgumentType getStringArgType(CommandParameter<S> parameter) {
+    protected StringArgumentType getStringArgType(CommandParameter<S> parameter) {
         if (parameter.isGreedy()) return StringArgumentType.greedyString();
         else return StringArgumentType.string();
     }

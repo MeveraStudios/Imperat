@@ -26,23 +26,6 @@ public sealed interface BrigadierManager<S extends Source> permits BaseBrigadier
     S wrapCommandSource(Object commandSource);
 
     /**
-     * Registers the argument valueType to its class valueType
-     *
-     * @param type                 the valueType to register to the value-valueType obj
-     * @param argumentTypeResolver the value valueType resolver
-     * @param <T>                  the valueType parameter for the valueType.
-     */
-    <T> void registerArgumentResolver(Class<T> type, ArgumentTypeResolver argumentTypeResolver);
-
-    /**
-     * Registers the argument valueType resolver
-     *
-     * @param argumentTypeResolver the value valueType resolver
-     */
-    void registerArgumentResolver(ArgumentTypeResolver argumentTypeResolver);
-
-
-    /**
      * Fetches the argument valueType from the parameter
      *
      * @param parameter the parameter
