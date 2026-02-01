@@ -1,49 +1,19 @@
 package studio.mevera.imperat.brigadier;
 
 import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.ArgumentTypeResolver;
 import studio.mevera.imperat.command.parameters.NumericRange;
-import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.util.TypeUtility;
-import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
 
-class DefaultArgTypeResolvers {
+class NumericArgUtil {
 
-    public final static ArgumentTypeResolver STRING = (parameter -> {
-        if (parameter.isGreedy()) return StringArgumentType.greedyString();
-        return StringArgumentType.string();
-    });
-    public final static ArgumentTypeResolver BOOLEAN = (parameter -> BoolArgumentType.bool());
-    public final static ArgumentTypeResolver NUMERIC = (parameter) -> {
-
-        if (parameter.isNumeric()) {
-            NumericRange range = parameter.asNumeric().getRange();
-            return numeric(parameter.valueType(), range);
-        }
-
-        return null;
-    };
-    private static final ArgumentType<?> SINGLE_PLAYER = entity(true, true);
-    public static final ArgumentTypeResolver PLAYER = parameter -> SINGLE_PLAYER;
-    private static final ArgumentType<?> MULTI_ENTITY = entity(false, false);
-    public static final ArgumentTypeResolver ENTITY_SELECTOR = parameter -> {
-
-        if (TypeUtility.matches(parameter.valueType(), TargetSelector.class) || TypeWrap.of(Entity.class).isSupertypeOf(parameter.valueType()))
-            return MULTI_ENTITY;
-        return null;
-    };
-
-    private static ArgumentType<? extends Number> numeric(
+    static ArgumentType<? extends Number> numeric(
             Type type,
             @Nullable NumericRange range) {
         if (TypeUtility.matches(type, int.class)) {
@@ -71,9 +41,5 @@ class DefaultArgTypeResolvers {
             return Double.MAX_VALUE;
         else
             return range.getMax();
-    }
-
-    private static ArgumentType<?> entity(boolean single, boolean playerOnly) {
-        return MinecraftArgumentType.ENTITY.create(single, playerOnly);
     }
 }

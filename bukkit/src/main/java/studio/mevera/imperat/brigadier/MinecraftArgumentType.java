@@ -16,7 +16,7 @@ public enum MinecraftArgumentType {
     /**
      * A selector, player name, or UUID.
      */
-    ENTITY("ArgumentEntity", "commands.arguments.selector.EntitySelector", 1, boolean.class, boolean.class),
+    ENTITY_SELECTOR("ArgumentEntity", "commands.arguments.selector.EntitySelector", 1, boolean.class, boolean.class),
 
     /**
      * A player, online or not.
@@ -351,7 +351,7 @@ public enum MinecraftArgumentType {
         }
 
         try {
-            return argumentConstructor.newInstance(arguments);
+            return (ArgumentType<T>) (argumentType = argumentConstructor.newInstance(arguments));
         } catch (final Throwable e) {
             throw new RuntimeException(e);
         }

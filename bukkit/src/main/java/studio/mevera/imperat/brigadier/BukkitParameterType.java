@@ -13,10 +13,18 @@ import studio.mevera.imperat.exception.CommandException;
 public class BukkitParameterType<T> extends BaseParameterType<BukkitSource, T> {
 
     private final MinecraftArgumentType minecraftArgumentType;
-
+    private final ArgumentType<T> argumentType;
     public BukkitParameterType(Class<T> type, @NotNull MinecraftArgumentType minecraftArgumentType) {
         super(type);
         this.minecraftArgumentType = minecraftArgumentType;
+        this.argumentType = minecraftArgumentType.get();
+    }
+
+    //for arg types that require parameters
+    public BukkitParameterType(Class<T> type, @NotNull MinecraftArgumentType minecraftArgumentType, ArgumentType<T> argumentType) {
+        super(type);
+        this.minecraftArgumentType = minecraftArgumentType;
+        this.argumentType = argumentType;
     }
 
     @Override
@@ -27,8 +35,8 @@ public class BukkitParameterType<T> extends BaseParameterType<BukkitSource, T> {
     ) throws CommandException {
 
         try {
-            ArgumentType<T> brigadierType = this.minecraftArgumentType.get();
-            T value = brigadierType.parse(new BukkitStringReader(context, inputStream));
+
+            T value = argumentType.parse(new BukkitStringReader(context, inputStream));
             for (int i = 1; i < minecraftArgumentType.getConsumedArgs(); i++) {
                 inputStream.skipRaw();
             }
@@ -43,7 +51,7 @@ public class BukkitParameterType<T> extends BaseParameterType<BukkitSource, T> {
     }
 
     public ArgumentType<T> getArgType() {
-        return this.minecraftArgumentType.get();
+        return argumentType;
     }
 
     public boolean isSupported() {

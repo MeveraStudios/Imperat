@@ -3,6 +3,8 @@ package studio.mevera.imperat.brigadier;
 import static studio.mevera.imperat.commodore.CommodoreProvider.isSupported;
 
 import com.mojang.brigadier.arguments.ArgumentType;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BaseBrigadierManager;
@@ -13,6 +15,8 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.commodore.Commodore;
 import studio.mevera.imperat.commodore.CommodoreProvider;
 import studio.mevera.imperat.resolvers.PermissionChecker;
+import studio.mevera.imperat.selector.TargetSelector;
+import java.lang.reflect.Type;
 
 public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSource> {
 
@@ -22,20 +26,26 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSou
         super(dispatcher);
         this.commodore = CommodoreProvider.getCommodore(dispatcher);
         if (isSupported()) {
-//            registerArgumentResolver(String.class, DefaultArgTypeResolvers.STRING);
-//            registerArgumentResolver(DefaultArgTypeResolvers.NUMERIC);
-//            registerArgumentResolver(Boolean.class, DefaultArgTypeResolvers.BOOLEAN);
-//            registerArgumentResolver(Player.class, DefaultArgTypeResolvers.PLAYER);
-//            registerArgumentResolver(OfflinePlayer.class, DefaultArgTypeResolvers.PLAYER);
-//            registerArgumentResolver(DefaultArgTypeResolvers.ENTITY_SELECTOR);
 
             for(MinecraftArgumentType type : MinecraftArgumentType.values()) {
-                if(type.isSupported()) {
-                    dispatcher.config().registerParamType(type.getParsedType(), new BukkitParameterType<>(type.getParsedType(), type));
+                if(type.isSupported() && !type.requiresParameters()) {
+                    registerAsParameterType(type.getParsedType(), type);
                 }
             }
+            //we manually register the entity selector types as they require parameters
+            registerAsParameterType(Player.class, MinecraftArgumentType.ENTITY_SELECTOR, true, true);
+            registerAsParameterType(OfflinePlayer.class, MinecraftArgumentType.ENTITY_SELECTOR, true, true);
+            registerAsParameterType(TargetSelector.class, MinecraftArgumentType.ENTITY_SELECTOR, false, false);
         }
 
+    }
+
+    private void registerAsParameterType(Type type, MinecraftArgumentType argumentType) {
+        dispatcher.config().registerParamType(type, new BukkitParameterType<>(argumentType.getParsedType(), argumentType));
+    }
+
+    private void registerAsParameterType(Type type, MinecraftArgumentType argumentType, Object... params) {
+        dispatcher.config().registerParamType(type, new BukkitParameterType<>(argumentType.getParsedType(), argumentType, argumentType.create(params)));
     }
 
     public static @Nullable BukkitBrigadierManager load(BukkitImperat bukkitCommandDispatcher) {
@@ -60,6 +70,10 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSou
                 throw new IllegalStateException("The parameter type " + paramType.getClass().getName() + " is not supported in the current server version.");
             }
         }
+        else if(parameter.isNumeric()) {
+            return NumericArgUtil.numeric(parameter.valueType(), parameter.asNumeric().getRange());
+        }
+
         return getStringArgType(parameter);
     }
 
