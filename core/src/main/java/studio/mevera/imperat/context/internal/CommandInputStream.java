@@ -615,13 +615,6 @@ public interface CommandInputStream<S extends Source> {
         return ofSingleString(param, input);
     }
 
-    static <S extends Source> CommandInputStream<S> startingFrom(int rawPos, int paramPos, CommandInputStream<S> stream) {
-        CommandInputStream<S> newStream = stream.copy();
-        StreamPosition<S> position = newStream.position();
-        position.raw = rawPos;
-        position.parameter = paramPos;
-        return newStream;
-    }
 
     default boolean hasFinished() {
         return !hasNextRaw();

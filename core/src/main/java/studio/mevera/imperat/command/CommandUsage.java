@@ -32,9 +32,6 @@ import java.util.function.Predicate;
  */
 public sealed interface CommandUsage<S extends Source> extends Iterable<CommandParameter<S>>, PermissionHolder, DescriptionHolder, CooldownHolder  permits CommandUsageImpl{
 
-    FlagExtractor<S> getSubCommandFlagExtractor(String subCommandName);
-
-    void setSubCommandFlagExtractor(String subCommandName, FlagExtractor<S> extractor);
 
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
@@ -185,7 +182,6 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             .execute(usage.getExecution())
             .build(subCommand, usage.isHelp());
 
-        comboUsage.setSubCommandFlagExtractor(subCommand.name(), usage.getFlagExtractor());
         return comboUsage;
     }
 

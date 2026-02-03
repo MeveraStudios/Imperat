@@ -22,11 +22,9 @@ import studio.mevera.imperat.util.Patterns;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -44,7 +42,6 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     private @NotNull CooldownHandler<S> cooldownHandler;
     private @Nullable UsageCooldown cooldown = null;
     private CommandCoordinator<S> commandCoordinator ;
-    private final Map<String, FlagExtractor<S>> subFlagExtractors = new HashMap<>(); // each subcommand have single flag registry/extractor
     private final FlagExtractor<S> flagExtractor;
 
     private final List<String> examples = new ArrayList<>(2);
@@ -59,16 +56,6 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
         this.commandCoordinator = null;
         this.help = help;
         this.flagExtractor = FlagExtractor.createNative(this);
-    }
-
-    @Override
-    public FlagExtractor<S> getSubCommandFlagExtractor(String subCommandName) {
-        return subFlagExtractors.computeIfAbsent(subCommandName, k -> FlagExtractor.createNative(this));
-    }
-
-    @Override
-    public void setSubCommandFlagExtractor(String subCommandName, FlagExtractor<S> extractor) {
-        this.subFlagExtractors.put(subCommandName, extractor);
     }
 
     /**

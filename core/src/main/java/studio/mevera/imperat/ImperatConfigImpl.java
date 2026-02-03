@@ -29,6 +29,7 @@ import studio.mevera.imperat.context.ParamTypeRegistry;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.exception.CooldownException;
+import studio.mevera.imperat.exception.FlagOutsideCommandScopeException;
 import studio.mevera.imperat.exception.InvalidSourceException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.InvalidUUIDException;
@@ -160,6 +161,12 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
         this.setThrowableResolver(MissingFlagInputException.class,(ex, context)-> {
             context.source().error("Please enter the value for flag(s) '" + String.join(",", ex.getFlagData()) + "'");
+        });
+
+        this.setThrowableResolver(FlagOutsideCommandScopeException.class, (ex, context)-> {
+
+            context.source().error("Flag(s) '" + ex.getFlagInput() + "' were used (in " + ex.getWrongCmd().name() + "'s scope) outside of their "
+                                           + "command's scope");
         });
 
         this.setThrowableResolver(ValueOutOfConstraintException.class, (ex, context)-> {

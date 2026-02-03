@@ -1,6 +1,7 @@
 package studio.mevera.imperat.context.internal.sur;
 
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
@@ -9,6 +10,7 @@ import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.context.internal.sur.handlers.ParameterHandler;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.FlagOutsideCommandScopeException;
 import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.exception.ShortHandFlagException;
 import studio.mevera.imperat.util.Patterns;
@@ -46,12 +48,18 @@ public class ParameterChain<S extends Source> {
             }
         }
 
-
         var usage = context.getDetectedUsage();
+        Command<S> lastCmd = context.command();
+
         for (int rPos = 0; rPos < stream.rawsLength(); rPos++) {
             String raw = context.getRawArgument(rPos);
-            if(!Patterns.isInputFlag(raw))
+            if(!Patterns.isInputFlag(raw)) {
+                var sub = lastCmd.getSubCommand(raw);
+                if(sub != null ){
+                    lastCmd = sub;
+                }
                 continue;
+            }
             String nextRaw = rPos + 1 < stream.rawsLength() ? context.getRawArgument(rPos + 1) : null;
             //identify if its a registered flag
             Set<FlagParameter<S>> extracted = usage.getFlagExtractor().extract(Patterns.withoutFlagSign(raw));
@@ -59,6 +67,10 @@ public class ParameterChain<S extends Source> {
 
             //all flags here must be resolved inside the context
             for(var flagParam : extracted) {
+
+                if(!lastCmd.getMainUsage().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
+                    throw new FlagOutsideCommandScopeException(lastCmd, raw);
+                }
                 FlagData<S> extractedFlagData = flagParam.flagData();
                 context.resolveFlag(
                         new ExtractedFlagArgument(
@@ -66,7 +78,7 @@ public class ParameterChain<S extends Source> {
                                 raw,
                                 inputRaw,
                                 extractedFlagData.isSwitch() ? true : Objects.requireNonNull(extractedFlagData.inputType()).resolve(context,
-                                        CommandInputStream.startingFrom(rPos, stream.parametersLength(), stream), inputRaw)
+                                        CommandInputStream.ofSingleString(flagParam, inputRaw), inputRaw)
                         )
                 );
             }
