@@ -12,6 +12,7 @@ import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
 import studio.mevera.imperat.command.flags.FlagExtractor;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
@@ -34,7 +35,6 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     private final static int EXPECTED_PARAMETERS_CAPACITY = 8, EXPECTED_FREE_FLAGS_CAPACITY = 3;
     
     private final List<CommandParameter<S>> parameters = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
-    private final List<CommandParameter<S>> parametersWithoutFlags = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
     private final @NotNull CommandExecution<S> execution;
     private final boolean help;
     private final Set<String> permissions = new HashSet<>(CommandImpl.INITIAL_PERMISSIONS_CAPACITY);
@@ -42,8 +42,6 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     private @NotNull CooldownHandler<S> cooldownHandler;
     private @Nullable UsageCooldown cooldown = null;
     private CommandCoordinator<S> commandCoordinator ;
-
-    private final Set<FlagData<S>> freeFlags = new HashSet<>(EXPECTED_FREE_FLAGS_CAPACITY);
     private final FlagExtractor<S> flagExtractor;
 
     private final List<String> examples = new ArrayList<>(2);
@@ -142,14 +140,8 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     }
 
     @Override
-    public void addFlag(FlagData<S> flagData) {
-        freeFlags.add(flagData);
+    public void addFlag(FlagParameter<S> flagData) {
         flagExtractor.insertFlag(flagData);
-    }
-
-    @Override
-    public Set<FlagData<S>> getUsedFreeFlags() {
-        return freeFlags;
     }
 
 
@@ -172,16 +164,11 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     @Override
     public void addParameters(List<CommandParameter<S>> params) {
         for (var param : params) {
-            if (param.isFlag() && param.asFlagParameter().flagData().isFree()) {
-                freeFlags.add(param.asFlagParameter().flagData());
-                continue;
-            }
-            parameters.add(param);
             if (param.isFlag()) {
                 flagExtractor.insertFlag(param.asFlagParameter().flagData());
-                continue;
+            }else {
+                parameters.add(param);
             }
-            parametersWithoutFlags.add(param);
         }
     }
 
@@ -194,11 +181,6 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
         return parameters;
     }
 
-    @Override
-    public List<CommandParameter<S>> getParametersWithoutFlags() {
-        return parametersWithoutFlags;
-    }
-    
     @Override
     public List<String> getExamples() {
         return examples;

@@ -10,13 +10,18 @@ import studio.mevera.imperat.command.DescriptionHolder;
 import studio.mevera.imperat.command.PermissionHolder;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
+import studio.mevera.imperat.command.parameters.validator.ArgValidator;
+import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Queue;
 
 /**
  * Represents the command parameter required
@@ -324,4 +329,13 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
      * @return a copy of this parameter with the new position
      */
     CommandParameter<S> copyWithDifferentPosition(int newPosition);
+
+    @NotNull Queue<ArgValidator<S>> getValidatorsQueue();
+
+    default void addValidator(@NotNull ArgValidator<S> validator) {
+        Preconditions.notNull(validator, "validator");
+        getValidatorsQueue().add(validator);
+    }
+
+    void validate(Context<S> context, Argument<S> argument) throws InvalidArgumentException;
 }

@@ -1,9 +1,9 @@
 package studio.mevera.imperat;
 
+import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -17,28 +17,10 @@ import java.util.Set;
 public interface FlagRegistrar<S extends Source> {
 
     /**
-     * Registers a new free flag in the system.
-     *
-     * @param flagBuilder the {@link FlagData} object containing the data required to define
-     *                    and register the flag. This includes the flag's name, aliases,
-     *                    description, and any associated logic or behavior.
-     */
-    void registerFlag(FlagData<S> flagBuilder);
-
-    /**
-     * Retrieves a registered flag based on its raw input (e.g., a string provided by the user
-     * in a command).
-     *
-     * @param raw the raw input string that may represent a flag (e.g., {@code --help}, {@code -h}).
-     * @return an {@link Optional} containing the {@link FlagData} object if a matching flag is found.
-     * If no match is found, the {@link Optional} will be empty.
-     */
-    Optional<FlagData<S>> getFlagFromRaw(String raw);
-
-    /**
      * Retrieves all registered flags in the system.
      *
      * @return a {@link Set} containing all {@link FlagData} objects that have been registered.
      */
-    Set<FlagData<S>> getRegisteredFlags();
+    Set<FlagParameter<S>> getRegisteredFlags();
+
 }

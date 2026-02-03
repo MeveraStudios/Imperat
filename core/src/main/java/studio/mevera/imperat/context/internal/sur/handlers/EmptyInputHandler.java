@@ -16,7 +16,7 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 public final class EmptyInputHandler<S extends Source> implements ParameterHandler<S> {
     
     @Override
-    public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
+    public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException {
         CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         if (currentParameter == null) {
             return HandleResult.TERMINATE;

@@ -108,7 +108,7 @@ final class SlashCommandMapper {
         List<UsagePath> paths = new ArrayList<>();
         List<CommandParameter<JdaSource>> inheritedForChildren = new ArrayList<>(inherited);
 
-        for (CommandParameter<JdaSource> parameter : command.getMainUsage().getParametersWithoutFlags()) {
+        for (CommandParameter<JdaSource> parameter : command.getMainUsage().getParameters()) {
             if (!parameter.isCommand()) {
                 inheritedForChildren.add(parameter);
             }
@@ -117,7 +117,7 @@ final class SlashCommandMapper {
         if (command.getSubCommands().isEmpty()) {
             for (CommandUsage<JdaSource> usage : command.usages()) {
                 List<CommandParameter<JdaSource>> parameters = new ArrayList<>(inherited);
-                for (CommandParameter<JdaSource> parameter : usage.getParametersWithoutFlags()) {
+                for (CommandParameter<JdaSource> parameter : usage.getParameters()) {
                     if (!parameter.isCommand()) {
                         parameters.add(parameter);
                     }

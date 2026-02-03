@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.context.internal.ExtractedInputFlag;
+import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -14,7 +14,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
 public final class OptionalParameterHandler<S extends Source> implements ParameterHandler<S> {
     
     @Override
-    public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
+    public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException {
         CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         String currentRaw = stream.currentRawIfPresent();
         
@@ -23,16 +23,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         }
         
         try {
-            if (currentParameter.isFlag()) {
-                ExtractedInputFlag value = (ExtractedInputFlag) currentParameter.type().resolve(context, stream, stream.readInput());
-                context.resolveFlag(value);
-                if(!currentParameter.asFlagParameter().isSwitch()) {
-                    stream.skipRaw();
-                }
-                stream.skip();
-            } else {
-                resolveOptional(currentRaw, currentParameter, context, stream);
-            }
+            resolveOptional(currentRaw, currentParameter, context, stream);
             return HandleResult.NEXT_ITERATION;
         } catch (CommandException e) {
             return HandleResult.failure(e);

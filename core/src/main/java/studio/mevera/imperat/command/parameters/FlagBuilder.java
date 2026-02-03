@@ -5,17 +5,16 @@ import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.context.internal.ExtractedInputFlag;
+import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class FlagBuilder<S extends Source, T> extends ParameterBuilder<S, ExtractedInputFlag> {
+public final class FlagBuilder<S extends Source, T> extends ParameterBuilder<S, ExtractedFlagArgument> {
 
     private final ParameterType<S, T> inputType;
     private final List<String> aliases = new ArrayList<>();
-    private boolean free;
     private OptionalValueSupplier defaultValueSupplier;
     private SuggestionResolver<S> suggestionResolver;
 
@@ -64,15 +63,10 @@ public final class FlagBuilder<S extends Source, T> extends ParameterBuilder<S, 
         return this;
     }
 
-    public FlagBuilder<S, T> setFree(boolean free) {
-        this.free = free;
-        return this;
-    }
-
 
     @Override
     public FlagParameter<S> build() {
-        FlagData<S> flag = FlagData.create(name, aliases, inputType, free);
+        FlagData<S> flag = FlagData.create(name, aliases, inputType);
         if (inputType == null) {
             defaultValueSupplier = OptionalValueSupplier.of("false");
         }

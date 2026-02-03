@@ -6,9 +6,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.context.internal.sur.handlers.EmptyInputHandler;
-import studio.mevera.imperat.context.internal.sur.handlers.FlagInputHandler;
-import studio.mevera.imperat.context.internal.sur.handlers.FreeFlagHandler;
-import studio.mevera.imperat.context.internal.sur.handlers.NonFlagWhenExpectingFlagHandler;
+import studio.mevera.imperat.context.internal.sur.handlers.FlagHandler;
 import studio.mevera.imperat.context.internal.sur.handlers.OptionalParameterHandler;
 import studio.mevera.imperat.context.internal.sur.handlers.RequiredParameterHandler;
 import studio.mevera.imperat.context.internal.sur.handlers.SubCommandHandler;
@@ -37,11 +35,11 @@ public final class ParameterValueAssigner<S extends Source> {
         return ChainFactory.<S>builder()
             .withHandler(new EmptyInputHandler<>())
             .withHandler(new SubCommandHandler<>())
-            .withHandler(new FlagInputHandler<>())
-            .withHandler(new NonFlagWhenExpectingFlagHandler<>())
+            //.withHandler(new NonFlagWhenExpectingFlagHandler<>())
             .withHandler(new RequiredParameterHandler<>())
             .withHandler(new OptionalParameterHandler<>())
-            .withHandler(new FreeFlagHandler<>())
+            .withHandler(new FlagHandler<>())
+            //.withHandler(new FreeFlagHandler<>())
             .build();
     }
 

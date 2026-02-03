@@ -5,7 +5,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.context.internal.ExtractedInputFlag;
+import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
@@ -13,7 +13,7 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 public final class RequiredParameterHandler<S extends Source> implements ParameterHandler<S> {
     
     @Override
-    public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
+    public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException {
         CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         String currentRaw = stream.currentRawIfPresent();
         
@@ -33,8 +33,8 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
         try {
             var value = currentParameter.type().resolve(context, stream, stream.readInput());
             
-            if (value instanceof ExtractedInputFlag extractedInputFlag) {
-                context.resolveFlag(extractedInputFlag);
+            if (value instanceof ExtractedFlagArgument extractedFlagArgument) {
+                context.resolveFlag(extractedFlagArgument);
                 stream.skip();
             } else {
                 context.resolveArgument(context.getLastUsedCommand(), currentRaw, stream.currentParameterPosition(), currentParameter, value);

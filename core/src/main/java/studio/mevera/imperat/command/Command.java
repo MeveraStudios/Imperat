@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.BaseThrowableHandler;
-import studio.mevera.imperat.FlagRegistrar;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.CommandParameter;
@@ -35,7 +34,7 @@ import java.util.function.Predicate;
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface Command<S extends Source> extends CommandParameter<S>, FlagRegistrar<S>, BaseThrowableHandler<S> {
+public interface Command<S extends Source> extends CommandParameter<S>, BaseThrowableHandler<S> {
 
     static <S extends Source> Command.Builder<S> create(@NotNull Imperat<S> imperat, String name) {
         return create(imperat, null, name);
@@ -551,9 +550,6 @@ public interface Command<S extends Source> extends CommandParameter<S>, FlagRegi
         public Builder<S> setMetaPropertiesFromOtherCommand(Command<S> other) {
             cmd.setSinglePermission(other.getSinglePermission());
             cmd.setDefaultUsage(other.getDefaultUsage());
-            for(var flag : other.getRegisteredFlags()) {
-                cmd.registerFlag(flag);
-            }
             cmd.setPreProcessingChain(other.getPreProcessors());
             cmd.setPostProcessingChain(other.getPostProcessors());
             

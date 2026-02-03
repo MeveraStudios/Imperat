@@ -11,7 +11,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.context.internal.ExtractedInputFlag;
+import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -42,7 +42,7 @@ import java.util.Optional;
  * @see Command
  * @see CommandUsage
  * @see Argument
- * @see ExtractedInputFlag
+ * @see ExtractedFlagArgument
  * @since 1.0.0
  */
 @ApiStatus.AvailableSince("1.0.0")
@@ -62,7 +62,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param flagName the name of the flag (without prefix)
      * @return an {@link Optional} containing the flag if present, empty otherwise
      */
-    Optional<ExtractedInputFlag> getFlag(String flagName);
+    Optional<ExtractedFlagArgument> getFlag(String flagName);
     
     /**
      * Gets the resolved value of a command flag.
@@ -141,7 +141,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      *
      * @return a collection of resolved flags
      */
-    Collection<? extends ExtractedInputFlag> getResolvedFlags();
+    Collection<? extends ExtractedFlagArgument> getResolvedFlags();
     
     /**
      * Resolves and registers a command argument.
@@ -199,7 +199,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
             @Nullable Object flagInputValue
     ) {
         resolveFlag(
-                new ExtractedInputFlag(flagDetected, flagRaw, flagInputRaw, flagInputValue)
+                new ExtractedFlagArgument(flagDetected, flagRaw, flagInputRaw, flagInputValue)
         );
     }
     
@@ -208,7 +208,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      *
      * @param flag the resolved flag to register
      */
-    void resolveFlag(ExtractedInputFlag flag);
+    void resolveFlag(ExtractedFlagArgument flag);
     
     /**
      * Gets the most specific command that was resolved in this context.

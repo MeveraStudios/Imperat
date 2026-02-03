@@ -9,14 +9,14 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.context.internal.ExtractedInputFlag;
+import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
 import java.util.Collections;
 
-public class ParameterFlag<S extends Source> extends BaseParameterType<S, ExtractedInputFlag> {
+public class ParameterFlag<S extends Source> extends BaseParameterType<S, ExtractedFlagArgument> {
 
     private final FlagData<S> flagData;
     protected ParameterFlag(FlagData<S> flagData) {
@@ -27,33 +27,8 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
             suggestions.add("-" + alias);
     }
 
-    public ExtractedInputFlag resolveFreeFlag(
-        ExecutionContext<S> context,
-        @NotNull CommandInputStream<S> commandInputStream,
-        FlagData<S> freeFlag
-    ) throws CommandException {
-        String rawFlag = commandInputStream.currentRaw().orElse(null);
-        if (rawFlag == null) {
-            throw new IllegalArgumentException();
-        }
-        String rawInput = null;
-        Object input = null;
-
-        if (!freeFlag.isSwitch()) {
-            ParameterType<S, ?> inputType = freeFlag.inputType();
-            rawInput = commandInputStream.popRaw().orElse(null);
-            if (rawInput != null) {
-                assert inputType != null;
-                input = inputType.resolve(context, commandInputStream, commandInputStream.readInput());
-            }
-        } else {
-            input = true;
-        }
-        return new ExtractedInputFlag(freeFlag, rawFlag, rawInput, input);
-    }
-
     @Override
-    public @Nullable ExtractedInputFlag resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String rawFlag) throws
+    public @Nullable ExtractedFlagArgument resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String rawFlag) throws
             CommandException {
         var currentParameter = commandInputStream.currentParameterIfPresent();
         if (currentParameter == null)
@@ -87,7 +62,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
         } else {
             objInput = true;
         }
-        return new ExtractedInputFlag(flagParameter.flagData(), rawFlag, rawInput, objInput);
+        return new ExtractedFlagArgument(flagParameter.flagData(), rawFlag, rawInput, objInput);
     }
     
     @Override

@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.context.internal.ExtractedInputFlag;
+import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownFlagException;
@@ -18,7 +18,7 @@ import java.util.Objects;
 public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements ParameterHandler<S> {
     
     @Override
-    public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) {
+    public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException {
         CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         String currentRaw = stream.currentRawIfPresent();
         
@@ -47,7 +47,7 @@ public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements 
         FlagData<S> flagDataFromRaw = flagParameter.flagData();
 
         if (flagDataFromRaw.isSwitch()) {
-            context.resolveFlag(new ExtractedInputFlag(flagDataFromRaw, null, "false", false));
+            context.resolveFlag(new ExtractedFlagArgument(flagDataFromRaw, null, "false", false));
             return;
         }
 
@@ -59,7 +59,7 @@ public final class NonFlagWhenExpectingFlagHandler<S extends Source> implements 
                             CommandInputStream.subStream(stream, defValue),
                             defValue
                     );
-            context.resolveFlag(new ExtractedInputFlag(flagDataFromRaw, null, defValue, flagValueResolved));
+            context.resolveFlag(new ExtractedFlagArgument(flagDataFromRaw, null, defValue, flagValueResolved));
         }
     }
 }

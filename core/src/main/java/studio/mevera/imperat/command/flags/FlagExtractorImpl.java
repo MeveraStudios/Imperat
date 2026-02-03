@@ -2,14 +2,14 @@ package studio.mevera.imperat.command.flags;
 
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.context.FlagData;
+import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownFlagException;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
 
     private final CommandUsage<S> usage;
     private final FlagTrie<S> flagTrie;
+    private final Set<FlagParameter<S>> registeredFlags = new HashSet<>();
 
     FlagExtractorImpl(CommandUsage<S> usage) {
         this.usage = Objects.requireNonNull(usage, "CommandUsage cannot be null");
@@ -28,20 +29,26 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
     }
 
     @Override
-    public void insertFlag(FlagData<S> flagData) {
+    public void insertFlag(FlagParameter<S> flagData) {
+        registeredFlags.add(flagData);
         flagTrie.insert(flagData.name(), flagData);
-        for(String alias : flagData.aliases()) {
+        for(String alias : flagData.flagData().aliases()) {
             flagTrie.insert(alias, flagData);
         }
     }
 
     @Override
-    public Set<FlagData<S>> extract(String rawInput, Context<S> ctx) throws UnknownFlagException {
+    public Set<FlagParameter<S>> extract(String rawInput) throws UnknownFlagException {
         if (rawInput == null || rawInput.isEmpty()) {
             return Collections.emptySet();
         }
 
-        return parseFlags(rawInput, ctx);
+        return parseFlags(rawInput);
+    }
+
+    @Override
+    public Set<FlagParameter<S>> getRegisteredFlags() {
+        return Collections.unmodifiableSet(registeredFlags);
     }
 
     /**
@@ -52,19 +59,18 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
         FlagTrie<S> trie = new FlagTrie<>();
 
         // Get all flags from CommandUsage and build the trie
-        Set<FlagData<S>> allFlags = usage.getParameters()
+        Set<FlagParameter<S>> allFlags = usage.getParameters()
                 .stream()
                 .filter(CommandParameter::isFlag)
-                .map((parameter -> parameter.asFlagParameter().flagData()))
+                .map((CommandParameter::asFlagParameter))
                 .collect(Collectors.toSet());
-        //TODO add the free flags of a usage to the allFlags set.
 
-        for (FlagData<S> flagData : allFlags) {
+        for (FlagParameter<S> flagData : allFlags) {
             // Add primary flag name
             trie.insert(flagData.name(), flagData);
 
             // Add all aliases
-            for (String alias : flagData.aliases()) {
+            for (String alias : flagData.flagData().aliases()) {
                 trie.insert(alias, flagData);
             }
         }
@@ -76,8 +82,8 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
      * Parses the input string using a greedy longest-match algorithm.
      * This ensures that longer aliases are matched before shorter ones.
      */
-    private Set<FlagData<S>> parseFlags(String input, Context<S> context) throws UnknownFlagException {
-        Set<FlagData<S>> extractedFlags = new LinkedHashSet<>(3);
+    private Set<FlagParameter<S>> parseFlags(String input) throws UnknownFlagException {
+        Set<FlagParameter<S>> extractedFlags = new LinkedHashSet<>(3);
         List<String> unmatchedParts = new ArrayList<>();
 
         int position = 0;
@@ -119,7 +125,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
         /**
          * Inserts a flag alias into the trie.
          */
-        void insert(String alias, FlagData<S> flagData) {
+        void insert(String alias, FlagParameter<S> flagData) {
             TrieNode<S> current = root;
 
             for (char c : alias.toCharArray()) {
@@ -136,7 +142,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
          */
         MatchResult<S> findLongestMatch(String input, int startPos) {
             TrieNode<S> current = root;
-            FlagData<S> lastMatchedFlag = null;
+            FlagParameter<S> lastMatchedFlag = null;
             int lastMatchLength = 0;
 
             for (int i = startPos; i < input.length(); i++) {
@@ -162,7 +168,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
      */
     private static class TrieNode<S extends Source> {
         final Map<Character, TrieNode<S>> children;
-        FlagData<S> flagData;
+        FlagParameter<S> flagData;
         boolean isEndOfFlag;
 
         TrieNode() {
@@ -174,7 +180,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
     /**
      * Represents the result of a flag matching operation.
      */
-    private record MatchResult<S extends Source>(FlagData<S> flagData, int matchLength) {
+    private record MatchResult<S extends Source>(FlagParameter<S> flagData, int matchLength) {
 
         boolean isFound() {
             return flagData != null && matchLength > 0;

@@ -7,6 +7,7 @@ import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
 import studio.mevera.imperat.command.flags.FlagExtractor;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.command.parameters.ParameterBuilder;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
@@ -63,8 +64,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @return a non-null flag extractor configured for this command's flag definitions
      * @throws IllegalStateException if the command usage has not been properly initialized
      *                               or if no flag definitions are available
-     * @see FlagExtractor#extract(String, studio.mevera.imperat.context.Context)
-     * @see FlagData
+     * @see FlagParameter
      * @since 1.9.6
      */
     @NotNull FlagExtractor<S> getFlagExtractor();
@@ -88,20 +88,14 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
     FlagData<S> getFlagParameterFromRaw(String rawInput);
 
     default void addFlag(CommandParameter<S> flagParam) {
-        addFlag(flagParam.asFlagParameter().flagData());
+        addFlag(flagParam.asFlagParameter());
     }
 
     /**
      * Adds a free flag to the usage
      * @param flagData adds a free flag to the usage
      */
-    void addFlag(FlagData<S> flagData);
-
-    /**
-     * The allowed free flags in this usage.
-     * @return the allowed free flags that can be used.
-     */
-    Set<FlagData<S>> getUsedFreeFlags();
+    void addFlag(FlagParameter<S> flagData);
 
     /**
      * Adds parameters to the usage
@@ -123,12 +117,6 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      */
     List<CommandParameter<S>> getParameters();
 
-    /**
-     * @return the parameters without flags
-     * @see CommandParameter
-     */
-    List<CommandParameter<S>> getParametersWithoutFlags();
-    
     /**
      * The pre-defined syntax examples for this usage.
      * @return the pre-defined examples for this {@link CommandUsage}
@@ -315,6 +303,10 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         return new Builder<>();
     }
 
+    default CommandParameter<S> getLastParam() {
+        return getParameter(getParameters().size() - 1);
+    }
+
     class Builder<S extends Source> {
 
         private final List<CommandParameter<S>> parameters = new ArrayList<>();
@@ -323,7 +315,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         private String permission = null;
         private UsageCooldown cooldown = null;
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
-        private final Set<FlagData<S>> flags = new HashSet<>();
+        private final Set<FlagParameter<S>> flags = new HashSet<>();
         private final List<String> examples = new ArrayList<>(3);
         
         Builder() {
@@ -402,7 +394,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             return this;
         }
 
-        public Builder<S> registerFlags(Set<FlagData<S>> flags) {
+        public Builder<S> registerFlags(Set<FlagParameter<S>> flags) {
             this.flags.addAll(flags);
             return this;
         }
@@ -433,7 +425,6 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
                 parameters.stream().peek((p) -> p.parent(command)).toList()
             );
             flags.forEach(impl::addFlag);
-            impl.getUsedFreeFlags().forEach(command::registerFlag);
             impl.addExamples(this.examples);
             return impl;
         }

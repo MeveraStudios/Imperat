@@ -20,12 +20,8 @@ import java.util.List;
 @ApiStatus.AvailableSince("1.0.0")
 public interface FlagData<S extends Source> {
 
-    static <S extends Source, T> FlagData<S> create(String name, List<String> alias, ParameterType<S, T> inputType, boolean free) {
-        return new FlagDataImpl<>(name, alias, inputType, free);
-    }
-
     static <S extends Source, T> FlagData<S> create(String name, List<String> alias, ParameterType<S, T> inputType) {
-        return create(name, alias, inputType, false);
+        return new FlagDataImpl<>(name, alias, inputType);
     }
 
     static <S extends Source> FlagData<S> createSwitch(String name, List<String> aliases) {
@@ -45,11 +41,6 @@ public interface FlagData<S extends Source> {
      */
     @NotNull
     List<String> aliases();
-
-    /**
-     * @return whether the flag is free
-     */
-    boolean isFree();
 
     /**
      * @return the valueType of input
@@ -75,12 +66,7 @@ public interface FlagData<S extends Source> {
     }
 
 
-    record FlagDataImpl<S extends Source>(String name, List<String> aliases, ParameterType<S, ?> inputType,
-                                          boolean free) implements FlagData<S> {
-        @Override
-        public boolean isFree() {
-            return free;
-        }
+    record FlagDataImpl<S extends Source>(String name, List<String> aliases, ParameterType<S, ?> inputType) implements FlagData<S> {
 
     }
 

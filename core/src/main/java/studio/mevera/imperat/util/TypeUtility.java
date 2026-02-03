@@ -1,6 +1,7 @@
 package studio.mevera.imperat.util;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
@@ -222,9 +223,10 @@ public final class TypeUtility {
         return false;
     }
 
-    public static <S extends Source> boolean areTrueFlagsOfSameInputTpe(Set<FlagData<S>> flagDataSet) {
+    public static <S extends Source> boolean areTrueFlagsOfSameInputType(Set<FlagParameter<S>> flagDataSet) {
         ParameterType<S, ?> inputType = null;
-        for(FlagData<S> flagData : flagDataSet) {
+        for(FlagParameter<S> flagParam : flagDataSet) {
+            FlagData<S> flagData = flagParam.flagData();
             ParameterType<S, ?> otherInputType = flagData.inputType();
             if(otherInputType == null) {
                 return false;

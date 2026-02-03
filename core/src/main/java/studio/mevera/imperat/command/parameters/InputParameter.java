@@ -11,13 +11,19 @@ import studio.mevera.imperat.command.parameters.type.ParameterCollection;
 import studio.mevera.imperat.command.parameters.type.ParameterCommand;
 import studio.mevera.imperat.command.parameters.type.ParameterMap;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.validator.ArgValidator;
+import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
+import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 
 @ApiStatus.Internal
@@ -33,6 +39,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     protected String permission;
     protected Description description;
     protected int index;
+    private final Queue<ArgValidator<S>> validators = new PriorityQueue<>();
 
     protected InputParameter(
         String name,
@@ -230,12 +237,24 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
         this.description = description;
     }
 
+
+    @Override
+    public @NotNull Queue<ArgValidator<S>> getValidatorsQueue() {
+        return validators;
+    }
+
+    @Override
+    public void validate(Context<S> context, Argument<S> argument) throws InvalidArgumentException {
+        for (ArgValidator<S> validator : validators) {
+            validator.validate(context, argument);
+        }
+    }
+
     @Override
     public boolean similarTo(CommandParameter<?> parameter) {
         return this.name.equalsIgnoreCase(parameter.name())
             && type.equalsExactly(parameter.wrappedType().getType());
     }
-    
     
     @Override
     public boolean equals(Object o) {

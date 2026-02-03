@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -30,7 +31,7 @@ import java.util.Optional;
 final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implements ExecutionContext<S> {
 
     private final CommandUsage<S> usage;
-    private final Registry<String, ExtractedInputFlag> flagRegistry = new Registry<>();
+    private final Registry<String, ExtractedFlagArgument> flagRegistry = new Registry<>();
     //per command/subcommand because the class 'CommandProcessingChain' can be also treated as a sub command
     private final Registry<Command<S>, Registry<String, Argument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
     //all resolved arguments EXCEPT for subcommands and flags.
@@ -139,7 +140,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return the resolved flag arguments
      */
     @Override
-    public Collection<? extends ExtractedInputFlag> getResolvedFlags() {
+    public Collection<? extends ExtractedFlagArgument> getResolvedFlags() {
         return flagRegistry.getAll();
     }
     
@@ -150,7 +151,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     }
     
     @Override
-    public Optional<ExtractedInputFlag> getFlag(String flagName) {
+    public Optional<ExtractedFlagArgument> getFlag(String flagName) {
         return flagRegistry.getData(flagName);
     }
 
@@ -166,7 +167,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @SuppressWarnings("unchecked")
     public <T> @Nullable T getFlagValue(String flagName) {
         return (T) getFlag(flagName)
-            .map(ExtractedInputFlag::value)
+            .map(ExtractedFlagArgument::value)
             .orElse(null);
     }
     
@@ -186,8 +187,9 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
         int index,
         CommandParameter<S> parameter,
         @Nullable T value
-    ) {
+    ) throws InvalidArgumentException {
         final Argument<S> argument = new Argument<>(raw, parameter, index, value);
+        parameter.validate(this, argument);
         resolvedArgumentsPerCommand.update(command, (existingResolvedArgs) -> {
             if (existingResolvedArgs != null) {
                 return existingResolvedArgs.setData(parameter.name(), argument);
@@ -198,7 +200,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     }
 
     @Override
-    public void resolveFlag(ExtractedInputFlag flag) {
+    public void resolveFlag(ExtractedFlagArgument flag) {
         flagRegistry.setData(flag.flag().name(), flag);
     }
 

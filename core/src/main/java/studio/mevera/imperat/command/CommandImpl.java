@@ -9,6 +9,8 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
+import studio.mevera.imperat.command.parameters.validator.ArgValidator;
+import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -18,24 +20,23 @@ import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 
 @ApiStatus.Internal
@@ -71,8 +72,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private @Nullable Command<S> parent;
     private final CommandUsage<S> emptyUsage;
     private final @NotNull SuggestionResolver<S> suggestionResolver;
-    private final @NotNull Set<FlagData<S>> freeFlags = new HashSet<>();
-
     private final Imperat<S> imperat;
     
     CommandImpl(Imperat<S> imperat, String name) {
@@ -559,22 +558,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void ignoreACPermissions(boolean suppress) {
         this.suppressACPermissionChecks = suppress;
     }
-    
-    @Override
-    public void registerFlag(FlagData<S> flag) {
-        freeFlags.add(flag);
-    }
 
-    @Override
-    public Optional<FlagData<S>> getFlagFromRaw(String raw) {
-        return freeFlags.stream()
-            .filter((data) -> data.acceptsInput(raw)).findFirst();
-    }
-
-    @Override
-    public Set<FlagData<S>> getRegisteredFlags() {
-        return freeFlags;
-    }
     
     @Override
     public <T extends Throwable> void setThrowableResolver(Class<T> exception, ThrowableResolver<T, S> resolver) {
@@ -636,7 +620,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
         }
         
         // Copy flags
-        copy.freeFlags.addAll(this.freeFlags);
+        //copy.freeFlags.addAll(this.freeFlags);
         
         // Copy error handlers
         copy.errorHandlers.putAll(this.errorHandlers);
@@ -654,5 +638,15 @@ final class CommandImpl<S extends Source> implements Command<S> {
         
         return copy;
     }
-    
+
+    @Override
+    public @NotNull Queue<ArgValidator<S>> getValidatorsQueue() {
+        throw new UnsupportedOperationException("A command does not have argument validators !");
+    }
+
+    @Override
+    public void validate(Context<S> context, Argument<S> argument) throws InvalidArgumentException {
+        throw new UnsupportedOperationException("A command does not have argument validators !");
+    }
+
 }
