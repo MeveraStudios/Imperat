@@ -44,4 +44,5 @@ public interface FlagParameter<S extends Source> extends CommandParameter<S> {
     default boolean isSwitch() {
         return flagData().inputType() == null;
     }
+
 }

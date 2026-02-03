@@ -78,7 +78,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
      * @param command the command to register
      */
     @Override
-    public void registerCommand(Command<S> command) {
+    public void registerSimpleCommand(Command<S> command) {
         try {
             var verifier = config.getUsageVerifier();
             for (CommandUsage<S> usage : command.usages()) {
@@ -124,12 +124,10 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     @Override
     public void registerCommand(Object commandInstance) {
         if(commandInstance instanceof Command<?> command) {
-            registerCommand(command);
-        }
-        else if(commandInstance instanceof Class<?> cls) {
-            registerCommand(cls);
+            registerSimpleCommand((Command<S>) command);
         }
         else {
+            // For non-Command, non-Class instances, parse as annotated instance
             annotationParser.parseCommandClass(
                     Objects.requireNonNull(commandInstance)
             );
@@ -269,9 +267,14 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         }
         
         CommandUsage<S> usage = searchResult.getFoundUsage();
-        
-        if(usage == null || searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
+        if (usage == null) {
             ImperatDebugger.debug("Usage not found !");
+            throw new InvalidSyntaxException(searchResult);
+            //TODO fix closest usage suggestion
+        }
+
+
+        else if(searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
             throw new InvalidSyntaxException(searchResult);
         }
         

@@ -42,7 +42,6 @@ import studio.mevera.imperat.command.parameters.StrictParameterList;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
-import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
@@ -107,7 +106,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 if (element.isAnnotationPresent(Command.class)) {
                     var cmd = loadCommand(null, element, Objects.requireNonNull(element.getAnnotation(Command.class)));
                     if (cmd != null) {
-                        imperat.registerCommand(cmd);
+                        imperat.registerSimpleCommand(cmd);
                     }
                 }
             }
@@ -134,7 +133,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             if (element instanceof MethodElement method && method.isAnnotationPresent(Command.class)) {
                 var cmdAnn = method.getAnnotation(Command.class);
                 assert cmdAnn != null;
-                imperat.registerCommand(loadCommand(null, method, cmdAnn));
+                imperat.registerSimpleCommand(loadCommand(null, method, cmdAnn));
             }
         }
     }
@@ -284,6 +283,31 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             //Loading @Command/@SubCommand on classes
 
             //load command class
+            // IMPORTANT: Process @Usage methods FIRST to establish mainUsage,
+            // then process @SubCommand methods so they can attach to the correct usage
+            for (ParseElement<?> element : commandClass.getChildren()) {
+
+                if (element instanceof MethodElement method) {
+                    if (cmd == null) {
+                        throw new IllegalStateException("Method  '" + method.getElement().getName() + "' Cannot be treated as usage/subcommand, it doesn't have a parent ");
+                    }
+
+                    if (!methodSelector.canBeSelected(imperat, parser, method, true)) {
+                        return cmd;
+                    }
+
+                    // Process @Usage methods first (skip @SubCommand for now)
+                    if(method.isAnnotationPresent(Usage.class) && !method.isAnnotationPresent(SubCommand.class)) {
+                        var usage = loadUsage(parentCmd, cmd, method);
+                        if (usage != null) {
+                            cmd.addUsage(usage);
+                        }
+                    }
+
+                }
+            }
+
+            // Second pass: Process @SubCommand methods AFTER all usages are registered
             for (ParseElement<?> element : commandClass.getChildren()) {
 
                 if (element instanceof MethodElement method) {
@@ -301,12 +325,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                         cmd.addSubCommand(loadCommand(cmd, method, subAnn),  extractAttachmentMode(commandClass, subAnn));
                     }
 
-                    if(method.isAnnotationPresent(Usage.class)) {
-                        var usage = loadUsage(parentCmd, cmd, method);
-                        if (usage != null) {
-                            cmd.addUsage(usage);
-                        }
-                    }
 
                 } else if (element instanceof ClassElement innerClass) {
 
@@ -314,7 +332,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                         //separate embedded command
                         var innerCmdAnn = innerClass.getAnnotation(Command.class);
                         assert innerCmdAnn != null;
-                        imperat.registerCommand(
+                        imperat.registerSimpleCommand(
                             loadCommand(null, innerClass, innerCmdAnn)
                         );
                         return null;
@@ -422,7 +440,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             builder.coordinator(CommandCoordinator.async());
         boolean help = method.isHelp();
         return builder
-            .registerFlags(usageData.freeFlags)
+            //.registerFlags(usageData.freeFlags)
             .build(loadedCmd, help);
 
     }
@@ -445,7 +463,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             for(studio.mevera.imperat.command.Command<S> parent : parenteralSequence) {
                 parent.getMainUsage().getParameters()
                         .forEach((param) -> {
-                            if (!(param.isFlag() && param.asFlagParameter().flagData().isFree())) {
+                            if (!param.isFlag()) {
                                 mainUsageParameters.add(param);
                             }
                         });
@@ -459,8 +477,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         LinkedList<CommandParameter<S>> totalMethodParameters = new LinkedList<>(mainUsageParameters);
         LinkedList<ParameterElement> originalMethodParameters = new LinkedList<>(method.getParameters());
         ImperatDebugger.debugForTesting("Method parameters collected '%s'", getMethodParamsCollected(originalMethodParameters));
-
-        Set<FlagData<S>> freeFlags = new HashSet<>();
 
         ParameterElement senderParam = null;
 
@@ -484,11 +500,12 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 continue;
             }
 
+            /*
             if (commandParameter.isFlag() && commandParameter.asFlagParameter().flagData().isFree()) {
                 freeFlags.add(commandParameter.asFlagParameter().flagData());
                 originalMethodParameters.remove();
                 continue;
-            }
+            }*/
 
             CommandParameter<S> mainParameter = mainUsageParameters.peek();
             if(mainParameter != null) {
@@ -519,7 +536,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             mainUsageParameters.remove();
             originalMethodParameters.remove();
         }
-        return new MethodUsageData<>(personalMethodInputParameters, totalMethodParameters, freeFlags);
+        return new MethodUsageData<>(personalMethodInputParameters, totalMethodParameters);
     }
 
     private static <S extends Source> boolean doesRequireParameterInheritance(
@@ -675,7 +692,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
             return AnnotationParameterDecorator.decorate(
                 CommandParameter.flag(name, type)
-                    .setFree(flag.free())
                     .suggestForInputValue(suggestionResolver)
                     .aliases(getAllExceptFirst(flagAliases))
                     .flagDefaultInputValue(optionalValueSupplier)
@@ -688,7 +704,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             String[] switchAliases = switchAnnotation.value();
             return AnnotationParameterDecorator.decorate(
                 CommandParameter.<S>flagSwitch(name)
-                    .setFree(switchAnnotation.free())
                     .aliases(getAllExceptFirst(switchAliases))
                     .description(desc)
                     .permission(permission)
@@ -750,8 +765,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
     private record MethodUsageData<S extends Source>(
         List<CommandParameter<S>> personalParameters,
-        List<CommandParameter<S>> inheritedTotalParameters,
-        Set<FlagData<S>> freeFlags
+        List<CommandParameter<S>> inheritedTotalParameters
     ) {
 
     }

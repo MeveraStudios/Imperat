@@ -124,7 +124,7 @@ public final class TextSyntaxParser<S extends Source> {
         
         command.addUsage(usage);
         if(registerNewCommand) {
-            imperat.registerCommand(command);
+            imperat.registerSimpleCommand(command);
         }
         
         return usage;

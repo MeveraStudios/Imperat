@@ -76,12 +76,7 @@ public final class AnnotationHelper {
                 if (actualParameter.isAnnotationPresent(Flag.class)) {
                     Flag flag = actualParameter.getAnnotation(Flag.class);
                     assert flag != null;
-                    if (flag.free()) {
-                        paramsInstances[i] = context.getFlagValue(flag.value()[0]);
-                    } else {
-                        throw new IllegalArgumentException();
-                    }
-
+                    paramsInstances[i] = context.getFlagValue(flag.value()[0]);
                 }
                 p--;
                 continue;

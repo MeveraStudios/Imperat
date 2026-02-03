@@ -159,7 +159,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         });
 
         this.setThrowableResolver(MissingFlagInputException.class,(ex, context)-> {
-            context.source().error("Please enter the value for flag '" + ex.getInput() + "'");
+            context.source().error("Please enter the value for flag(s) '" + String.join(",", ex.getFlagData()) + "'");
         });
 
         this.setThrowableResolver(ValueOutOfConstraintException.class, (ex, context)-> {

@@ -36,8 +36,8 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     }
 
     @Override
-    public void registerCommand(Command<JdaSource> command) {
-        super.registerCommand(command);
+    public void registerSimpleCommand(Command<JdaSource> command) {
+        super.registerSimpleCommand(command);
         scheduleSync();
     }
 
@@ -45,7 +45,7 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     @Override
     public final void registerCommands(Command<JdaSource>... commands) {
         for (final var command : commands) {
-            super.registerCommand(command);
+            super.registerSimpleCommand(command);
         }
         scheduleSync();
     }

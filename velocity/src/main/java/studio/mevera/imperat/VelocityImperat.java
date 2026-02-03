@@ -106,8 +106,8 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
     }
 
     @Override
-    public void registerCommand(Command<VelocitySource> command) {
-        super.registerCommand(command);
+    public void registerSimpleCommand(Command<VelocitySource> command) {
+        super.registerSimpleCommand(command);
         CommandManager manager = proxyServer.getCommandManager();
         try {
             InternalVelocityCommand<P> internalCmd = new InternalVelocityCommand<>(this, command, manager);

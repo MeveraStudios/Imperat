@@ -42,8 +42,8 @@ public final class TestImperat extends BaseImperat<TestSource> {
 
 
     @Override
-    public void registerCommand(Command<TestSource> command) {
-        super.registerCommand(command);
+    public void registerSimpleCommand(Command<TestSource> command) {
+        super.registerSimpleCommand(command);
         command.visualizeTree();
     }
 }

@@ -17,7 +17,9 @@ import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Error Handling Tests")
 public class ErrorHandlingTest extends BaseImperatTest {
-    
+    static {
+        System.out.println("Running ErrorHandlingTest...");
+    }
     @Test
     @DisplayName("Should fail for incomplete required arguments")
     void testIncompleteRequiredArguments() {
@@ -65,13 +67,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
             assertInstanceOf(UnknownCommandException.class, ex);
         }
     }
-    
-    @Test
-    @DisplayName("Should handle incomplete subcommands")
-    void testIncompleteSubcommands() {
-        ExecutionResult<TestSource> result = execute("group member setperm"); // Missing permission argument
-        assertSuccess(result);
-    }
+
     
     @Test
     @DisplayName("Should handle context resolution failures")

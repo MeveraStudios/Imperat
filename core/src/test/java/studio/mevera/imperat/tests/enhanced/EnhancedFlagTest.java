@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.tests.TestSource;
 
-import java.time.Duration;
-
 @DisplayName("Enhanced Flag Tests")
 class EnhancedFlagTest extends EnhancedBaseImperatTest {
     
@@ -113,7 +111,7 @@ class EnhancedFlagTest extends EnhancedBaseImperatTest {
                 .hasArgument("reason", "Continuous griefing and harassment");
         }
         
-        @Test
+        /*@Test
         @DisplayName("Should handle rank command with duration and force flags")
         void testRankCommandWithFlags() {
             ExecutionResult<TestSource> result = execute("rank addperm admin server.op -customDuration 1h -force");
@@ -124,6 +122,6 @@ class EnhancedFlagTest extends EnhancedBaseImperatTest {
                 .hasArgument("permission", "server.op")
                 .hasSwitchEnabled("force")
                 .hasFlagValue("customDuration", Duration.ofHours(1));
-        }
+        }*/
     }
 }

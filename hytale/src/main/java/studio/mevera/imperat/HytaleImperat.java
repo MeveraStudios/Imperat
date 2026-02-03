@@ -34,8 +34,8 @@ public class HytaleImperat extends BaseImperat<HytaleSource> {
     }
 
     @Override
-    public void registerCommand(Command<HytaleSource> command) {
-        super.registerCommand(command);
+    public void registerSimpleCommand(Command<HytaleSource> command) {
+        super.registerSimpleCommand(command);
         registerHytaleCommand(
                 new InternalHytaleCommand(this, command)
         );

@@ -9,6 +9,8 @@ import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
+import java.util.Objects;
+
 @ApiStatus.Internal
 public final class FlagCommandParameter<S extends Source> extends InputParameter<S> implements FlagParameter<S> {
 
@@ -86,5 +88,16 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
         copy.position(newPosition);
         copy.setFormat(this.format);
         return copy;
+    }
+
+    @Override public boolean equals(Object o) {
+        if (!(o instanceof FlagCommandParameter<?> that)) {
+            return false;
+        }
+        return Objects.equals(flag.name(), that.flag.name());
+    }
+
+    @Override public int hashCode() {
+        return Objects.hash(flag.name());
     }
 }

@@ -15,6 +15,7 @@ import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
 import java.util.Collections;
+import java.util.Set;
 
 public class ParameterFlag<S extends Source> extends BaseParameterType<S, ExtractedFlagArgument> {
 
@@ -57,7 +58,7 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
                 }
             }else {
                 //"Please enter the value for flag '%s'"
-                throw new MissingFlagInputException(flagParameter, rawFlag);
+                throw new MissingFlagInputException(Set.of(flagParameter.name()), rawFlag);
             }
         } else {
             objInput = true;

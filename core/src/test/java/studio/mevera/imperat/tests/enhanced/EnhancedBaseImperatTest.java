@@ -40,7 +40,7 @@ public abstract class EnhancedBaseImperatTest {
                 .applyOnConfig(cfgConsumer)
                 .build();
         newImperat.registerCommand(cmdClass);
-        return IMPERAT.execute(SOURCE, commandLine);
+        return newImperat.execute(SOURCE, commandLine);
     }
     
     protected List<String> tabComplete(String commandLine) {

@@ -359,7 +359,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void addUsage(CommandUsage<S> usage) {
-        
         if(tree != null) {
             tree.parseUsage(usage);
         }
@@ -449,13 +448,13 @@ final class CommandImpl<S extends Source> implements Command<S> {
     /**
      * Injects a created-subcommand directly into the parent's command usages.
      *
-     * @param command        the subcommand to inject
+     * @param subcmd        the subcommand to inject
      * @param attachmentMode see {@link AttachmentMode}
      */
     @Override
-    public void addSubCommand(Command<S> command, AttachmentMode attachmentMode) {
-        command.parent(this);
-        registerSubCommand(command);
+    public void addSubCommand(Command<S> subcmd, AttachmentMode attachmentMode) {
+        subcmd.parent(this);
+        registerSubCommand(subcmd);
 
         final CommandUsage<S> prime;
         switch (attachmentMode) {
@@ -464,14 +463,14 @@ final class CommandImpl<S extends Source> implements Command<S> {
             case DEFAULT -> prime = getDefaultUsage();
             default -> throw new IllegalArgumentException("Unknown attachment mode: " + attachmentMode);
         }
-        CommandUsage<S> combo = prime.mergeWithCommand(command, command.getMainUsage());
+        CommandUsage<S> combo = prime.mergeWithCommand(subcmd, subcmd.getMainUsage());
         //adding the merged command usage
 
         this.addUsage(combo);
 
-        for (CommandUsage<S> subUsage : command.usages()) {
-            if (subUsage.equals(command.getMainUsage())) continue;
-            combo = prime.mergeWithCommand(command, subUsage);
+        for (CommandUsage<S> subUsage : subcmd.usages()) {
+            if (subUsage.equals(subcmd.getMainUsage())) continue;
+            combo = prime.mergeWithCommand(subcmd, subUsage);
             //adding the merged command usage
 
             this.addUsage(

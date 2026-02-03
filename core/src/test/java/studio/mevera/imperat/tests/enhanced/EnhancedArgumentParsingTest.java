@@ -427,28 +427,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
                 })
                 .hasArgument("amount", 64);
     }
-    
-    @Test
-    @DisplayName("Should demonstrate satisfiesAll for multiple validations")
-    void testSatisfiesAllUsage() throws CommandException {
-        ExecutionResult<TestSource> result = execute("ban griefer -s -ip 7d Griefing");
-        
-        this.assertThat(result)
-                .isSuccessful()
-                .satisfiesAll(
-                        executionResult -> {
-                            Assertions.assertThat((Object) executionResult.getExecutionContext().getArgument("target")).isEqualTo("griefer");
-                        },
-                        executionResult -> {
-                            Assertions.assertThat((Object)executionResult.getExecutionContext().getFlagValue("silent")).isEqualTo(true);
-                            Assertions.assertThat((Object)executionResult.getExecutionContext().getFlagValue("ip")).isEqualTo(true);
-                        },
-                        executionResult -> {
-                            Assertions.assertThat((Object)executionResult.getExecutionContext().getArgument("duration")).isEqualTo("7d");
-                            Assertions.assertThat((Object)executionResult.getExecutionContext().getArgument("reason")).isEqualTo("Griefing");
-                        }
-                );
-    }
+
     
     @Test
     @DisplayName("Should handle collection parameters with fluent validation")

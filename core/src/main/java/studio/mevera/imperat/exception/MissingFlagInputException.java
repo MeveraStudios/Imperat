@@ -1,18 +1,20 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.command.parameters.FlagParameter;
+
+import java.util.Set;
 
 public class MissingFlagInputException extends ParseException {
 
-    private final FlagParameter<?> flagData;
+    private final Set<String> flagsUsed;
 
-    public MissingFlagInputException(FlagParameter<?> flagData, String rawFlagEntered) {
+    public MissingFlagInputException(Set<String> flagsUsed, String rawFlagEntered) {
         super(rawFlagEntered);
-        this.flagData = flagData;
+        this.flagsUsed = flagsUsed;
     }
 
-    public FlagParameter<?> getFlagData() {
-        return flagData;
+
+    public Set<String> getFlagData() {
+        return flagsUsed;
     }
 
 }

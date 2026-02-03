@@ -32,6 +32,10 @@ import java.util.function.Predicate;
  */
 public sealed interface CommandUsage<S extends Source> extends Iterable<CommandParameter<S>>, PermissionHolder, DescriptionHolder, CooldownHolder  permits CommandUsageImpl{
 
+    FlagExtractor<S> getSubCommandFlagExtractor(String subCommandName);
+
+    void setSubCommandFlagExtractor(String subCommandName, FlagExtractor<S> extractor);
+
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
      *
@@ -165,7 +169,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
     default CommandUsage<S> mergeWithCommand(Command<S> subCommand, CommandUsage<S> usage) {
         List<CommandParameter<S>> comboParams = new ArrayList<>(this.getParameters());
         comboParams.add(subCommand);
-        for (CommandParameter<S> param : usage.getParameters()) {
+        for (CommandParameter<S> param : usage.loadCombinedParameters()) {
             if (this.hasParameters((p) -> p.equals(param))) {
                 continue;
             }
@@ -173,13 +177,16 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         }
         //comboParams.addAll(usage.getParameters());
 
-        return CommandUsage.<S>builder()
+        var comboUsage = CommandUsage.<S>builder()
             .coordinator(usage.getCoordinator())
             .description(subCommand.description().getValue())
             .cooldown(usage.getCooldown())
             .parameters(comboParams)
             .execute(usage.getExecution())
             .build(subCommand, usage.isHelp());
+
+        comboUsage.setSubCommandFlagExtractor(subCommand.name(), usage.getFlagExtractor());
+        return comboUsage;
     }
 
     /**
@@ -283,10 +290,11 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             builder.append(' ');
         }
 
+        List<CommandParameter<S>> params = usage.loadCombinedParameters();
         int i = 0;
-        for (CommandParameter<S> parameter : usage.getParameters()) {
+        for (CommandParameter<S> parameter : params) {
             builder.append(parameter.format());
-            if (i != usage.getParameters().size() - 1) {
+            if (i != params.size() - 1) {
                 builder.append(' ');
             }
             i++;
@@ -306,6 +314,8 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
     default CommandParameter<S> getLastParam() {
         return getParameter(getParameters().size() - 1);
     }
+
+    List<CommandParameter<S>> loadCombinedParameters();
 
     class Builder<S extends Source> {
 
@@ -385,7 +395,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         public Builder<S> parameters(List<CommandParameter<S>> params) {
             for (int i = 0; i < params.size(); i++) {
                 CommandParameter<S> parameter = params.get(i);
-                if (!parameter.isCommand()) {
+                if (!parameter.isCommand() && !parameter.isFlag()) {
                     parameter.position(i);
                 }
 
@@ -411,7 +421,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             this.cooldown = mainUsage.getCooldown();
             this.commandCoordinator = mainUsage.getCoordinator();
             this.execution = mainUsage.getExecution();
-            
+
             return this;
         }
 

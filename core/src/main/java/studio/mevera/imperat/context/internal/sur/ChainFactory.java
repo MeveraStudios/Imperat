@@ -2,8 +2,6 @@ package studio.mevera.imperat.context.internal.sur;
 
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.sur.handlers.EmptyInputHandler;
-import studio.mevera.imperat.context.internal.sur.handlers.FlagHandler;
-import studio.mevera.imperat.context.internal.sur.handlers.NonFlagWhenExpectingFlagHandler;
 import studio.mevera.imperat.context.internal.sur.handlers.OptionalParameterHandler;
 import studio.mevera.imperat.context.internal.sur.handlers.ParameterHandler;
 import studio.mevera.imperat.context.internal.sur.handlers.RequiredParameterHandler;
@@ -18,8 +16,8 @@ public class ChainFactory {
         return ChainFactory.<S>builder()
             .withHandler(new EmptyInputHandler<>())
             .withHandler(new SubCommandHandler<>())
-            .withHandler(new FlagHandler<>())
-            .withHandler(new NonFlagWhenExpectingFlagHandler<>())
+            //.withHandler(new FlagHandler<>())
+            //.withHandler(new NonFlagWhenExpectingFlagHandler<>())
             .withHandler(new RequiredParameterHandler<>())
             .withHandler(new OptionalParameterHandler<>())
             .build();

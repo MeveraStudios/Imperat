@@ -83,13 +83,14 @@ public class ImperatTestGlobals {
             .build();
     
     static {
+        System.out.println("=== ImperatTestGlobals static initializer START ===");
         IMPERAT.registerAnnotationReplacer(MyCustomAnnotation.class,(element, ann)-> {
             Command cmdAnn = AnnotationFactory.create(Command.class, "value",
                     new String[]{ann.name()});
             return List.of(cmdAnn);
         });
-        IMPERAT.registerCommand(MULTIPLE_OPTIONAL_CMD);
-        IMPERAT.registerCommand(CHAINED_SUBCOMMANDS_CMD);
+        IMPERAT.registerSimpleCommand(MULTIPLE_OPTIONAL_CMD);
+        IMPERAT.registerSimpleCommand(CHAINED_SUBCOMMANDS_CMD);
         IMPERAT.registerCommand(AnnotatedGroupCommand.class);
         IMPERAT.registerCommand(OptionalArgCommand.class);
 //;
@@ -129,6 +130,7 @@ public class ImperatTestGlobals {
         
         ImperatDebugger.setEnabled(true);
         IMPERAT.debug(false);
+        System.out.println("=== ImperatTestGlobals static initializer END ===");
     }
     
     public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);

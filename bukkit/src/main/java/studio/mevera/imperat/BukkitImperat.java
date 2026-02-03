@@ -142,8 +142,8 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
      * @param command the command to register
      */
     @Override
-    public void registerCommand(Command<BukkitSource> command) {
-        super.registerCommand(command);
+    public void registerSimpleCommand(Command<BukkitSource> command) {
+        super.registerSimpleCommand(command);
 
         //let's make a safety check for the plugin.yml
         if (!paperPlugin && plugin instanceof JavaPlugin javaPlugin) {

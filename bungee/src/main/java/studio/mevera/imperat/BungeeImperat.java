@@ -88,8 +88,8 @@ public final class BungeeImperat extends BaseImperat<BungeeSource> {
     }
 
     @Override
-    public void registerCommand(Command<BungeeSource> command) {
-        super.registerCommand(command);
+    public void registerSimpleCommand(Command<BungeeSource> command) {
+        super.registerSimpleCommand(command);
         plugin.getProxy().getPluginManager().registerCommand(plugin, new InternalBungeeCommand(this, command));
     }
 

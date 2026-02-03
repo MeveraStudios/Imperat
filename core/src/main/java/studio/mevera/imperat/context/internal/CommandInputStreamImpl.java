@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Source;
 
@@ -28,29 +27,9 @@ final class CommandInputStreamImpl<S extends Source> implements CommandInputStre
     private boolean cacheValid = false;
     
     CommandInputStreamImpl(ArgumentInput queue, CommandUsage<S> usage) {
-        this(queue, getParametersListFromUsage(usage));
+        this(queue, usage.getParameters());
     }
 
-    private static <S extends Source> List<CommandParameter<S>> getParametersListFromUsage(CommandUsage<S> usage) {
-        var list = usage.getParameters();
-
-        List<CommandParameter<S>> parameters = new java.util.ArrayList<>(list.size());
-        parameters.addAll(list);
-
-        int start = list.size();
-        CommandParameter<S> last = usage.getLastParam();
-        if(last.isGreedy()) {
-            start = list.size() - 1;
-        }
-
-        for(FlagParameter<S> flagParam : usage.getFlagExtractor().getRegisteredFlags()) {
-            flagParam.position(start);
-            parameters.add(start, flagParam);
-            start++;
-        }
-
-        return parameters;
-    }
     
     CommandInputStreamImpl(ArgumentInput queue, List<CommandParameter<S>> parameters) {
         this(queue, parameters, new StreamPosition<>(parameters.size(), queue.size()), calculateRawStartPositions(queue, queue.getOriginalRaw()));

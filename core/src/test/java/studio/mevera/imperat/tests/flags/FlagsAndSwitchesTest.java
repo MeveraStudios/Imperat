@@ -75,7 +75,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
         "'ban mqzen -s', mqzen, true, false, permanent, 'Breaking server laws'",
         "'ban mqzen -ip', mqzen, false, true, permanent, 'Breaking server laws'",
         "'ban mqzen -s -ip', mqzen, true, true, permanent, 'Breaking server laws'",
-        "'ban mqzen -ip -s', mqzen, false, true, -s, 'Breaking server laws'"
+        "'ban mqzen -ip -s', mqzen, true, true, permanent, 'Breaking server laws'"
     })
     @DisplayName("Should handle various flag combinations")
     void testVariousFlagCombinations(String commandLine, String expectedTarget, boolean expectedSilent, 

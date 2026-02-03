@@ -104,17 +104,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     @Override
     public void parseUsage(@NotNull CommandUsage<S> usage) {
         // Register flags once
-        final var flags = usage.getUsedFreeFlags();
-        for (var flag : flags) {
-            rootCommand.registerFlag(flag);
-        }
         
-        final var parameters = usage.getParameters();
+        final var parameters = usage.loadCombinedParameters();
         if (usage.isDefault()) {
             root.setExecutableUsage(usage);
             uniqueRoot.setExecutableUsage(usage);
         }
-        
         
         // Use thread-local buffer to eliminate allocations
         final var path = pathBuffer.get();
@@ -673,7 +668,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         
         // Greedy parameter check
-        //System.out.println("is current node '" + currentNode.format() + "' greedy? " + currentNode.isGreedyParam());
         if (currentNode.isGreedyParam()) {
             commandPathSearch.append(currentNode);
             commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);

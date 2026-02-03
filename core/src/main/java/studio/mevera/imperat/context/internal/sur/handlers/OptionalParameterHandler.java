@@ -2,14 +2,15 @@ package studio.mevera.imperat.context.internal.sur.handlers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
-import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.context.internal.sur.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.ImperatDebugger;
+import studio.mevera.imperat.util.Patterns;
 
 public final class OptionalParameterHandler<S extends Source> implements ParameterHandler<S> {
     
@@ -17,8 +18,23 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
     public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException {
         CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         String currentRaw = stream.currentRawIfPresent();
-        
-        if (currentParameter == null || currentRaw == null || !currentParameter.isOptional()) {
+
+        if (currentParameter == null || currentRaw == null) {
+            return HandleResult.TERMINATE;
+        }
+        if(Patterns.isInputFlag(currentRaw)) {
+            boolean containsAnyFlag = !context.getDetectedUsage().getFlagExtractor().getRegisteredFlags().isEmpty();
+            if(containsAnyFlag) {
+                stream.skipRaw();
+                var extracted = context.getDetectedUsage().getFlagExtractor().extract(Patterns.withoutFlagSign(currentRaw));
+                boolean allTrueFlags = extracted.stream().noneMatch(FlagParameter::isSwitch);
+                if(allTrueFlags) {
+                    stream.skipRaw();
+                }
+                return HandleResult.NEXT_HANDLER;
+            }
+        }
+        if(!currentParameter.isOptional()) {
             return HandleResult.NEXT_HANDLER;
         }
         
@@ -58,7 +74,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         }
         
         // Step 3: Smart skipping enabled - check type compatibility
-        if (currentParameter.type().matchesInput(stream.currentRawPosition(), context, currentParameter)) {
+        if (!Patterns.isInputFlag(currentRaw) && currentParameter.type().matchesInput(stream.currentRawPosition(), context, currentParameter)) {
             // Type matches - CAN consume input
             ImperatDebugger.debug("IT MATCHES TYPE, CONSUMING RIGHT AWAY");
             consumeInput(currentRaw, currentParameter, context, stream);

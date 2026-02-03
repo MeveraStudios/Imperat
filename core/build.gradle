@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 repositories {
     mavenCentral()
 }
@@ -34,8 +36,8 @@ test {
     // Test output configuration
     testLogging {
         events("passed", "skipped", "failed")
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        showStandardStreams = false
+        exceptionFormat = TestExceptionFormat.FULL
+        showStandardStreams = true
         showCauses = true
         showExceptions = true
         showStackTraces = true

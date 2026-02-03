@@ -108,8 +108,8 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
      * @param command the command to register
      */
     @Override
-    public void registerCommand(Command<MinestomSource> command) {
-        super.registerCommand(command);
+    public void registerSimpleCommand(Command<MinestomSource> command) {
+        super.registerSimpleCommand(command);
         MinecraftServer.getCommandManager().register(new InternalMinestomCommand(this, command));
     }
 

@@ -41,8 +41,10 @@ public final class SourceOrderHelper {
         }
 
         methods.sort(
-                Comparator.comparingInt(SourceOrderHelper::priorityOf)
+                Comparator.<Method>comparingInt(SourceOrderHelper::priorityOf)
                         .thenComparingInt(method -> declarationOrder.getOrDefault(method, Integer.MAX_VALUE))
+                        .thenComparing(Method::getName)
+                        .thenComparingInt(Method::getParameterCount)
         );
         return methods;
     }
@@ -74,8 +76,9 @@ public final class SourceOrderHelper {
 
         List<Class<?>> innerClasses = new ArrayList<>(declarationOrder.keySet());
         innerClasses.sort(
-                Comparator.comparingInt(SourceOrderHelper::priorityOf)
+                Comparator.<Class<?>>comparingInt(SourceOrderHelper::priorityOf)
                         .thenComparingInt(clazz -> declarationOrder.getOrDefault(clazz, Integer.MAX_VALUE))
+                        .thenComparing(Class::getName)
         );
         return innerClasses;
     }

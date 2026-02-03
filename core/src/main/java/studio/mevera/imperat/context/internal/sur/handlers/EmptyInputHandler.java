@@ -32,13 +32,12 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
             if (currentParameter.isOptional()) {
                 handleEmptyOptional(currentParameter, stream, context);
                 stream.skipParameter();
+                return HandleResult.NEXT_ITERATION;
             }
-            else {
-                //required
-                throw new InvalidSyntaxException(CommandPathSearch.freshlyNew(context.getLastUsedCommand()));
-            }
-            // Handle remaining optional parameters
-            return HandleResult.NEXT_ITERATION;
+
+            //required
+            return HandleResult.failure(new InvalidSyntaxException(CommandPathSearch.freshlyNew(context.getLastUsedCommand())));
+
         } catch (CommandException e) {
             return HandleResult.failure(e);
         }

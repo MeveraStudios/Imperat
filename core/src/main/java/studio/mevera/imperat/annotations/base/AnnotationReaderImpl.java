@@ -131,7 +131,7 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
         if(collectedCommands == null) return;
         
         for (Command<S> loaded : collectedCommands) {
-            imperat.registerCommand(loaded);
+            imperat.registerSimpleCommand(loaded);
         }
     }
     

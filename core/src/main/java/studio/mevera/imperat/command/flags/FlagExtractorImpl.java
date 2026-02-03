@@ -5,11 +5,10 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownFlagException;
-
+import studio.mevera.imperat.util.Patterns;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
 
     private final CommandUsage<S> usage;
     private final FlagTrie<S> flagTrie;
-    private final Set<FlagParameter<S>> registeredFlags = new HashSet<>();
+    private final Set<FlagParameter<S>> registeredFlags = new LinkedHashSet<>();
 
     FlagExtractorImpl(CommandUsage<S> usage) {
         this.usage = Objects.requireNonNull(usage, "CommandUsage cannot be null");
@@ -43,7 +42,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
             return Collections.emptySet();
         }
 
-        return parseFlags(rawInput);
+        return parseFlags(Patterns.withoutFlagSign(rawInput));
     }
 
     @Override

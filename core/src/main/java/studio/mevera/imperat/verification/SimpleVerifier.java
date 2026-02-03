@@ -23,7 +23,7 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
 
         int greedyCount = 0;
         for (int i = 0; i < usage.getMaxLength(); i++) {
-            CommandParameter<S> param = usage.getParameters().get(i);
+            CommandParameter<S> param = usage.loadCombinedParameters().get(i);
             if (param.isGreedy()) greedyCount++;
         }
 
@@ -35,6 +35,7 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
         if (greedyParam == null)
             return true;
 
+        //debug combined params
         return greedyParam.position() == usage.getMaxLength() - 1;
     }
 

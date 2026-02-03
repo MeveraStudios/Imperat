@@ -20,7 +20,9 @@ public abstract class BaseImperatTest {
     
     protected static final TestImperat IMPERAT = ImperatTestGlobals.IMPERAT;
     protected static final TestSource SOURCE = ImperatTestGlobals.GLOBAL_TEST_SOURCE;
-    
+    static {
+        System.out.println("Loading BaseImperatTest...");
+    }
     @BeforeEach
     void setUp() {
         ImperatTestGlobals.resetTestState();
@@ -31,6 +33,12 @@ public abstract class BaseImperatTest {
      * Uses the correct execute method that takes the full command line.
      */
     protected ExecutionResult<TestSource> execute(String commandLine) {
+        //print an array of command names registered in imperat
+        //do it
+        for(var cmd : IMPERAT.getRegisteredCommands()) {
+            System.out.println("Registered command: " + cmd.name());
+        }
+
         return IMPERAT.execute(SOURCE, commandLine);
     }
     
@@ -44,9 +52,12 @@ public abstract class BaseImperatTest {
      * Asserts that command execution was successful.
      */
     protected void assertSuccess(ExecutionResult<TestSource> result) {
+        if(result.hasFailed()) {
+            assertNotNull(result.getError());
+            result.getError().printStackTrace();
+        }
         assertFalse(result.hasFailed(), 
-            "Expected successful execution but got failure: " + 
-            (result.getError() != null ? result.getError().getMessage() : "Unknown error"));
+            "Expected successful execution but got failure: " + (result.getError() != null ? result.getError().getMessage() : "Unknown error"));
         assertNotNull(result.getExecutionContext(), "Execution context should not be null for successful execution");
         assertNotNull(result.getSearch(), "Command path search should not be null for successful execution");
     }
