@@ -42,7 +42,7 @@ public final class FlagHandler<S extends Source> implements ParameterHandler<S> 
                 return HandleResult.failure(new ShortHandFlagException("Unsupported use of a mixture of switches and true flags!"));
             }
             
-            if (extracted.size() == numberOfTrueFlags && !TypeUtility.areTrueFlagsOfSameInputTpe(extracted)) {
+            if (extracted.size() == numberOfTrueFlags && !TypeUtility.areTrueFlagsOfSameInputType(extracted)) {
                 return HandleResult.failure(new ShortHandFlagException("You cannot use compressed true-flags, while they are not of same input type"));
             }
             

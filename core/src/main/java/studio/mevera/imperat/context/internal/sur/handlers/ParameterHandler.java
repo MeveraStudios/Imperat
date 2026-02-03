@@ -8,8 +8,11 @@ import studio.mevera.imperat.context.internal.sur.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
 
 public sealed interface ParameterHandler<S extends Source>
-        permits SubCommandHandler, EmptyInputHandler, FlagHandler,
-        OptionalParameterHandler, RequiredParameterHandler
+        permits EmptyInputHandler, FlagHandler,
+                        NonFlagWhenExpectingFlagHandler,
+                        OptionalParameterHandler,
+                        RequiredParameterHandler,
+                        SubCommandHandler
 {
 
 

@@ -28,7 +28,6 @@ public sealed interface FlagExtractor<S extends Source> extends FlagRegistrar<S>
      * Extracts all flags used from a single string with no spaces.
      *
      * @param rawInput the raw input of an argument
-     * @param ctx
      * @return the extracted {@link FlagData} for flags.
      */
     Set<FlagParameter<S>> extract(String rawInput) throws UnknownFlagException;

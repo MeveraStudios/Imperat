@@ -165,7 +165,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     public void addParameters(List<CommandParameter<S>> params) {
         for (var param : params) {
             if (param.isFlag()) {
-                flagExtractor.insertFlag(param.asFlagParameter().flagData());
+                addFlag(param.asFlagParameter());
             }else {
                 parameters.add(param);
             }
