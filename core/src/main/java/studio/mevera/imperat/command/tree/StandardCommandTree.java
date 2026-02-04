@@ -653,6 +653,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         final boolean isLastDepth = (depth == inputSize - currentNode.getNumberOfParametersToConsume());
         
         if (isLastDepth) {
+            System.out.println("Handling LAST DEPTH for node: " + currentNode.format() + " at depth " + depth);
             return handleLastDepth(commandPathSearch, context, currentNode, depth);
         } else if (depth >= inputSize) {
             return commandPathSearch;

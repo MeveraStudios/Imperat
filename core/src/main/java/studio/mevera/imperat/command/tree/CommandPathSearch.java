@@ -122,14 +122,22 @@ public final class CommandPathSearch<S extends Source> {
     }
     
     private CommandUsage<S> closestUsageLookup() {
+        System.out.println("LAST NODE= " + lastNode.format());
+        System.out.println("LAST CMD NODE= " + lastCommandNode.format());
+
         CommandUsage<S> closestUsage = null;
 
         Queue<ParameterNode<S, ?>> nodes = new LinkedList<>();
         nodes.add(lastNode);
+
+        ParameterNode<S, ?> curr;
         while (!nodes.isEmpty()) {
-            ParameterNode<S, ?> curr = nodes.poll();
+            curr = nodes.poll();
+            System.out.println("Visiting node= " + curr.format());
             if(curr.isExecutable()) {
+                System.out.println("Found executable usage at node= " + curr.format());
                 closestUsage = curr.getExecutableUsage();
+                nodes.clear();
                 break;
             }
 
@@ -137,6 +145,7 @@ public final class CommandPathSearch<S extends Source> {
         }
         
         if(closestUsage == null) {
+            System.out.println("Could not find executable usage in children of last node, going back to last command node...");
             //if its still null, then let's go back to the last cmd node
             if(lastCommandNode.isExecutable()) {
                 closestUsage = lastCommandNode.getExecutableUsage();

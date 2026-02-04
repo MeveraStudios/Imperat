@@ -51,6 +51,7 @@ import studio.mevera.imperat.tests.parameters.CustomDuration;
 import studio.mevera.imperat.tests.parameters.CustomDurationParameterType;
 import studio.mevera.imperat.tests.parameters.JavaDurationParameterType;
 import studio.mevera.imperat.tests.parameters.TestPlayerParamType;
+import studio.mevera.imperat.tests.syntax.commands.UsageTestCommand;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.verification.UsageVerifier;
@@ -89,6 +90,7 @@ public class ImperatTestGlobals {
                     new String[]{ann.name()});
             return List.of(cmdAnn);
         });
+        IMPERAT.registerCommand(ReqCmd.class);
         IMPERAT.registerSimpleCommand(MULTIPLE_OPTIONAL_CMD);
         IMPERAT.registerSimpleCommand(CHAINED_SUBCOMMANDS_CMD);
         IMPERAT.registerCommand(AnnotatedGroupCommand.class);
@@ -127,7 +129,10 @@ public class ImperatTestGlobals {
         
         IMPERAT.registerCommands(EconomyCommand.class, BalanceCmd.class);
         
-        
+        // Register syntax test commands
+        IMPERAT.registerCommand(UsageTestCommand.class);
+
+
         ImperatDebugger.setEnabled(true);
         IMPERAT.debug(false);
         System.out.println("=== ImperatTestGlobals static initializer END ===");
