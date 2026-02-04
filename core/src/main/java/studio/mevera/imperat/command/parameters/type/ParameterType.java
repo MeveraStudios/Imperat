@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.Priority;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -133,5 +134,17 @@ public interface ParameterType<S extends Source, T> {
     default int getNumberOfParametersToConsume() {
         return 1;
     }
-    
+
+    /**
+    * Returns this parameter type\`s selection priority when multiple {@link ParameterType}s
+    * could handle the same Java {@link Type}.
+    *
+    * <p>Higher priority types should be preferred by the resolution/registration logic.</p>
+    *
+    * @return the priority for this parameter type; defaults to {@link Priority#NORMAL}.
+    */
+    @ApiStatus.AvailableSince("3.0.0")
+    default Priority getPriority() {
+     return Priority.NORMAL;
+    }
 }

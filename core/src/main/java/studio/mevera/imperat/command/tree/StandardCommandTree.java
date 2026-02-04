@@ -601,26 +601,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             return dispatch;
         }
         
-        // SAFE OPTIMIZATION: Early validation for obviously invalid commands
-        boolean hasMatchingChild = false;
-        boolean hasOptionalChild = false;
-        
-        // Single pass to check both matching and optional children
-        for (var child : rootChildren) {
-            if (child.matchesInput(0, context)) {
-                hasMatchingChild = true;
-                break; // Found match, can exit early
-            }
-            if (child.isOptional()) {
-                hasOptionalChild = true;
-            }
-        }
-        
-        // SAFE OPTIMIZATION: Fail fast for completely invalid commands
-        if (!hasMatchingChild && !hasOptionalChild && !root.isGreedyParam()) {
-            return dispatch; // Quick exit saves expensive tree traversal
-        }
-        
         // Process children efficiently
         CommandPathSearch<S> bestMatch = dispatch;
         int bestDepth = 0;
@@ -651,7 +631,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     ) {
         final int inputSize = input.size();
         final boolean isLastDepth = (depth == inputSize - currentNode.getNumberOfParametersToConsume());
-        
+
         if (isLastDepth) {
             return handleLastDepth(commandPathSearch, context, currentNode, depth);
         } else if (depth >= inputSize) {

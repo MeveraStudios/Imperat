@@ -3,6 +3,7 @@ package studio.mevera.imperat.command.parameters.type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Priority;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -76,6 +77,11 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
         public Integer parse(String input) throws NumberFormatException {
             return Integer.parseInt(input);
         }
+
+        @Override
+        public Priority getPriority() {
+            return Priority.NORMAL;
+        }
     }
 
     static class ParameterFloat<S extends Source> extends ParameterNumber<S, Float> {
@@ -93,6 +99,11 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
         public Float parse(String input) throws NumberFormatException {
             return Float.parseFloat(input);
         }
+
+        @Override
+        public Priority getPriority() {
+            return Priority.HIGH;
+        }
     }
 
     static class ParameterLong<S extends Source> extends ParameterNumber<S, Long> {
@@ -109,6 +120,11 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
         @Override
         public Long parse(String input) throws NumberFormatException {
             return Long.parseLong(input);
+        }
+
+        @Override
+        public Priority getPriority() {
+            return Priority.NORMAL.plus(1);
         }
     }
 
@@ -128,5 +144,9 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
             return Double.parseDouble(input);
         }
 
+        @Override public Priority getPriority() {
+            return Priority.HIGH.plus(1);
+        }
     }
+
 }

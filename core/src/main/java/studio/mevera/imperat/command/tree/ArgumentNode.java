@@ -5,23 +5,30 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Priority;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.context.Source;
 
 @ApiStatus.Internal
 public final class ArgumentNode<S extends Source> extends ParameterNode<S, CommandParameter<S>> {
 
-    private final int priority;
+    private final Priority priority;
     ArgumentNode(@Nullable ParameterNode<S, ?> parent, @NotNull CommandParameter<S> data, int depth, @Nullable CommandUsage<S> usage) {
         super(parent, data, depth, usage);
-        priority = loadPriority(data);
+        priority = Priority.of(loadPriority(data));
     }
+
     private static <S extends Source> int loadPriority(CommandParameter<S> commandParameter) {
-        int res = 1;
-        if(commandParameter.isOptional()) {
-            res = commandParameter.isFlag() ? 2 : 3;
+        int base = commandParameter.type().getPriority().getLevel();
+        int res = 5;
+
+        if(commandParameter.isFlag()) {
+            res--;
+        }else if(commandParameter.isOptional()) {
+            res-=2;
         }
-        return res;
+
+        return base + res;
     }
     
     @Override
@@ -30,14 +37,14 @@ public final class ArgumentNode<S extends Source> extends ParameterNode<S, Comma
     }
 
     @Override
-    public int priority() {
+    public Priority priority() {
         return priority;
     }
     
     @Override
     public boolean isGreedyParam() {
-        ParameterType<S, ?> type = this.getPrimaryType();
-        return type != null && type.isGreedy(data);
+        ParameterType<S, ?> type = this.data.type();
+        return type.isGreedy(data);
     }
     
 }

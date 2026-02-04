@@ -1,6 +1,7 @@
 package studio.mevera.imperat.command.parameters.validator;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.parameters.Priority;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Argument;
@@ -32,19 +33,9 @@ public interface ArgValidator<S extends Source> extends Comparable<ArgValidator<
 
     void validate(Context<S> context, Argument<S> argument) throws InvalidArgumentException;
 
-    enum Priority {
-        LOW,
-        MEDIUM,
-        HIGH;
-
-        public int getOrder() {
-            return ordinal();
-        }
-    }
-
     @Override
     default int compareTo(@NotNull ArgValidator<S> o) {
-        return Integer.compare(this.priority().getOrder(), o.priority().getOrder());
+        return Integer.compare(this.priority().getLevel(), o.priority().getLevel());
     }
 
 }

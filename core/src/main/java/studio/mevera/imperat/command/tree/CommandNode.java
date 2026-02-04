@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.parameters.Priority;
 import studio.mevera.imperat.context.Source;
 
 @ApiStatus.Internal
@@ -20,8 +21,8 @@ public final class CommandNode<S extends Source> extends ParameterNode<S, Comman
     }
 
     @Override
-    public int priority() {
-        return -1;
+    public Priority priority() {
+        return Priority.MAXIMUM;
     }
     
     public CommandNode<S> copy() {

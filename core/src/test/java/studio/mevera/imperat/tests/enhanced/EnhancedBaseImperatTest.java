@@ -5,6 +5,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.context.ExecutionResult;
+import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestImperatConfig;
@@ -97,10 +98,23 @@ public abstract class EnhancedBaseImperatTest {
         
         public ExecutionResultAssert hasArgument(String paramName, Object expectedValue) {
             isSuccessful();
-            Object actualValue = actual.getExecutionContext().getArgument(paramName);
-            if (!Objects.equals(expectedValue, actualValue)) {
-                failWithMessage("Expected argument '%s' to be '%s' but was '%s'",
-                    paramName, expectedValue, actualValue);
+            Argument<?> argument = null;
+            for(var arg : actual.getExecutionContext().getResolvedArguments()) {
+                if (arg.parameter().name().equals(paramName)) {
+                    argument = arg;
+                    break;
+                }
+            }
+
+            if(argument == null) {
+                failWithMessage("No argument found with name '%s'", paramName);
+            }else {
+
+                Object actualValue = actual.getExecutionContext().getArgument(paramName);
+                if (!Objects.equals(expectedValue, actualValue)) {
+                    failWithMessage("Expected argument '%s' to be '%s' but was '%s'",
+                            paramName, expectedValue, actualValue);
+                }
             }
             return this;
         }

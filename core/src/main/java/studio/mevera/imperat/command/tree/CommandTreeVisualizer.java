@@ -2,6 +2,7 @@ package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.command.parameters.Priority;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.ImperatDebugger;
 
@@ -422,7 +423,10 @@ public final class CommandTreeVisualizer<S extends Source> {
         }
         
         // Draw node box
-        String nodeText = node.format();
+        String nodeText =
+                node.format() + ": " + (node.isExecutable() ? "Executable" : "Non-executable") + ":P=" + (node.priority() == Priority.MAXIMUM ?
+                                                                                                                  "MAX" :
+                                                                                                                  node.priority().getLevel());
         builder.append(nodeText).append("\n");
         
         // Draw children
@@ -431,9 +435,12 @@ public final class CommandTreeVisualizer<S extends Source> {
         if (depth > 0) {
             newLastFlags.add(isLast);
         }
-        
-        for (int i = 0; i < children.size(); i++) {
-            visualizeSimpleNode(children.get(i), builder, depth + 1, newLastFlags, i == children.size() - 1);
+
+        int i = 0;
+        for (var child : children) {
+            visualizeSimpleNode(child, builder, depth + 1, newLastFlags, i == children.size() - 1);
+            i++;
         }
+
     }
 }

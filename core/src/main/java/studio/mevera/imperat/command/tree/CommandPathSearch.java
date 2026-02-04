@@ -130,7 +130,7 @@ public final class CommandPathSearch<S extends Source> {
         ParameterNode<S, ?> curr;
         while (!nodes.isEmpty()) {
             curr = nodes.poll();
-            if(curr.isExecutable()) {
+            if(!curr.isCommand() && curr.isExecutable()) {
                 closestUsage = curr.getExecutableUsage();
                 nodes.clear();
                 break;

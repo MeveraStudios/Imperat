@@ -33,6 +33,22 @@ import java.util.function.Predicate;
 public sealed interface CommandUsage<S extends Source> extends Iterable<CommandParameter<S>>, PermissionHolder, DescriptionHolder, CooldownHolder  permits CommandUsageImpl{
 
 
+    static <S extends Source> String formatWithTypes(Command<S> command, CommandUsage<S> usage) {
+        Preconditions.notNull(usage, "usage");
+        StringBuilder builder = new StringBuilder(command.name()).append(' ');
+
+        List<CommandParameter<S>> params = usage.loadCombinedParameters();
+        int i = 0;
+        for (CommandParameter<S> parameter : params) {
+            builder.append(parameter.format()).append(":").append(parameter.type().getClass().getSimpleName());
+            if (i != params.size() - 1) {
+                builder.append(' ');
+            }
+            i++;
+        }
+        return builder.toString();
+    }
+
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
      *

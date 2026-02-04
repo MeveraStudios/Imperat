@@ -5,6 +5,7 @@ import static studio.mevera.imperat.util.StringUtils.isQuoteChar;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
+import studio.mevera.imperat.command.parameters.Priority;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
@@ -117,5 +118,9 @@ public final class ParameterString<S extends Source> extends BaseParameterType<S
     public boolean isGreedy(CommandParameter<S> parameter) {
         return parameter.isGreedyString();
     }
-    
+
+    @Override
+    public Priority getPriority() {
+        return Priority.LOW;
+    }
 }

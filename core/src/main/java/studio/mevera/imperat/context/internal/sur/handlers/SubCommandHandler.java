@@ -25,7 +25,9 @@ public final class SubCommandHandler<S extends Source> implements ParameterHandl
         
         try {
             Command<S> parameterSubCmd = (Command<S>) currentParameter;
+            System.out.println("Current raw= " + currentRaw);
             if (parameterSubCmd.hasName(currentRaw)) {
+
                 //context.setLastCommand(parameterSubCmd);
                 stream.skip();
                 return HandleResult.NEXT_ITERATION;

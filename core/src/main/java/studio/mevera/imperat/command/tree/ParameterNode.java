@@ -5,51 +5,37 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Priority;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
-import studio.mevera.imperat.command.parameters.type.ParameterTypes;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public abstract class ParameterNode<S extends Source, T extends CommandParameter<S>> {
+public abstract class ParameterNode<S extends Source, T extends CommandParameter<S>> implements Comparable<ParameterNode<S, ?>> {
 
     protected final @NotNull T data;
 
     protected @Nullable CommandUsage<S> executableUsage;
 
-    private final LinkedList<ParameterNode<S, ?>> nextNodes = new LinkedList<>();
-    
-    //we want a LIFO structure here
-    private final Deque<ParameterType<S, ?>> supportedTypes = new ArrayDeque<>();
-    
+    private final List<ParameterNode<S, ?>> children = new LinkedList<>();
+
     private final int depth;
     
     private final @Nullable ParameterNode<S, ?> parent;
     
     private String permission;
-    
-    private final static ParameterType<?, ?> DEFAULT_PARAM_TYPE = ParameterTypes.string();
-    
+
     protected ParameterNode(@Nullable ParameterNode<S, ?> parent, @NotNull T data, int depth, @Nullable CommandUsage<S> executableUsage) {
         this.parent = parent;
         this.data = data;
         this.depth = depth;
         this.executableUsage = executableUsage;
         this.permission = data.getSinglePermission();
-        
-        if(!isCommand() && !isFlag()) {
-            supportedTypes.add((ParameterType<S, ?>) DEFAULT_PARAM_TYPE);
-        }
-        
-        if(!data.type().equalsExactly(DEFAULT_PARAM_TYPE.type())) {
-            supportedTypes.add(data.type());
-        }
     }
     
     public static <S extends Source> CommandNode<S> createCommandNode(
@@ -99,99 +85,62 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     }
     
     public void addChild(ParameterNode<S, ?> node) {
-        if (nextNodes.contains(node)) return;
-        
-        int newNodePriority = node.priority();
-        
-        // Fast path for empty list
-        if (nextNodes.isEmpty()) {
-            nextNodes.add(node);
-            return;
-        }
-        
-        // Fast path for highest priority (commands) - add to front
-        if (newNodePriority < nextNodes.getFirst().priority()) {
-            nextNodes.addFirst(node);
-            return;
-        }
-        
-        // Fast path for lowest priority - add to end
-        if (newNodePriority >= nextNodes.getLast().priority()) {
-            nextNodes.addLast(node);
-            return;
-        }
-        
-        // Find insertion point using ListIterator for efficient insertion
-        ListIterator<ParameterNode<S, ?>> iterator = nextNodes.listIterator();
-        while (iterator.hasNext()) {
-            ParameterNode<S, ?> existingNode = iterator.next();
-            if (newNodePriority < existingNode.priority()) {
-                iterator.previous(); // Step back
-                iterator.add(node);  // Insert before current position
-                return;
-            }
-        }
+        if (children.contains(node)) return;
+        children.add(node);
+        children.sort(Comparator.reverseOrder());
     }
 
-    public LinkedList<ParameterNode<S,?>> getChildren() {
-        return nextNodes;
+    public List<ParameterNode<S,?>> getChildren() {
+        return children;
     }
     
     public boolean matchesInput(int depth, Context<S> ctx) {
         // Check supported types in LIFO order
         return matchesInput(depth, ctx, false);
     }
-    
+
     public boolean matchesInput(int depth, Context<S> ctx, boolean strict) {
-        if(strict) {
-            //it must be strict in a specific scenario
-            //REGARDING complex middle optional arguments resolvation
-            //we get the primary param type.
-            var primaryType = getPrimaryType();
-            return primaryType != null && matchesInput(primaryType, depth, ctx);
+        var primaryType = data.type();
+        boolean primaryMatches = matchesInput(primaryType, depth, ctx);
+
+        if(strict || isCommand()) {
+            return primaryMatches;
         }
-        // Check supported types in LIFO order
-        var iterator = supportedTypes.descendingIterator();
-        while (iterator.hasNext()) {
-            var type = iterator.next();
-            if (matchesInput(type, depth, ctx)) {
-                return true;
+
+        if(primaryMatches) {
+            return true;
+        }
+
+        ParameterNode<S, ?> siblingMatchingInput = findNeighborOfType(depth, ctx);
+        //System.out.println("SIBLING FOUND: " + siblingMatchingInput.data.name());
+        return siblingMatchingInput == null;//if no sibling matches this, this one MUST match
+    }
+
+    private @Nullable ParameterNode<S, ?> findNeighborOfType(int depth, Context<S> context) {
+        if(parent == null) {
+            return null;
+        }
+        for(var sibling : parent.getChildren()) {
+            if(sibling.equals(this)) continue;
+            if(sibling.matchesInput(depth, context, true)) {
+                return sibling;
             }
         }
-        
-        return false;
+        return null;
     }
-    
+
     private boolean matchesInput(ParameterType<S, ?> type, int depth, Context<S> ctx) {
         return type.matchesInput(depth, ctx, data);
     }
-    
-    public void addSupportedType(ParameterType<S, ?> type) {
-        if (!supportedTypes.contains(type)) {
-            supportedTypes.add(type);
-        }
-    }
-    
-    //remove
-    public void removeSupportedType(ParameterType<S, ?> type) {
-        supportedTypes.remove(type);
-    }
-    
-    public Deque<ParameterType<S, ?>> getSupportedTypes() {
-        return supportedTypes;
-    }
-    
-    public @Nullable ParameterType<S, ?> getPrimaryType() {
-        return supportedTypes.peekLast();
-    }
+
     
     public abstract String format();
 
     public boolean isLast() {
-        return nextNodes.isEmpty();
+        return children.isEmpty();
     }
 
-    public abstract int priority();
+    public abstract Priority priority();
 
     public boolean isGreedyParam() {
         return data.isGreedy();
@@ -240,8 +189,8 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     
     
     public @Nullable ParameterNode<S,?> getTopChild() {
-        if(nextNodes.isEmpty())return null;
-        return nextNodes.getFirst();
+        if(children.isEmpty())return null;
+        return children.get(0);
     }
     
     public boolean isRoot() {
@@ -257,12 +206,18 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof ParameterNode<?, ?> that)) return false;
-        return Objects.equals(this.parent, that.parent) && Objects.equals(data.name(), that.data.name()) && this.depth == that.depth && Objects.equals(nextNodes, that.nextNodes);
+        return Objects.equals(this.parent, that.parent) && Objects.equals(data.name(), that.data.name()) && this.depth == that.depth && Objects.equals(
+                children, that.children);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(this.parent, data.name(), this.depth,  nextNodes);
+        return Objects.hash(this.parent, data.name(), this.depth, children);
     }
-    
+
+    @Override
+    public int compareTo(@NotNull ParameterNode<S, ?> o) {
+        //the highest priority comes first
+        return Integer.compare(this.priority().getLevel(), o.priority().getLevel());
+    }
 }

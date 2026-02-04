@@ -261,7 +261,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         
         CommandPathSearch<S> searchResult = command.contextMatch(context);
         ImperatDebugger.debug("Search-result: '" + searchResult.getResult().name() + "'");
-        
+
         if(searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
             throw new PermissionDeniedException(searchResult);
         }
@@ -283,7 +283,8 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             ImperatDebugger.debug("Failed usage permission check !");
             throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null);
         }
-        
+        ImperatDebugger.debug("Usage Found Format: '" + CommandUsage.formatWithTypes(command, usage) + "'");
+
         return executeUsage(command, source, context, usage, searchResult);
     }
     
