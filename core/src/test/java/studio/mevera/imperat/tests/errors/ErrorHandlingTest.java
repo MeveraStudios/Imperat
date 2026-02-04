@@ -10,6 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
+import studio.mevera.imperat.exception.NumberOutOfRangeException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
@@ -89,6 +90,15 @@ public class ErrorHandlingTest extends BaseImperatTest {
                 .handleExecutionThrowable(res.getError(), res.getContext(), BaseImperatTest.class, "testFail");
 
         // Should fail due to missing Group context
+    }
+
+    @Test
+    @DisplayName(
+            "Should detect the validator for ranged numerical arg and handle out of range number input"
+    )
+    void testArgumentValidatorHandling() {
+        ExecutionResult<TestSource> result = execute("buy potato 0"); // Should fail due to validator range
+        assertFailure(result, NumberOutOfRangeException.class);
     }
     
    /*@Test

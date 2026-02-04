@@ -23,6 +23,7 @@ import studio.mevera.imperat.annotations.Suggest;
 import studio.mevera.imperat.annotations.SuggestionProvider;
 import studio.mevera.imperat.annotations.Switch;
 import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Validators;
 import studio.mevera.imperat.annotations.Values;
 import studio.mevera.imperat.annotations.base.AnnotationHelper;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
@@ -35,11 +36,12 @@ import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.ConstrainedParameterTypeDecorator;
 import studio.mevera.imperat.command.parameters.NumericRange;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.command.parameters.StrictParameterList;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.validator.ArgValidator;
+import studio.mevera.imperat.command.parameters.validator.ConstrainedValueValidator;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.Source;
@@ -725,6 +727,16 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             );
         }
 
+        List<ArgValidator<S>> validators = new ArrayList<>();
+
+        if(parameter.isAnnotationPresent(Validators.class)) {
+            Validators validatorsAnn = parameter.getAnnotation(Validators.class);
+            assert validatorsAnn != null;
+            for (Class<? extends ArgValidator<?>> validatorClass : validatorsAnn.value()) {
+                ArgValidator<S> validatorInstance = (ArgValidator<S>) config.getInstanceFactory().createInstance(config, validatorClass);
+                validators.add(validatorInstance);
+            }
+        }
 
         if (parameter.isAnnotationPresent(Values.class)) {
             Values valuesAnnotation = parameter.getAnnotation(Values.class);
@@ -742,13 +754,15 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                                          })
                                          .collect(Collectors.toCollection(LinkedHashSet::new));
 
-            type = ConstrainedParameterTypeDecorator.of(type, values, valuesAnnotation.caseSensitive());
+            validators.add(new ConstrainedValueValidator<>(values, valuesAnnotation.caseSensitive()));
         }
 
         CommandParameter<S> delegate = CommandParameter.of(
                 name, type, permission, desc,
-                optional, greedy, optionalValueSupplier, suggestionResolver
+                optional, greedy, optionalValueSupplier, suggestionResolver,
+                validators
         );
+
         if (parameter.isAnnotationPresent(Format.class)) {
             Format formatAnnotation = parameter.getAnnotation(Format.class);
             assert formatAnnotation != null;

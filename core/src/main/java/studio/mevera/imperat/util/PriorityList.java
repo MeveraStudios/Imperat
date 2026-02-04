@@ -183,18 +183,11 @@ public class PriorityList<E> implements Iterable<E> {
      * Sorts by priority first (using Priority's natural ordering which is descending),
      * then by insertion order for equal priorities.
      */
-    private static class PriorityKey implements Comparable<PriorityKey> {
-
-        final Priority priority;
-        final int insertionOrder;
-
-        PriorityKey(Priority priority, int insertionOrder) {
-            this.priority = priority;
-            this.insertionOrder = insertionOrder;
-        }
+    private record PriorityKey(Priority priority, int insertionOrder) implements Comparable<PriorityKey> {
 
         @Override
         public int compareTo(@NotNull PriorityKey other) {
+
             // First compare by priority (Priority.compareTo already sorts descending)
             int priorityComp = this.priority.compareTo(other.priority);
             if (priorityComp != 0) {
@@ -203,6 +196,7 @@ public class PriorityList<E> implements Iterable<E> {
             // Then by insertion order (ascending - earlier insertions first)
             return Integer.compare(this.insertionOrder, other.insertionOrder);
         }
+
 
         @Override
         public boolean equals(Object o) {
@@ -216,10 +210,6 @@ public class PriorityList<E> implements Iterable<E> {
                            Objects.equals(priority, that.priority);
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(priority, insertionOrder);
-        }
     }
 
     /**

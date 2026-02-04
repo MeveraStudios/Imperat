@@ -12,6 +12,14 @@ public record Argument<S extends Source>(
         @Nullable Object value
 ) {
 
+    public String name() {
+        return parameter.name();
+    }
+
+    public <T> @Nullable T getValue() {
+        return (T) value;
+    }
+
     @Override
     public @NotNull String toString() {
         return "Argument{" +

@@ -2,8 +2,9 @@ package studio.mevera.imperat.exception;
 
 import studio.mevera.imperat.command.parameters.NumericParameter;
 import studio.mevera.imperat.command.parameters.NumericRange;
+import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 
-public class NumberOutOfRangeException extends ParseException {
+public class NumberOutOfRangeException extends InvalidArgumentException {
 
     private final NumericParameter<?> parameter;
     private final Number value;

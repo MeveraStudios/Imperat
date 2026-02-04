@@ -646,7 +646,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public @NotNull PriorityList<ArgValidator<S>> getValidatorsQueue() {
+    public @NotNull PriorityList<ArgValidator<S>> getValidators() {
         throw new UnsupportedOperationException("A command does not have argument validators !");
     }
 

@@ -6,11 +6,13 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
+import studio.mevera.imperat.command.parameters.validator.ArgValidator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Preconditions;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public sealed class ParameterBuilder<S extends Source, T> permits FlagBuilder {
 
@@ -23,6 +25,7 @@ public sealed class ParameterBuilder<S extends Source, T> permits FlagBuilder {
     protected Description description = Description.EMPTY;
     private @NotNull OptionalValueSupplier valueSupplier;
     private SuggestionResolver<S> suggestionResolver = null;
+    protected final List<ArgValidator<S>> validators = new ArrayList<>();
 
     ParameterBuilder(String name, ParameterType<S, T> type, boolean optional, boolean greedy) {
         this.name = name;
@@ -73,11 +76,17 @@ public sealed class ParameterBuilder<S extends Source, T> permits FlagBuilder {
         return suggest(SuggestionResolver.staticSuggestions(suggestions));
     }
 
+    public ParameterBuilder<S, T> validate(ArgValidator<S> validator) {
+        Preconditions.notNull(validator, "validator");
+        validators.add(validator);
+        return this;
+    }
+
     public CommandParameter<S> build() {
         return CommandParameter.of(
                 name, type, permission, description,
                 optional, greedy, valueSupplier,
-                suggestionResolver
+                suggestionResolver, validators
         );
     }
 

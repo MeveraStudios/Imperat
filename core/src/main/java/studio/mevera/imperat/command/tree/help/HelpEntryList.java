@@ -1,7 +1,6 @@
 package studio.mevera.imperat.command.tree.help;
 
 import studio.mevera.imperat.context.Source;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;

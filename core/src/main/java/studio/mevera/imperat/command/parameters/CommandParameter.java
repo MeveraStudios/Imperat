@@ -22,6 +22,8 @@ import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents the command parameter required
@@ -38,16 +40,21 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
             boolean optional,
             boolean greedy,
             @NotNull OptionalValueSupplier valueSupplier,
-            @Nullable SuggestionResolver<S> suggestionResolver
+            @Nullable SuggestionResolver<S> suggestionResolver,
+            List<ArgValidator<S>> validators
     ) {
         Preconditions.notNull(name, "name");
         Preconditions.notNull(type, "type");
         Preconditions.checkArgument(!type.equalsExactly(Object.class), "Type cannot be `Object`");
 
-        return new NormalCommandParameter<>(
+        var param = new NormalCommandParameter<>(
                 name, type, permission, description, optional,
                 greedy, valueSupplier, suggestionResolver
         );
+        for(ArgValidator<S> validator : validators) {
+            param.addValidator(validator);
+        }
+        return param;
     }
 
     static <S extends Source, T> ParameterBuilder<S, T> required(String name, ParameterType<S, T> type) {
@@ -142,7 +149,8 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
                 false,
                 false,
                 OptionalValueSupplier.empty(),
-                null
+                null,
+                Collections.emptyList()
         );
     }
 
@@ -330,7 +338,7 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
      */
     CommandParameter<S> copyWithDifferentPosition(int newPosition);
 
-    @NotNull PriorityList<ArgValidator<S>> getValidatorsQueue();
+    @NotNull PriorityList<ArgValidator<S>> getValidators();
 
     void addValidator(@NotNull ArgValidator<S> validator);
 

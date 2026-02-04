@@ -6,6 +6,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.InputParameter;
 import studio.mevera.imperat.command.parameters.NumericParameter;
 import studio.mevera.imperat.command.parameters.NumericRange;
+import studio.mevera.imperat.command.parameters.validator.RangeValidator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
@@ -23,6 +24,10 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
         );
         this.parameter = parameter;
         this.range = range;
+        for(var validator : parameter.getValidators()) {
+            this.addValidator(validator);
+        }
+        this.addValidator(new RangeValidator<>());
     }
 
 

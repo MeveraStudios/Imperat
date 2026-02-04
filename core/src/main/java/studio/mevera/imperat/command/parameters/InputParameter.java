@@ -242,7 +242,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     }
 
     @Override
-    public @NotNull PriorityList<ArgValidator<S>> getValidatorsQueue() {
+    public @NotNull PriorityList<ArgValidator<S>> getValidators() {
         return validators.asUnmodifiable();
     }
 

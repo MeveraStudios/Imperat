@@ -8,6 +8,7 @@ import studio.mevera.imperat.annotations.base.AnnotationFactory;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
+import studio.mevera.imperat.tests.commands.BuyCommand;
 import studio.mevera.imperat.tests.commands.ContextResolvingCmd;
 import studio.mevera.imperat.tests.commands.CustomEnumCommand;
 import studio.mevera.imperat.tests.commands.EmptyCmd;
@@ -94,6 +95,7 @@ public class ImperatTestGlobals {
                     new String[]{ann.name()});
             return List.of(cmdAnn);
         });
+        IMPERAT.registerCommand(BuyCommand.class);
         IMPERAT.registerCommand(ReqCmd.class);
         IMPERAT.registerCommand(MultipleVariantsCmd.class);
         IMPERAT.registerSimpleCommand(MULTIPLE_OPTIONAL_CMD);
