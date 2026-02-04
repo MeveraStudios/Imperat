@@ -13,6 +13,7 @@ import studio.mevera.imperat.util.TypeWrap;
 import java.util.Arrays;
 
 final class TypeField extends PredicateField<EntityType> {
+
     /**
      * Constructs an AbstractField instance with the specified name and type.
      *
@@ -21,13 +22,14 @@ final class TypeField extends PredicateField<EntityType> {
     TypeField(String name) {
         super(name, TypeWrap.of(EntityType.class));
         Arrays.stream(EntityType.values())
-            .map(EntityType::name)
-            .map(String::toLowerCase)
-            .forEach(suggestions::add);
+                .map(EntityType::name)
+                .map(String::toLowerCase)
+                .forEach(suggestions::add);
     }
 
     @Override
-    protected @NotNull EntityCondition getCondition(EntityType value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context) {
+    protected @NotNull EntityCondition getCondition(EntityType value, CommandInputStream<BukkitSource> commandInputStream,
+            Context<BukkitSource> context) {
         return (sender, entity) -> entity.getType() == value;
     }
 

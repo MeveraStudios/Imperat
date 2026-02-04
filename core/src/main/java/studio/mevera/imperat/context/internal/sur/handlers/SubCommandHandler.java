@@ -11,18 +11,17 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.parse.UnknownSubCommandException;
 
 public final class SubCommandHandler<S extends Source> implements ParameterHandler<S> {
-    
+
     @Override
     public @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException {
         CommandParameter<S> currentParameter = stream.currentParameterIfPresent();
         String currentRaw = stream.currentRawIfPresent();
-        if(currentParameter == null) {
+        if (currentParameter == null) {
             return HandleResult.TERMINATE;
-        }
-        else if(currentRaw == null || !currentParameter.isCommand()) {
+        } else if (currentRaw == null || !currentParameter.isCommand()) {
             return HandleResult.NEXT_HANDLER;
         }
-        
+
         try {
             Command<S> parameterSubCmd = (Command<S>) currentParameter;
             if (parameterSubCmd.hasName(currentRaw)) {

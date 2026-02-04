@@ -14,17 +14,17 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface SubCommand {
-    
+
     /**
      * @return The names of subcommands
      */
     String[] value();
-    
+
     /**
      * @return Whether to skip permission checks during auto-completion.
      */
     boolean skipSuggestionsChecks() default false;
-    
+
     /**
      * @return The type of attachment of this subcommand to its parent command.
      */

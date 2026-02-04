@@ -13,7 +13,9 @@ import studio.mevera.imperat.exception.CommandException;
 import java.util.List;
 
 public final class ParameterCommand<S extends Source> extends BaseParameterType<S, Command<S>> {
+
     private final String name;
+
     ParameterCommand(String name, List<String> aliases) {
         super();
         this.name = name;
@@ -22,17 +24,18 @@ public final class ParameterCommand<S extends Source> extends BaseParameterType<
     }
 
     @Override
-    public @Nullable Command<S> resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+    public @Nullable Command<S> resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream,
+            @NotNull String input) throws
             CommandException {
         return commandInputStream.currentParameter()
-            .map(CommandParameter::asCommand).orElse(null);
+                       .map(CommandParameter::asCommand).orElse(null);
     }
 
     @Override
     public boolean matchesInput(int rawPosition, Context<S> ctx, CommandParameter<S> parameter) {
         String input = ctx.arguments().get(rawPosition);
         return parameter.isCommand() &&
-            parameter.asCommand().hasName(input.toLowerCase());
+                       parameter.asCommand().hasName(input.toLowerCase());
     }
 
     public String getName() {

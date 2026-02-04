@@ -1,7 +1,7 @@
 repositories {
     mavenCentral()
-    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url = 'https://oss.sonatype.org/content/repositories/central' }
+    maven {url = 'https://oss.sonatype.org/content/repositories/snapshots'}
+    maven {url = 'https://oss.sonatype.org/content/repositories/central'}
     maven {
         url = "https://repo.papermc.io/repository/maven-public/"
     }

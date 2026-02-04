@@ -42,7 +42,9 @@ public class ParameterPlayer extends HytaleParameterType<PlayerRef> {
         }
 
         PlayerRef player = PlayerUtil.getPlayerRefByName(input);
-        if (player != null) return player;
+        if (player != null) {
+            return player;
+        }
 
         throw new UnknownPlayerException(input);
     }

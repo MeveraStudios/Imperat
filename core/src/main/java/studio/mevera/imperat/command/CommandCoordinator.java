@@ -34,10 +34,10 @@ public interface CommandCoordinator<S extends Source> {
     }
 
     void coordinate(
-        @NotNull Imperat<S> imperat,
-        @NotNull S source,
-        @NotNull ExecutionContext<S> context,
-        @NotNull CommandExecution<S> execution
+            @NotNull Imperat<S> imperat,
+            @NotNull S source,
+            @NotNull ExecutionContext<S> context,
+            @NotNull CommandExecution<S> execution
     ) throws CommandException;
 
     @FunctionalInterface

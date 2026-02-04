@@ -5,12 +5,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.util.Priority;
 
 @ApiStatus.Internal
 public final class CommandNode<S extends Source> extends ParameterNode<S, Command<S>> {
-    
+
     CommandNode(@Nullable ParameterNode<S, ?> parent, @NotNull Command<S> data, int depth, @Nullable CommandUsage<S> usage) {
         super(parent, data, depth, usage);
     }
@@ -24,7 +24,7 @@ public final class CommandNode<S extends Source> extends ParameterNode<S, Comman
     public Priority priority() {
         return Priority.MAXIMUM;
     }
-    
+
     public CommandNode<S> copy() {
         return new CommandNode<>(this.getParent(), this.data, getDepth(), executableUsage);
     }

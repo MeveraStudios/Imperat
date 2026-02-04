@@ -92,7 +92,8 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
             new HytaleParameterType.Data<>(Item.class, ArgTypes.ITEM_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
             new HytaleParameterType.Data<>(BlockType.class, ArgTypes.BLOCK_TYPE_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
             new HytaleParameterType.Data<>(ParticleSystem.class, ArgTypes.PARTICLE_SYSTEM, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(HitboxCollisionConfig.class, ArgTypes.HITBOX_COLLISION_CONFIG, HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleParameterType.Data<>(HitboxCollisionConfig.class, ArgTypes.HITBOX_COLLISION_CONFIG,
+                    HytaleParameterType.ExceptionProvider.DEFAULT),
             new HytaleParameterType.Data<>(RepulsionConfig.class, ArgTypes.REPULSION_CONFIG, HytaleParameterType.ExceptionProvider.DEFAULT),
             new HytaleParameterType.Data<>(SoundEvent.class, ArgTypes.SOUND_EVENT_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
             new HytaleParameterType.Data<>(AmbienceFX.class, ArgTypes.AMBIENCE_FX_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
@@ -103,7 +104,8 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
             new HytaleParameterType.Data<>(BlockMask.class, ArgTypes.BLOCK_MASK, HytaleParameterType.ExceptionProvider.DEFAULT),
             new HytaleParameterType.Data<>(BlockPattern.class, ArgTypes.BLOCK_PATTERN, HytaleParameterType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(ArgTypes.IntegerComparisonOperator.class, ArgTypes.INTEGER_COMPARISON_OPERATOR, HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleParameterType.Data<>(ArgTypes.IntegerComparisonOperator.class, ArgTypes.INTEGER_COMPARISON_OPERATOR,
+                    HytaleParameterType.ExceptionProvider.DEFAULT),
             new HytaleParameterType.Data<>(ArgTypes.IntegerOperation.class, ArgTypes.INTEGER_OPERATION, InvalidIntegerOperator::new)
 
             // new HytaleParameterType.Data<>(Pair.class, ArgTypes.INT_RANGE, HytaleParameterType.ExceptionProvider.DEFAULT) // shared Pair<Integer,
@@ -132,11 +134,13 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
      */
     private void registerContextResolvers() {
         config.registerContextResolver(
-                new TypeWrap<ExecutionContext<HytaleSource>>() {}.getType(),
+                new TypeWrap<ExecutionContext<HytaleSource>>() {
+                }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextResolver(
-                new TypeWrap<CommandHelp<HytaleSource>>() {}.getType(),
+                new TypeWrap<CommandHelp<HytaleSource>>() {
+                }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 

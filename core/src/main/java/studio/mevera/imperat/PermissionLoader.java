@@ -11,21 +11,21 @@ import studio.mevera.imperat.context.Source;
  * @param <S> the source type.
  */
 public interface PermissionLoader<S extends Source> {
-    
+
+    static <S extends Source> PermissionLoader<S> defaultLoader() {
+        return (param) -> {
+            if (param.getSinglePermission() == null) {
+                return param.name();
+            }
+            return param.getSinglePermission();
+        };
+    }
+
     /**
      * Deduces a permission for a command parameter.
      * @param commandParameter the command parameter.
      * @return The permission for this parameter.
      */
     @Nullable String load(@NotNull CommandParameter<S> commandParameter);
-    
-    static <S extends Source> PermissionLoader<S> defaultLoader() {
-        return (param)-> {
-            if(param.getSinglePermission() == null) {
-                return param.name();
-            }
-            return param.getSinglePermission();
-        };
-    }
-    
+
 }

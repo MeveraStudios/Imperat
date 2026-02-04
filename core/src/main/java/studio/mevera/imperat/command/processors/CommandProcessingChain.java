@@ -9,6 +9,14 @@ import java.util.Queue;
 
 public interface CommandProcessingChain<S extends Source, P extends CommandProcessor<S>> extends Iterable<P> {
 
+    static <S extends Source> Builder<S, CommandPreProcessor<S>> preProcessors() {
+        return new Builder<>();
+    }
+
+    static <S extends Source> Builder<S, CommandPostProcessor<S>> postProcessors() {
+        return new Builder<>();
+    }
+
     @NotNull
     Queue<P> getProcessors();
 
@@ -17,6 +25,7 @@ public interface CommandProcessingChain<S extends Source, P extends CommandProce
     void add(P preProcessor);
 
     final class Builder<S extends Source, P extends CommandProcessor<S>> {
+
         private final PriorityQueue<P> processors;
 
         public Builder() {
@@ -33,15 +42,6 @@ public interface CommandProcessingChain<S extends Source, P extends CommandProce
         public CommandProcessingChain<S, P> build() {
             return new ChainImpl<>(processors);
         }
-    }
-
-
-    static <S extends Source> Builder<S, CommandPreProcessor<S>> preProcessors() {
-        return new Builder<>();
-    }
-
-    static <S extends Source> Builder<S, CommandPostProcessor<S>> postProcessors() {
-        return new Builder<>();
     }
 
 }

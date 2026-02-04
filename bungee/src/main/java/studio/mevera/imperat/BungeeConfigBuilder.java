@@ -67,11 +67,13 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
 
     private void registerContextResolvers() {
         config.registerContextResolver(
-                new TypeWrap<ExecutionContext<BungeeSource>>() {}.getType(),
+                new TypeWrap<ExecutionContext<BungeeSource>>() {
+                }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextResolver(
-                new TypeWrap<CommandHelp<BungeeSource>>() {}.getType(),
+                new TypeWrap<CommandHelp<BungeeSource>>() {
+                }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 
@@ -81,7 +83,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
         config.registerContextResolver(ServerInfo.class, (ctx, paramElement) -> {
             BungeeSource source = ctx.source();
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException(ctx);
+                throw new OnlyPlayerAllowedException();
             }
             ProxiedPlayer player = source.asPlayer();
             return player.getServer() != null ? player.getServer().getInfo() : null;
@@ -104,7 +106,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
         config.registerSourceResolver(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
         config.registerSourceResolver(ProxiedPlayer.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException(ctx);
+                throw new OnlyPlayerAllowedException();
             }
             return source.asPlayer();
         });

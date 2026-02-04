@@ -28,10 +28,6 @@ public final class ImperatDebugger {
         ImperatDebugger.usingTestCases = usingTestCases;
     }
 
-    public static void setEnabled(boolean enabled) {
-        ImperatDebugger.enabled = enabled;
-    }
-
     public static boolean isTesting() {
         return testing;
     }
@@ -44,45 +40,57 @@ public final class ImperatDebugger {
         return enabled;
     }
 
+    public static void setEnabled(boolean enabled) {
+        ImperatDebugger.enabled = enabled;
+    }
+
     public static void setLogger(Logger LOGGER) {
         ImperatDebugger.LOGGER = LOGGER;
     }
 
     public static void debug(String msg, Object... args) {
-        if (!enabled) return;
-        if(testing || usingTestCases) {
+        if (!enabled) {
+            return;
+        }
+        if (testing || usingTestCases) {
             System.out.println(String.format("INFO > " + msg, args));
-        }else {
+        } else {
             LOGGER.log(Level.INFO, () -> String.format(msg, args));
         }
     }
 
     public static void debugForTesting(String msg, Object... args) {
-        if (!enabled || !testing) return;
+        if (!enabled || !testing) {
+            return;
+        }
         System.out.println(String.format("TEST-INFO > " + msg, args));
     }
 
     public static void warning(String msg, Object... args) {
-        if (!enabled) return;
-        if(testing) {
+        if (!enabled) {
+            return;
+        }
+        if (testing) {
             System.out.println(String.format("WARNING > " + msg, args));
-        }else {
+        } else {
             LOGGER.log(Level.WARNING, () -> String.format(msg, args));
         }
     }
 
     public static void error(Class<?> owningClass, String method, @NotNull Throwable ex) {
-        LOGGER.log(Level.SEVERE, ex, ()-> String.format("Error in class '%s', in method '%s'", owningClass.getName(), method));
+        LOGGER.log(Level.SEVERE, ex, () -> String.format("Error in class '%s', in method '%s'", owningClass.getName(), method));
     }
 
     public static void error(Class<?> owningClass, String method, Throwable ex, String message) {
-        LOGGER.log(Level.SEVERE, ex, ()-> String.format("Error in class '%s', in method '%s' due to '%s'", owningClass.getName(), method, message));
+        LOGGER.log(Level.SEVERE, ex, () -> String.format("Error in class '%s', in method '%s' due to '%s'", owningClass.getName(), method, message));
     }
 
     public static <S extends Source> void debugParameters(String msg, List<CommandParameter<S>> parameters) {
-        if (!enabled) return;
-        LOGGER.log(Level.INFO, ()-> String.format(msg, parameters.stream().map(CommandParameter::format)
-            .collect(Collectors.joining(","))));
+        if (!enabled) {
+            return;
+        }
+        LOGGER.log(Level.INFO, () -> String.format(msg, parameters.stream().map(CommandParameter::format)
+                                                                .collect(Collectors.joining(","))));
     }
 
 }

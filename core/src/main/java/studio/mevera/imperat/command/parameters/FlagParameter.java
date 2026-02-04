@@ -21,8 +21,9 @@ public interface FlagParameter<S extends Source> extends CommandParameter<S> {
      */
     default Type inputValueType() {
         var type = flagData().inputType();
-        if (type == null)
+        if (type == null) {
             return Boolean.class;
+        }
         return type.type();
     }
 

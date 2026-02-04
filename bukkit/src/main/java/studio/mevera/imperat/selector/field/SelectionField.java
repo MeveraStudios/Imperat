@@ -17,6 +17,7 @@ import java.util.List;
  * @param <V> The type of the value that the selection field handles.
  */
 public interface SelectionField<V> extends SelectionFields {
+
     char VALUE_EQUALS = '=', SEPARATOR = ',';
 
     /**

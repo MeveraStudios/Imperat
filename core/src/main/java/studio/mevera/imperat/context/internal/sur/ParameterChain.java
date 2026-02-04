@@ -22,18 +22,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ParameterChain<S extends Source> {
+
     private final List<ParameterHandler<S>> handlers;
-    
+
     public ParameterChain(List<ParameterHandler<S>> handlers) {
         this.handlers = List.copyOf(handlers);
     }
-    
+
     public void execute(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException {
-        
+
         pipeLine:
         while (stream.isCurrentParameterAvailable()) {
             for (ParameterHandler<S> handler : handlers) {
-                
+
                 // ADD: Time each individual handler
                 HandleResult result = handler.handle(context, stream);
                 switch (result) {
@@ -53,9 +54,9 @@ public class ParameterChain<S extends Source> {
 
         for (int rPos = 0; rPos < stream.rawsLength(); rPos++) {
             String raw = context.getRawArgument(rPos);
-            if(!Patterns.isInputFlag(raw)) {
+            if (!Patterns.isInputFlag(raw)) {
                 var sub = lastCmd.getSubCommand(raw);
-                if(sub != null ){
+                if (sub != null) {
                     lastCmd = sub;
                 }
                 continue;
@@ -66,9 +67,9 @@ public class ParameterChain<S extends Source> {
             String inputRaw = validateExtractedFlagsAndGetInputRaw(raw, nextRaw, extracted);
 
             //all flags here must be resolved inside the context
-            for(var flagParam : extracted) {
+            for (var flagParam : extracted) {
 
-                if(!lastCmd.getMainUsage().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
+                if (!lastCmd.getMainUsage().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
                     throw new FlagOutsideCommandScopeException(lastCmd, raw);
                 }
                 FlagData<S> extractedFlagData = flagParam.flagData();
@@ -85,7 +86,7 @@ public class ParameterChain<S extends Source> {
 
         }
 
-        for(FlagParameter<S> registered : usage.getFlagExtractor().getRegisteredFlags()) {
+        for (FlagParameter<S> registered : usage.getFlagExtractor().getRegisteredFlags()) {
             if (context.hasResolvedFlag(registered.flagData())) {
                 continue;
             }
@@ -94,7 +95,8 @@ public class ParameterChain<S extends Source> {
 
     }
 
-    private String validateExtractedFlagsAndGetInputRaw(String currentRaw, @Nullable String nextRaw, Set<FlagParameter<S>> extracted) throws CommandException{
+    private String validateExtractedFlagsAndGetInputRaw(String currentRaw, @Nullable String nextRaw, Set<FlagParameter<S>> extracted)
+            throws CommandException {
         long numberOfSwitches = extracted.stream().filter(FlagParameter::isSwitch).count();
         long numberOfTrueFlags = extracted.size() - numberOfSwitches;
 
@@ -109,7 +111,7 @@ public class ParameterChain<S extends Source> {
         boolean areAllSwitches = extracted.size() == numberOfSwitches;
 
         String inputRaw = areAllSwitches ? currentRaw : nextRaw;
-        if(!areAllSwitches && inputRaw == null) {
+        if (!areAllSwitches && inputRaw == null) {
             throw new MissingFlagInputException(extracted.stream().map(FlagParameter::name).collect(Collectors.toSet()), currentRaw);
         }
         return inputRaw;

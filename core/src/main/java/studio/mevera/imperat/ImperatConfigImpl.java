@@ -73,44 +73,34 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
-    
-    private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
-    
-    private @NotNull SuggestionResolver<S> defaultSuggestionResolver =
-            (context, input) ->
-            Collections.emptyList();
-
-    private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
-    private @NotNull ContextFactory<S> contextFactory;
-    private @NotNull UsageVerifier<S> verifier;
 
     private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
-
     private final ContextResolverRegistry<S> contextResolverRegistry;
     private final ParamTypeRegistry<S> paramTypeRegistry;
     private final SuggestionResolverRegistry<S> suggestionResolverRegistry;
     private final PlaceholderRegistry<S> placeholderRegistry;
     private final SourceResolverRegistry<S> sourceResolverRegistry;
     private final ReturnResolverRegistry<S> returnResolverRegistry;
-
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> handlers = new HashMap<>();
-
+    private final Map<Class<?>, AnnotationReplacer<?>> annotationReplacerMap = new HashMap<>();
+    private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
+    private @NotNull SuggestionResolver<S> defaultSuggestionResolver =
+            (context, input) ->
+                    Collections.emptyList();
+    private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
+    private @NotNull ContextFactory<S> contextFactory;
+    private @NotNull UsageVerifier<S> verifier;
     private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> globalPreProcessors;
     private @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> globalPostProcessors;
-
     private boolean overlapOptionalParameterSuggestions = false;
     private boolean handleExecutionConsecutiveOptionalArgumentsSkip = false;
-    
     private String commandPrefix = "/";
-
-    private final Map<Class<?>, AnnotationReplacer<?>> annotationReplacerMap = new HashMap<>();
-    
     private CommandUsage.Builder<S> globalDefaultUsage = CommandUsage.builder();
-    
+
     private AttachmentMode defaultAttachmentMode = AttachmentMode.UNSET;
-    
+
     private boolean isAPA;
-    
+
     private PermissionLoader<S> permissionLoader = PermissionLoader.defaultLoader();
     private NodePermissionAssigner<S> permissionAssigner = NodePermissionAssigner.defaultAssigner();
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
@@ -131,11 +121,11 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         verifier = UsageVerifier.typeTolerantVerifier();
 
         globalPreProcessors = CommandProcessingChain.<S>preProcessors()
-            .then(DefaultProcessors.preUsageCooldown())
-            .build();
+                                      .then(DefaultProcessors.preUsageCooldown())
+                                      .build();
 
         globalPostProcessors = CommandProcessingChain.<S>postProcessors()
-            .build();
+                                       .build();
 
         // register some defaults:
         this.regDefThrowableResolvers();
@@ -152,29 +142,29 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
         this.setThrowableResolver(InvalidSourceException.class, (exception, context) -> {
             throw new UnsupportedOperationException("Couldn't find any source resolver for valueType `"
-                + exception.getTargetType().getTypeName() + "'");
+                                                            + exception.getTargetType().getTypeName() + "'");
         });
 
-        this.setThrowableResolver(UnknownFlagException.class,(ex, context)-> {
+        this.setThrowableResolver(UnknownFlagException.class, (ex, context) -> {
             context.source().error("Unknown flag '" + ex.getInput() + "'");
         });
 
-        this.setThrowableResolver(MissingFlagInputException.class,(ex, context)-> {
+        this.setThrowableResolver(MissingFlagInputException.class, (ex, context) -> {
             context.source().error("Please enter the value for flag(s) '" + String.join(",", ex.getFlagData()) + "'");
         });
 
-        this.setThrowableResolver(FlagOutsideCommandScopeException.class, (ex, context)-> {
+        this.setThrowableResolver(FlagOutsideCommandScopeException.class, (ex, context) -> {
 
             context.source().error("Flag(s) '" + ex.getFlagInput() + "' were used (in " + ex.getWrongCmd().name() + "'s scope) outside of their "
                                            + "command's scope");
         });
 
-        this.setThrowableResolver(ValueOutOfConstraintException.class, (ex, context)-> {
-            context.source().error("Input '" + ex.getInput() + "' is not one of: [" + String.join(",",  ex.getAllowedValues()) + "]");
+        this.setThrowableResolver(ValueOutOfConstraintException.class, (ex, context) -> {
+            context.source().error("Input '" + ex.getInput() + "' is not one of: [" + String.join(",", ex.getAllowedValues()) + "]");
         });
 
-        this.setThrowableResolver(WordOutOfRestrictionsException.class, (ex, context)-> {
-            context.source().error("Word '" + ex.getInput() + "' is not within the given restrictions=" + String.join(",",ex.getRestrictions()));
+        this.setThrowableResolver(WordOutOfRestrictionsException.class, (ex, context) -> {
+            context.source().error("Word '" + ex.getInput() + "' is not within the given restrictions=" + String.join(",", ex.getRestrictions()));
         });
 
         this.setThrowableResolver(UnknownSubCommandException.class, (exception, context) -> {
@@ -184,9 +174,9 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         this.setThrowableResolver(InvalidMapEntryFormatException.class, (exception, context) -> {
             InvalidMapEntryFormatException.Reason reason = exception.getReason();
             String extraMsg = "";
-            if(reason == InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR) {
+            if (reason == InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR) {
                 extraMsg = "entry doesn't contain '" + exception.getRequiredSeparator() + "'";
-            }else if(reason == InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS) {
+            } else if (reason == InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS) {
                 extraMsg = "entry is not made of 2 elements";
             }
             context.source().error("Invalid map entry '" + exception.getInput() + "'" + (!extraMsg.isEmpty() ? ", " + extraMsg : ""));
@@ -207,85 +197,88 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         this.setThrowableResolver(NumberOutOfRangeException.class, ((exception, context) -> {
             NumericRange range = exception.getRange();
             final StringBuilder builder = new StringBuilder();
-            if (range.getMin() != Double.MIN_VALUE && range.getMax() != Double.MAX_VALUE)
+            if (range.getMin() != Double.MIN_VALUE && range.getMax() != Double.MAX_VALUE) {
                 builder.append("within ").append(range.getMin()).append('-').append(range.getMax());
-            else if (range.getMin() != Double.MIN_VALUE)
+            } else if (range.getMin() != Double.MIN_VALUE) {
                 builder.append("at least '").append(range.getMin()).append("'");
-            else if (range.getMax() != Double.MAX_VALUE)
+            } else if (range.getMax() != Double.MAX_VALUE) {
                 builder.append("at most '").append(range.getMax()).append("'");
-            else
+            } else {
                 builder.append("(Open range)");
+            }
 
             String rangeFormatted = builder.toString();
-            context.source().error("Value '" + exception.getValue() + "' entered for parameter '" + exception.getParameter().format() + "' must be " + rangeFormatted);
+            context.source().error("Value '" + exception.getValue() + "' entered for parameter '" + exception.getParameter().format() + "' must be "
+                                           + rangeFormatted);
         }));
 
         this.setThrowableResolver(
-            SourceException.class,
-            (exception, context) -> {
-                final String msg = exception.getMessage();
-                switch (exception.getType()) {
-                    case SEVERE -> context.source().error(msg);
-                    case WARN -> context.source().warn(msg);
-                    case REPLY -> context.source().reply(msg);
+                SourceException.class,
+                (exception, context) -> {
+                    final String msg = exception.getMessage();
+                    switch (exception.getType()) {
+                        case SEVERE -> context.source().error(msg);
+                        case WARN -> context.source().warn(msg);
+                        case REPLY -> context.source().reply(msg);
+                    }
                 }
-            }
         );
 
         this.setThrowableResolver(
-            InvalidUUIDException.class, (exception, context) ->
-                context.source().error("Invalid uuid-format '" + exception.getInput() + "'")
+                InvalidUUIDException.class, (exception, context) ->
+                                                    context.source().error("Invalid uuid-format '" + exception.getInput() + "'")
         );
 
         this.setThrowableResolver(
-            CooldownException.class,
-            (exception, context) -> {
-                context.source().error(
-                    "Please wait %d second(s) to execute this command again!".formatted(exception.getRemainingDuration().toSeconds())
-                );
-            }
-        );
-        this.setThrowableResolver(
-            PermissionDeniedException.class,
-            (exception, context) -> context.source().error("You don't have permission to use this command!")
-        );
-        this.setThrowableResolver(
-            InvalidSyntaxException.class,
-            (exception, context) -> {
-                S source = context.source();
-                //if usage is null, find the closest usage
-                source.error("Invalid command usage '/" + context.command().name() + " " + context.arguments().join(" ") + "'");
-                
-                var closestUsage = exception.getExecutionResult().getClosestUsage();
-                if(closestUsage != null) {
-                    source.error("Closest Command Usage: " + (context.imperatConfig().commandPrefix() + CommandUsage.format(context.label(), closestUsage)) );
+                CooldownException.class,
+                (exception, context) -> {
+                    context.source().error(
+                            "Please wait %d second(s) to execute this command again!".formatted(exception.getRemainingDuration().toSeconds())
+                    );
                 }
-            }
-        );
-        
-        this.setThrowableResolver(
-            NoHelpException.class,
-            (exception, context) -> {
-                Command<S> cmdUsed;
-                if (context instanceof ExecutionContext<S> resolvedContext) {
-                    cmdUsed = resolvedContext.getLastUsedCommand();
-                } else {
-                    cmdUsed = context.command();
-                }
-                assert cmdUsed != null;
-                context.source().error("No Help available for '<command>'".replace("<command>", cmdUsed.name()));
-            }
         );
         this.setThrowableResolver(
-            NoHelpPageException.class,
-            (exception, context) -> {
-                if (!(context instanceof ExecutionContext<S> resolvedContext) || resolvedContext.getDetectedUsage() == null) {
-                    throw new IllegalCallerException("Called NoHelpPageCaption in wrong the wrong sequence/part of the code");
-                }
+                PermissionDeniedException.class,
+                (exception, context) -> context.source().error("You don't have permission to use this command!")
+        );
+        this.setThrowableResolver(
+                InvalidSyntaxException.class,
+                (exception, context) -> {
+                    S source = context.source();
+                    //if usage is null, find the closest usage
+                    source.error("Invalid command usage '/" + context.command().name() + " " + context.arguments().join(" ") + "'");
 
-                int page = resolvedContext.getArgumentOr("page", 1);
-                context.source().error("Page '<page>' doesn't exist!".replace("<page>", String.valueOf(page)));
-            }
+                    var closestUsage = exception.getExecutionResult().getClosestUsage();
+                    if (closestUsage != null) {
+                        source.error("Closest Command Usage: " + (context.imperatConfig().commandPrefix() + CommandUsage.format(context.label(),
+                                closestUsage)));
+                    }
+                }
+        );
+
+        this.setThrowableResolver(
+                NoHelpException.class,
+                (exception, context) -> {
+                    Command<S> cmdUsed;
+                    if (context instanceof ExecutionContext<S> resolvedContext) {
+                        cmdUsed = resolvedContext.getLastUsedCommand();
+                    } else {
+                        cmdUsed = context.command();
+                    }
+                    assert cmdUsed != null;
+                    context.source().error("No Help available for '<command>'".replace("<command>", cmdUsed.name()));
+                }
+        );
+        this.setThrowableResolver(
+                NoHelpPageException.class,
+                (exception, context) -> {
+                    if (!(context instanceof ExecutionContext<S> resolvedContext) || resolvedContext.getDetectedUsage() == null) {
+                        throw new IllegalCallerException("Called NoHelpPageCaption in wrong the wrong sequence/part of the code");
+                    }
+
+                    int page = resolvedContext.getArgumentOr("page", 1);
+                    context.source().error("Page '<page>' doesn't exist!".replace("<page>", String.valueOf(page)));
+                }
         );
     }
 
@@ -456,7 +449,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public <T> void registerParamType(Type type, @NotNull ParameterType<S, T> resolver) {
         Preconditions.notNull(type, "type");
         Preconditions.notNull(resolver, "resolver");
-        paramTypeRegistry.registerResolver(type, ()-> resolver);
+        paramTypeRegistry.registerResolver(type, () -> resolver);
 
         Class<T> rawType = (Class<T>) TypeWrap.of(type).getRawType();
         paramTypeRegistry.registerArrayInitializer(rawType, (length) -> (Object[]) Array.newInstance(rawType, length));
@@ -527,53 +520,53 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public @Nullable ParameterType<S, ?> getParameterType(Type resolvingValueType) {
         return paramTypeRegistry.getResolver(resolvingValueType).orElse(null);
     }
-    
+
     @Override
     public <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer) {
         annotationReplacerMap.put(type, replacer);
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public <A extends Annotation> void applyAnnotationReplacers(Imperat<S> imperat) {
-        this.annotationReplacerMap.forEach((type, replacer)-> {
-            Class<A> annType = (Class<A>)type;
-            AnnotationReplacer<A> annReplacer = (AnnotationReplacer<A>)replacer;
+        this.annotationReplacerMap.forEach((type, replacer) -> {
+            Class<A> annType = (Class<A>) type;
+            AnnotationReplacer<A> annReplacer = (AnnotationReplacer<A>) replacer;
             imperat.registerAnnotationReplacer(annType, annReplacer);
         });
     }
-    
-    @Override
-    public void setPermissionLoader(PermissionLoader<S> assigner) {
-        this.permissionLoader = assigner;
-    }
-    
+
     @Override
     public @NotNull PermissionLoader<S> getPermissionLoader() {
         return permissionLoader;
     }
-    
+
+    @Override
+    public void setPermissionLoader(PermissionLoader<S> assigner) {
+        this.permissionLoader = assigner;
+    }
+
     @Override
     public void setNodePermissionAssigner(NodePermissionAssigner<S> assigner) {
         this.permissionAssigner = assigner;
     }
-    
+
     @Override
     public @NotNull NodePermissionAssigner<S> getPermissionAssigner() {
         return permissionAssigner;
     }
-    
+
     @Override
     public boolean isAutoPermissionAssignMode() {
         return isAPA;
     }
-    
+
     @Override
     @ApiStatus.Experimental
     public void setAutoPermissionAssignMode(boolean toggle) {
         this.isAPA = toggle;
     }
-    
+
     /**
      * Determines whether multiple optional parameters can be suggested simultaneously
      * during tab completion at the same command depth level.
@@ -601,7 +594,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public boolean isOptionalParameterSuggestionOverlappingEnabled() {
         return overlapOptionalParameterSuggestions;
     }
-    
+
     /**
      * Sets whether multiple optional parameters can be suggested simultaneously
      * during tab completion at the same command depth level.
@@ -630,17 +623,17 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public void setOptionalParameterSuggestionOverlap(boolean enabled) {
         this.overlapOptionalParameterSuggestions = enabled;
     }
-    
+
     @Override
     public boolean handleExecutionMiddleOptionalSkipping() {
         return handleExecutionConsecutiveOptionalArgumentsSkip;
     }
-    
+
     @Override
     public void setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean toggle) {
         this.handleExecutionConsecutiveOptionalArgumentsSkip = toggle;
     }
-    
+
 
     /**
      * Fetches the suggestion provider/resolver for a specific valueType of
@@ -652,8 +645,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @Override
     public @Nullable SuggestionResolver<S> getSuggestionResolverByType(Type type) {
         return paramTypeRegistry.getResolver(type)
-            .map(ParameterType::getSuggestionResolver)
-            .orElse(null);
+                       .map(ParameterType::getSuggestionResolver)
+                       .orElse(null);
     }
 
 
@@ -745,16 +738,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     /**
-     * Sets the usage verifier to a new instance
-     *
-     * @param usageVerifier the usage verifier to set
-     */
-    @Override
-    public void setUsageVerifier(UsageVerifier<S> usageVerifier) {
-        this.verifier = usageVerifier;
-    }
-
-    /**
      * Registers the dependency to the type
      *
      * @param type     the type for the dependency
@@ -765,7 +748,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         this.dependencyResolverRegistry.setData(type, resolver);
     }
 
-
     /**
      * Resolves dependency of certain type
      *
@@ -775,7 +757,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @SuppressWarnings("unchecked")
     public <T> @Nullable T resolveDependency(Type type) {
         return (T) dependencyResolverRegistry.getData(type)
-            .map(DependencySupplier::get).orElse(null);
+                           .map(DependencySupplier::get).orElse(null);
     }
 
     /**
@@ -785,7 +767,17 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public UsageVerifier<S> getUsageVerifier() {
         return verifier;
     }
-    
+
+    /**
+     * Sets the usage verifier to a new instance
+     *
+     * @param usageVerifier the usage verifier to set
+     */
+    @Override
+    public void setUsageVerifier(UsageVerifier<S> usageVerifier) {
+        this.verifier = usageVerifier;
+    }
+
     @Override
     @Nullable
     @SuppressWarnings("unchecked")
@@ -805,42 +797,42 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public <T extends Throwable> void setThrowableResolver(Class<T> exception, ThrowableResolver<T, S> handler) {
         this.handlers.put(exception, handler);
     }
-    
+
     @Override
     public CommandUsage.@NotNull Builder<S> getGlobalDefaultUsage() {
         return globalDefaultUsage;
     }
-    
+
     @Override
     public void setGlobalDefaultUsage(CommandUsage.@NotNull Builder<S> globalDefaultUsage) {
         this.globalDefaultUsage = globalDefaultUsage;
     }
-    
+
     @Override
     public @NotNull AttachmentMode getDefaultAttachmentMode() {
         return defaultAttachmentMode;
     }
-    
+
     @Override
     public void setDefaultAttachmentMode(AttachmentMode attachmentMode) {
         this.defaultAttachmentMode = attachmentMode;
     }
-    
+
     @Override
     public @NotNull HelpCoordinator<S> getHelpCoordinator() {
         return helpCoordinator;
     }
-    
+
     @Override
     public void setHelpCoordinator(@NotNull HelpCoordinator<S> coordinator) {
         this.helpCoordinator = coordinator;
     }
-    
+
     @Override
     public InstanceFactory<S> getInstanceFactory() {
         return instanceFactory;
     }
-    
+
     @Override
     public void setInstanceFactory(InstanceFactory<S> factory) {
         this.instanceFactory = factory;
@@ -869,7 +861,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     @Override
     public <E extends Throwable> boolean handleExecutionThrowable(@NotNull E throwable, Context<S> context, Class<?> owning, String methodName) {
-        
+
         //First handling the error using the Local(Command's) Error Handler.
         //if its during execution, then let's use the LAST entered Command (root or sub)
         //Since subcommands also can have their own error handlers (aka ThrowableResolver)
@@ -881,10 +873,10 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             }
             cmd = cmd.parent();
         }
-        
+
         //Trying to handle the error from the Central Throwable Handler.
         var res = ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
-        if(!res) {
+        if (!res) {
             throwablePrinter.print(throwable);
         }
         return true;

@@ -19,18 +19,18 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
     private final SuggestionResolver<S> inputValueSuggestionResolver;
 
     FlagCommandParameter(
-        FlagData<S> flag,
-        String permission,
-        Description description,
-        OptionalValueSupplier inputValueSupplier,
-        SuggestionResolver<S> inputValueSuggestionResolver
+            FlagData<S> flag,
+            String permission,
+            Description description,
+            OptionalValueSupplier inputValueSupplier,
+            SuggestionResolver<S> inputValueSuggestionResolver
     ) {
         super(
-            flag.name(), ParameterTypes.flag(flag),
-            permission, description,
-            true, true, false,
-            OptionalValueSupplier.empty(),
-            null
+                flag.name(), ParameterTypes.flag(flag),
+                permission, description,
+                true, true, false,
+                OptionalValueSupplier.empty(),
+                null
         );
         this.flag = flag;
         this.inputValueSupplier = inputValueSupplier;
@@ -39,7 +39,7 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
 
     @Override
     public String format() {
-        if(!this.format.equals(this.name)) {
+        if (!this.format.equals(this.name)) {
             return super.format();
         }
         return flag.format();
@@ -61,12 +61,14 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
     public @NotNull OptionalValueSupplier getDefaultValueSupplier() {
         return inputValueSupplier;
     }
+
     @Override
     public @Nullable SuggestionResolver<S> inputSuggestionResolver() {
-        if (isSwitch())
+        if (isSwitch()) {
             return null;
-        else
+        } else {
             return inputValueSuggestionResolver;
+        }
     }
 
     /**
@@ -79,11 +81,11 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
     @Override
     public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
         FlagCommandParameter<S> copy = new FlagCommandParameter<>(
-            this.flag,
-            this.permission,
-            this.description,
-            this.inputValueSupplier,
-            this.inputValueSuggestionResolver
+                this.flag,
+                this.permission,
+                this.description,
+                this.inputValueSupplier,
+                this.inputValueSuggestionResolver
         );
         copy.position(newPosition);
         copy.setFormat(this.format);

@@ -24,15 +24,15 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 
 public final class AnnotationHelper {
-    
+
     public static <S extends Source> Object[] loadParameterInstances(
-        Imperat<S> dispatcher,
-        List<CommandParameter<S>> fullParameters,
-        S source,
-        ExecutionContext<S> context,
-        MethodElement method
+            Imperat<S> dispatcher,
+            List<CommandParameter<S>> fullParameters,
+            S source,
+            ExecutionContext<S> context,
+            MethodElement method
     ) throws CommandException {
-        
+
         Object[] paramsInstances = new Object[method.getParameters().size()];
 
         ParameterElement firstParam = method.getParameterAt(0);
@@ -54,17 +54,18 @@ public final class AnnotationHelper {
             ParameterElement actualParameter = method.getParameterAt(i);
             assert actualParameter != null;
 
-            if(actualParameter.isContextResolved()) {
+            if (actualParameter.isContextResolved()) {
                 var contextResolver = dispatcher.config().getMethodParamContextResolver(actualParameter);
 
                 if (contextResolver != null) {
                     paramsInstances[i] = contextResolver.resolve(context, actualParameter);
                     p--;
                     continue;
-                }else {
+                } else {
 
                     throw new IllegalStateException(
-                            "In class '%s', In method '%s', The parameter '%s' is set to be context resolved while not having a context resolver for its type '%s'"
+                            ("In class '%s', In method '%s', The parameter '%s' is set to be context resolved while not having a context resolver "
+                                     + "for its type '%s'")
                                     .formatted(method.getParent().getName(), method.getName(), actualParameter.getName(),
                                             actualParameter.getType().getTypeName())
                     );
@@ -86,9 +87,9 @@ public final class AnnotationHelper {
 
             if (parameter.isFlag()) {
                 var flagValue = context.getFlagValue(name);
-                if(flagValue == null && parameter.asFlagParameter().isSwitch()) {
+                if (flagValue == null && parameter.asFlagParameter().isSwitch()) {
                     paramsInstances[i] = false;
-                }else {
+                } else {
                     paramsInstances[i] = flagValue;
                 }
             } else {
@@ -101,44 +102,47 @@ public final class AnnotationHelper {
     }
 
     private static <S extends Source> @Nullable CommandParameter<S> getUsageParam(List<? extends CommandParameter<S>> params, int index) {
-        if (index < 0 || index >= params.size()) return null;
+        if (index < 0 || index >= params.size()) {
+            return null;
+        }
         return params.get(index);
     }
 
     public static <S extends Source> @NotNull String getParamName(
-        ImperatConfig<S> imperat,
-        ParameterElement parameter,
-        @Nullable Named named,
-        @Nullable Flag flag,
-        @Nullable Switch switchAnnotation
+            ImperatConfig<S> imperat,
+            ParameterElement parameter,
+            @Nullable Named named,
+            @Nullable Flag flag,
+            @Nullable Switch switchAnnotation
     ) {
         String name;
 
-        if (named != null)
+        if (named != null) {
             name = named.value();
-        else if (flag != null)
+        } else if (flag != null) {
             name = flag.value()[0];
-        else if (switchAnnotation != null)
+        } else if (switchAnnotation != null) {
             name = switchAnnotation.value()[0];
-        else
+        } else {
             name = parameter.getElement().getName();
+        }
 
         return imperat.replacePlaceholders(name);
     }
 
     public static <S extends Source> @NotNull String getParamName(ImperatConfig<S> imperat, ParameterElement parameter) {
         return getParamName(
-            imperat,
-            parameter,
-            parameter.getAnnotation(Named.class),
-            parameter.getAnnotation(Flag.class),
-            parameter.getAnnotation(Switch.class));
+                imperat,
+                parameter,
+                parameter.getAnnotation(Named.class),
+                parameter.getAnnotation(Flag.class),
+                parameter.getAnnotation(Switch.class));
     }
 
     public static @NotNull OptionalValueSupplier getOptionalValueSupplier(
-        Class<? extends OptionalValueSupplier> supplierClass
+            Class<? extends OptionalValueSupplier> supplierClass
     ) throws NoSuchMethodException, InstantiationException,
-        IllegalAccessException, InvocationTargetException {
+                     IllegalAccessException, InvocationTargetException {
 
         var emptyConstructor = supplierClass.getDeclaredConstructor();
         emptyConstructor.setAccessible(true);
@@ -147,10 +151,10 @@ public final class AnnotationHelper {
     }
 
     public static @NotNull OptionalValueSupplier deduceOptionalValueSupplier(
-        ParameterElement parameter,
-        Default defaultAnnotation,
-        DefaultProvider provider,
-        OptionalValueSupplier fallback
+            ParameterElement parameter,
+            Default defaultAnnotation,
+            DefaultProvider provider,
+            OptionalValueSupplier fallback
     ) throws CommandException {
 
         if (defaultAnnotation != null) {
@@ -163,7 +167,7 @@ public final class AnnotationHelper {
             } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
                      IllegalAccessException e) {
                 throw new IllegalAccessError("Optional value suppler class '" +
-                    supplierClass.getName() + "' doesn't have an empty accessible constructor !");
+                                                     supplierClass.getName() + "' doesn't have an empty accessible constructor !");
             }
         }
         return fallback;
@@ -175,11 +179,12 @@ public final class AnnotationHelper {
 
 
     public static boolean isAbnormalClass(ParseElement<?> parseElement) {
-        if(parseElement instanceof ClassElement classElement) {
+        if (parseElement instanceof ClassElement classElement) {
             return isAbnormalClass(classElement.getElement());
         }
         return false;
     }
+
     public static boolean isAbnormalClass(Class<?> element) {
         return element.isInterface() || element.isEnum() || Modifier.isAbstract(element.getModifiers());
     }

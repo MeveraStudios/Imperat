@@ -9,15 +9,16 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 
 final class SuggestionContextImpl<S extends Source> extends ContextImpl<S> implements SuggestionContext<S> {
+
     private final CompletionArg completionArg;
 
     SuggestionContextImpl(
-        Imperat<S> dispatcher,
-        Command<S> command,
-        S source,
-        String label,
-        ArgumentInput args,
-        CompletionArg completionArg
+            Imperat<S> dispatcher,
+            Command<S> command,
+            S source,
+            String label,
+            ArgumentInput args,
+            CompletionArg completionArg
     ) {
         super(dispatcher, command, source, label, args);
         this.completionArg = completionArg;

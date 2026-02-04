@@ -53,7 +53,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
  * @see Context
  */
 public non-sealed interface BaseThrowableHandler<S extends Source> extends ThrowableHandler<S> {
-    
+
     /**
      * Handles exceptions that occur during command execution by traversing the
      * exception cause chain and applying appropriate resolution strategies.
@@ -118,22 +118,22 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
             Class<?> owning,
             String methodName
     ) {
-        
+
         Throwable current = throwable;
-        
+
         while (current != null) {
             if (current instanceof SelfHandledException selfHandledException) {
                 selfHandledException.handle(context.imperatConfig(), context);
                 return true;
             }
-            
+
             ThrowableResolver<? super Throwable, S> handler = (ThrowableResolver<? super Throwable, S>) this.getThrowableResolver(current.getClass());
             if (handler != null) {
                 ImperatDebugger.debug("Found handler for exception '%s'", current.getClass().getName());
                 handler.resolve(current, context);
                 return true;
             }
-            
+
             current = current.getCause();
         }
         return false;

@@ -37,8 +37,8 @@ public interface ContextResolver<S extends Source, T> {
      */
     @Nullable
     T resolve(
-        @NotNull ExecutionContext<S> context,
-        @Nullable ParameterElement parameter
+            @NotNull ExecutionContext<S> context,
+            @Nullable ParameterElement parameter
     ) throws CommandException;
 
 }

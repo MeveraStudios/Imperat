@@ -16,12 +16,12 @@ import studio.mevera.imperat.tests.TestSource;
 @Permission("command.ban")
 @Description("Main command for banning players")
 public final class Ban2Command {
-    
+
     @Usage
     public void showUsage(TestSource source) {
         source.reply("/ban <player> [-silent] [duration] [reason...]");
     }
-    
+
     @Usage
     public void ban(
             TestSource source,

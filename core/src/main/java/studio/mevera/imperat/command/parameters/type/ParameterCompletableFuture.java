@@ -17,30 +17,31 @@ import java.util.concurrent.CompletableFuture;
 public final class ParameterCompletableFuture<S extends Source, T> extends BaseParameterType<S, CompletableFuture<T>> {
 
     private final ParameterType<S, T> typeResolver;
+
     public ParameterCompletableFuture(TypeWrap<CompletableFuture<T>> typeWrap, ParameterType<S, T> typeResolver) {
         super(typeWrap.getType());
         this.typeResolver = typeResolver;
     }
 
     @Override
-    public @NotNull CompletableFuture< @Nullable T> resolve(
+    public @NotNull CompletableFuture<@Nullable T> resolve(
             @NotNull ExecutionContext<S> context,
             @NotNull CommandInputStream<S> inputStream,
             @NotNull String input) throws CommandException {
 
-        if(typeResolver == null) {
+        if (typeResolver == null) {
             return CompletableFuture.failedFuture(
                     new IllegalStateException("No type parameter for type '" + type.getTypeName() + "'")
             );
         }
         CommandInputStream<S> copyStream = inputStream.copy();
         //CommandInputStream<S> singleStream = CommandInputStream.ofSingleString(inputStream.currentParameter().orElseThrow(), input);
-        return CompletableFuture.supplyAsync(()-> {
+        return CompletableFuture.supplyAsync(() -> {
             try {
                 return typeResolver.resolve(context, copyStream, input);
             } catch (CommandException e) {
                 context.imperatConfig()
-                        .handleExecutionThrowable(e,context, ParameterCompletableFuture.class, "resolve");
+                        .handleExecutionThrowable(e, context, ParameterCompletableFuture.class, "resolve");
                 return null;
             }
         });
@@ -60,10 +61,10 @@ public final class ParameterCompletableFuture<S extends Source, T> extends BaseP
     public OptionalValueSupplier supplyDefaultValue() {
         return typeResolver.supplyDefaultValue();
     }
-    
+
     @Override
     public boolean isGreedy(CommandParameter<S> parameter) {
         return typeResolver.isGreedy(parameter);
     }
-    
+
 }

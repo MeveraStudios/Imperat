@@ -37,10 +37,11 @@ public final class BanCommand {
         System.out.println("SILENT= " + silent);
 
 
-        if (!silent)
+        if (!silent) {
             source.reply("NOT SILENT= " + msg);
-        else
+        } else {
             source.reply("SILENT= " + msg);
+        }
     }
 
     @Command("printnum")

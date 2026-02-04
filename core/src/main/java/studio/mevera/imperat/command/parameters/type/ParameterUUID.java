@@ -12,6 +12,7 @@ import studio.mevera.imperat.exception.InvalidUUIDException;
 import java.util.UUID;
 
 public final class ParameterUUID<S extends Source> extends BaseParameterType<S, UUID> {
+
     public ParameterUUID() {
         super();
     }

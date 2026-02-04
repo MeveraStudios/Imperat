@@ -6,7 +6,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownDependencyException;
 
 final class DefaultInstanceFactory<S extends Source> implements InstanceFactory<S> {
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public <T> @NotNull T createInstance(ImperatConfig<S> config, Class<T> cls) throws UnknownDependencyException {
@@ -14,7 +14,7 @@ final class DefaultInstanceFactory<S extends Source> implements InstanceFactory<
         if (dependencyResolved != null) {
             return (T) dependencyResolved;
         }
-        
+
         //try instatiating it from an empty constructor
         try {
             return cls.getDeclaredConstructor().newInstance();
@@ -22,5 +22,5 @@ final class DefaultInstanceFactory<S extends Source> implements InstanceFactory<
             throw new UnknownDependencyException("Failed to create instance of " + cls.getName(), e);
         }
     }
-    
+
 }

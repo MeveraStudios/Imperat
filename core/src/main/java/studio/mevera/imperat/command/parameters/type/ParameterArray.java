@@ -27,10 +27,11 @@ public abstract class ParameterArray<S extends Source, E> extends BaseParameterT
             CommandException {
 
         String currentRaw = stream.currentRaw().orElse(null);
-        if(currentRaw == null)
+        if (currentRaw == null) {
             return null;
+        }
 
-        int arrayLength = stream.rawsLength()-stream.currentRawPosition();
+        int arrayLength = stream.rawsLength() - stream.currentRawPosition();
 
         E[] array = (E[]) initializer.apply(arrayLength);
 
@@ -38,8 +39,9 @@ public abstract class ParameterArray<S extends Source, E> extends BaseParameterT
         while (stream.isCurrentRawInputAvailable()) {
 
             String raw = stream.currentRaw().orElse(null);
-            if(raw == null)
+            if (raw == null) {
                 break;
+            }
 
             array[i] = componentType.resolve(context, CommandInputStream.subStream(stream, raw), raw);
 
@@ -49,7 +51,7 @@ public abstract class ParameterArray<S extends Source, E> extends BaseParameterT
 
         return array;
     }
-    
+
     @Override
     public boolean isGreedy(CommandParameter<S> parameter) {
         return true;

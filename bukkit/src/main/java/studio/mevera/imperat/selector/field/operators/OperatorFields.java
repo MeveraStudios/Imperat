@@ -9,7 +9,7 @@ interface OperatorFields {
     OperatorField<Integer> LIMIT = new LimitOperatorField("limit");
 
     Set<OperatorField<?>> ALL_OPERATORS = Set.of(
-        SORT,
-        LIMIT
+            SORT,
+            LIMIT
     );
 }

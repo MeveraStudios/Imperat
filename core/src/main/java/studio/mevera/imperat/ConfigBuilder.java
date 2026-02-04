@@ -47,8 +47,8 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     protected ConfigBuilder() {
         config = new ImperatConfigImpl<>();
     }
-    
-    
+
+
     /**
      * Sets the command prefix for the command processing chain.
      *
@@ -87,7 +87,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.setPermissionResolver(permissionChecker);
         return (B) this;
     }
-    
+
     /**
      * Toggles the APA (Auto Permission Assign) mode,
      * When enabled, it will automatically compute, set permissions automatically for every {@link CommandParameter}
@@ -101,7 +101,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.setAutoPermissionAssignMode(modeToggle);
         return (B) this;
     }
-    
+
     /**
      * Sets the permission loader for automatic permission assignment.
      * <p>
@@ -138,13 +138,13 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     @ApiStatus.Experimental
     public B permissionLoader(PermissionLoader<S> permissionLoader) {
-        if(!config.isAutoPermissionAssignMode()) {
+        if (!config.isAutoPermissionAssignMode()) {
             throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
         }
         config.setPermissionLoader(permissionLoader);
         return (B) this;
     }
-    
+
     /**
      * Sets the permission assigner for automatic permission assignment.
      * <p>
@@ -186,13 +186,13 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     @ApiStatus.Experimental
     public B permissionAssigner(NodePermissionAssigner<S> permissionAssigner) {
-        if(!config.isAutoPermissionAssignMode()) {
+        if (!config.isAutoPermissionAssignMode()) {
             throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
         }
         config.setNodePermissionAssigner(permissionAssigner);
         return (B) this;
     }
-    
+
     /**
      * Sets the {@link HelpCoordinator} that coordinates all the core-components of the
      * new help API, to create a coordinator call {@link HelpCoordinator#create()}
@@ -226,7 +226,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.setUsageVerifier(usageVerifier);
         return (B) this;
     }
-    
+
     /**
      * Registers a {@link ReturnResolver}
      * @param type the type of value to return using the return resolver
@@ -234,11 +234,11 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return the current {@link ConfigBuilder} instance for fluent chaining
      */
     public B returnResolver(Type type, ReturnResolver<S, ?> returnResolver) {
-        if(!returnResolver.getType().equals(type)) {
+        if (!returnResolver.getType().equals(type)) {
             throw new IllegalArgumentException("The return resolver entered, has a to-return type that does not match the entered type.");
         }
         config.registerReturnResolver(type, returnResolver);
-        return(B)this;
+        return (B) this;
     }
 
     /**
@@ -253,7 +253,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.registerDependencyResolver(type, resolver);
         return (B) this;
     }
-    
+
     /**
      * Registers a custom annotation replacer for the specified annotation type.
      * This allows for dynamic transformation or substitution of annotations during
@@ -291,7 +291,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.registerAnnotationReplacer(annotationType, replacer);
         return (B) this;
     }
-    
+
     /**
      * Configures whether multiple optional parameters can be suggested simultaneously
      * during tab completion at the same command depth level. This is a builder method
@@ -327,7 +327,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.setOptionalParameterSuggestionOverlap(overlap);
         return (B) this;
     }
-    
+
     /**
      * Sets the default suggestion resolver to be used when no specific resolver
      * is defined for a parameter or command context. This resolver acts as a
@@ -546,7 +546,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.registerPlaceholder(placeholder);
         return (B) this;
     }
-    
+
     /**
      * Sets the global default usage builder that will be used for all commands
      * that do not have their own specific usage builder configured.
@@ -573,7 +573,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.setGlobalDefaultUsage(usage);
         return (B) this;
     }
-    
+
     /**
      * Refer to {@link ImperatConfig#setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean)}
      * @param toggle the toggle for this option
@@ -581,9 +581,9 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     public B handleMiddleOptionalArgSkipping(boolean toggle) {
         config.setHandleExecutionConsecutiveOptionalArgumentsSkip(toggle);
-        return (B)this;
+        return (B) this;
     }
-    
+
     /**
      * The default attachment mode.
      * @param attachmentMode the default attachment mode
@@ -593,7 +593,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.setDefaultAttachmentMode(attachmentMode);
         return (B) this;
     }
-    
+
     /**
      * Sets the instance factory used for creating instances of classes
      * during command processing and dependency resolution.
@@ -608,7 +608,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         config.setInstanceFactory(instanceFactory);
         return (B) this;
     }
-    
+
     /**
      * Builds and returns the final configuration object based on the provided settings and definitions
      * within the builder. This method finalizes the configuration and ensures all dependencies

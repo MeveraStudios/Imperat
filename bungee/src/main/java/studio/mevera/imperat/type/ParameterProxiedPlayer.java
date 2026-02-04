@@ -74,8 +74,8 @@ public final class ParameterProxiedPlayer extends BaseParameterType<BungeeSource
         @Override
         public List<String> autoComplete(SuggestionContext<BungeeSource> context, CommandParameter<BungeeSource> parameter) {
             return ProxyServer.getInstance().getPlayers().stream()
-                    .map(ProxiedPlayer::getName)
-                    .toList();
+                           .map(ProxiedPlayer::getName)
+                           .toList();
         }
     }
 

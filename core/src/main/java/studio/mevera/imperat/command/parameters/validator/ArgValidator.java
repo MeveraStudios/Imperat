@@ -1,10 +1,10 @@
 package studio.mevera.imperat.command.parameters.validator;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Argument;
+import studio.mevera.imperat.util.Priority;
 
 /**
  * Validates a parsed command argument.

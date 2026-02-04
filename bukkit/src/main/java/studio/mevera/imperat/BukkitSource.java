@@ -56,8 +56,8 @@ public class BukkitSource implements AdventureSource {
      * @param provider the Adventure provider for rich text support
      */
     protected BukkitSource(
-        final CommandSender sender,
-        final AdventureProvider<CommandSender> provider
+            final CommandSender sender,
+            final AdventureProvider<CommandSender> provider
     ) {
         this.sender = sender;
         this.provider = provider;
@@ -183,7 +183,9 @@ public class BukkitSource implements AdventureSource {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof BukkitSource source)) return false;
+        if (!(o instanceof BukkitSource source)) {
+            return false;
+        }
         return Objects.equals(sender, source.sender);
     }
 

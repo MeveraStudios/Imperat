@@ -21,7 +21,8 @@ public final class ParameterUser extends BaseParameterType<JdaSource, User> {
     }
 
     @Override
-    public @NotNull User resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws
+    public @NotNull User resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream,
+            @NotNull String input) throws
             CommandException {
         String userId = input.replaceAll("\\D", "");
         String lookupId = userId.isEmpty() ? input : userId;

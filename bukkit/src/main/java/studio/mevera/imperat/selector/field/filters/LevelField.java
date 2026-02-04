@@ -24,9 +24,12 @@ final class LevelField extends PredicateField<Range<Integer>> {
 
 
     @Override
-    protected @NotNull EntityCondition getCondition(Range<Integer> value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context) {
+    protected @NotNull EntityCondition getCondition(Range<Integer> value, CommandInputStream<BukkitSource> commandInputStream,
+            Context<BukkitSource> context) {
         return ((sender, entity) -> {
-            if (!(entity instanceof Player humanEntity)) return false;
+            if (!(entity instanceof Player humanEntity)) {
+                return false;
+            }
             return value.isInRange(humanEntity.getLevel());
         });
     }

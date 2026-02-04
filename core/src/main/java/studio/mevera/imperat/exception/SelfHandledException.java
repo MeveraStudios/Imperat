@@ -7,11 +7,11 @@ import studio.mevera.imperat.context.Source;
 
 @ApiStatus.AvailableSince("1.0.0")
 public abstract class SelfHandledException extends CommandException {
-    
+
     public SelfHandledException() {
         super();
     }
-    
+
     /**
      * Handles the exception
      *

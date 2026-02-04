@@ -24,7 +24,9 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
         int greedyCount = 0;
         for (int i = 0; i < usage.getMaxLength(); i++) {
             CommandParameter<S> param = usage.loadCombinedParameters().get(i);
-            if (param.isGreedy()) greedyCount++;
+            if (param.isGreedy()) {
+                greedyCount++;
+            }
         }
 
         if (greedyCount > 1) {
@@ -32,8 +34,9 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
         }
 
         CommandParameter<S> greedyParam = usage.getParameter(CommandParameter::isGreedy);
-        if (greedyParam == null)
+        if (greedyParam == null) {
             return true;
+        }
 
         //debug combined params
         return greedyParam.position() == usage.getMaxLength() - 1;
@@ -44,7 +47,7 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
         //check length
         boolean sameLength = firstUsage.getMinLength() == secondUsage.getMinLength();
         boolean hasSubCommands = firstUsage.hasParamType(Command.class)
-            && secondUsage.hasParamType(Command.class);
+                                         && secondUsage.hasParamType(Command.class);
 
         if (sameLength && hasSubCommands) {
             List<CommandParameter<S>> parameterList1 = new ArrayList<>(firstUsage.getParameters());
@@ -61,10 +64,12 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
             for (int i = 0; i < capacity; i++) {
                 CommandParameter<S> firstUsageParameter = firstUsage.getParameter(i);
                 CommandParameter<S> secondUsageParameter = secondUsage.getParameter(i);
-                if (firstUsageParameter == null || secondUsageParameter == null) break;
+                if (firstUsageParameter == null || secondUsageParameter == null) {
+                    break;
+                }
 
                 if ((firstUsageParameter.isCommand() && !secondUsageParameter.isCommand())
-                    || (!firstUsageParameter.isCommand() && secondUsageParameter.isCommand())) {
+                            || (!firstUsageParameter.isCommand() && secondUsageParameter.isCommand())) {
                     return false;
                 }
             }

@@ -8,7 +8,7 @@ import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Subcommand Tests")
 public class SubcommandTest extends BaseImperatTest {
-    
+
     @Test
     @DisplayName("Should execute simple subcommand")
     void testSimpleSubcommand() {
@@ -17,7 +17,7 @@ public class SubcommandTest extends BaseImperatTest {
         assertArgument(result, "kit", "test");
         assertArgument(result, "weight", 1); // Default value
     }
-    
+
     @Test
     @DisplayName("Should execute subcommand with optional parameters")
     void testSubcommandWithOptionalParameters() {
@@ -26,7 +26,7 @@ public class SubcommandTest extends BaseImperatTest {
         assertArgument(result, "kit", "test");
         assertArgument(result, "weight", 5);
     }
-    
+
     @Test
     @DisplayName("Should execute nested subcommands")
     void testNestedSubcommands() {
@@ -36,7 +36,7 @@ public class SubcommandTest extends BaseImperatTest {
         assertArgument(result, "otherText2", "world");
         assertArgument(result, "a", "value");
     }
-    
+
     @Test
     @DisplayName("Should execute deeply nested subcommands")
     void testDeeplyNestedSubcommands() {
@@ -48,7 +48,7 @@ public class SubcommandTest extends BaseImperatTest {
         assertArgument(result, "b", "b1");
         assertArgument(result, "c", "c1");
     }
-    
+
     @Test
     @DisplayName("Should handle sub4 command tree")
     void testSub4CommandTree() {
@@ -60,33 +60,33 @@ public class SubcommandTest extends BaseImperatTest {
         assertArgument(result, "b", "b1");
         assertArgument(result, "c", "c1");
     }
-    
+
     @Test
     @DisplayName("Should handle non-static inner class subcommands")
     void testNonStaticInnerClassSubcommands() {
         ExecutionResult<TestSource> result = execute("root i1");
         assertSuccess(result);
-        
+
         result = execute("root i1 i1.1");
         assertSuccess(result);
-        
+
         result = execute("root i1 i1.1 i1.1.1");
         assertSuccess(result);
-        
+
         result = execute("root i2");
         assertSuccess(result);
-        
+
         result = execute("root i2 i2.1");
         assertSuccess(result);
     }
-    
+
     @Test
     @DisplayName("Should handle help subcommand")
     void testHelpSubcommand() {
         ExecutionResult<TestSource> result = execute("test help");
         assertSuccess(result);
     }
-    
+
     @Test
     @DisplayName("Should handle embedded commands")
     void testEmbeddedCommands() {
@@ -94,7 +94,7 @@ public class SubcommandTest extends BaseImperatTest {
         assertSuccess(result);
         assertArgument(result, "value", "testvalue");
     }
-    
+
     @Test
     @DisplayName("Should send proper help message using help subcommand")
     void testGroupHelpSubCommand() {

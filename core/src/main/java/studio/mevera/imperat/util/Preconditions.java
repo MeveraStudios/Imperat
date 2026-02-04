@@ -14,23 +14,27 @@ public final class Preconditions {
     }
 
     public static <T> void notEmpty(T[] array, String err) {
-        if (array.length == 0)
+        if (array.length == 0) {
             throw new IllegalStateException(err);
+        }
     }
 
     public static <T> void notEmpty(Collection<T> collection, String err) {
-        if (collection.isEmpty())
+        if (collection.isEmpty()) {
             throw new IllegalStateException(err);
+        }
     }
 
     public static void notEmpty(String s, String err) {
-        if (s.isEmpty())
+        if (s.isEmpty()) {
             throw new IllegalStateException(err);
+        }
     }
 
     public static void checkArgument(boolean expr, String err) {
-        if (!expr)
+        if (!expr) {
             throw new IllegalArgumentException(err);
+        }
     }
 
     public static int betweenIn(int value, int min, int max) {
@@ -52,8 +56,10 @@ public final class Preconditions {
     }
 
     public static void checkCallableStatic(@Nullable Object instance, @NotNull Method method) {
-        if (instance == null && !isStatic(method.getModifiers()))
+        if (instance == null && !isStatic(method.getModifiers())) {
             throw new IllegalArgumentException("The given method is not static, and no instance was provided. "
-                + "Either mark the function as static with @JvmStatic, or pass the object/companion object value for the instance.");
+                                                       + "Either mark the function as static with @JvmStatic, or pass the object/companion object "
+                                                       + "value for the instance.");
+        }
     }
 }

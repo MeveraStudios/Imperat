@@ -5,6 +5,7 @@ import studio.mevera.imperat.exception.ParseException;
 public class InvalidEnumException extends ParseException {
 
     private final Class<? extends Enum> enumType;
+
     public InvalidEnumException(String input, Class<? extends Enum> enumType) {
         super(input);
         this.enumType = enumType;

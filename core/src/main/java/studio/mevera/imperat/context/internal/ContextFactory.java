@@ -39,11 +39,11 @@ public abstract class ContextFactory<S extends Source> {
      */
     @NotNull
     public abstract Context<S> createContext(
-        @NotNull Imperat<S> imperat,
-        @NotNull S source,
-        Command<S> command,
-        @NotNull String label,
-        @NotNull ArgumentInput queue
+            @NotNull Imperat<S> imperat,
+            @NotNull S source,
+            Command<S> command,
+            @NotNull String label,
+            @NotNull ArgumentInput queue
     );
 
     /**
@@ -53,11 +53,11 @@ public abstract class ContextFactory<S extends Source> {
      * @return new context for auto completions with {@link CompletionArg}
      */
     public abstract SuggestionContext<S> createSuggestionContext(
-        @NotNull Imperat<S> imperat,
-        @NotNull S source,
-        @NotNull Command<S> command,
-        @NotNull String label,
-        @NotNull ArgumentInput queue
+            @NotNull Imperat<S> imperat,
+            @NotNull S source,
+            @NotNull Command<S> command,
+            @NotNull String label,
+            @NotNull ArgumentInput queue
     );
 
     /**
@@ -70,5 +70,5 @@ public abstract class ContextFactory<S extends Source> {
             @NotNull Context<S> plainContext,
             @NotNull CommandPathSearch<S> dispatch
     );
-    
+
 }

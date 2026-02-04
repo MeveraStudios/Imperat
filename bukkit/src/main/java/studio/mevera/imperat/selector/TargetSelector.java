@@ -64,9 +64,9 @@ public final class TargetSelector implements Iterable<Entity> {
 
     public <E extends Entity> List<E> only(final Class<E> type) {
         return selectedEntities.stream()
-            .filter(type::isInstance)
-            .map(type::cast)
-            .toList();
+                       .filter(type::isInstance)
+                       .map(type::cast)
+                       .toList();
     }
 
 }

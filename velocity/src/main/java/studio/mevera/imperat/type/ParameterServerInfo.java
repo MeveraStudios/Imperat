@@ -11,13 +11,13 @@ import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.UnknownServerException;
 
 public final class ParameterServerInfo extends BaseParameterType<VelocitySource, ServerInfo> {
-    
+
     private final ProxyServer server;
-    
+
     public ParameterServerInfo(ProxyServer server) {
         this.server = server;
     }
-    
+
     @Override
     public @NotNull ServerInfo resolve(
             @NotNull ExecutionContext<VelocitySource> context,
@@ -25,7 +25,7 @@ public final class ParameterServerInfo extends BaseParameterType<VelocitySource,
             @NotNull String input
     ) throws UnknownServerException {
         return server.getServer(input)
-                .map(RegisteredServer::getServerInfo)
-                .orElseThrow(()-> new UnknownServerException(input));
+                       .map(RegisteredServer::getServerInfo)
+                       .orElseThrow(() -> new UnknownServerException(input));
     }
 }

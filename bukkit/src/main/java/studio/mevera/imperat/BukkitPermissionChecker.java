@@ -14,10 +14,12 @@ public final class BukkitPermissionChecker implements PermissionChecker<BukkitSo
      */
     @Override
     public boolean hasPermission(
-        @NotNull BukkitSource source,
-        @Nullable String permission
+            @NotNull BukkitSource source,
+            @Nullable String permission
     ) {
-        if (permission == null || permission.isEmpty()) return true;
+        if (permission == null || permission.isEmpty()) {
+            return true;
+        }
         return source.origin().hasPermission(permission);
     }
 

@@ -24,15 +24,15 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     private final Map<String, SlashCommandMapper.SlashMapping> slashMappings = new ConcurrentHashMap<>();
     private final AtomicBoolean syncScheduled = new AtomicBoolean(false);
 
-    public static JdaConfigBuilder builder(@NotNull JDA jda) {
-        return new JdaConfigBuilder(jda);
-    }
-
     JdaImperat(@NotNull JDA jda, @NotNull ImperatConfig<JdaSource> config) {
         super(config);
         this.jda = jda;
         this.listener = new JdaSlashCommandListener(this);
         this.jda.addEventListener(listener);
+    }
+
+    public static JdaConfigBuilder builder(@NotNull JDA jda) {
+        return new JdaConfigBuilder(jda);
     }
 
     @Override
@@ -60,7 +60,7 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
 
     @Override
     public void registerCommands(Object... commandInstances) {
-        for(var obj : commandInstances) {
+        for (var obj : commandInstances) {
             super.registerCommand(obj);
         }
         scheduleSync();
@@ -105,15 +105,15 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
 
     private void syncCommands() {
         List<SlashCommandMapper.SlashMapping> mappings = getRegisteredCommands().stream()
-                .map(slashCommandMapper::mapCommand)
-                .toList();
+                                                                 .map(slashCommandMapper::mapCommand)
+                                                                 .toList();
 
         slashMappings.clear();
         mappings.forEach(mapping -> slashMappings.put(mapping.commandName(), mapping));
 
         List<CommandData> data = mappings.stream()
-                .map(SlashCommandMapper.SlashMapping::commandData)
-                .collect(Collectors.toList());
+                                         .map(SlashCommandMapper.SlashMapping::commandData)
+                                         .collect(Collectors.toList());
         jda.updateCommands().addCommands(data).queue();
     }
 }

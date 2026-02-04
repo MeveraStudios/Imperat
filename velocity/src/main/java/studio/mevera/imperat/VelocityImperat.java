@@ -55,6 +55,25 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
     private final ProxyServer proxyServer;
 
     /**
+     * Package-private constructor used by VelocityConfigBuilder.
+     * Use {@link #builder(Object, ProxyServer)} to create instances.
+     *
+     * @param plugin the plugin instance
+     * @param proxyServer the ProxyServer instance
+     * @param config the Imperat configuration
+     */
+    VelocityImperat(
+            @NotNull P plugin,
+            @NotNull ProxyServer proxyServer,
+            @NotNull ImperatConfig<VelocitySource> config
+    ) {
+        super(config);
+        this.plugin = plugin;
+        this.proxyServer = proxyServer;
+        registerDefaultResolvers();
+    }
+
+    /**
      * Creates a new configuration builder for VelocityImperat.
      * This is the recommended way to create and configure a VelocityImperat instance.
      *
@@ -67,33 +86,15 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
         return new VelocityConfigBuilder<>(plugin, proxyServer);
     }
 
-    /**
-     * Package-private constructor used by VelocityConfigBuilder.
-     * Use {@link #builder(Object, ProxyServer)} to create instances.
-     *
-     * @param plugin the plugin instance
-     * @param proxyServer the ProxyServer instance
-     * @param config the Imperat configuration
-     */
-    VelocityImperat(
-        @NotNull P plugin,
-        @NotNull ProxyServer proxyServer,
-        @NotNull ImperatConfig<VelocitySource> config
-    ) {
-        super(config);
-        this.plugin = plugin;
-        this.proxyServer = proxyServer;
-        registerDefaultResolvers();
-    }
-
     private void registerDefaultResolvers() {
         // Register Player and other source/value resolvers
         config.registerParamType(Player.class, new ParameterPlayer(proxyServer));
 
         // Define custom exception handling for unknown players
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, context) ->
-                context.source().error("A player with the name '" + exception.getInput() + "' doesn't seem to be online")
+                UnknownPlayerException.class, (exception, context) ->
+                                                      context.source().error("A player with the name '" + exception.getInput()
+                                                                                     + "' doesn't seem to be online")
         );
 
         // Register source resolver for Player
@@ -128,7 +129,7 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
         return proxyServer;
     }
 
-    
+
     public @NotNull P getPlugin() {
         return plugin;
     }

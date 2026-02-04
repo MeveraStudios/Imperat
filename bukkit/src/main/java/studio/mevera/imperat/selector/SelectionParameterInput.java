@@ -27,14 +27,6 @@ public final class SelectionParameterInput<V> {
         return new SelectionParameterInput<>(field, input, ctx);
     }
 
-    public SelectionField<V> getField() {
-        return field;
-    }
-
-    public V getValue() {
-        return value;
-    }
-
     public static SelectionParameterInput<?> parse(String str, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> ctx) throws
             CommandException {
         String[] split = str.split(String.valueOf(SelectionField.VALUE_EQUALS));
@@ -50,8 +42,8 @@ public final class SelectionParameterInput<V> {
         return new SelectionParameterInput<>(selectionField, value, ctx);
     }
 
-
-    public static List<SelectionParameterInput<?>> parseAll(String paramsString, CommandInputStream<BukkitSource> inputStream, Context<BukkitSource> ctx) throws
+    public static List<SelectionParameterInput<?>> parseAll(String paramsString, CommandInputStream<BukkitSource> inputStream,
+            Context<BukkitSource> ctx) throws
             CommandException {
         String[] params = paramsString.split(String.valueOf(SelectionField.SEPARATOR));
         if (params.length == 0) {
@@ -63,5 +55,13 @@ public final class SelectionParameterInput<V> {
             list.add(from);
         }
         return list;
+    }
+
+    public SelectionField<V> getField() {
+        return field;
+    }
+
+    public V getValue() {
+        return value;
     }
 }

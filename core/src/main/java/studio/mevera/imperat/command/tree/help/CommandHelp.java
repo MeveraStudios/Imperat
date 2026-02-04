@@ -8,19 +8,19 @@ import studio.mevera.imperat.context.Source;
 
 @ContextResolved
 public final class CommandHelp<S extends Source> {
-    
+
     private final @NotNull ExecutionContext<S> context;
     private final @NotNull HelpCoordinator<S> coordinator;
-    
+
     private CommandHelp(@NotNull ExecutionContext<S> context) {
         this.context = context;
         this.coordinator = context.imperatConfig().getHelpCoordinator();
     }
-    
+
     public static <S extends Source> CommandHelp<S> create(ExecutionContext<S> context) {
         return new CommandHelp<>(context);
     }
-    
+
     /**
      * Displays help using the provided query and theme.
      *
@@ -33,11 +33,11 @@ public final class CommandHelp<S extends Source> {
     ) {
         coordinator.showHelp(context, query, theme);
     }
-    
+
     public @NotNull ExecutionContext<S> getContext() {
         return context;
     }
-    
+
     public @NotNull HelpCoordinator<S> getCoordinator() {
         return coordinator;
     }

@@ -15,7 +15,7 @@ public interface OptionalValueSupplier {
         }
     };
 
-    static  OptionalValueSupplier of(@NotNull String value) {
+    static OptionalValueSupplier of(@NotNull String value) {
         Preconditions.notNull(value, "default cannot be null, use `OptionalValueSupplier#empty` instead");
         return new OptionalValueSupplier() {
             @Override

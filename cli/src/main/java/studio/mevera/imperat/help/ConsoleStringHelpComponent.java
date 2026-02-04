@@ -31,7 +31,7 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * @see StringHelpComponent
  */
 public class ConsoleStringHelpComponent extends StringHelpComponent<ConsoleSource> {
-    
+
     /**
      * Creates a new ConsoleStringHelpComponent with the specified string content.
      *
@@ -40,7 +40,7 @@ public class ConsoleStringHelpComponent extends StringHelpComponent<ConsoleSourc
     protected ConsoleStringHelpComponent(@NotNull String componentValue) {
         super(componentValue);
     }
-    
+
     /**
      * Creates a new ConsoleStringHelpComponent with the specified string content.
      *

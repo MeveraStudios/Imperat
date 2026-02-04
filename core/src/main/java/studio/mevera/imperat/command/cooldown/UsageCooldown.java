@@ -60,8 +60,8 @@ public final class UsageCooldown {
         }
         var that = (UsageCooldown) obj;
         return this.value == that.value &&
-                Objects.equals(this.unit, that.unit) &&
-                Objects.equals(this.permission, that.permission);
+                       Objects.equals(this.unit, that.unit) &&
+                       Objects.equals(this.permission, that.permission);
     }
 
     @Override

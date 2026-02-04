@@ -1,4 +1,5 @@
 package studio.mevera.imperat.tests.syntax.commands;
+
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.SubCommand;
@@ -7,6 +8,7 @@ import studio.mevera.imperat.tests.TestSource;
 
 @Command("usagetest")
 public class UsageTestCommand {
+
     @SubCommand("simple")
     public void simpleCommand(
             TestSource source,
@@ -15,6 +17,7 @@ public class UsageTestCommand {
     ) {
         source.reply("Simple command executed: name=" + name + ", age=" + age);
     }
+
     @SubCommand("optional")
     public void optionalCommand(
             TestSource source,
@@ -22,6 +25,7 @@ public class UsageTestCommand {
     ) {
         source.reply("Optional command executed: required=" + required);
     }
+
     @SubCommand("optional")
     public void optionalCommandWithOptional(
             TestSource source,
@@ -30,6 +34,7 @@ public class UsageTestCommand {
     ) {
         source.reply("Optional command executed: required=" + required + ", optional=" + optional);
     }
+
     @SubCommand("chain")
     public void chainCommand(
             TestSource source,
@@ -37,6 +42,7 @@ public class UsageTestCommand {
     ) {
         source.reply("Chain command executed: required=" + required);
     }
+
     @SubCommand("chain")
     public void chainCommandOpt1(
             TestSource source,
@@ -45,6 +51,7 @@ public class UsageTestCommand {
     ) {
         source.reply("Chain command executed: required=" + required + ", opt1=" + opt1);
     }
+
     @SubCommand("chain")
     public void chainCommandOpt2(
             TestSource source,
@@ -54,6 +61,7 @@ public class UsageTestCommand {
     ) {
         source.reply("Chain command executed: required=" + required + ", opt1=" + opt1 + ", opt2=" + opt2);
     }
+
     @SubCommand("chain")
     public void chainCommandOpt3(
             TestSource source,
@@ -66,6 +74,16 @@ public class UsageTestCommand {
     }
 
     // ==================== NESTED SUBCOMMANDS ====================
+
+    @SubCommand("flags")
+    public void flagsCommand(
+            TestSource source,
+            @Named("target") String target
+    ) {
+        source.reply("Flags command executed: target=" + target);
+    }
+
+    // ==================== MULTIPLE USAGE VARIATIONS ====================
 
     @SubCommand("nested")
     public static class NestedCommand {
@@ -99,7 +117,7 @@ public class UsageTestCommand {
         }
     }
 
-    // ==================== MULTIPLE USAGE VARIATIONS ====================
+    // ==================== COMMANDS WITH FLAGS ====================
 
     @SubCommand("multi")
     public static class MultiUsageCommand {
@@ -129,16 +147,6 @@ public class UsageTestCommand {
         public void clearItems(TestSource source) {
             source.reply("Cleared all items");
         }
-    }
-
-    // ==================== COMMANDS WITH FLAGS ====================
-
-    @SubCommand("flags")
-    public void flagsCommand(
-            TestSource source,
-            @Named("target") String target
-    ) {
-        source.reply("Flags command executed: target=" + target);
     }
 
     // ==================== BFS TEST COMMAND ====================

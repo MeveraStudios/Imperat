@@ -7,6 +7,10 @@ import studio.mevera.imperat.util.Preconditions;
 
 public sealed interface Placeholder<S extends Source> permits PlaceholderImpl {
 
+    static <S extends Source> Builder<S> builder(String id) {
+        return new Builder<>(id);
+    }
+
     /**
      * The unique name for this placeholder
      *
@@ -31,12 +35,8 @@ public sealed interface Placeholder<S extends Source> permits PlaceholderImpl {
 
     String replaceResolved(ImperatConfig<S> imperat, String id, String input);
 
-    static <S extends Source> Builder<S> builder(String id) {
-        return new Builder<>(id);
-    }
-
-
     final class Builder<S extends Source> {
+
         private final String id;
         private PlaceholderResolver<S> resolver = null;
 

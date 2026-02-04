@@ -26,7 +26,7 @@ public final class JavaDurationParameterType extends BaseParameterType<TestSourc
     ) throws CommandException {
         return JavaDurationParser.parseDuration(input);
     }
-    
+
     @Override
     public boolean matchesInput(int rawPosition, Context<TestSource> context, CommandParameter<TestSource> parameter) {
         String input = context.arguments().get(rawPosition);

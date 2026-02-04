@@ -9,11 +9,11 @@ import java.util.Objects;
  * Standard help provider that queries the command tree.
  */
 public class StandardTreeHelpVisitor<S extends Source> implements TreeHelpVisitor<S> {
-    
+
     @Override
     public HelpEntryList<S> visit(Command<S> command, HelpQuery<S> query) {
         // Just retrieves data, no rendering logic
-        if(command.parent() != null) {
+        if (command.parent() != null) {
             return HelpEntryList.empty();
         }
         return Objects.requireNonNull(command.tree()).queryHelp(query);

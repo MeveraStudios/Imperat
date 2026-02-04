@@ -8,8 +8,8 @@ import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 
 public sealed abstract class NumericField<N extends Number> extends AbstractField<N>
-    permits NumericField.ByteField, NumericField.DoubleField, NumericField.FloatField,
-    NumericField.IntegerField, NumericField.LongField, NumericField.ShortField {
+        permits NumericField.ByteField, NumericField.DoubleField, NumericField.FloatField,
+                        NumericField.IntegerField, NumericField.LongField, NumericField.ShortField {
 
     /**
      * Constructs an AbstractField instance with the specified name and type.
@@ -20,22 +20,6 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
     protected NumericField(String name, TypeWrap<N> type) {
         super(name, type);
     }
-
-
-    /**
-     * Parses the given string representation of the value and converts it into the field's value type.
-     *
-     * @param value   the string representation of the value to be parsed
-     * @param context the context
-     * @return the parsed value of the field's type
-     * @throws CommandException if the parsing fails
-     */
-    @Override
-    public N parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
-        return parseNumber(value, context);
-    }
-
-    protected abstract N parseNumber(String value, Context<BukkitSource> ctx) throws CommandException;
 
     public static NumericField<Integer> integerField(String name) {
         return new IntegerField(name);
@@ -61,8 +45,23 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
         return new ByteField(name);
     }
 
+    /**
+     * Parses the given string representation of the value and converts it into the field's value type.
+     *
+     * @param value   the string representation of the value to be parsed
+     * @param context the context
+     * @return the parsed value of the field's type
+     * @throws CommandException if the parsing fails
+     */
+    @Override
+    public N parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
+        return parseNumber(value, context);
+    }
+
+    protected abstract N parseNumber(String value, Context<BukkitSource> ctx) throws CommandException;
 
     final static class IntegerField extends NumericField<Integer> {
+
         public IntegerField(String name) {
             super(name, TypeWrap.of(Integer.class));
         }
@@ -77,6 +76,7 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
     }
 
     final static class DoubleField extends NumericField<Double> {
+
         public DoubleField(String name) {
             super(name, TypeWrap.of(Double.class));
         }
@@ -91,6 +91,7 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
     }
 
     final static class FloatField extends NumericField<Float> {
+
         public FloatField(String name) {
             super(name, TypeWrap.of(Float.class));
         }
@@ -105,6 +106,7 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
     }
 
     final static class LongField extends NumericField<Long> {
+
         public LongField(String name) {
             super(name, TypeWrap.of(Long.class));
         }
@@ -119,6 +121,7 @@ public sealed abstract class NumericField<N extends Number> extends AbstractFiel
     }
 
     final static class ShortField extends NumericField<Short> {
+
         public ShortField(String name) {
             super(name, TypeWrap.of(Short.class));
         }

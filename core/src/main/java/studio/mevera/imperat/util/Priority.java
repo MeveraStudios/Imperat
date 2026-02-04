@@ -38,6 +38,7 @@ import java.util.Objects;
  * </p>
  */
 public final class Priority implements Comparable<Priority> {
+
     public static final Priority MINIMUM = new Priority(Integer.MIN_VALUE);
     public static final Priority LOW = new Priority(0);
     public static final Priority NORMAL = new Priority(20);
@@ -46,12 +47,12 @@ public final class Priority implements Comparable<Priority> {
 
     private final int level;
 
-    public static Priority of(int level) {
-        return new Priority(level);
-    }
-
     private Priority(int level) {
         this.level = level;
+    }
+
+    public static Priority of(int level) {
+        return new Priority(level);
     }
 
     public int getLevel() {

@@ -17,18 +17,20 @@ final class InternalMinestomCommand extends Command {
         this.imperatCommand = imperatCommand;
 
         this.setCondition(
-            (sender, commandString) -> imperat.config().getPermissionChecker().hasPermission(
-                imperat.wrapSender(sender), imperat.config().isAutoPermissionAssignMode() ? imperat.config().getPermissionLoader().load(imperatCommand) : imperatCommand.getMainPermission()
-            )
+                (sender, commandString) -> imperat.config().getPermissionChecker().hasPermission(
+                        imperat.wrapSender(sender),
+                        imperat.config().isAutoPermissionAssignMode() ? imperat.config().getPermissionLoader().load(imperatCommand) :
+                                imperatCommand.getMainPermission()
+                )
         );
 
         this.setDefaultExecutor(loadExecutor(imperat));
 
         for (var usage : imperatCommand.usages()) {
             addConditionalSyntax(
-                loadCondition(imperat, usage),
-                loadExecutor(imperat),
-                loadArguments(imperat, imperatCommand, usage)
+                    loadCondition(imperat, usage),
+                    loadExecutor(imperat),
+                    loadArguments(imperat, imperatCommand, usage)
             );
         }
 

@@ -39,11 +39,14 @@ public final class LimitOperatorField extends OperatorField<Integer> {
      */
     @Override
     public void operate(Integer value, List<Entity> entities) {
-        if (entities.size() < value) return;
+        if (entities.size() < value) {
+            return;
+        }
 
         int diff = entities.size() - value;
-        for (int i = 0; i < diff; i++)
+        for (int i = 0; i < diff; i++) {
             entities.remove(entities.size() - 1);
+        }
 
     }
 }

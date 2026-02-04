@@ -33,7 +33,7 @@ public final class ParameterPlayer extends BaseParameterType<VelocitySource, Pla
             @NotNull CommandInputStream<VelocitySource> commandInputStream,
             @NotNull String input
     ) throws CommandException {
-        
+
         if (input.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
                 throw new UnknownPlayerException(input);

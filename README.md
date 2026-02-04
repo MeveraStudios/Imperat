@@ -12,7 +12,8 @@
 
 **The most performant, feature-rich command framework for Java applications**
 
-[📚 **Documentation**](https://docs.mevera.studio/Imperat) • [💬 **Discord**](https://discord.gg/McN4GMWApE) • [🚀 **Get Started**](#-quick-start) • [✨ **Features**](#-features) • [📊 **Benchmarks**](#-performance)
+[📚 **Documentation**](https://docs.mevera.studio/Imperat) • [💬 **Discord**](https://discord.gg/McN4GMWApE) • [🚀 **Get Started**](#-quick-start) • [✨ *
+*Features**](#-features) • [📊 **Benchmarks**](#-performance)
 
 </div>
 
@@ -20,7 +21,8 @@
 
 ## 🎯 **Why Imperat?**
 
-Imperat isn't just another command framework—it's the **ultimate solution** for developers who demand both **blazing performance** and **rich features**. <br>
+Imperat isn't just another command framework—it's the **ultimate solution** for developers who demand both **blazing performance** and **rich features
+**. <br>
 Built by [Mqzen](https://github.com/Mqzen), Imperat delivers sub-microsecond command execution while maintaining an elegant, intuitive API.
 
 <div align="center">
@@ -30,25 +32,26 @@ Built by [Mqzen](https://github.com/Mqzen), Imperat delivers sub-microsecond com
 ---
 
 ### 📊 **Performance**
+
 Imperat provides the optimum performance for command execution and suggestion providing.<br>
-We have proven this  through running benchmarks using **JMH**:
+We have proven this through running benchmarks using **JMH**:
 
 <img src="https://raw.githubusercontent.com/MeveraStudios/Imperat/refs/heads/master/assets/performance_chart.png" alt="Comparison performance chart"/>
 
-| **Lightning Fast** ⚡ | **Feature Complete** 🎨 | **Multi-Platform** 🌍 |
-|:---:|:---:|:---:|
+|                  **Lightning Fast** ⚡                  |                      **Feature Complete** 🎨                       |                   **Multi-Platform** 🌍                   |
+|:------------------------------------------------------:|:------------------------------------------------------------------:|:---------------------------------------------------------:|
 | **29x faster** than Cloud<br/>**10x faster** than Lamp | Annotations, builders, suggestions,<br/>permissions, and much more | Bukkit, Velocity, BungeeCord,<br/>Minestom, CLI, and more |
 
-
-| Framework | Median Latency | Throughput | vs Imperat |
-|:---------:|:--------------:|:----------:|:----------:|
-| **Imperat** ⚡ | **470ns** | **2.14M/sec** | **Baseline** |
-| Lamp | 5,016ns | 199K/sec | 10x slower |
-| Cloud | 12,208ns | 82K/sec | 29x slower |
+|   Framework   | Median Latency |  Throughput   |  vs Imperat  |
+|:-------------:|:--------------:|:-------------:|:------------:|
+| **Imperat** ⚡ |   **470ns**    | **2.14M/sec** | **Baseline** |
+|     Lamp      |    5,016ns     |   199K/sec    |  10x slower  |
+|     Cloud     |    12,208ns    |    82K/sec    |  29x slower  |
 
 <sub>*Benchmarked on complex command trees with 10+ depth levels and multiple branches*</sub>
 
-> 💡 **What does this mean?** On a busy Minecraft server with many players, Imperat adds only **0.47ms** overhead per 1000 commands, while Other framework like Cloud adds **12.2ms**—that's the difference between smooth gameplay and noticeable lag!
+> 💡 **What does this mean?** On a busy Minecraft server with many players, Imperat adds only **0.47ms** overhead per 1000 commands, while Other
+> framework like Cloud adds **12.2ms**—that's the difference between smooth gameplay and noticeable lag!
 
 ---
 
@@ -56,14 +59,14 @@ We have proven this  through running benchmarks using **JMH**:
 
 <div align="center">
 
-|     **Core Features**      |    **Advanced Features**     | **Developer Experience** |
-|:--------------------------:|:----------------------------:|:------------------------:|
-| Annotation-based commands  |   Async command execution    |     Zero boilerplate     |
-|    Builder pattern API     | Tab completion & suggestions | Extensive documentation  |
-|   Unlimited subcommands    |    Permission management     | IDE autocomplete support |
-|    Parameter validation    |     Dependency injection     |  Custom parameter types  |
-| Multiple usage patterns |     Processing pipeline      |    Hot-reload support    |
-|    Greedy parameters    |      Command cooldowns       |    Context resolvers     |
+|     **Core Features**     |    **Advanced Features**     | **Developer Experience** |
+|:-------------------------:|:----------------------------:|:------------------------:|
+| Annotation-based commands |   Async command execution    |     Zero boilerplate     |
+|    Builder pattern API    | Tab completion & suggestions | Extensive documentation  |
+|   Unlimited subcommands   |    Permission management     | IDE autocomplete support |
+|   Parameter validation    |     Dependency injection     |  Custom parameter types  |
+|  Multiple usage patterns  |     Processing pipeline      |    Hot-reload support    |
+|     Greedy parameters     |      Command cooldowns       |    Context resolvers     |
 
 </div>
 
@@ -177,11 +180,13 @@ public class GameModeCommand {
 ```
 
 That's it! You've just created a fully-functional command with:
+
 - ✅ Multiple aliases (`/gamemode`, `/gm`)
 - ✅ Multiple shortcuts/root-aliases (`/gmc`, `/gms`)
 - ✅ Tab completion for GameMode and online players
 - ✅ Optional parameters with smart defaults
 - ✅ Permission checking
+
 ---
 
 ## 🎨 **Advanced Example - Complex Command Trees**
@@ -253,15 +258,15 @@ public class RankCommand {
 
 <div align="center">
 
-| Platform | Module | Status |
-|:--------:|:------:|:------:|
-| **Bukkit/Spigot/Paper** | `imperat-bukkit` | ✅ Stable |
-| **Velocity** | `imperat-velocity` | ✅ Stable |
-| **BungeeCord** | `imperat-bungee` | ✅ Stable |
-| **Minestom** | `imperat-minestom` | ✅ Stable |
-| **CLI Applications** | `imperat-cli` | ✅ Stable |
-| **Discord (JDA)** | `imperat-jda` | ✅ Beta |
-| **Sponge** | `imperat-sponge` | 🚧 Planned |
+|        Platform         |       Module       |   Status   |
+|:-----------------------:|:------------------:|:----------:|
+| **Bukkit/Spigot/Paper** |  `imperat-bukkit`  |  ✅ Stable  |
+|      **Velocity**       | `imperat-velocity` |  ✅ Stable  |
+|     **BungeeCord**      |  `imperat-bungee`  |  ✅ Stable  |
+|      **Minestom**       | `imperat-minestom` |  ✅ Stable  |
+|  **CLI Applications**   |   `imperat-cli`    |  ✅ Stable  |
+|    **Discord (JDA)**    |   `imperat-jda`    |   ✅ Beta   |
+|       **Sponge**        |  `imperat-sponge`  | 🚧 Planned |
 
 </div>
 
@@ -270,27 +275,32 @@ public class RankCommand {
 ## 🎯 **Key Features Explained**
 
 ### **⚡ Blazing Fast Performance**
+
 - **Sub-microsecond execution**: 470ns median latency
 - **Linear O(n) scaling**: Consistent performance even with deep command trees
 - **Minimal allocations**: Optimized memory usage
 
 ### **🎨 Flexible Command Creation**
+
 - **Annotations**: Clean, declarative command structure
 - **Builder API**: Dynamic command generation
 - **Mixed approach**: Use both patterns in the same project
 
 ### **🔌 Rich Parameter System**
+
 - **Custom types**: Register your own parameter types
 - **Validation**: Built-in `@Range`, `@Values`, and custom validators
 - **Greedy parameters**: `@Greedy` for multi-word inputs
 - **Flags & switches**: `--flag value` and `--switch` support
 
 ### **🛡️ Advanced Permission System**
+
 - **Hierarchical permissions**: Command, subcommand, and parameter-level
 - **Auto Permission Assignment**: Generate permission nodes automatically
 - **Custom permission checks**: Implement complex permission logic
 
 ### **📊 Processing Pipeline**
+
 - **Pre-processors**: Validate, log, or modify before execution
 - **Post-processors**: Handle results, logging, or cleanup
 - **Exception resolvers**: Centralized error handling
@@ -311,7 +321,8 @@ Imperat is licensed under the [MIT License](LICENSE).
 
 ### **Ready to supercharge your commands?**
 
-[📚 **Read the Docs**](https://docs.mevera.studio/Imperat) • [💬 **Join our Discord**](https://discord.gg/McN4GMWApE) • [⭐ **Star on GitHub**](https://github.com/MeveraStudios/Imperat)
+[📚 **Read the Docs**](https://docs.mevera.studio/Imperat) • [💬 **Join our Discord**](https://discord.gg/McN4GMWApE) • [⭐ **Star on GitHub
+**](https://github.com/MeveraStudios/Imperat)
 
 **Built with ❤️ by [Mqzen](https://github.com/Mqzen) and [iiAhmedYT](https://github.com/iiAhmedYT)**
 

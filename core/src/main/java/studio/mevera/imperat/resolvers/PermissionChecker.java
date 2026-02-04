@@ -25,19 +25,19 @@ public interface PermissionChecker<S extends Source> {
     default boolean hasPermission(@NotNull S source, @NotNull CommandParameter<S> parameter) {
         return hasPermission(source, parameter.getSinglePermission());
     }
-    
+
     default Pair<String, Boolean> hasUsagePermission(S source, @Nullable CommandUsage<S> usage) {
         if (usage == null) {
             return new Pair<>(null, true);
         }
-        
-        for(var perm : usage.getPermissions()) {
-            if(!hasPermission(source, perm)) {
+
+        for (var perm : usage.getPermissions()) {
+            if (!hasPermission(source, perm)) {
                 return new Pair<>(perm, false);
             }
-            
+
         }
-        
+
         return new Pair<>(null, true);
     }
 

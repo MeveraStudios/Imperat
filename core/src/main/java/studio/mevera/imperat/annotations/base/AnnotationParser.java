@@ -28,7 +28,7 @@ public abstract class AnnotationParser<S extends Source> {
     }
 
     public static <S extends Source> AnnotationParser<S> defaultParser(
-        @NotNull Imperat<S> dispatcher
+            @NotNull Imperat<S> dispatcher
     ) {
         return new AnnotationParserImpl<>(dispatcher);
     }
@@ -41,7 +41,7 @@ public abstract class AnnotationParser<S extends Source> {
      * @param <T>      the valueType of annotated command class to parse
      */
     public abstract <T> void parseCommandClass(T instance);
-    
+
     /**
      * Parses annotated throwable handling class
      * into a set of {@link ThrowableResolver} that are automatically
@@ -51,7 +51,7 @@ public abstract class AnnotationParser<S extends Source> {
      * @param <T> the type of the instance of the throwable-handling class.
      */
     public abstract <T> void parseThrowableHandlerClass(T instance);
-    
+
     /**
      * Registers a valueType of annotations so that it can be
      * detected by {@link AnnotationReader} , it's useful as it allows that valueType of annotation

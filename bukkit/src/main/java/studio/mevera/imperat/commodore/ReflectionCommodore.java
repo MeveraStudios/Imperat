@@ -91,15 +91,15 @@ final class ReflectionCommodore extends AbstractCommodore {
             CONSOLE_FIELD.setAccessible(true);
 
             GET_COMMAND_DISPATCHER_METHOD = Arrays.stream(minecraftServer.getDeclaredMethods())
-                    .filter(method -> method.getParameterCount() == 0)
-                    .filter(method -> commandDispatcher.isAssignableFrom(method.getReturnType()))
-                    .findFirst().orElseThrow(NoSuchMethodException::new);
+                                                    .filter(method -> method.getParameterCount() == 0)
+                                                    .filter(method -> commandDispatcher.isAssignableFrom(method.getReturnType()))
+                                                    .findFirst().orElseThrow(NoSuchMethodException::new);
             GET_COMMAND_DISPATCHER_METHOD.setAccessible(true);
 
             GET_BRIGADIER_DISPATCHER_METHOD = Arrays.stream(commandDispatcher.getDeclaredMethods())
-                    .filter(method -> method.getParameterCount() == 0)
-                    .filter(method -> CommandDispatcher.class.isAssignableFrom(method.getReturnType()))
-                    .findFirst().orElseThrow(NoSuchMethodException::new);
+                                                      .filter(method -> method.getParameterCount() == 0)
+                                                      .filter(method -> CommandDispatcher.class.isAssignableFrom(method.getReturnType()))
+                                                      .findFirst().orElseThrow(NoSuchMethodException::new);
             GET_BRIGADIER_DISPATCHER_METHOD.setAccessible(true);
 
             Class<?> commandWrapperClass = BukkitUtil.ClassesRefUtil.obcClass("command.BukkitCommandWrapper");
@@ -201,6 +201,7 @@ final class ReflectionCommodore extends AbstractCommodore {
      * corresponding commands.
      */
     private static final class CommandDataSendListener implements Listener {
+
         private final Set<String> aliases;
         private final Set<String> minecraftPrefixedAliases;
         private final Predicate<? super Player> permissionTest;

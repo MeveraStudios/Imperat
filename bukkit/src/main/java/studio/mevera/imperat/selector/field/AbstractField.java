@@ -40,8 +40,8 @@ public abstract class AbstractField<V> implements SelectionField<V> {
      * @param type The type information of the value that this field handles, wrapped in a TypeWrap object.
      */
     protected AbstractField(
-        String name,
-        TypeWrap<V> type
+            String name,
+            TypeWrap<V> type
     ) {
         this.name = name;
         this.type = type.getType();

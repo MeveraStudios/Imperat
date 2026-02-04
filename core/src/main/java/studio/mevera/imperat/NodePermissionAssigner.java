@@ -34,7 +34,7 @@ import studio.mevera.imperat.context.Source;
  * @see Source
  */
 public interface NodePermissionAssigner<S extends Source> {
-    
+
     /**
      * The default delimiter used to separate permission node segments.
      * <p>
@@ -43,46 +43,7 @@ public interface NodePermissionAssigner<S extends Source> {
      * </p>
      */
     String DEFAULT_DELIMITER = ".";
-    
-    /**
-     * Gets the delimiter used to separate permission node segments.
-     * <p>
-     * This method returns the character or string used to separate different
-     * levels in a hierarchical permission structure. The default implementation
-     * returns {@link #DEFAULT_DELIMITER}.
-     * </p>
-     *
-     * @return the permission delimiter string, never null
-     * @implSpec The default implementation returns {@link #DEFAULT_DELIMITER}
-     */
-    default @NotNull String getPermissionDelimiter() {
-        return DEFAULT_DELIMITER;
-    }
-    
-    /**
-     * Assigns the specified permission to the given parameter node.
-     * <p>
-     * This method is responsible for applying the permission string to the
-     * parameter node using the implementation's specific assignment strategy.
-     * The permission string is typically loaded by a {@link PermissionLoader}
-     * and represents the required permission for accessing or executing the
-     * associated command parameter.
-     * </p>
-     *
-     * <p>
-     * Implementations should handle the assignment logic appropriately, which
-     * may include validation, transformation, or delegation to other components.
-     * The method should be safe to call multiple times on the same node with
-     * different permissions.
-     * </p>
-     *
-     * @param node the parameter node to assign the permission to, must not be null
-     * @param permission the permission string to assign, may be null to clear permissions
-     * @throws NullPointerException if {@code node} is null
-     * @throws IllegalArgumentException if the permission format is invalid for this assigner
-     */
-    void assign(@NotNull ParameterNode<S, ?> node, @Nullable String permission);
-    
+
     /**
      * Creates a default permission assigner that directly assigns permissions to nodes.
      * <p>
@@ -108,4 +69,43 @@ public interface NodePermissionAssigner<S extends Source> {
     static <S extends Source> @NotNull NodePermissionAssigner<S> defaultAssigner() {
         return ParameterNode::setPermission;
     }
+
+    /**
+     * Gets the delimiter used to separate permission node segments.
+     * <p>
+     * This method returns the character or string used to separate different
+     * levels in a hierarchical permission structure. The default implementation
+     * returns {@link #DEFAULT_DELIMITER}.
+     * </p>
+     *
+     * @return the permission delimiter string, never null
+     * @implSpec The default implementation returns {@link #DEFAULT_DELIMITER}
+     */
+    default @NotNull String getPermissionDelimiter() {
+        return DEFAULT_DELIMITER;
+    }
+
+    /**
+     * Assigns the specified permission to the given parameter node.
+     * <p>
+     * This method is responsible for applying the permission string to the
+     * parameter node using the implementation's specific assignment strategy.
+     * The permission string is typically loaded by a {@link PermissionLoader}
+     * and represents the required permission for accessing or executing the
+     * associated command parameter.
+     * </p>
+     *
+     * <p>
+     * Implementations should handle the assignment logic appropriately, which
+     * may include validation, transformation, or delegation to other components.
+     * The method should be safe to call multiple times on the same node with
+     * different permissions.
+     * </p>
+     *
+     * @param node the parameter node to assign the permission to, must not be null
+     * @param permission the permission string to assign, may be null to clear permissions
+     * @throws NullPointerException if {@code node} is null
+     * @throws IllegalArgumentException if the permission format is invalid for this assigner
+     */
+    void assign(@NotNull ParameterNode<S, ?> node, @Nullable String permission);
 }

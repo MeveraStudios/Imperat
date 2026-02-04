@@ -41,6 +41,33 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
         suggestionResolver = new TargetSelectorSuggestionResolver();
     }
 
+    @SuppressWarnings("unchecked")
+    private static @NotNull <V> EntityCondition getEntityPredicate(@NotNull CommandInputStream<BukkitSource> commandInputStream,
+            List<SelectionParameterInput<?>> inputParameters, Context<BukkitSource> ctx) {
+        EntityCondition entityPredicted = (sender, entity) -> true;
+        for (var input : inputParameters) {
+            if (!(input.getField() instanceof PredicateField<?>)) {
+                continue;
+            }
+            PredicateField<V> predicateField = (PredicateField<V>) input.getField();
+            entityPredicted = entityPredicted.and(
+                    (sender, entity) -> predicateField.isApplicable(sender, entity, (V) input.getValue(), commandInputStream, ctx)
+            );
+
+        }
+        return entityPredicted;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <V> void operateFields(List<SelectionParameterInput<?>> inputParameters, List<Entity> selected) {
+        for (var input : inputParameters) {
+            if (input.getField() instanceof OperatorField<?>) {
+                OperatorField<V> operatorField = (OperatorField<V>) input.getField();
+                operatorField.operate((V) input.getValue(), selected);
+            }
+        }
+    }
+
     @Override
     public @NotNull TargetSelector resolve(
             @NotNull ExecutionContext<BukkitSource> context,
@@ -48,8 +75,9 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
             @NotNull String input) throws CommandException {
 
         String raw = commandInputStream.currentRaw().orElse(null);
-        if (raw == null)
+        if (raw == null) {
             return TargetSelector.empty();
+        }
 
         if (Version.isOrOver(1, 13, 0)) {
             SelectionType type = commandInputStream.popLetter().map(
@@ -66,8 +94,9 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
                 c -> String.valueOf(c).equalsIgnoreCase(SelectionType.MENTION_CHARACTER)
         ).isEmpty()) {
             Player target = Bukkit.getPlayer(raw);
-            if (target == null)
+            if (target == null) {
                 return TargetSelector.empty();
+            }
 
             return TargetSelector.of(SelectionType.UNKNOWN, target);
         }
@@ -108,30 +137,6 @@ public final class ParameterTargetSelector extends BaseParameterType<BukkitSourc
     @Override
     public SuggestionResolver<BukkitSource> getSuggestionResolver() {
         return suggestionResolver;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static @NotNull <V> EntityCondition getEntityPredicate(@NotNull CommandInputStream<BukkitSource> commandInputStream, List<SelectionParameterInput<?>> inputParameters, Context<BukkitSource> ctx) {
-        EntityCondition entityPredicted = (sender, entity) -> true;
-        for (var input : inputParameters) {
-            if (!(input.getField() instanceof PredicateField<?>)) continue;
-            PredicateField<V> predicateField = (PredicateField<V>) input.getField();
-            entityPredicted = entityPredicted.and(
-                    (sender, entity) -> predicateField.isApplicable(sender, entity, (V) input.getValue(), commandInputStream, ctx)
-            );
-
-        }
-        return entityPredicted;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <V> void operateFields(List<SelectionParameterInput<?>> inputParameters, List<Entity> selected) {
-        for (var input : inputParameters) {
-            if (input.getField() instanceof OperatorField<?>) {
-                OperatorField<V> operatorField = (OperatorField<V>) input.getField();
-                operatorField.operate((V) input.getValue(), selected);
-            }
-        }
     }
 
     private final class TargetSelectorSuggestionResolver implements SuggestionResolver<BukkitSource> {

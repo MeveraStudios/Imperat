@@ -11,16 +11,16 @@ import studio.mevera.imperat.util.StringUtils;
 class NormalCommandParameter<S extends Source> extends InputParameter<S> {
 
     NormalCommandParameter(String name,
-                           ParameterType<S, ?> type,
-                           @Nullable String permission,
-                           Description description,
-                           boolean optional,
-                           boolean greedy,
-                           @NotNull OptionalValueSupplier valueSupplier,
-                           @Nullable SuggestionResolver<S> suggestionResolver) {
+            ParameterType<S, ?> type,
+            @Nullable String permission,
+            Description description,
+            boolean optional,
+            boolean greedy,
+            @NotNull OptionalValueSupplier valueSupplier,
+            @Nullable SuggestionResolver<S> suggestionResolver) {
         super(
-            name, type, permission, description, optional,
-            false, greedy, valueSupplier, suggestionResolver
+                name, type, permission, description, optional,
+                false, greedy, valueSupplier, suggestionResolver
         );
     }
 
@@ -31,13 +31,14 @@ class NormalCommandParameter<S extends Source> extends InputParameter<S> {
      */
     @Override
     public String format() {
-        if(!this.format.equals(this.name)) {
+        if (!this.format.equals(this.name)) {
             return super.format();
         }
-        
+
         var content = name();
-        if (isGreedy())
+        if (isGreedy()) {
             content += "...";
+        }
         return StringUtils.normalizedParameterFormatting(content, isOptional());
     }
 
@@ -51,14 +52,14 @@ class NormalCommandParameter<S extends Source> extends InputParameter<S> {
     @Override
     public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
         NormalCommandParameter<S> copy = new NormalCommandParameter<>(
-            this.name,
-            this.type,
-            this.permission,
-            this.description,
-            this.optional,
-            this.greedy,
-            this.optionalValueSupplier,
-            this.suggestionResolver
+                this.name,
+                this.type,
+                this.permission,
+                this.description,
+                this.optional,
+                this.greedy,
+                this.optionalValueSupplier,
+                this.suggestionResolver
         );
         copy.position(newPosition);
         copy.setFormat(this.format);

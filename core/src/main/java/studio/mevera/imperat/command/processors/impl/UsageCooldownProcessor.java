@@ -13,6 +13,7 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
     UsageCooldownProcessor() {
 
     }
+
     /**
      * Processes context BEFORE the resolving operation.
      *
@@ -23,9 +24,9 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
      */
     @Override
     public void process(
-        Imperat<S> imperat,
-        Context<S> context,
-        CommandUsage<S> usage
+            Imperat<S> imperat,
+            Context<S> context,
+            CommandUsage<S> usage
     ) throws CommandException {
         var source = context.source();
         var handler = usage.getCooldownHandler();
@@ -33,9 +34,9 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
 
         if (handler.hasCooldown(source)) {
             assert cooldown != null;
-            if(cooldown.permission() == null
-                    || cooldown.permission().isEmpty()
-                    || !imperat.config().getPermissionChecker().hasPermission(source, cooldown.permission())) {
+            if (cooldown.permission() == null
+                        || cooldown.permission().isEmpty()
+                        || !imperat.config().getPermissionChecker().hasPermission(source, cooldown.permission())) {
 
 
                 throw new CooldownException(

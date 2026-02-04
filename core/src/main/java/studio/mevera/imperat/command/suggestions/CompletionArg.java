@@ -14,7 +14,7 @@ import org.jetbrains.annotations.ApiStatus;
 public record CompletionArg(String value, int index) {
 
     public final static CompletionArg EMPTY = new CompletionArg("", 0);
-    
+
     public boolean isEmpty() {
         return value.isEmpty() || value.isBlank();
     }

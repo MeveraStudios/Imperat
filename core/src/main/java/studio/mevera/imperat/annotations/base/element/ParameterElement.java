@@ -23,10 +23,10 @@ public final class ParameterElement extends ParseElement<Parameter> {
     private final boolean contextResolved;
 
     <S extends Source> ParameterElement(
-        final AnnotationParser<S> parser,
-        final ClassElement owningClass,
-        final MethodElement method,
-        final Parameter element
+            final AnnotationParser<S> parser,
+            final ClassElement owningClass,
+            final MethodElement method,
+            final Parameter element
     ) {
         super(parser, method, element);
         this.owningClass = owningClass;
@@ -54,10 +54,10 @@ public final class ParameterElement extends ParseElement<Parameter> {
 
     public boolean isOptional() {
         return isAnnotationPresent(Optional.class)
-                || isAnnotationPresent(Default.class)
-                || isAnnotationPresent(DefaultProvider.class)
-                || isAnnotationPresent(Flag.class)
-                || isAnnotationPresent(Switch.class);
+                       || isAnnotationPresent(Default.class)
+                       || isAnnotationPresent(DefaultProvider.class)
+                       || isAnnotationPresent(Flag.class)
+                       || isAnnotationPresent(Switch.class);
     }
 
     public boolean isContextResolved() {

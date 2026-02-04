@@ -31,10 +31,12 @@ public interface ArgumentInput extends Deque<String>, List<String>, Cloneable {
             var arg = argumentsOnly[i];
             builder.append(arg);
             if (!extraLastSpace) {
-                if (i != argumentsOnly.length - 1)
+                if (i != argumentsOnly.length - 1) {
                     builder.append(" ");
-            } else
+                }
+            } else {
                 builder.append(" ");
+            }
         }
         return parseAutoCompletion(builder.toString(), extraLastSpace);
     }

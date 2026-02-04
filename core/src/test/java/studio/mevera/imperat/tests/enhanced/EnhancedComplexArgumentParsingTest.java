@@ -8,14 +8,14 @@ import studio.mevera.imperat.tests.commands.MultipleOptionals;
 
 @DisplayName("Enhanced Complex Argument Parsing Tests")
 final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
-    
+
     @BeforeEach
     void registerCommands() {
         IMPERAT.registerCommand(MultipleOptionals.class);
     }
-    
+
     // === Basic Obligation Calculation Tests ===
-    
+
     @Test
     @DisplayName("Should skip optionals when insufficient inputs for required parameters")
     void shouldSkipOptionalWhenInsufficientInputs() {
@@ -26,7 +26,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("opt2")
                 .hasArgument("req1", "stop-point");
     }
-    
+
     @Test
     @DisplayName("Should assign inputs optimally when sufficient for all required")
     void shouldAssignOptimallyWhenSufficientInputs() {
@@ -37,9 +37,9 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("opt2", 7.5)
                 .hasArgument("req1", "stop-point");
     }
-    
+
     // === Same Type Parameter Tests ===
-    
+
     @Test
     @DisplayName("Should handle same type optionals correctly")
     void shouldHandleSameTypeOptionals() {
@@ -50,7 +50,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("opt2")
                 .hasArgument("required", "final");
     }
-    
+
     @Test
     @DisplayName("Should prioritize required over optional when same type")
     void shouldPrioritizeRequiredOverOptional() {
@@ -61,9 +61,9 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("opt2")
                 .hasArgument("required", "final");
     }
-    
+
     // === Chain Optional Tests ===
-    
+
     @Test
     @DisplayName("Should handle long chain of different type optionals")
     void shouldHandleLongChainOptionals() {
@@ -75,7 +75,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("opt3", 3.14)
                 .hasArgument("required", "final");
     }
-    
+
     @Test
     @DisplayName("Should skip middle optionals when types don't match")
     void shouldSkipMiddleOptionalsWhenTypesDontMatch() {
@@ -87,9 +87,9 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("opt3")  // skipped
                 .hasArgument("required", "final");
     }
-    
+
     // === Mixed Required/Optional Tests ===
-    
+
     @Test
     @DisplayName("Should handle optional-required-optional pattern")
     void shouldHandleOptionalRequiredOptionalPattern() {
@@ -100,7 +100,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("required", "required-value")
                 .hasArgument("optional2", "opt2-value");
     }
-    
+
     @Test
     @DisplayName("Should prioritize required in mixed pattern")
     void shouldPrioritizeRequiredInMixedPattern() {
@@ -111,9 +111,9 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("required", "required-value")
                 .hasNullArgument("optional2");
     }
-    
+
     // === Type Routing Tests ===
-    
+
     @Test
     @DisplayName("Should route numeric input to correct optional parameter")
     void shouldRouteNumericInputCorrectly() {
@@ -124,7 +124,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("required", 7)
                 .hasArgument("optional2", 3.5);
     }
-    
+
     @Test
     @DisplayName("Should route string input to correct optional parameter")
     void shouldRouteStringInputCorrectly() {
@@ -135,13 +135,13 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("required", 999)
                 .hasNullArgument("optional2");
     }
-    
+
     // === Complex Nested Scenarios ===
     @Test
     @DisplayName("Should handle deep nesting with various input patterns")
     void shouldHandleDeepNestingWithVariousInputPatterns() {
         // /deep <str> [str] [int] <str> - complex pattern
-        
+
         // Scenario 1: String gets consumed by optional1 (string is generic)
         assertThat(execute("deep req1 8 end1"))
                 .isSuccessful()
@@ -149,7 +149,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("optional1", "8")    // string matches "8" (generic match)
                 .hasNullArgument("optional2")     // skipped since optional1 consumed the input
                 .hasArgument("required2", "end1");
-        
+
         // Scenario 2: All parameters filled optimally
         assertThat(execute("deep req1 opt1-a 7 end1"))
                 .isSuccessful()
@@ -157,7 +157,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("optional1", "opt1-a")
                 .hasArgument("optional2", 7)
                 .hasArgument("required2", "end1");
-        
+
         // Scenario 3: Insufficient inputs - optionals get defaults
         assertThat(execute("deep req1 end1"))
                 .isSuccessful()
@@ -165,7 +165,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("optional1")     // skipped due to obligation calculation
                 .hasNullArgument("optional2")     // skipped due to obligation calculation
                 .hasArgument("required2", "end1");
-        
+
         // Scenario 4: Only one extra input - string optional wins due to being first
         assertThat(execute("deep req1 hello end1"))
                 .isSuccessful()
@@ -173,7 +173,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("optional1", "hello")
                 .hasNullArgument("optional2")
                 .hasArgument("required2", "end1");
-        
+
         // Scenario 5: Numeric input but string still wins (strings are generic)
         assertThat(execute("deep req1 999 end1"))
                 .isSuccessful()
@@ -181,7 +181,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("optional1", "999")   // string consumes numeric input
                 .hasNullArgument("optional2")      // skipped
                 .hasArgument("required2", "end1");
-        
+
         // Scenario 6: Test with non-numeric string
         assertThat(execute("deep req1 text-value end1"))
                 .isSuccessful()
@@ -189,7 +189,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("optional1", "text-value")
                 .hasNullArgument("optional2")
                 .hasArgument("required2", "end1");
-        
+
         // Scenario 7: All parameters filled exactly (no extra inputs)
         assertThat(execute("deep req1 optional-text 42 final-value"))
                 .isSuccessful()
@@ -203,7 +203,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasFailed()
                 .hasFailedWith(InvalidSyntaxException.class);
     }
-    
+
     @Test
     @DisplayName("Should handle all parameters with perfect inputs")
     void shouldHandleAllParametersWithPerfectInputs() {
@@ -215,9 +215,9 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasArgument("optional2", 8)
                 .hasArgument("required2", "end1");
     }
-    
+
     // === Edge Cases ===
-    
+
     @Test
     @DisplayName("Should handle all optional parameters with no inputs")
     void shouldHandleAllOptionalsWithNoInputs() {
@@ -229,7 +229,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("doubleOpt")
                 .hasNullArgument("boolOpt");
     }
-    
+
     @Test
     @DisplayName("Should handle selective optional assignment")
     void shouldHandleSelectiveOptionalAssignment() {
@@ -241,9 +241,9 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("doubleOpt") // skipped due to type mismatch
                 .hasArgument("boolOpt", true);
     }
-    
+
     // === Stress Tests ===
-    
+
     @Test
     @DisplayName("Should handle complex branching scenario")
     void shouldHandleComplexBranchingScenario() {
@@ -255,7 +255,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("count")     // numeric routes to int optional
                 .hasArgument("destination", "end");
     }
-    
+
     @Test
     @DisplayName("Should handle maximum complexity scenario")
     void shouldHandleMaximumComplexityScenario() {
@@ -268,26 +268,26 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("optional2")
                 .hasArgument("required", "end");
     }
-    
+
     // === Configuration Toggle Tests ===
-    
+
     @Test
     @DisplayName("Should respect disabled middle optional skipping")
     void shouldRespectDisabledMiddleOptionalSkipping() {
-        
+
         // With strict positional order, should try to assign 999 to opt1 (string)
         // This might fail at runtime due to type mismatch
         assertThat(
                 execute(
                         MultipleOptionals.class,
-                        (cfg)-> cfg.setHandleExecutionConsecutiveOptionalArgumentsSkip(false),
+                        (cfg) -> cfg.setHandleExecutionConsecutiveOptionalArgumentsSkip(false),
                         "multopts 999 stop-point"
                 )
         ).isSuccessful().hasArgument("opt1", "999");
     }
-    
+
     // === Performance Edge Cases ===
-    
+
     @Test
     @DisplayName("Should handle insufficient inputs gracefully")
     void shouldHandleInsufficientInputsGracefully() {
@@ -295,7 +295,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
         assertThat(execute("empty val1"))
                 .hasFailed(); // Should fail due to missing required parameters
     }
-    
+
     @Test
     @DisplayName("Should optimize parameter distribution")
     void shouldOptimizeParameterDistribution() {
@@ -307,9 +307,9 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
                 .hasNullArgument("opt3")       // skipped
                 .hasArgument("required", "final");
     }
-    
+
     // === Type Compatibility Matrix Tests ===
-    
+
     @Test
     @DisplayName("Should handle numeric type priority correctly")
     void shouldHandleNumericTypePriorityCorrectly() {

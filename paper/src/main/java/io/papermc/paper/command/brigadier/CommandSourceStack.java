@@ -6,6 +6,7 @@ import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
 public interface CommandSourceStack {
+
     Location getLocation();
 
     CommandSender getSender();

@@ -11,8 +11,8 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.tests.TestSource;
 
 public final class CurrencyParamType extends BaseParameterType<TestSource, Currency> {
-    
-    
+
+
     @Override
     public Currency resolve(
             @NotNull ExecutionContext<TestSource> context,
@@ -20,28 +20,28 @@ public final class CurrencyParamType extends BaseParameterType<TestSource, Curre
             @NotNull String input
     ) throws CommandException {
         Currency currency = CurrencyManager.getInstance().getCurrencyByName(input.toLowerCase());
-        if(currency == null) {
+        if (currency == null) {
             throw new InvalidCurrencyException(input);
         }
         return currency;
     }
-    
+
     @Override
     public boolean matchesInput(int rawPosition, Context<TestSource> context, CommandParameter<TestSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
         }
-        
+
         return CurrencyManager.getInstance().getCurrencyByName(input.toLowerCase()) != null;
     }
-    
+
     @Override
     public SuggestionResolver<TestSource> getSuggestionResolver() {
-        return (ctx, parameter)->
-                CurrencyManager.getInstance().getAllCurrencies()
-                .stream()
-                .map(Currency::getName)
-                .toList();
+        return (ctx, parameter) ->
+                       CurrencyManager.getInstance().getAllCurrencies()
+                               .stream()
+                               .map(Currency::getName)
+                               .toList();
     }
 }

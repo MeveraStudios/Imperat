@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.PARAMETER})
 @ApiStatus.AvailableSince("1.9.0")
 public @interface ContextResolved {
+
 }

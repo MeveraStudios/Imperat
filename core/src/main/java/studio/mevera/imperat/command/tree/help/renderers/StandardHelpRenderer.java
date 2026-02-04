@@ -25,7 +25,7 @@ import java.util.Set;
  * @param <C> the component type
  */
 public final class StandardHelpRenderer<S extends Source, C> implements HelpLayoutRenderer<S, C> {
-    
+
     @Override
     public void render(
             @NotNull ExecutionContext<S> context,
@@ -38,7 +38,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             renderFlat(context, helpEntries, theme);
         }
     }
-    
+
     /**
      * Renders help entries in a flat list format.
      */
@@ -48,7 +48,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             @NotNull HelpTheme<S, C> theme
     ) {
         S source = context.source();
-        
+
         for (HelpEntry<S> entry : helpEntries) {
             HelpComponent<S, C> component = theme.getUsageFormatter().format(
                     context.command(),
@@ -56,11 +56,11 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
                     context,
                     theme
             );
-            
+
             component.send(source);
         }
     }
-    
+
     /**
      * Renders help entries in a tree structure format.
      * Uses parameter.position() and parameter.isCommand() to build hierarchy efficiently.
@@ -70,20 +70,22 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             @NotNull HelpEntryList<S> helpEntries,
             @NotNull HelpTheme<S, C> theme
     ) {
-        if (helpEntries.isEmpty()) return;
-        
+        if (helpEntries.isEmpty()) {
+            return;
+        }
+
         // Sort entries by their subcommand paths
         List<HelpEntry<S>> sortedEntries = sortBySubcommandPath(helpEntries);
-        
+
         // Track rendered subcommand paths to avoid duplicates
         Set<String> renderedPaths = new HashSet<>();
-        
+
         // Render each entry's subcommand hierarchy
         for (HelpEntry<S> entry : sortedEntries) {
             renderSubcommandHierarchy(context, entry, sortedEntries, theme, renderedPaths);
         }
     }
-    
+
     /**
      * Renders the subcommand hierarchy for a single entry using parameter positions.
      */
@@ -96,34 +98,34 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
     ) {
         CommandUsage<S> usage = entry.getPathway();
         S source = context.source();
-        
+
         // Get all subcommand positions from this usage
         List<Integer> subcommandPositions = getSubcommandPositions(usage);
-        
+
         // Render each subcommand level
         for (int pos : subcommandPositions) {
             var parameter = usage.getParameter(pos);
-            
+
             String pathUpToPos = buildSubcommandPath(usage, pos);
-            
+
             if (!renderedPaths.contains(pathUpToPos)) {
                 renderedPaths.add(pathUpToPos);
-                
+
                 boolean isLastSubcommand = (pos == subcommandPositions.get(subcommandPositions.size() - 1));
                 boolean hasChildSubcommands = hasChildSubcommands(allEntries, usage, pos);
-                
+
                 // Build tree prefix using position
                 HelpComponent<S, C> prefix = buildPrefixForPosition(allEntries, entry, pos, theme);
-                
+
                 // Add branch symbol
                 boolean isLastSibling = isLastSiblingAtPosition(allEntries, entry, pos);
                 if (pos > 0) {
                     HelpComponent<S, C> branch = theme.getTreeBranch(isLastSibling);
                     prefix = prefix.append(branch);
                 }
-                
+
                 HelpComponent<S, C> line = prefix;
-                
+
                 if (isLastSubcommand && !hasChildSubcommands) {
                     // Final subcommand - show complete formatted usage (including arguments)
                     HelpComponent<S, C> formatted = theme.getUsageFormatter().format(
@@ -138,12 +140,12 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
                     assert parameter != null;
                     line = line.appendParameterFormat(parameter);
                 }
-                
+
                 line.send(source);
             }
         }
     }
-    
+
     /**
      * Gets all subcommand positions from a usage, sorted by position.
      */
@@ -159,35 +161,37 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
         Collections.sort(positions);
         return positions;
     }
-    
+
     /**
      * Builds subcommand path up to the specified position.
      */
     private String buildSubcommandPath(CommandUsage<S> usage, int upToPosition) {
         StringBuilder path = new StringBuilder();
         boolean first = true;
-        
+
         for (int i = 0; i < usage.size(); i++) {
             var parameter = usage.getParameter(i);
             assert parameter != null;
             if (parameter.isCommand() && parameter.position() <= upToPosition) {
-                if (!first) path.append("/");
+                if (!first) {
+                    path.append("/");
+                }
                 path.append(parameter.name());
                 first = false;
             }
         }
         return path.toString();
     }
-    
+
     /**
      * Checks if a subcommand at the given position has child subcommands.
      */
     private boolean hasChildSubcommands(List<HelpEntry<S>> allEntries, CommandUsage<S> currentUsage, int position) {
         String currentPath = buildSubcommandPath(currentUsage, position);
-        
+
         for (HelpEntry<S> otherEntry : allEntries) {
             CommandUsage<S> otherUsage = otherEntry.getPathway();
-            
+
             // Look for entries that extend our path with more subcommands
             for (int i = 0; i < otherUsage.size(); i++) {
                 var parameter = otherUsage.getParameter(i);
@@ -202,19 +206,19 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
         }
         return false;
     }
-    
+
     /**
      * Determines if this entry is the last sibling at the given position.
      */
     private boolean isLastSiblingAtPosition(List<HelpEntry<S>> allEntries, HelpEntry<S> currentEntry, int position) {
         CommandUsage<S> currentUsage = currentEntry.getPathway();
         var currentParameter = currentUsage.getParameter(position);
-        
+
         if (position == 0) {
             // Check if this is the last root-level subcommand
             assert currentParameter != null;
             String currentSubcommand = currentParameter.name();
-            
+
             for (HelpEntry<S> otherEntry : allEntries) {
                 CommandUsage<S> otherUsage = otherEntry.getPathway();
                 for (int i = 0; i < otherUsage.size(); i++) {
@@ -234,7 +238,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             String parentPath = buildSubcommandPath(currentUsage, position - 1);
             assert currentParameter != null;
             String currentSubcommand = currentParameter.name();
-            
+
             for (HelpEntry<S> otherEntry : allEntries) {
                 CommandUsage<S> otherUsage = otherEntry.getPathway();
                 for (int i = 0; i < otherUsage.size(); i++) {
@@ -254,7 +258,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             return true;
         }
     }
-    
+
     /**
      * Builds the tree prefix (indentation) for a given position.
      */
@@ -267,19 +271,19 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
         if (targetPosition <= 0) {
             return theme.createEmptyComponent();
         }
-        
+
         HelpComponent<S, C> prefix = theme.createEmptyComponent();
-        
+
         // Build indentation for each parent position
         for (int pos = 0; pos < targetPosition; pos++) {
             boolean hasMoreSiblings = !isLastSiblingAtPosition(allEntries, currentEntry, pos);
             HelpComponent<S, C> indent = theme.getTreeIndent(hasMoreSiblings);
             prefix = prefix.append(indent);
         }
-        
+
         return prefix;
     }
-    
+
     /**
      * Sorts help entries by their subcommand paths for proper hierarchy rendering.
      */
@@ -288,21 +292,21 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
         for (HelpEntry<S> entry : entries) {
             sorted.add(entry);
         }
-        
+
         sorted.sort((a, b) -> {
             CommandUsage<S> pathA = a.getPathway();
             CommandUsage<S> pathB = b.getPathway();
-            
+
             // Get subcommand positions for comparison
             List<Integer> positionsA = getSubcommandPositions(pathA);
             List<Integer> positionsB = getSubcommandPositions(pathB);
-            
+
             // Compare subcommands by their positions
             int minPositions = Math.min(positionsA.size(), positionsB.size());
             for (int i = 0; i < minPositions; i++) {
                 int posA = positionsA.get(i);
                 int posB = positionsB.get(i);
-                
+
                 String commandA = Objects.requireNonNull(pathA.getParameter(posA)).name();
                 String commandB = Objects.requireNonNull(pathB.getParameter(posB)).name();
                 int cmp = commandA.compareTo(commandB);
@@ -310,12 +314,12 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
                     return cmp;
                 }
             }
-            
+
             // Shorter subcommand paths come first
             return Integer.compare(positionsA.size(), positionsB.size());
         });
-        
+
         return sorted;
     }
-    
+
 }

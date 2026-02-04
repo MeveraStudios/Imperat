@@ -14,7 +14,7 @@ import studio.mevera.imperat.exception.ThrowableResolver;
  * @param <S> The valueType extending {@link Source} that acts as the source of a command.
  */
 public sealed interface ThrowableHandler<S extends Source> permits BaseThrowableHandler {
-    
+
     /**
      * Registers a {@link ThrowableResolver} for a specific exception type and returns
      * the registered resolver instance. This method allows for fluent configuration
@@ -68,8 +68,8 @@ public sealed interface ThrowableHandler<S extends Source> permits BaseThrowable
             final Class<T> exception,
             final ThrowableResolver<T, S> resolver
     );
-    
-    
+
+
     /**
      * Retrieves the {@link ThrowableResolver} responsible for handling the specified valueType
      * of throwable. If no specific resolver is found, it may return null or a default resolver.
@@ -94,10 +94,10 @@ public sealed interface ThrowableHandler<S extends Source> permits BaseThrowable
      * @return Whether the error got handled or not
      */
     <E extends Throwable> boolean handleExecutionThrowable(
-        final E throwable,
-        final Context<S> context,
-        final Class<?> owning,
-        final String methodName
+            final E throwable,
+            final Context<S> context,
+            final Class<?> owning,
+            final String methodName
     );
 
 }

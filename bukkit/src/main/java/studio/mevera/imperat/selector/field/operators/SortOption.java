@@ -12,7 +12,7 @@ public enum SortOption {
     NEAREST(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(e.getLocation()))),
 
     FURTHEST((e1, e2) ->
-        Double.compare(e2.getLocation().distanceSquared(e2.getLocation()), e1.getLocation().distanceSquared(e1.getLocation()))),
+                     Double.compare(e2.getLocation().distanceSquared(e2.getLocation()), e1.getLocation().distanceSquared(e1.getLocation()))),
 
     RANDOM(Comparator.comparing(e -> Math.random())) /*not sure if it works*/,
 
@@ -27,7 +27,9 @@ public enum SortOption {
     }
 
     void sort(List<Entity> entities) {
-        if (entities.isEmpty()) return;
+        if (entities.isEmpty()) {
+            return;
+        }
         if (this == RANDOM) {
             Collections.shuffle(entities, RANDOM_GENERATOR);
             return;

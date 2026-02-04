@@ -32,7 +32,7 @@ import studio.mevera.imperat.context.Source;
  */
 @FunctionalInterface
 public interface ThrowableResolver<E extends Throwable, S extends Source> {
-    
+
     /**
      * Resolves the given exception within the provided execution context.
      * This method is called when an exception of type {@code E} occurs during
@@ -61,5 +61,5 @@ public interface ThrowableResolver<E extends Throwable, S extends Source> {
      * @see Context#command()
      */
     void resolve(final E exception, Context<S> context);
-    
+
 }

@@ -11,6 +11,7 @@ public class TestCustomAnnotationCmd {
     public void def(TestSource source) {
         source.reply("DEF");
     }
+
     @SubCommand("teto")
     interface Teto {
 

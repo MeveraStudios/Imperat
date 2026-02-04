@@ -18,10 +18,11 @@ import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 public final class BukkitUtil {
-    
+
     public final static Pattern PLAYER_USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9_]{3,16}$");
     public final static Pattern SPLIT_LINE = Pattern.compile(" ", Pattern.LITERAL);
-    public final static FieldAccessor<SimpleCommandMap> COMMAND_MAP_ACCESSOR = Reflections.getField(Bukkit.getServer().getClass(), SimpleCommandMap.class);
+    public final static FieldAccessor<SimpleCommandMap> COMMAND_MAP_ACCESSOR =
+            Reflections.getField(Bukkit.getServer().getClass(), SimpleCommandMap.class);
     public static CommandMap COMMAND_MAP;
     public static @Nullable Field KNOWN_COMMANDS;
 
@@ -30,14 +31,14 @@ public final class BukkitUtil {
             loadBukkitFieldMappings();
         } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
             ImperatDebugger.error(BukkitImperat.class, "static-init",
-                e, "Failed to fetch bukkit command-map, disabling plugin");
+                    e, "Failed to fetch bukkit command-map, disabling plugin");
         }
     }
 
     private BukkitUtil() {
     }
 
-    private static void loadBukkitFieldMappings() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException  {
+    private static void loadBukkitFieldMappings() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         COMMAND_MAP = COMMAND_MAP_ACCESSOR.get(Bukkit.getServer());
         updateCommandActualMap();
     }
@@ -55,7 +56,33 @@ public final class BukkitUtil {
         }
     }
 
+    public static <T> Set<T> mergedSet(Set<T> set1, Set<T> set2, Supplier<Set<T>> supplier) {
+        Set<T> merged = supplier.get();
+        merged.addAll(set1);
+        merged.addAll(set2);
+        return merged;
+    }
+
+    @ApiStatus.Experimental
+    public static Command<BukkitSource> convertBukkitCmdToImperatCmd(Imperat<BukkitSource> imperat, org.bukkit.command.Command bukkitCmd) {
+        return Command.create(imperat, bukkitCmd.getName())
+                       .aliases(bukkitCmd.getAliases())
+                       .description(bukkitCmd.getDescription())
+                       .permission(bukkitCmd.getPermission())
+                       //TODO add forced syntax format
+                       .usage(CommandUsage.<BukkitSource>builder()
+                                      .parameters(CommandParameter.requiredGreedy("args"))
+                                      .execute((source, context) -> {
+                                          String argsOneLine = context.getArgument("args");
+                                          String[] args = SPLIT_LINE.split(argsOneLine);
+                                          bukkitCmd.execute(source.origin(), context.label(), args);
+                                      })
+                       )
+                       .build();
+    }
+
     public static final class ClassesRefUtil {
+
         private static final String SERVER_VERSION = getServerVersion();
 
         private ClassesRefUtil() {
@@ -99,30 +126,5 @@ public final class BukkitUtil {
             return Class.forName(obc(className));
         }
 
-    }
-
-    public static <T> Set<T> mergedSet(Set<T> set1, Set<T> set2, Supplier<Set<T>> supplier) {
-        Set<T> merged = supplier.get();
-        merged.addAll(set1);
-        merged.addAll(set2);
-        return merged;
-    }
-
-    @ApiStatus.Experimental
-    public static Command<BukkitSource> convertBukkitCmdToImperatCmd(Imperat<BukkitSource> imperat, org.bukkit.command.Command bukkitCmd) {
-        return Command.create(imperat, bukkitCmd.getName())
-                .aliases(bukkitCmd.getAliases())
-                .description(bukkitCmd.getDescription())
-                .permission(bukkitCmd.getPermission())
-                //TODO add forced syntax format
-                .usage(CommandUsage.<BukkitSource>builder()
-                        .parameters(CommandParameter.requiredGreedy("args"))
-                        .execute((source, context)-> {
-                            String argsOneLine = context.getArgument("args");
-                            String[] args = SPLIT_LINE.split(argsOneLine);
-                            bukkitCmd.execute(source.origin(), context.label(), args);
-                        })
-                )
-                .build();
     }
 }

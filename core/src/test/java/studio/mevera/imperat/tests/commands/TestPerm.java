@@ -9,15 +9,15 @@ import studio.mevera.imperat.tests.TestSource;
 @Command("testperm")
 @Permission("testperm.use")
 public class TestPerm {
-    
+
     @Usage
     public void def(TestSource source) {
         source.reply("DEFAULT-EXE");
     }
-    
+
     @Usage
     public void mainUsage(TestSource source, @Permission("testperm.a.use") String a, String b, @Default("1") Integer c) {
-        source.reply("a=" + a +", b=" + b + ", c=" + c);
+        source.reply("a=" + a + ", b=" + b + ", c=" + c);
     }
-    
+
 }

@@ -30,12 +30,12 @@ interface PredicateFields {
 
 
     Set<PredicateField<?>> ALL_PREDICATES = Set.of(
-        NAME,
-        TYPE,
-        LEVEL,
-        DISTANCE,
-        GAMEMODE,
-        TAG
+            NAME,
+            TYPE,
+            LEVEL,
+            DISTANCE,
+            GAMEMODE,
+            TAG
     );
     //TODO add more
 

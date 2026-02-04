@@ -84,8 +84,8 @@ final class LegacyPaperCommodore extends AbstractCommodore implements Listener {
                 this.commands.add(new CommodoreCommand(node, permissionTest));
             } else {
                 LiteralCommandNode<Object> redirectNode = LiteralArgumentBuilder.literal(alias)
-                        .redirect((LiteralCommandNode<Object>) node)
-                        .build();
+                                                                  .redirect((LiteralCommandNode<Object>) node)
+                                                                  .build();
                 this.commands.add(new CommodoreCommand(redirectNode, permissionTest));
             }
         }

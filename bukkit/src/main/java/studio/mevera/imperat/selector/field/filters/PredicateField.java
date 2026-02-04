@@ -42,7 +42,8 @@ public abstract class PredicateField<V> extends AbstractField<V> implements Pred
     @NotNull
     protected abstract EntityCondition getCondition(V value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context);
 
-    public final boolean isApplicable(BukkitSource sender, Entity entity, V value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> ctx) throws
+    public final boolean isApplicable(BukkitSource sender, Entity entity, V value, CommandInputStream<BukkitSource> commandInputStream,
+            Context<BukkitSource> ctx) throws
             CommandException {
         EntityCondition condition = getCondition(value, commandInputStream, ctx);
         return condition.test(sender, entity);

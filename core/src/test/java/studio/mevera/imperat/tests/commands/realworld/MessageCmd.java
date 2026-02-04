@@ -13,10 +13,10 @@ public class MessageCmd {
 
     @Usage
     public void exec(@NotNull TestSource sender,
-                     @Named("target") @NotNull String target,
-                     @Named("message") @Suggest({"this is a long greedy", "some sentence", "idk"}) @Greedy String message) {
+            @Named("target") @NotNull String target,
+            @Named("message") @Suggest({"this is a long greedy", "some sentence", "idk"}) @Greedy String message) {
         sender.reply("sending to '" + target +
-            "' the message '" + message + "'");
+                             "' the message '" + message + "'");
     }
 
 }

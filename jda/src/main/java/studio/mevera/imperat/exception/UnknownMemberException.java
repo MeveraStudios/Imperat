@@ -1,6 +1,7 @@
 package studio.mevera.imperat.exception;
 
 public class UnknownMemberException extends CommandException {
+
     private final String identifier;
 
     public UnknownMemberException(String identifier) {

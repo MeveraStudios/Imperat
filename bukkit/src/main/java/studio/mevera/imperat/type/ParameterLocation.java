@@ -33,7 +33,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
     }
 
     @Override
-    public @Nullable Location resolve(@NotNull ExecutionContext<BukkitSource> context, @NotNull CommandInputStream<BukkitSource> stream, @NotNull String input) throws
+    public @Nullable Location resolve(@NotNull ExecutionContext<BukkitSource> context, @NotNull CommandInputStream<BukkitSource> stream,
+            @NotNull String input) throws
             CommandException {
         try {
             String currentRaw = stream.currentRaw().orElseThrow();
@@ -55,7 +56,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                 world = context.source().asPlayer().getWorld();
             }
 
-            ParameterType<BukkitSource, Double> doubleParser = (ParameterType<BukkitSource, Double>) context.imperatConfig().getParameterType(Double.class);
+            ParameterType<BukkitSource, Double> doubleParser =
+                    (ParameterType<BukkitSource, Double>) context.imperatConfig().getParameterType(Double.class);
             if (doubleParser == null) {
                 throw new IllegalArgumentException("Failed to find a parser for type '" + Double.class.getTypeName() + "'");
             }
@@ -69,13 +71,15 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
             Double x;
             if (inputX.equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, inputX, null, null, null, null, context);
+                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, inputX, null,
+                            null, null, null, context);
                 }
                 x = playerLocation.getX();
             } else {
                 x = doubleParser.resolve(context, stream, inputX);
                 if (x == null) {
-                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_X_COORDINATE, inputX, null, null, null, null, context);
+                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_X_COORDINATE, inputX, null, null,
+                            null, null, context);
                 }
             }
             stream.skipRaw();
@@ -84,13 +88,15 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
             Double y;
             if (inputY.equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, inputY, null, null, null, context);
+                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, inputY,
+                            null, null, null, context);
                 }
                 y = playerLocation.getY();
             } else {
                 y = doubleParser.resolve(context, stream, inputY);
                 if (y == null) {
-                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_Y_COORDINATE, null, inputY, null, null, null, context);
+                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_Y_COORDINATE, null, inputY, null,
+                            null, null, context);
                 }
             }
             stream.skipRaw();
@@ -99,13 +105,15 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
             Double z;
             if (inputZ.equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, inputZ, null, null, context);
+                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null,
+                            inputZ, null, null, context);
                 }
                 z = playerLocation.getZ();
             } else {
                 z = doubleParser.resolve(context, stream, inputZ);
                 if (z == null) {
-                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_Z_COORDINATE, null, null, inputZ, null, null, context);
+                    throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_Z_COORDINATE, null, null, inputZ,
+                            null, null, context);
                 }
             }
 
@@ -121,13 +129,15 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                 String inputYaw = stream.readInput();
                 if (inputYaw.equals(SELF_LOCATION_SYMBOL)) {
                     if (playerLocation == null) {
-                        throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, null, null, inputYaw, context);
+                        throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null,
+                                null, null, inputYaw, context);
                     }
                     yaw = playerLocation.getYaw();
                 } else {
                     Double yawDouble = doubleParser.resolve(context, stream, inputYaw);
                     if (yawDouble == null) {
-                        throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_YAW_COORDINATE, null, null, null, null, inputYaw, context);
+                        throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_YAW_COORDINATE, null, null,
+                                null, null, inputYaw, context);
                     }
                     yaw = (float) yawDouble.doubleValue();
                 }
@@ -137,13 +147,15 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
                     String inputPitch = stream.readInput();
                     if (inputPitch.equals(SELF_LOCATION_SYMBOL)) {
                         if (playerLocation == null) {
-                            throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, null, inputPitch, null, context);
+                            throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null,
+                                    null, null, inputPitch, null, context);
                         }
                         pitch = playerLocation.getPitch();
                     } else {
                         Double pitchDouble = doubleParser.resolve(context, stream, inputPitch);
                         if (pitchDouble == null) {
-                            throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_PITCH_COORDINATE, null, null, null, inputPitch, null, context);
+                            throw new InvalidLocationFormatException(input, InvalidLocationFormatException.Reason.INVALID_PITCH_COORDINATE, null,
+                                    null, null, inputPitch, null, context);
                         }
                         pitch = (float) pitchDouble.doubleValue();
                     }
@@ -174,7 +186,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
         double x;
         if (split[1].equals(SELF_LOCATION_SYMBOL)) {
             if (playerLocation == null) {
-                throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, split[1], null, null, null, null, context);
+                throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, split[1],
+                        null, null, null, null, context);
             }
             x = playerLocation.getX();
         } else {
@@ -184,7 +197,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
         double y;
         if (split[2].equals(SELF_LOCATION_SYMBOL)) {
             if (playerLocation == null) {
-                throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, split[2], null, null, null, context);
+                throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null,
+                        split[2], null, null, null, context);
             }
             y = playerLocation.getY();
         } else {
@@ -194,7 +208,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
         double z;
         if (split[3].equals(SELF_LOCATION_SYMBOL)) {
             if (playerLocation == null) {
-                throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, split[3], null, null, context);
+                throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null,
+                        split[3], null, null, context);
             }
             z = playerLocation.getZ();
         } else {
@@ -207,7 +222,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
         if (split.length > 4) {
             if (split[4].equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, null, null, split[4], context);
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null,
+                            null, null, null, split[4], context);
                 }
                 yaw = playerLocation.getYaw();
             } else {
@@ -218,7 +234,8 @@ public class ParameterLocation extends BaseParameterType<BukkitSource, Location>
         if (split.length > 5) {
             if (split[5].equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null, null, split[5], null, context);
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null,
+                            null, null, split[5], null, context);
                 }
                 pitch = playerLocation.getPitch();
             } else {

@@ -16,7 +16,7 @@ import studio.mevera.imperat.context.Source;
  */
 @FunctionalInterface
 public interface HelpFilter<S extends Source> {
-    
+
     /**
      * Determines whether a node should be included in help results.
      *
@@ -25,7 +25,7 @@ public interface HelpFilter<S extends Source> {
      *         {@code false} if it should be excluded
      */
     boolean filter(ParameterNode<S, ?> node);
-    
+
     /**
      * Creates a composite filter that requires both this and another filter to pass.
      *
@@ -35,7 +35,7 @@ public interface HelpFilter<S extends Source> {
     default HelpFilter<S> and(HelpFilter<S> other) {
         return node -> this.filter(node) && other.filter(node);
     }
-    
+
     /**
      * Creates a composite filter that passes if either this or another filter passes.
      *
@@ -45,7 +45,7 @@ public interface HelpFilter<S extends Source> {
     default HelpFilter<S> or(HelpFilter<S> other) {
         return node -> this.filter(node) || other.filter(node);
     }
-    
+
     /**
      * Creates a filter that inverts this filter's result.
      *

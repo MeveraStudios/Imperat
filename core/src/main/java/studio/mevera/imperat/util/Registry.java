@@ -49,8 +49,9 @@ public class Registry<K, V> {
 
     public Optional<V> search(BiPredicate<K, V> predicate) {
         for (Map.Entry<K, V> entry : data.entrySet()) {
-            if (predicate.test(entry.getKey(), entry.getValue()))
+            if (predicate.test(entry.getKey(), entry.getValue())) {
                 return Optional.ofNullable(entry.getValue());
+            }
         }
         return Optional.empty();
     }
@@ -94,8 +95,12 @@ public class Registry<K, V> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Registry<?, ?> registry)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Registry<?, ?> registry)) {
+            return false;
+        }
         return Objects.equals(data, registry.data);
     }
 

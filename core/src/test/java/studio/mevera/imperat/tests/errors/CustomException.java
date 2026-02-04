@@ -6,6 +6,6 @@ public class CustomException extends CommandException {
 
     public CustomException() {
         super();
-        
+
     }
 }

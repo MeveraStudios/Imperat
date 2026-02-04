@@ -11,10 +11,9 @@ public sealed interface ParameterHandler<S extends Source>
         permits EmptyInputHandler,
                         OptionalParameterHandler,
                         RequiredParameterHandler,
-                        SubCommandHandler
-{
+                        SubCommandHandler {
 
 
     @NotNull HandleResult handle(ExecutionContext<S> context, CommandInputStream<S> stream) throws CommandException;
-    
+
 }

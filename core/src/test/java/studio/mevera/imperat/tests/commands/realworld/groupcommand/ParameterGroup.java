@@ -13,6 +13,7 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.tests.TestSource;
 
 public final class ParameterGroup extends BaseParameterType<TestSource, Group> {
+
     private final GroupSuggestionResolver suggestionResolver = new GroupSuggestionResolver();
 
     public ParameterGroup() {
@@ -30,12 +31,12 @@ public final class ParameterGroup extends BaseParameterType<TestSource, Group> {
             return null;
         }
         return GroupRegistry.getInstance().getData(raw)
-            .orElseThrow(() -> new SourceException("Unknown group '%s'", raw));
+                       .orElseThrow(() -> new SourceException("Unknown group '%s'", raw));
     }
 
     @Override
     public boolean matchesInput(int rawPosition, Context<TestSource> context, CommandParameter<TestSource> parameter) {
-        String raw =context.arguments().getOr(rawPosition, null);
+        String raw = context.arguments().getOr(rawPosition, null);
         if (raw == null) {
             return false;
         }

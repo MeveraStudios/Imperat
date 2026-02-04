@@ -48,14 +48,14 @@ import java.util.Optional;
 @ApiStatus.AvailableSince("1.0.0")
 @ContextResolved
 public interface ExecutionContext<S extends Source> extends Context<S> {
-    
+
     /**
      * Fetches the command path search instance used to resolve the command execution path.
      * This provides access to the full command hierarchy leading to the executed command.
      * @return the command path search instance
      */
     @NotNull CommandPathSearch<S> getPathwaySearch();
-    
+
     /**
      * Retrieves a flag by its name if it was provided in the command input.
      *
@@ -63,7 +63,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return an {@link Optional} containing the flag if present, empty otherwise
      */
     Optional<ExtractedFlagArgument> getFlag(String flagName);
-    
+
     /**
      * Gets the resolved value of a command flag.
      *
@@ -78,7 +78,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      */
     @Nullable
     <T> T getFlagValue(String flagName);
-    
+
     /**
      * Gets a resolved command argument by its parameter name.
      *
@@ -88,7 +88,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @see Argument
      */
     <T> @Nullable T getArgument(String name);
-    
+
     /**
      * Gets a resolved argument or returns a default value if not present.
      *
@@ -99,10 +99,12 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      */
     default <T> @NotNull T getArgumentOr(String name, T value) {
         final T argValue = getArgument(name);
-        if (argValue != null) return argValue;
+        if (argValue != null) {
+            return argValue;
+        }
         return value;
     }
-    
+
     /**
      * Gets the raw string input for an argument by its position.
      *
@@ -110,10 +112,12 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return the raw argument string, or {@code null} if index is out of bounds
      */
     default String getRawArgument(int index) {
-        if (index >= arguments().size() || index < 0) return null;
+        if (index >= arguments().size() || index < 0) {
+            return null;
+        }
         return arguments().get(index);
     }
-    
+
     /**
      * Resolves the command source into a different type using the configured source resolver.
      *
@@ -124,7 +128,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @see ImperatConfig#getSourceResolver(Type) (Type)
      */
     <R> @NotNull R getResolvedSource(Type type) throws CommandException;
-    
+
     /**
      * Gets an argument resolved by the context resolver system.
      *
@@ -135,14 +139,14 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @see ContextResolver
      */
     <T> @Nullable T getContextResolvedArgument(Class<T> type) throws CommandException;
-    
+
     /**
      * Gets all flags that were resolved from the command input.
      *
      * @return a collection of resolved flags
      */
     Collection<? extends ExtractedFlagArgument> getResolvedFlags();
-    
+
     /**
      * Resolves and registers a command argument.
      *
@@ -161,7 +165,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
             CommandParameter<S> parameter,
             @Nullable T value
     ) throws CommandException;
-    
+
     /**
      * Resolves and registers a command argument.
      *
@@ -175,15 +179,15 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
             @Nullable T value
     ) throws CommandException {
         resolveArgument(
-            getLastUsedCommand(),
-            stream.currentRawIfPresent(),
-            stream.currentRawPosition(),
-            stream.currentParameterIfPresent(),
-            value
+                getLastUsedCommand(),
+                stream.currentRawIfPresent(),
+                stream.currentRawPosition(),
+                stream.currentParameterIfPresent(),
+                value
         );
     }
-    
-    
+
+
     /**
      * Resolves a command flag from its raw components.
      *
@@ -202,35 +206,35 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
                 new ExtractedFlagArgument(flagDetected, flagRaw, flagInputRaw, flagInputValue)
         );
     }
-    
+
     /**
      * Registers a resolved flag in the context.
      *
      * @param flag the resolved flag to register
      */
     void resolveFlag(ExtractedFlagArgument flag);
-    
+
     /**
      * Gets the most specific command that was resolved in this context.
      *
      * @return the terminal command that will be executed
      */
     Command<S> getLastUsedCommand();
-    
+
     /**
      * Gets the command usage pattern that matched the input.
      *
      * @return the detected command usage
      */
     CommandUsage<S> getDetectedUsage();
-    
+
     /**
      * Resolves all arguments and flags from the raw context input.
      *
      * @throws CommandException if resolution fails
      */
     void resolve() throws CommandException;
-    
+
     /**
      * Gets a resolved argument by its owning command and parameter name.
      *
@@ -240,7 +244,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      */
     @Nullable
     Argument<S> getResolvedArgument(Command<S> command, String name);
-    
+
     /**
      * Gets all resolved arguments for a specific command.
      *
@@ -248,7 +252,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return a list of resolved arguments in declaration order
      */
     List<Argument<S>> getResolvedArguments(Command<S> command);
-    
+
     /**
      * Gets all commands in the resolution path.
      *
@@ -256,7 +260,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      */
     @NotNull
     Iterable<? extends Command<S>> getCommandsUsed();
-    
+
     /**
      * Gets all resolved arguments in input order.
      *
@@ -264,7 +268,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @note Flags are not included in this collection
      */
     Collection<? extends Argument<S>> getResolvedArguments();
-    
+
     /**
      * Checks if a flag parameter was resolved in this context.
      *
@@ -272,12 +276,12 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return {@code true} if the flag was provided and resolved
      */
     default boolean hasResolvedFlag(CommandParameter<S> currentParameter) {
-        if(!currentParameter.isFlag()) {
+        if (!currentParameter.isFlag()) {
             return false;
         }
         return hasResolvedFlag(currentParameter.asFlagParameter().flagData());
     }
-    
+
     /**
      * Checks if a flag was resolved in this context.
      *
@@ -285,7 +289,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return {@code true} if the flag was provided and resolved
      */
     boolean hasResolvedFlag(FlagData<S> flagData);
-    
+
     /**
      * Debugs the current resolved arguments cached/mapped.<br>
      * This requires {@link ImperatDebugger} to be enabled.<br>

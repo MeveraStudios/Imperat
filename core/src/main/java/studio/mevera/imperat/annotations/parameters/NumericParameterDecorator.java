@@ -16,10 +16,10 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
 
     NumericParameterDecorator(CommandParameter<S> parameter, NumericRange range) {
         super(
-            parameter.name(), parameter.type(), parameter.getSinglePermission(),
-            parameter.description(), parameter.isOptional(), parameter.isFlag(),
-            parameter.isFlag(), parameter.getDefaultValueSupplier(),
-            loadSuggestionResolver(parameter, range)
+                parameter.name(), parameter.type(), parameter.getSinglePermission(),
+                parameter.description(), parameter.isOptional(), parameter.isFlag(),
+                parameter.isFlag(), parameter.getDefaultValueSupplier(),
+                loadSuggestionResolver(parameter, range)
         );
         this.parameter = parameter;
         this.range = range;
@@ -28,6 +28,23 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
 
     public static <S extends Source> NumericParameterDecorator<S> decorate(@NotNull CommandParameter<S> parameter, @NotNull NumericRange range) {
         return new NumericParameterDecorator<>(parameter, range);
+    }
+
+    private static <S extends Source> SuggestionResolver<S> loadSuggestionResolver(CommandParameter<S> parameter, NumericRange range) {
+        var def = parameter.getSuggestionResolver();
+        if (parameter.getSuggestionResolver() != null || (range.getMin() == Double.MIN_VALUE && range.getMax() == Double.MAX_VALUE)) {
+            return def;
+        }
+
+        String suggestion;
+        if (range.getMin() != Double.MIN_VALUE && range.getMax() == Double.MAX_VALUE) {
+            suggestion = range.getMin() + "";
+        } else if (range.getMin() == Double.MIN_VALUE) {
+            suggestion = range.getMax() + "";
+        } else {
+            suggestion = range.getMin() + "-" + range.getMax();
+        }
+        return SuggestionResolver.staticSuggestions(suggestion);
     }
 
     /**
@@ -50,24 +67,6 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
         return range;
     }
 
-    private static <S extends Source> SuggestionResolver<S> loadSuggestionResolver(CommandParameter<S> parameter, NumericRange range) {
-        var def = parameter.getSuggestionResolver();
-        if(parameter.getSuggestionResolver() != null|| (range.getMin() == Double.MIN_VALUE && range.getMax() == Double.MAX_VALUE)) {
-            return def;
-        }
-
-        String suggestion;
-        if(range.getMin() != Double.MIN_VALUE && range.getMax() == Double.MAX_VALUE) {
-            suggestion = range.getMin() + "";
-        }
-        else if(range.getMin() == Double.MIN_VALUE) {
-            suggestion = range.getMax() + "";
-        }else {
-            suggestion = range.getMin() + "-" + range.getMax();
-        }
-        return SuggestionResolver.staticSuggestions(suggestion);
-    }
-
     /**
      * Creates a copy of this parameter with a different position.
      * Useful for commands that have multiple syntaxes.
@@ -79,8 +78,8 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
     public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
         CommandParameter<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
         return new NumericParameterDecorator<>(
-            copiedParameter,
-            this.range
+                copiedParameter,
+                this.range
         );
     }
 

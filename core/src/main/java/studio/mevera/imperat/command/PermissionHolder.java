@@ -23,7 +23,7 @@ public interface PermissionHolder {
      * @param permission the permission string to add, can be {@code null}.
      */
     void addPermission(String permission);
-    
+
     default boolean hasPermission(String permission) {
         return getPermissions().contains(permission);
     }

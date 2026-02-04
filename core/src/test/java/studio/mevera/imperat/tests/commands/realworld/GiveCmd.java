@@ -12,7 +12,7 @@ import studio.mevera.imperat.tests.arguments.TestPlayer;
 
 @Command("give")
 public class GiveCmd {
-    
+
     @Usage
     public void sword(
             TestSource sender,
@@ -20,7 +20,7 @@ public class GiveCmd {
             @Named("player") @Optional TestPlayer player,
             @Named("amount") @Default("1") @Suggest({"1", "2", "3"}) Integer amount
     ) {
-        sender.reply("item=" + item + ", target=" + (player == null ? "null" : player.toString()) + ", " + "amount= " + amount) ;
+        sender.reply("item=" + item + ", target=" + (player == null ? "null" : player.toString()) + ", " + "amount= " + amount);
     }
 
 }

@@ -15,8 +15,7 @@ import java.util.List;
 @ApiStatus.Internal
 final class InternalBukkitCommand extends org.bukkit.command.Command implements PluginIdentifiableCommand {
 
-    @NotNull
-    final Command<BukkitSource> imperatCommand;
+    @NotNull final Command<BukkitSource> imperatCommand;
     @NotNull
     private final BukkitImperat dispatcher;
 
@@ -59,8 +58,8 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
 
     @Override
     public boolean execute(@NotNull CommandSender sender,
-                           @NotNull String label,
-                           String[] raw) {
+            @NotNull String label,
+            String[] raw) {
         BukkitSource source = dispatcher.wrapSender(sender);
         dispatcher.execute(source, this.imperatCommand, label, raw);
         return true;

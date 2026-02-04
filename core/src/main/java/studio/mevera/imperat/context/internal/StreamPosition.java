@@ -5,7 +5,7 @@ import studio.mevera.imperat.context.Source;
 import java.util.function.IntUnaryOperator;
 
 public final class StreamPosition<S extends Source> {
-    
+
     int maxParamLength, maxRawLength;
     int parameter, raw;
 
@@ -19,15 +19,15 @@ public final class StreamPosition<S extends Source> {
     StreamPosition(int maxParamLength, int maxRawLength) {
         this(maxParamLength, maxRawLength, 0, 0);
     }
-    
+
     public int getRaw() {
         return raw;
     }
-    
+
     public int getParameter() {
         return parameter;
     }
-    
+
     void shift(ShiftTarget shift, IntUnaryOperator operator) {
         switch (shift) {
             case RAW_ONLY -> this.raw = operator.applyAsInt(raw);
@@ -42,28 +42,29 @@ public final class StreamPosition<S extends Source> {
     void shift(ShiftTarget target, ShiftOperation operation) {
         shift(target, operation.operator);
     }
-    
+
     void shiftRight(ShiftTarget target) {
         shift(target, ShiftOperation.RIGHT);
     }
-    
+
     void shiftLeft(ShiftTarget target) {
         shift(target, ShiftOperation.LEFT);
     }
 
     boolean canContinue(
-        ShiftTarget target
+            ShiftTarget target
     ) {
         return target.canContinue(this);
     }
 
     boolean isLast(ShiftTarget shiftTarget, int maxParams, int maxRaws) {
-        if (shiftTarget == ShiftTarget.PARAMETER_ONLY)
+        if (shiftTarget == ShiftTarget.PARAMETER_ONLY) {
             return parameter == maxParams - 1;
-        else if (shiftTarget == ShiftTarget.RAW_ONLY)
+        } else if (shiftTarget == ShiftTarget.RAW_ONLY) {
             return raw == maxRaws - 1;
-        else
+        } else {
             return parameter == maxParams - 1 && raw == maxRaws - 1;
+        }
     }
 
     public boolean isLast(ShiftTarget shiftTarget) {
@@ -80,9 +81,15 @@ public final class StreamPosition<S extends Source> {
 
     @Override
     public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof StreamPosition<?> other)) return false;
-        if (this.parameter != other.parameter) return false;
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof StreamPosition<?> other)) {
+            return false;
+        }
+        if (this.parameter != other.parameter) {
+            return false;
+        }
         return this.raw == other.raw;
     }
 

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("Enhanced Variants Test")
-public class EnhancedVariantsTest extends EnhancedBaseImperatTest{
+public class EnhancedVariantsTest extends EnhancedBaseImperatTest {
 
 
     @Test

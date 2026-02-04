@@ -43,7 +43,9 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
         }
 
         final Player player = Bukkit.getPlayerExact(input);
-        if (player != null) return player;
+        if (player != null) {
+            return player;
+        }
 
         throw new UnknownPlayerException(input);
     }
@@ -77,7 +79,7 @@ public class ParameterPlayer extends BaseParameterType<BukkitSource, Player> {
         }
 
         return BukkitUtil.PLAYER_USERNAME_PATTERN.matcher(input).matches()
-                && Bukkit.getPlayer(input) != null;
+                       && Bukkit.getPlayer(input) != null;
     }
 
     private final static class PlayerSuggestionResolver implements SuggestionResolver<BukkitSource> {

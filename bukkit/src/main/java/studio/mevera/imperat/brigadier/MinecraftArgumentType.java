@@ -231,8 +231,9 @@ public enum MinecraftArgumentType {
         } else {
             try {
                 argumentConstructor = argumentClass.asSubclass(ArgumentType.class).getDeclaredConstructor(parameters);
-                if (!argumentConstructor.isAccessible())
+                if (!argumentConstructor.isAccessible()) {
                     argumentConstructor.setAccessible(true);
+                }
                 if (parameters.length == 0) {
                     argumentType = argumentConstructor.newInstance();
                 } else {
@@ -254,10 +255,11 @@ public enum MinecraftArgumentType {
                 return BukkitUtil.ClassesRefUtil.mcClass("commands.arguments." + name);
             } else {
                 String stripped;
-                if (name.lastIndexOf('.') != -1)
+                if (name.lastIndexOf('.') != -1) {
                     stripped = name.substring(name.lastIndexOf('.') + 1);
-                else
+                } else {
                     stripped = name;
+                }
                 return BukkitUtil.ClassesRefUtil.nmsClass(stripped);
             }
         } catch (Throwable t) {
@@ -284,10 +286,11 @@ public enum MinecraftArgumentType {
             } else {
                 // For legacy versions, strip package and use nmsClass
                 String stripped;
-                if (path.lastIndexOf('.') != -1)
+                if (path.lastIndexOf('.') != -1) {
                     stripped = path.substring(path.lastIndexOf('.') + 1);
-                else
+                } else {
                     stripped = path;
+                }
                 return BukkitUtil.ClassesRefUtil.nmsClass(stripped);
             }
         } catch (Throwable t) {
@@ -333,12 +336,15 @@ public enum MinecraftArgumentType {
     }
 
     public @NotNull <T> ArgumentType<T> get() {
-        if (argumentConstructor == null)
+        if (argumentConstructor == null) {
             throw new IllegalArgumentException("Argument valueType '" + name().toLowerCase() + "' is not available on this version.");
-        if (argumentType != null)
+        }
+        if (argumentType != null) {
             return (ArgumentType<T>) argumentType;
+        }
         throw new IllegalArgumentException("This argument valueType requires " + parameters.length + " parameter(s) of valueType(s) " +
-                                                   Arrays.stream(parameters).map(Class::getName).collect(Collectors.joining(", ")) + ". Use #create() instead.");
+                                                   Arrays.stream(parameters).map(Class::getName).collect(Collectors.joining(", "))
+                                                   + ". Use #create() instead.");
     }
 
     public @NotNull <T> ArgumentType<T> create(Object... arguments) {
@@ -358,12 +364,15 @@ public enum MinecraftArgumentType {
     }
 
     public @NotNull <T> Optional<ArgumentType<T>> getIfPresent() {
-        if (argumentConstructor == null)
+        if (argumentConstructor == null) {
             return Optional.empty();
-        if (argumentType != null)
+        }
+        if (argumentType != null) {
             return Optional.of((ArgumentType<T>) argumentType);
+        }
         throw new IllegalArgumentException("This argument valueType requires " + parameters.length + " parameter(s) of valueType(s) " +
-                                                   Arrays.stream(parameters).map(Class::getName).collect(Collectors.joining(", ")) + ". Use #create() instead.");
+                                                   Arrays.stream(parameters).map(Class::getName).collect(Collectors.joining(", "))
+                                                   + ". Use #create() instead.");
     }
 
     public @NotNull <T> Optional<ArgumentType<T>> createIfPresent(Object... arguments) {

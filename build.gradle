@@ -33,11 +33,11 @@ allprojects {
         def kyoriVersion = "4.24.0"
         def kyoriPlatformVersion = "4.4.1"
 
-        kyori = { String module ->
+        kyori = {String module ->
             return "net.kyori:adventure-" + module + ":" + kyoriVersion
         }
 
-        kyoriPlatform = { String module ->
+        kyoriPlatform = {String module ->
             return "net.kyori:adventure-" + module + ":" + kyoriPlatformVersion
         }
 
@@ -97,8 +97,8 @@ subprojects {
         }
 
         if (
-                !gradle.startParameter.taskNames.any { (it == "publishToMavenLocal") }
-                && (!isSnapshot || (isSnapshot && releaseSnapshots))
+                !gradle.startParameter.taskNames.any {(it == "publishToMavenLocal")}
+                        && (!isSnapshot || (isSnapshot && releaseSnapshots))
         ) {
             publishToMavenCentral()
             signAllPublications()

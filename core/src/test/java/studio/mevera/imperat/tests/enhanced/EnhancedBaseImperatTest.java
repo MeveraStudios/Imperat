@@ -20,57 +20,59 @@ import java.util.function.Consumer;
  * Enhanced base class using AssertJ for fluent assertions.
  */
 public abstract class EnhancedBaseImperatTest {
-    
+
     protected static final TestImperat IMPERAT = ImperatTestGlobals.IMPERAT;
     protected static final TestSource SOURCE = ImperatTestGlobals.GLOBAL_TEST_SOURCE;
-    
+
     @BeforeEach
     void setUp() {
         ImperatTestGlobals.resetTestState();
     }
-    
+
     protected ExecutionResult<TestSource> execute(String commandLine) {
         return IMPERAT.execute(SOURCE, commandLine);
     }
+
     protected ExecutionResult<TestSource> execute(
             Class<?> cmdClass,
             Consumer<ImperatConfig<TestSource>> cfgConsumer,
             String commandLine
     ) {
         TestImperat newImperat = TestImperatConfig.builder()
-                .applyOnConfig(cfgConsumer)
-                .build();
+                                         .applyOnConfig(cfgConsumer)
+                                         .build();
         newImperat.registerCommand(cmdClass);
         return newImperat.execute(SOURCE, commandLine);
     }
-    
+
     protected List<String> tabComplete(String commandLine) {
         return IMPERAT.autoComplete(SOURCE, commandLine).join();
     }
+
     protected List<String> tabComplete(Class<?> cmd, Consumer<ImperatConfig<TestSource>> cfgConsumer, String commandLine) {
         TestImperat newImperat = TestImperatConfig.builder()
-                .applyOnConfig(cfgConsumer)
-                .build();
+                                         .applyOnConfig(cfgConsumer)
+                                         .build();
         newImperat.registerCommand(cmd);
         return newImperat.autoComplete(SOURCE, commandLine).join();
     }
-    
+
     /**
      * Creates a fluent assertion for ExecutionResult.
      */
     protected ExecutionResultAssert assertThat(ExecutionResult<TestSource> result) {
         return new ExecutionResultAssert(result);
     }
-    
+
     /**
      * Custom AssertJ assertion class for ExecutionResult with fluent API.
      */
     public static class ExecutionResultAssert extends org.assertj.core.api.AbstractAssert<ExecutionResultAssert, ExecutionResult<TestSource>> {
-        
+
         public ExecutionResultAssert(ExecutionResult<TestSource> actual) {
             super(actual, ExecutionResultAssert.class);
         }
-        
+
         public ExecutionResultAssert isSuccessful() {
             isNotNull();
             if (actual.hasFailed()) {
@@ -79,7 +81,7 @@ public abstract class EnhancedBaseImperatTest {
             }
             return this;
         }
-        
+
         public ExecutionResultAssert hasFailed() {
             isNotNull();
             if (!actual.hasFailed()) {
@@ -87,7 +89,7 @@ public abstract class EnhancedBaseImperatTest {
             }
             return this;
         }
-        
+
         public ExecutionResultAssert hasFailedWith(Class<? extends Throwable> expectedErrorType) {
             hasFailed();
             if (actual.getError() != null) {
@@ -95,20 +97,20 @@ public abstract class EnhancedBaseImperatTest {
             }
             return this;
         }
-        
+
         public ExecutionResultAssert hasArgument(String paramName, Object expectedValue) {
             isSuccessful();
             Argument<?> argument = null;
-            for(var arg : actual.getExecutionContext().getResolvedArguments()) {
+            for (var arg : actual.getExecutionContext().getResolvedArguments()) {
                 if (arg.parameter().name().equals(paramName)) {
                     argument = arg;
                     break;
                 }
             }
 
-            if(argument == null) {
+            if (argument == null) {
                 failWithMessage("No argument found with name '%s'", paramName);
-            }else {
+            } else {
 
                 Object actualValue = actual.getExecutionContext().getArgument(paramName);
                 if (!Objects.equals(expectedValue, actualValue)) {
@@ -118,41 +120,41 @@ public abstract class EnhancedBaseImperatTest {
             }
             return this;
         }
-        
+
         public ExecutionResultAssert hasFlag(String flagName, Object expectedValue) {
             isSuccessful();
             Object actualValue = actual.getExecutionContext().getFlagValue(flagName);
             if (!java.util.Objects.equals(expectedValue, actualValue)) {
-                failWithMessage("Expected flag <%s> to be <%s> but was <%s>", 
-                    flagName, expectedValue, actualValue);
+                failWithMessage("Expected flag <%s> to be <%s> but was <%s>",
+                        flagName, expectedValue, actualValue);
             }
             return this;
         }
-        
+
         public ExecutionResultAssert hasNullArgument(String paramName) {
             return hasArgument(paramName, null);
         }
-        
+
         public ExecutionResultAssert hasArgumentSatisfying(String paramName, org.assertj.core.api.ThrowingConsumer<Object> requirements) {
             isSuccessful();
             Object actualValue = actual.getExecutionContext().getArgument(paramName);
             Assertions.assertThat(actualValue).satisfies(requirements);
             return this;
         }
-        
+
         public ExecutionResultAssert hasArgumentOfType(String paramName, Class<?> expectedType) {
             isSuccessful();
             Object actualValue = actual.getExecutionContext().getArgument(paramName);
             Assertions.assertThat(actualValue).isInstanceOf(expectedType);
             return this;
         }
-        
+
         public ExecutionResultAssert satisfies(org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestSource>> requirements) {
             isNotNull();
             Assertions.assertThat(actual).satisfies(requirements);
             return this;
         }
-        
+
         public ExecutionResultAssert satisfiesAll(org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestSource>>... requirements) {
             isNotNull();
             for (org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestSource>> requirement : requirements) {
@@ -160,15 +162,15 @@ public abstract class EnhancedBaseImperatTest {
             }
             return this;
         }
-        
+
         public ExecutionResultAssert hasFlagValue(String flagName, Object expectedValue) {
             return hasFlag(flagName, expectedValue);
         }
-        
+
         public ExecutionResultAssert hasSwitchEnabled(String switchName) {
             return hasFlag(switchName, true);
         }
-        
+
         public ExecutionResultAssert hasSwitchDisabled(String switchName) {
             return hasFlag(switchName, false);
         }

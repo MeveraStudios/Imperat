@@ -12,6 +12,7 @@ import java.lang.reflect.Type;
  * @param <S> the type that extends the {@link Source}, representing the command sender
  */
 public sealed interface SourceWrapper<S extends Source> permits Imperat {
+
     /**
      * Wraps the sender into a built-in command-sender valueType
      *

@@ -20,15 +20,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public interface SelectionType {
 
     String MENTION_CHARACTER = "@";
-
-    String id();
-
-    @NotNull <E extends Entity> List<E> getTargetEntities(
-        @NotNull ExecutionContext<BukkitSource> context,
-        @NotNull CommandInputStream<BukkitSource> commandInputStream
-    ) throws CommandException;
-
-
     SelectionType COMMAND_EXECUTOR = new SelectionType() {
         @Override
         public String id() {
@@ -38,8 +29,8 @@ public interface SelectionType {
         @Override
         @SuppressWarnings("unchecked")
         public <E extends Entity> @NotNull List<E> getTargetEntities(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull CommandInputStream<BukkitSource> commandInputStream
+                @NotNull ExecutionContext<BukkitSource> context,
+                @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws CommandException {
             if (context.source().isConsole()) {
                 throw new OnlyPlayerAllowedException();
@@ -48,7 +39,6 @@ public interface SelectionType {
         }
 
     };
-
     SelectionType CLOSEST_PLAYER = new SelectionType() {
         @Override
         public String id() {
@@ -57,8 +47,8 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull CommandInputStream<BukkitSource> commandInputStream
+                @NotNull ExecutionContext<BukkitSource> context,
+                @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws CommandException {
             if (context.source().isConsole()) {
                 throw new OnlyPlayerAllowedException();
@@ -84,7 +74,6 @@ public interface SelectionType {
         }
 
     };//@p
-
     SelectionType RANDOM_PLAYER = new SelectionType() {
         @Override
         public String id() {
@@ -93,15 +82,14 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull CommandInputStream<BukkitSource> commandInputStream
+                @NotNull ExecutionContext<BukkitSource> context,
+                @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws CommandException {
             List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
             return List.of((E) onlinePlayers.get(ThreadLocalRandom.current().nextInt(onlinePlayers.size())));
         }
 
     }; //@r
-
     SelectionType ALL_PLAYERS = new SelectionType() {
         @Override
         public String id() {
@@ -110,15 +98,14 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull CommandInputStream<BukkitSource> commandInputStream
+                @NotNull ExecutionContext<BukkitSource> context,
+                @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws CommandException {
             return (List<E>) new ArrayList<>(Bukkit.getOnlinePlayers());
         }
 
 
     }; //@a (parameterized)
-
     SelectionType ALL_ENTITIES = new SelectionType() {
         @Override
         public String id() {
@@ -127,8 +114,8 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull CommandInputStream<BukkitSource> commandInputStream
+                @NotNull ExecutionContext<BukkitSource> context,
+                @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws CommandException {
             if (context.source().isConsole()) {
                 throw new OnlyPlayerAllowedException();
@@ -140,7 +127,6 @@ public interface SelectionType {
         }
 
     }; //@e (parameterized)
-
     SelectionType UNKNOWN = new SelectionType() {
         @Override
         public String id() {
@@ -149,28 +135,35 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull CommandInputStream<BukkitSource> commandInputStream
+                @NotNull ExecutionContext<BukkitSource> context,
+                @NotNull CommandInputStream<BukkitSource> commandInputStream
         ) throws CommandException {
             return List.of();
         }
 
     };
-
-
     List<SelectionType> TYPES = List.of(
-        COMMAND_EXECUTOR,
-        CLOSEST_PLAYER,
-        RANDOM_PLAYER,
-        ALL_ENTITIES,
-        ALL_PLAYERS
+            COMMAND_EXECUTOR,
+            CLOSEST_PLAYER,
+            RANDOM_PLAYER,
+            ALL_ENTITIES,
+            ALL_PLAYERS
     );
 
     static @NotNull SelectionType from(String id) {
-        for (var type : TYPES)
-            if (type.id().equalsIgnoreCase(id))
+        for (var type : TYPES) {
+            if (type.id().equalsIgnoreCase(id)) {
                 return type;
+            }
+        }
         return SelectionType.UNKNOWN;
     }
+
+    String id();
+
+    @NotNull <E extends Entity> List<E> getTargetEntities(
+            @NotNull ExecutionContext<BukkitSource> context,
+            @NotNull CommandInputStream<BukkitSource> commandInputStream
+    ) throws CommandException;
 
 }

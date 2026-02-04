@@ -2,10 +2,11 @@ package studio.mevera.imperat.exception;
 
 import studio.mevera.imperat.command.Command;
 
-public class FlagOutsideCommandScopeException extends CommandException{
+public class FlagOutsideCommandScopeException extends CommandException {
 
     private final Command<?> wrongCmd;
     private final String flagInput;
+
     public FlagOutsideCommandScopeException(Command<?> wrongCmd, String flagInput) {
         super();
         this.wrongCmd = wrongCmd;

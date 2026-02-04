@@ -33,18 +33,17 @@ import java.util.function.Predicate;
 final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
 
     private final static int EXPECTED_PARAMETERS_CAPACITY = 8;
-    
+
     private final List<CommandParameter<S>> parameters = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
     private final @NotNull CommandExecution<S> execution;
     private final boolean help;
     private final Set<String> permissions = new HashSet<>(CommandImpl.INITIAL_PERMISSIONS_CAPACITY);
+    private final FlagExtractor<S> flagExtractor;
+    private final List<String> examples = new ArrayList<>(2);
     private Description description = Description.of("N/A");
     private @NotNull CooldownHandler<S> cooldownHandler;
     private @Nullable UsageCooldown cooldown = null;
-    private CommandCoordinator<S> commandCoordinator ;
-    private final FlagExtractor<S> flagExtractor;
-
-    private final List<String> examples = new ArrayList<>(2);
+    private CommandCoordinator<S> commandCoordinator;
 
     CommandUsageImpl(@NotNull CommandExecution<S> execution) {
         this(execution, false);
@@ -121,16 +120,18 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
             boolean isSingle = SINGLE_FLAG.matcher(rawInput).matches();
             boolean isDouble = DOUBLE_FLAG.matcher(rawInput).matches();
             int offset = 0;
-            if(isSingle) {
+            if (isSingle) {
                 offset = 1;
-            }else if(isDouble) {
+            } else if (isDouble) {
                 offset = 2;
             }
             raw = rawInput.substring(offset);
         }
 
         for (var param : parameters) {
-            if (!param.isFlag()) continue;
+            if (!param.isFlag()) {
+                continue;
+            }
             FlagData<S> flag = param.asFlagParameter().flagData();
             if (flag.acceptsInput(raw)) {
                 return flag;
@@ -166,7 +167,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
         for (var param : params) {
             if (param.isFlag()) {
                 addFlag(param.asFlagParameter());
-            }else {
+            } else {
                 parameters.add(param);
             }
         }
@@ -185,16 +186,20 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     public List<String> getExamples() {
         return examples;
     }
-    
+
     @Override
     public void addExample(String example) {
-        if(examples.contains(example))return;
+        if (examples.contains(example)) {
+            return;
+        }
         examples.add(example);
     }
-    
+
     @Override
     public @Nullable CommandParameter<S> getParameter(int index) {
-        if (index < 0 || index >= parameters.size()) return null;
+        if (index < 0 || index >= parameters.size()) {
+            return null;
+        }
         return parameters.get(index);
     }
 
@@ -213,8 +218,8 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     @Override
     public boolean hasParamType(Class<?> clazz) {
         return getParameters()
-            .stream()
-            .anyMatch((param) -> param.valueType().equals(clazz));
+                       .stream()
+                       .anyMatch((param) -> param.valueType().equals(clazz));
     }
 
     /**
@@ -225,9 +230,9 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     @Override
     public int getMinLength() {
         return (int) getParameters().stream()
-            .filter((param) -> !param.isFlag())
-            .filter((param) -> !param.isOptional())
-            .count();
+                             .filter((param) -> !param.isFlag())
+                             .filter((param) -> !param.isOptional())
+                             .count();
     }
 
     /**
@@ -237,7 +242,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      */
     @Override
     public int getMaxLength() {
-        return parameters.size()+flagExtractor.getRegisteredFlags().size();
+        return parameters.size() + flagExtractor.getRegisteredFlags().size();
     }
 
     /**
@@ -249,9 +254,11 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      */
     @Override
     public boolean hasParameters(Predicate<CommandParameter<S>> parameterPredicate) {
-        for (CommandParameter<S> parameter : getParameters())
-            if (parameterPredicate.test(parameter))
+        for (CommandParameter<S> parameter : getParameters()) {
+            if (parameterPredicate.test(parameter)) {
                 return true;
+            }
+        }
 
         return false;
     }
@@ -263,8 +270,9 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     @Override
     public @Nullable CommandParameter<S> getParameter(Predicate<CommandParameter<S>> parameterPredicate) {
         for (CommandParameter<S> parameter : getParameters()) {
-            if (parameterPredicate.test(parameter))
+            if (parameterPredicate.test(parameter)) {
                 return parameter;
+            }
         }
         return null;
     }
@@ -335,7 +343,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     @Override
     public void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws CommandException {
         CommandCoordinator<S> coordinator = commandCoordinator;
-        if(coordinator == null) {
+        if (coordinator == null) {
             coordinator = imperat.config().getGlobalCommandCoordinator();
         }
         coordinator.coordinate(imperat, source, context, this.execution);
@@ -349,12 +357,14 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     @Override
     public boolean hasParameters(List<CommandParameter<S>> parameters) {
 
-        if(this.parameters.size() != parameters.size())return false;
+        if (this.parameters.size() != parameters.size()) {
+            return false;
+        }
 
         for (int i = 0; i < parameters.size(); i++) {
             CommandParameter<S> thisParam = this.parameters.get(i);
             CommandParameter<S> otherParam = parameters.get(i);
-            if(!thisParam.similarTo(otherParam)) {
+            if (!thisParam.similarTo(otherParam)) {
                 return false;
             }
         }
@@ -367,7 +377,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
         var combinedParameters = new ArrayList<>(parameters);
         int start = parameters.size();
         var lastParam = getLastParam();
-        if(lastParam != null && lastParam.isGreedy()) {
+        if (lastParam != null && lastParam.isGreedy()) {
             start = parameters.size() - 1;
         }
 
@@ -386,10 +396,16 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         CommandUsageImpl<?> that = (CommandUsageImpl<?>) o;
-        if (this.size() != that.size()) return false;
+        if (this.size() != that.size()) {
+            return false;
+        }
         for (int i = 0; i < this.size(); i++) {
             var thisP = this.getParameter(i);
             var thatP = that.getParameter(i);
@@ -405,6 +421,6 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     public int hashCode() {
         return Objects.hash(parameters);
     }
-    
+
 
 }

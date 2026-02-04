@@ -6,18 +6,19 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.context.Source;
 
 public record Argument<S extends Source>(
-    @Nullable String raw,
-    CommandParameter<S> parameter,
-    int index,
-    @Nullable Object value
+        @Nullable String raw,
+        CommandParameter<S> parameter,
+        int index,
+        @Nullable Object value
 ) {
+
     @Override
     public @NotNull String toString() {
         return "Argument{" +
-            "raw='" + raw + '\'' +
-            ", parameter=" + parameter.format() +
-            ", index=" + index +
-            ", value=" + value +
-            '}';
+                       "raw='" + raw + '\'' +
+                       ", parameter=" + parameter.format() +
+                       ", index=" + index +
+                       ", value=" + value +
+                       '}';
     }
 }

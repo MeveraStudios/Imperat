@@ -22,6 +22,10 @@ public class AsyncPlayerSendCommandsEvent<S extends CommandSourceStack> extends 
         this.hasFiredAsync = hasFiredAsync;
     }
 
+    public static HandlerList getHandlerList() {
+        return HANDLER_LIST;
+    }
+
     public RootCommandNode<S> getCommandNode() {
         return this.node;
     }
@@ -31,10 +35,6 @@ public class AsyncPlayerSendCommandsEvent<S extends CommandSourceStack> extends 
     }
 
     public @NotNull HandlerList getHandlers() {
-        return HANDLER_LIST;
-    }
-
-    public static HandlerList getHandlerList() {
         return HANDLER_LIST;
     }
 

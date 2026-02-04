@@ -48,7 +48,9 @@ public class HytaleImperat extends BaseImperat<HytaleSource> {
     @Override
     public void unregisterCommand(String name) {
         final Command<HytaleSource> command = getCommand(name);
-        if (command == null) return;
+        if (command == null) {
+            return;
+        }
 
         List<String> aliases = new ArrayList<>(command.aliases());
         aliases.addFirst(name.toLowerCase());

@@ -66,13 +66,13 @@ final class SlashCommandMapper {
             String groupName = path.get(0);
             String subName = String.join("-", path.subList(1, path.size()));
             SubcommandGroupData group = data.getSubcommandGroups().stream()
-                    .filter(existing -> existing.getName().equals(groupName))
-                    .findFirst()
-                    .orElseGet(() -> {
-                        SubcommandGroupData created = new SubcommandGroupData(groupName, bucket.description());
-                        data.addSubcommandGroups(created);
-                        return created;
-                    });
+                                                .filter(existing -> existing.getName().equals(groupName))
+                                                .findFirst()
+                                                .orElseGet(() -> {
+                                                    SubcommandGroupData created = new SubcommandGroupData(groupName, bucket.description());
+                                                    data.addSubcommandGroups(created);
+                                                    return created;
+                                                });
 
             OptionsBuild options = bucket.toOptions();
             SubcommandData sub = new SubcommandData(subName, bucket.description());
@@ -161,9 +161,84 @@ final class SlashCommandMapper {
     }
 
     private record UsagePath(List<String> path, List<CommandParameter<JdaSource>> parameters, String description) {
+
+    }
+
+    private static final class OptionSpec {
+
+        private final String name;
+        private OptionType type;
+        private String description;
+        private boolean required;
+
+        private OptionSpec(String name, OptionType type, String description, boolean required) {
+            this.name = name;
+            this.type = type;
+            this.description = description;
+            this.required = required;
+        }
+
+        static OptionSpec from(String name, CommandParameter<JdaSource> parameter, OptionType type) {
+            return new OptionSpec(name, type, parameter.description().getValue(), !parameter.isOptional());
+        }
+
+        void merge(CommandParameter<JdaSource> parameter, OptionType resolvedType) {
+            type = compatibleType(type, resolvedType);
+            description = description == null || description.isEmpty()
+                                  ? parameter.description().getValue()
+                                  : description;
+            required = required && !parameter.isOptional();
+        }
+
+        void markOptional() {
+            required = false;
+        }
+
+        OptionType type() {
+            return type;
+        }
+
+        String name() {
+            return name;
+        }
+
+        String description() {
+            return description == null ? "" : description;
+        }
+
+        boolean required() {
+            return required;
+        }
+
+        private OptionType compatibleType(OptionType first, OptionType other) {
+            if (first == other) {
+                return first;
+            }
+            return OptionType.STRING;
+        }
+    }
+
+    private record OptionsBuild(List<OptionData> options, List<String> invocationOrder) {
+
+    }
+
+    record SlashMapping(String commandName, SlashCommandData commandData, Map<InvocationKey, Invocation> invocations) {
+
+        Invocation invocationFor(String group, String subcommand) {
+            return invocations.get(new InvocationKey(group, subcommand));
+        }
+    }
+
+    record InvocationKey(String group, String subcommand) {
+
+    }
+
+    record Invocation(List<String> path, List<String> optionOrder) {
+
     }
 
     private final class UsageBucket {
+
         private final Map<String, OptionSpec> options = new LinkedHashMap<>();
         private String description = "";
 
@@ -217,68 +292,4 @@ final class SlashCommandMapper {
             return description == null ? "" : description;
         }
     }
-
-    private static final class OptionSpec {
-        private final String name;
-        private OptionType type;
-        private String description;
-        private boolean required;
-
-        private OptionSpec(String name, OptionType type, String description, boolean required) {
-            this.name = name;
-            this.type = type;
-            this.description = description;
-            this.required = required;
-        }
-
-        static OptionSpec from(String name, CommandParameter<JdaSource> parameter, OptionType type) {
-            return new OptionSpec(name, type, parameter.description().getValue(), !parameter.isOptional());
-        }
-
-        void merge(CommandParameter<JdaSource> parameter, OptionType resolvedType) {
-            type = compatibleType(type, resolvedType);
-            description = description == null || description.isEmpty()
-                    ? parameter.description().getValue()
-                    : description;
-            required = required && !parameter.isOptional();
-        }
-
-        void markOptional() {
-            required = false;
-        }
-
-        OptionType type() {
-            return type;
-        }
-
-        String name() {
-            return name;
-        }
-
-        String description() {
-            return description == null ? "" : description;
-        }
-
-        boolean required() {
-            return required;
-        }
-
-        private OptionType compatibleType(OptionType first, OptionType other) {
-            if (first == other) {
-                return first;
-            }
-            return OptionType.STRING;
-        }
-    }
-
-    private record OptionsBuild(List<OptionData> options, List<String> invocationOrder) {}
-
-    record SlashMapping(String commandName, SlashCommandData commandData, Map<InvocationKey, Invocation> invocations) {
-        Invocation invocationFor(String group, String subcommand) {
-            return invocations.get(new InvocationKey(group, subcommand));
-        }
-    }
-
-    record InvocationKey(String group, String subcommand) {}
-    record Invocation(List<String> path, List<String> optionOrder) {}
 }

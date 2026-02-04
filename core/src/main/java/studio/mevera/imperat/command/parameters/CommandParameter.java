@@ -31,22 +31,22 @@ import java.util.ArrayList;
 public interface CommandParameter<S extends Source> extends PermissionHolder, DescriptionHolder {
 
     static <S extends Source, T> CommandParameter<S> of(
-        String name,
-        ParameterType<S, T> type,
-        @Nullable String permission,
-        Description description,
-        boolean optional,
-        boolean greedy,
-        @NotNull OptionalValueSupplier valueSupplier,
-        @Nullable SuggestionResolver<S> suggestionResolver
+            String name,
+            ParameterType<S, T> type,
+            @Nullable String permission,
+            Description description,
+            boolean optional,
+            boolean greedy,
+            @NotNull OptionalValueSupplier valueSupplier,
+            @Nullable SuggestionResolver<S> suggestionResolver
     ) {
         Preconditions.notNull(name, "name");
         Preconditions.notNull(type, "type");
         Preconditions.checkArgument(!type.equalsExactly(Object.class), "Type cannot be `Object`");
 
         return new NormalCommandParameter<>(
-            name, type, permission, description, optional,
-            greedy, valueSupplier, suggestionResolver
+                name, type, permission, description, optional,
+                greedy, valueSupplier, suggestionResolver
         );
     }
 
@@ -118,8 +118,8 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
     }
 
     static <S extends Source, T> FlagBuilder<S, T> flag(
-        String name,
-        ParameterType<S, T> inputType
+            String name,
+            ParameterType<S, T> inputType
     ) {
         return FlagBuilder.ofFlag(name, inputType);
     }
@@ -127,31 +127,31 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
     static <S extends Source> FlagBuilder<S, Boolean> flagSwitch(String name) {
         return FlagBuilder.ofSwitch(name);
     }
-    
+
     static <S extends Source> CommandParameter<S> literal(String part) {
         Preconditions.notNull(part, "part");
         Preconditions.checkArgument(!part.isEmpty(), "Literal part cannot be empty");
         Preconditions.checkArgument(part.chars().allMatch(c -> Character.isLetterOrDigit(c) || c == '_'),
-            "Literal part must be alphanumeric or underscore only");
-        
+                "Literal part must be alphanumeric or underscore only");
+
         return of(
-            part,
-            ParameterTypes.command(part, new ArrayList<>()),
-            null,
-            Description.EMPTY,
-            false,
-            false,
-            OptionalValueSupplier.empty(),
-            null
+                part,
+                ParameterTypes.command(part, new ArrayList<>()),
+                null,
+                Description.EMPTY,
+                false,
+                false,
+                OptionalValueSupplier.empty(),
+                null
         );
     }
-    
+
     /**
      * @return the name of the parameter
      */
     String name();
-    
-    
+
+
     /**
      * @return the parent of this parameter
      */
@@ -178,17 +178,17 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
      */
     @ApiStatus.Internal
     void position(int position);
-    
+
     /**
      * For parameters, ONLY one permission is allowed for each parameter.
      * @return the single permission for this parameter.
      */
     @Nullable String getSinglePermission();
-    
+
     default void setSinglePermission(String permission) {
         addPermission(getSinglePermission());
     }
-    
+
     /**
      * @return the value valueType-token of this parameter
      */
@@ -288,7 +288,7 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
      * @return the formatted parameter
      */
     String format();
-    
+
     /**
      * Sets a custom format for this parameter
      * the default value is the name of the parameter
@@ -320,7 +320,7 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
     default boolean isRequired() {
         return !isOptional();
     }
-    
+
     /**
      * Creates a copy of this parameter with a different position.
      * Useful for commands that have multiple syntaxes.

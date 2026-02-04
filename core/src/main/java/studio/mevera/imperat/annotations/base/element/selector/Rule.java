@@ -11,6 +11,14 @@ import java.util.function.BiConsumer;
 @SuppressWarnings("rawtypes")
 public sealed interface Rule<T> permits Rule.SimpleRule {
 
+    static <T> Builder<T> builder() {
+        return new Builder<>();
+    }
+
+    static Builder<MethodElement> buildForMethod() {
+        return new Builder<>();
+    }
+
     @NotNull
     RuleCondition<T> condition();
 
@@ -25,14 +33,6 @@ public sealed interface Rule<T> permits Rule.SimpleRule {
 
     @NotNull
     Rule<T> or(@Nullable Rule<T> other);
-
-    static <T> Builder<T> builder() {
-        return new Builder<>();
-    }
-
-    static Builder<MethodElement> buildForMethod() {
-        return new Builder<>();
-    }
 
     class Builder<T> {
 
@@ -60,8 +60,9 @@ public sealed interface Rule<T> permits Rule.SimpleRule {
     }
 
     final class SimpleRule<T> implements Rule<T> {
-        private @NotNull RuleCondition<T> condition;
+
         private final @NotNull BiConsumer<AnnotationParser<?>, T> onFailure;
+        private @NotNull RuleCondition<T> condition;
 
         public SimpleRule(@NotNull RuleCondition<T> condition, @NotNull BiConsumer<AnnotationParser<?>, T> onFailure) {
             this.condition = condition;
@@ -75,14 +76,18 @@ public sealed interface Rule<T> permits Rule.SimpleRule {
 
         @Override
         public @NotNull Rule<T> and(@Nullable Rule<T> other) {
-            if (other == null) return this;
+            if (other == null) {
+                return this;
+            }
             condition = condition.and(other.condition());
             return this;
         }
 
         @Override
         public @NotNull Rule<T> or(@Nullable Rule<T> other) {
-            if (other == null) return this;
+            if (other == null) {
+                return this;
+            }
             condition = condition.or(other.condition());
             return this;
         }

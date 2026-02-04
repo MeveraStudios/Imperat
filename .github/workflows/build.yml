@@ -44,17 +44,17 @@ jobs:
 
           # Fetch latest release tag from public API
           TAG_JSON=$(curl -s https://api.github.com/repos/MeveraStudios/Imperat/tags)
-  
+          
           # Check if jq can parse the tag
           TAG=$(echo "$TAG_JSON" | jq -r '.[0].name' 2>/dev/null)
-  
+          
           # If jq fails or result is empty, print the response and exit
           if [ -z "$TAG" ] || [ "$TAG" == "null" ]; then
             echo "❌ Failed to extract latest tag from GitHub. Full response:"
             echo "$TAG_JSON"
             exit 1
           fi
-  
+          
           CLEANED_TAG=${TAG#v}
           echo "LATEST_RELEASE=$CLEANED_TAG" >> $GITHUB_ENV
 

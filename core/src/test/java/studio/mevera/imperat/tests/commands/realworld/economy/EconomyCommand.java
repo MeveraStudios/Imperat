@@ -12,16 +12,16 @@ import java.math.BigDecimal;
 
 @Command("eco")
 public class EconomyCommand {
-    
+
     @Usage
     @Async
     public void defaultUsage(TestSource source) {
-    
+
     }
-    
+
     @SubCommand("add")
     public static class AddCommands {
-        
+
         @Usage
         //@Async
         public void addCurrency(
@@ -31,7 +31,7 @@ public class EconomyCommand {
                 final BigDecimal amount
         ) {
             System.out.println("Currency= " + currency.getName() +
-                    ", amount= " + amount.toPlainString());
+                                       ", amount= " + amount.toPlainString());
         }
     }
     
@@ -49,7 +49,6 @@ public class EconomyCommand {
         }
     }
     */
-    
 
 
 }

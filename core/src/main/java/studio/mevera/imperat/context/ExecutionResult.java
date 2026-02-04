@@ -46,27 +46,24 @@ import studio.mevera.imperat.command.tree.CommandPathSearch;
  * @see Source
  */
 public final class ExecutionResult<S extends Source> {
-    
+
+    private final Context<S> context;
     /**
      * The error that occurred during command execution, if any.
      * This field is null for successful executions and non-null for failures.
      */
     private @Nullable Throwable error;
-    
     /**
      * The execution context containing command arguments, source information,
      * and other execution-related data. This field is null for failed executions.
      */
     private ExecutionContext<S> executionContext;
-    
-    private final Context<S> context;
-    
     /**
      * The command path search result containing information about the matched
      * command path and any parsing results. This field is null for failed executions.
      */
     private CommandPathSearch<S> search;
-    
+
     /**
      * Private constructor for creating a successful execution result.
      *
@@ -83,7 +80,7 @@ public final class ExecutionResult<S extends Source> {
         this.context = context;
         this.search = search;
     }
-    
+
     /**
      * Private constructor for creating a failed execution result.
      *
@@ -97,7 +94,7 @@ public final class ExecutionResult<S extends Source> {
         this.error = ex;
         this.context = context;
     }
-    
+
     /**
      * Creates a successful execution result with the provided context and search results.
      *
@@ -124,7 +121,7 @@ public final class ExecutionResult<S extends Source> {
     ) {
         return new ExecutionResult<>(executionContext, context, search);
     }
-    
+
     /**
      * Creates a failed execution result with the provided error information.
      *
@@ -146,7 +143,7 @@ public final class ExecutionResult<S extends Source> {
     public static <S extends Source> ExecutionResult<S> failure(@Nullable Throwable error, Context<S> context) {
         return new ExecutionResult<>(error, context);
     }
-    
+
     /**
      * Creates a failed execution result without specific error information.
      *
@@ -186,7 +183,7 @@ public final class ExecutionResult<S extends Source> {
     public static <S extends Source> ExecutionResult<S> failure(Context<S> context) {
         return failure(null, context);
     }
-    
+
     /**
      * Determines whether this execution result represents a failed command execution.
      *
@@ -205,7 +202,7 @@ public final class ExecutionResult<S extends Source> {
     public boolean hasFailed() {
         return executionContext == null || search == null;
     }
-    
+
     /**
      * Returns the error that caused the command execution to fail, if any.
      *
@@ -225,11 +222,11 @@ public final class ExecutionResult<S extends Source> {
     public @Nullable Throwable getError() {
         return error;
     }
-    
+
     public Context<S> getContext() {
         return context;
     }
-    
+
     /**
      * Returns the command path search result containing parsing and matching information.
      *
@@ -253,7 +250,7 @@ public final class ExecutionResult<S extends Source> {
     public CommandPathSearch<S> getSearch() {
         return search;
     }
-    
+
     /**
      * Returns the execution context containing command execution data and environment.
      *

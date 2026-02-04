@@ -28,22 +28,22 @@ final class DefaultContextFactory<S extends Source> extends ContextFactory<S> {
      */
     @Override
     public @NotNull Context<S> createContext(
-        @NotNull Imperat<S> imperat,
-        @NotNull S source,
-        @NotNull Command<S> command,
-        @NotNull String label,
-        @NotNull ArgumentInput queue
+            @NotNull Imperat<S> imperat,
+            @NotNull S source,
+            @NotNull Command<S> command,
+            @NotNull String label,
+            @NotNull ArgumentInput queue
     ) {
         return new ContextImpl<>(imperat, command, source, label, queue);
     }
 
     @Override
     public SuggestionContext<S> createSuggestionContext(
-        @NotNull Imperat<S> imperat,
-        @NotNull S source,
-        @NotNull Command<S> command,
-        @NotNull String label,
-        @NotNull ArgumentInput queue
+            @NotNull Imperat<S> imperat,
+            @NotNull S source,
+            @NotNull Command<S> command,
+            @NotNull String label,
+            @NotNull ArgumentInput queue
     ) {
         return new SuggestionContextImpl<>(imperat, command, source, label, queue, AutoCompleter.getLastArg(queue));
     }
@@ -59,9 +59,9 @@ final class DefaultContextFactory<S extends Source> extends ContextFactory<S> {
             @NotNull CommandPathSearch<S> dispatch
     ) {
         return new ExecutionContextImpl<>(
-            plainContext,
-            dispatch
+                plainContext,
+                dispatch
         );
     }
-    
+
 }

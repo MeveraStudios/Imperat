@@ -6,6 +6,7 @@ import studio.mevera.imperat.command.parameters.FlagParameter;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownFlagException;
 import studio.mevera.imperat.util.Patterns;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,7 +17,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
+final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
 
     private final CommandUsage<S> usage;
     private final FlagTrie<S> flagTrie;
@@ -31,7 +32,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
     public void insertFlag(FlagParameter<S> flagData) {
         registeredFlags.add(flagData);
         flagTrie.insert(flagData.name(), flagData);
-        for(String alias : flagData.flagData().aliases()) {
+        for (String alias : flagData.flagData().aliases()) {
             flagTrie.insert(alias, flagData);
         }
     }
@@ -59,10 +60,10 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
 
         // Get all flags from CommandUsage and build the trie
         Set<FlagParameter<S>> allFlags = usage.getParameters()
-                .stream()
-                .filter(CommandParameter::isFlag)
-                .map((CommandParameter::asFlagParameter))
-                .collect(Collectors.toSet());
+                                                 .stream()
+                                                 .filter(CommandParameter::isFlag)
+                                                 .map((CommandParameter::asFlagParameter))
+                                                 .collect(Collectors.toSet());
 
         for (FlagParameter<S> flagData : allFlags) {
             // Add primary flag name
@@ -103,7 +104,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
         if (!unmatchedParts.isEmpty()) {
             throw new UnknownFlagException(
                     String.join(", ", unmatchedParts)
-                    
+
             );
         }
 
@@ -115,6 +116,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
      * Uses a Map-based approach for efficient character lookup.
      */
     private static class FlagTrie<S extends Source> {
+
         private final TrieNode<S> root;
 
         FlagTrie() {
@@ -166,6 +168,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S>{
      * Represents a node in the Trie structure.
      */
     private static class TrieNode<S extends Source> {
+
         final Map<Character, TrieNode<S>> children;
         FlagParameter<S> flagData;
         boolean isEndOfFlag;

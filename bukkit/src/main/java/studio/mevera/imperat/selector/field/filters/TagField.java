@@ -15,7 +15,8 @@ final class TagField extends PredicateField<String> {
 
 
     @Override
-    protected @NotNull EntityCondition getCondition(String value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context) {
+    protected @NotNull EntityCondition getCondition(String value, CommandInputStream<BukkitSource> commandInputStream,
+            Context<BukkitSource> context) {
         return ((sender, entity) -> entity.hasMetadata(value));
     }
 

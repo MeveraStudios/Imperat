@@ -40,7 +40,8 @@ final class DistanceField extends PredicateField<Range<Double>> {
      * @return an EntityCondition that checks if the entity meets the distance condition
      */
     @Override
-    protected @NotNull EntityCondition getCondition(Range<Double> value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context) {
+    protected @NotNull EntityCondition getCondition(Range<Double> value, CommandInputStream<BukkitSource> commandInputStream,
+            Context<BukkitSource> context) {
         return ((sender, entity) -> {
             if (sender.isConsole()) {
                 throw new SourceException("Only players can use the field=`distance`");

@@ -17,9 +17,9 @@ public interface NumericComparator<N extends Number> {
 
 
     Map<Class<? extends Number>, NumericComparator<?>> COMPARATORS = Map.of(Double.class, DOUBLE_NUMERIC_COMPARATOR,
-        Float.class, FLOAT_NUMERIC_COMPARATOR,
-        Integer.class, INTEGER_NUMERIC_COMPARATOR,
-        Long.class, LONG_NUMERIC_COMPARATOR
+            Float.class, FLOAT_NUMERIC_COMPARATOR,
+            Integer.class, INTEGER_NUMERIC_COMPARATOR,
+            Long.class, LONG_NUMERIC_COMPARATOR
     );
 
     @SuppressWarnings("unchecked")

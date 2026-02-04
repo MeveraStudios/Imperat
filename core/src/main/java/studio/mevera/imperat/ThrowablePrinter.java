@@ -17,13 +17,6 @@ import java.util.logging.Logger;
 public interface ThrowablePrinter {
 
     /**
-     * Prints the stacktrace for the given throwable.
-     *
-     * @param throwable the throwable to print
-     */
-    void print(@NotNull Throwable throwable);
-
-    /**
      * Returns a simple printer that logs the throwable using the
      * {@code IMPERAT} logger.
      *
@@ -31,7 +24,7 @@ public interface ThrowablePrinter {
      */
     static @NotNull ThrowablePrinter simple() {
         return throwable -> Logger.getLogger("IMPERAT")
-            .log(Level.SEVERE, "Unhandled exception", throwable);
+                                    .log(Level.SEVERE, "Unhandled exception", throwable);
     }
 
     /**
@@ -42,7 +35,7 @@ public interface ThrowablePrinter {
      */
     static @NotNull ThrowablePrinter box() {
         return throwable -> Logger.getLogger("IMPERAT")
-            .severe(formatThrowable(throwable));
+                                    .severe(formatThrowable(throwable));
     }
 
     private static @NotNull String formatThrowable(@NotNull Throwable throwable) {
@@ -51,24 +44,31 @@ public interface ThrowablePrinter {
         String message = throwable.getMessage() != null ? throwable.getMessage() : "No message";
 
         sb.append("┌─ 🚨 ").append(exceptionName).append(' ')
-            .append("─".repeat(Math.max(0, 40 - exceptionName.length()))).append("┐");
+                .append("─".repeat(Math.max(0, 40 - exceptionName.length()))).append("┐");
         sb.append(System.lineSeparator()).append("│ ").append(message);
 
         for (StackTraceElement element : throwable.getStackTrace()) {
             sb.append(System.lineSeparator()).append("│ → ")
-                .append(element.getClassName().substring(element.getClassName().lastIndexOf('.') + 1))
-                .append('.').append(element.getMethodName())
-                .append("() @ line ").append(element.getLineNumber());
+                    .append(element.getClassName().substring(element.getClassName().lastIndexOf('.') + 1))
+                    .append('.').append(element.getMethodName())
+                    .append("() @ line ").append(element.getLineNumber());
         }
 
         sb.append(System.lineSeparator()).append("└").append("─".repeat(45)).append("┘");
 
         if (throwable.getCause() != null) {
             sb.append(System.lineSeparator()).append("🔗 Caused by:")
-                .append(System.lineSeparator())
-                .append(formatThrowable(throwable.getCause()));
+                    .append(System.lineSeparator())
+                    .append(formatThrowable(throwable.getCause()));
         }
 
         return sb.toString();
     }
+
+    /**
+     * Prints the stacktrace for the given throwable.
+     *
+     * @param throwable the throwable to print
+     */
+    void print(@NotNull Throwable throwable);
 }

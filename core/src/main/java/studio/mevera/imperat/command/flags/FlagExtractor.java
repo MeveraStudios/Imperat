@@ -17,6 +17,10 @@ import java.util.Set;
 @ApiStatus.AvailableSince("1.9.6")
 public sealed interface FlagExtractor<S extends Source> extends FlagRegistrar<S> permits FlagExtractorImpl {
 
+    static <S extends Source> FlagExtractor<S> createNative(CommandUsage<S> usage) {
+        return new FlagExtractorImpl<>(usage);
+    }
+
     /**
      * Inserts a flag during into the trie.
      * May be useful if it's necessary to insert a flag during runtime.
@@ -31,9 +35,5 @@ public sealed interface FlagExtractor<S extends Source> extends FlagRegistrar<S>
      * @return the extracted {@link FlagData} for flags.
      */
     Set<FlagParameter<S>> extract(String rawInput) throws UnknownFlagException;
-
-    static <S extends Source> FlagExtractor<S> createNative(CommandUsage<S> usage) {
-        return new FlagExtractorImpl<>(usage);
-    }
 
 }

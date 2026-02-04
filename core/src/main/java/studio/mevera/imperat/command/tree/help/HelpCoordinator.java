@@ -8,10 +8,10 @@ import studio.mevera.imperat.context.Source;
 
 
 public class HelpCoordinator<S extends Source> {
-    
+
     private final TreeHelpVisitor<S> provider;
     private final HelpLayoutRenderer<S, ?> renderer;
-    
+
     /**
      * Constructs a new HelpCoordinator with a custom provider and renderer.
      *
@@ -25,7 +25,7 @@ public class HelpCoordinator<S extends Source> {
         this.provider = provider;
         this.renderer = renderer;
     }
-    
+
     /**
      * A factory method to create a new HelpCoordinator with custom settings.
      *
@@ -41,7 +41,7 @@ public class HelpCoordinator<S extends Source> {
     ) {
         return new HelpCoordinator<>(provider, renderer);
     }
-    
+
     /**
      * A factory method to create a new HelpCoordinator with default settings.
      *
@@ -51,7 +51,7 @@ public class HelpCoordinator<S extends Source> {
     public static <S extends Source> HelpCoordinator<S> create() {
         return new HelpCoordinator<>(TreeHelpVisitor.defaultProvider(), new StandardHelpRenderer<>());
     }
-    
+
     /**
      * Displays the help documentation based on the given context and query.
      * <p>
@@ -70,11 +70,11 @@ public class HelpCoordinator<S extends Source> {
     ) {
         // Step 1: Get data
         HelpEntryList<S> entries = provider.visit(context.command(), query);
-        
+
         // Step 2: Render the data
         this.render(context, entries, theme);
     }
-    
+
     @SuppressWarnings("unchecked")
     private <C> void render(
             ExecutionContext<S> context,
@@ -82,15 +82,15 @@ public class HelpCoordinator<S extends Source> {
             HelpTheme<S, C> theme
     ) {
         HelpLayoutRenderer<S, C> typedRenderer = (HelpLayoutRenderer<S, C>) renderer;
-        
+
         // Header
         if (theme.getOptionValue(HelpTheme.Option.SHOW_HEADER)) {
             theme.getHeader(context).send(context.source());
         }
-        
+
         // Rendering actual help
         typedRenderer.render(context, entries, theme);
-        
+
         // Footer
         if (theme.getOptionValue(HelpTheme.Option.SHOW_FOOTER)) {
             theme.getFooter(context).send(context.source());

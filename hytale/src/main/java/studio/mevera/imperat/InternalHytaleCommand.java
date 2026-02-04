@@ -13,6 +13,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterEnum;
 import studio.mevera.imperat.type.HytaleParameterType;
 import studio.mevera.imperat.util.TypeUtility;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,10 +24,10 @@ final class InternalHytaleCommand extends CommandBase {
 
     private final HytaleImperat imperat;
 
-    InternalHytaleCommand(HytaleImperat imperat, List<CommandParameter<HytaleSource> > variant) {
+    InternalHytaleCommand(HytaleImperat imperat, List<CommandParameter<HytaleSource>> variant) {
         super("");
         this.imperat = imperat;
-        for(var p : variant ) {
+        for (var p : variant) {
             withRequiredArg(p.name(), p.description().getValueOrElse(""), loadArgType(p));
         }
     }
@@ -48,6 +49,7 @@ final class InternalHytaleCommand extends CommandBase {
         //add the sub commands
         this.hookSubcommands(imperatCmd);
     }
+
     /**
      * Determines whether the given command requires user confirmation before execution.
      * <p>
@@ -61,7 +63,7 @@ final class InternalHytaleCommand extends CommandBase {
      *         {@link RequireConfirmation}, {@code false} otherwise
      */
     private static boolean requiresConfirmation(Command<HytaleSource> imperatCmd) {
-        if(!imperatCmd.isAnnotated()) {
+        if (!imperatCmd.isAnnotated()) {
             return false;
         }
         ParseElement<?> annotatedElement = imperatCmd.getAnnotatedElement();
@@ -102,9 +104,9 @@ final class InternalHytaleCommand extends CommandBase {
         for (int i = 0; i < mainUsage.size(); i++) {
             var parameter = mainUsage.getParameter(i);
             assert parameter != null;
-            if(parameter.isOptional() && i != mainUsage.size()-1) {
+            if (parameter.isOptional() && i != mainUsage.size() - 1) {
                 optionals.put(i, parameter);
-            }else if(parameter.isOptional()) {
+            } else if (parameter.isOptional()) {
                 //last optional
                 withOptionalArg(parameter.name(), parameter.description().getValueOrElse(""), loadArgType(parameter));
                 break;
@@ -116,12 +118,12 @@ final class InternalHytaleCommand extends CommandBase {
         for (int i = 0; i < mainUsage.size(); i++) {
             var parameter = mainUsage.getParameter(i);
             assert parameter != null;
-            if(optionals.get(i) != null) {
+            if (optionals.get(i) != null) {
                 //add to a new variant , then remove and skip
                 List<CommandParameter<HytaleSource>> variant = new ArrayList<>();
                 for (int j = 0; j < mainUsage.size(); j++) {
                     var p = mainUsage.getParameter(j);
-                    if(j != i) {
+                    if (j != i) {
                         variant.add(p);
                     }
                 }
@@ -130,7 +132,7 @@ final class InternalHytaleCommand extends CommandBase {
             }
         }
 
-        for(var variant : parameterVariants) {
+        for (var variant : parameterVariants) {
             addUsageVariant(new InternalHytaleCommand(imperat, variant));
         }
     }

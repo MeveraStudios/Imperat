@@ -64,21 +64,67 @@ import java.util.stream.Stream;
 
 @ApiStatus.Internal
 final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set<studio.mevera.imperat.command.Command<S>>> {
-    
-    private final ImperatConfig<S> config;
-    private final static String VALUES_SEPARATION_CHAR = "\\|";
 
+    private final static String VALUES_SEPARATION_CHAR = "\\|";
+    private final ImperatConfig<S> config;
     private final CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> errorHandlersVisitor;
+
     CommandParsingVisitor(Imperat<S> imperat, AnnotationParser<S> parser, ElementSelector<MethodElement> methodSelector) {
         super(imperat, parser, methodSelector);
         this.config = imperat.config();
         this.errorHandlersVisitor = CommandClassVisitor.newThrowableParsingVisitor(imperat, parser);
     }
 
+    private static <S extends Source> boolean doesRequireParameterInheritance(
+            @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
+            @NotNull MethodElement method
+    ) {
+        boolean requiresParameterInheritance = false;
+
+        if (method.isAnnotationPresent(SubCommand.class)) {
+            var attachment = Objects.requireNonNull(method.getAnnotation(SubCommand.class)).attachment();
+            if (parentCmd == null) {
+                requiresParameterInheritance = attachment.requiresParameterInheritance();
+            } else {
+                if (attachment == AttachmentMode.DEFAULT) {
+                    requiresParameterInheritance = parentCmd.getDefaultUsage().size() > 0;
+                } else {
+                    requiresParameterInheritance = (attachment == AttachmentMode.MAIN || attachment == AttachmentMode.UNSET);
+                }
+            }
+        } else if (method.isAnnotationPresent(Usage.class)) {
+            var ann = method.getParent().getAnnotation(SubCommand.class);
+            if (ann != null) {
+                requiresParameterInheritance = ann.attachment().requiresParameterInheritance();
+            } else if (parentCmd != null) {
+                requiresParameterInheritance = parentCmd.getMainUsage().getParameters().isEmpty();
+            }
+        }
+        return requiresParameterInheritance;
+    }
+
+    private static <S extends Source> @NotNull StringBuilder getMainUsageParametersCollected(StrictParameterList<S> mainUsageParameters) {
+        StringBuilder builder = new StringBuilder();
+        for (var p : mainUsageParameters) {
+            builder.append(p.format()).append(" ");
+        }
+        return builder;
+    }
+
+    private static <S extends Source> @NotNull LinkedList<studio.mevera.imperat.command.Command<S>> getParenteralSequence(
+            @Nullable studio.mevera.imperat.command.Command<S> parentCmd) {
+        studio.mevera.imperat.command.Command<S> currentParent = parentCmd;
+        LinkedList<studio.mevera.imperat.command.Command<S>> parenteralSequence = new LinkedList<>();
+        while (currentParent != null) {
+            parenteralSequence.addFirst(currentParent);
+            currentParent = currentParent.parent();
+        }
+        return parenteralSequence;
+    }
 
     @Override
     public Set<studio.mevera.imperat.command.Command<S>> visitCommandClass(
-        @NotNull ClassElement clazz
+            @NotNull ClassElement clazz
     ) {
 
         Set<studio.mevera.imperat.command.Command<S>> commands = new HashSet<>();
@@ -87,19 +133,19 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         if (clazz.isRootClass() && commandAnnotation != null && clazz.isAnnotationPresent(SubCommand.class)) {
             throw new IllegalStateException("Root command class cannot be a @SubCommand");
         }
-        
+
         if (commandAnnotation != null) {
 
-            if(clazz.isRootClass() && AnnotationHelper.isAbnormalClass(clazz)) {
+            if (clazz.isRootClass() && AnnotationHelper.isAbnormalClass(clazz)) {
                 throw new IllegalArgumentException("Abnormal root class '%s'".formatted(clazz.getName()));
             }
-            
+
             studio.mevera.imperat.command.Command<S> cmd = loadCommand(null, clazz, commandAnnotation);
             if (cmd != null) {
                 loadCommandMethods(clazz);
                 commands.add(cmd);
             }
-            
+
         } else {
             //no annotation
             for (ParseElement<?> element : clazz.getChildren()) {
@@ -116,17 +162,17 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return commands;
     }
 
-
     private Annotation getCommandAnnotation(ClassElement clazz) {
-        if (clazz.isAnnotationPresent(Command.class))
+        if (clazz.isAnnotationPresent(Command.class)) {
             return clazz.getAnnotation(Command.class);
+        }
 
-        if (clazz.isAnnotationPresent(SubCommand.class))
+        if (clazz.isAnnotationPresent(SubCommand.class)) {
             return clazz.getAnnotation(SubCommand.class);
+        }
 
         return null;
     }
-
 
     private void loadCommandMethods(ClassElement clazz) {
         for (ParseElement<?> element : clazz.getChildren()) {
@@ -148,7 +194,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         //help provider for this command
         //Help help = element.getAnnotation(Help.class);
-        
+
         studio.mevera.imperat.command.Command.Builder<S> builder;
         if (cmdAnnotation instanceof Command cmdAnn) {
             final String[] values = config.replacePlaceholders(cmdAnn.value());
@@ -156,29 +202,29 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             final boolean ignoreAC = cmdAnn.skipSuggestionsChecks();
 
             builder = studio.mevera.imperat.command.Command.create(imperat, values[0], element)
-                .ignoreACPermissions(ignoreAC)
-                .aliases(aliases);
-            
+                              .ignoreACPermissions(ignoreAC)
+                              .aliases(aliases);
+
             if (permission != null) {
                 builder.permission(
-                    config.replacePlaceholders(permission.value())
+                        config.replacePlaceholders(permission.value())
                 );
             }
 
             if (description != null) {
                 builder.description(
-                    config.replacePlaceholders(description.value())
+                        config.replacePlaceholders(description.value())
                 );
             }
 
             if (preProcessor != null) {
-                for(var processor : preProcessor.value()) {
+                for (var processor : preProcessor.value()) {
                     builder.preProcessor(loadPreProcessorInstance(processor));
                 }
             }
 
             if (postProcessor != null) {
-                for(var processor : postProcessor.value()) {
+                for (var processor : postProcessor.value()) {
                     builder.postProcessor(loadPostProcessorInstance(processor));
                 }
             }
@@ -186,7 +232,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             /*if(help != null) {
                 builder.helpProvider(loadHelpProviderInstance(help.value()));
             }*/
-            
+
 
         } else if (cmdAnnotation instanceof SubCommand subCommand) {
             final String[] values = config.replacePlaceholders(subCommand.value());
@@ -196,30 +242,30 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             final boolean ignoreAC = subCommand.skipSuggestionsChecks();
 
             builder = studio.mevera.imperat.command.Command.create(imperat, values[0], element)
-                .ignoreACPermissions(ignoreAC)
-                .aliases(aliases);
+                              .ignoreACPermissions(ignoreAC)
+                              .aliases(aliases);
 
             if (permission != null) {
                 builder.permission(
-                    config.replacePlaceholders(permission.value())
+                        config.replacePlaceholders(permission.value())
                 );
             }
 
             if (description != null) {
                 builder.description(
-                    config.replacePlaceholders(description.value())
+                        config.replacePlaceholders(description.value())
                 );
             }
 
             if (preProcessor != null) {
 
-                for(var processor : preProcessor.value()) {
+                for (var processor : preProcessor.value()) {
                     builder.preProcessor(loadPreProcessorInstance(processor));
                 }
             }
 
             if (postProcessor != null) {
-                for(var processor : postProcessor.value()) {
+                for (var processor : postProcessor.value()) {
                     builder.postProcessor(loadPostProcessorInstance(processor));
                 }
             }
@@ -228,31 +274,30 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 builder.helpProvider(loadHelpProviderInstance(help.value()));
             }*/
 
-        }
-        else {
+        } else {
             return null;
         }
-        
+
         var cmd = builder.build();
-        
-        if(element instanceof ClassElement classElement) {
+
+        if (element instanceof ClassElement classElement) {
             var errorHandlersCollected = errorHandlersVisitor.visitCommandClass(classElement);
-            if(errorHandlersCollected != null) {
-                for(var errorHandler : errorHandlersCollected) {
-                    cmd.setThrowableResolver((Class<E>)errorHandler.getExceptionType(), (MethodThrowableResolver<E, S>)errorHandler);
+            if (errorHandlersCollected != null) {
+                for (var errorHandler : errorHandlersCollected) {
+                    cmd.setThrowableResolver((Class<E>) errorHandler.getExceptionType(), (MethodThrowableResolver<E, S>) errorHandler);
                 }
             }
         }
-        
+
         return cmd;
     }
 
     private @Nullable studio.mevera.imperat.command.Command<S> loadCommand(
-        @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
-        ParseElement<?> parseElement,
-        @NotNull Annotation annotation
+            @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
+            ParseElement<?> parseElement,
+            @NotNull Annotation annotation
     ) {
-        if(AnnotationHelper.isAbnormalClass(parseElement)) {
+        if (AnnotationHelper.isAbnormalClass(parseElement)) {
             //sub abnormal class
             //ignore
             return null;
@@ -264,21 +309,21 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         }
 
         if (parseElement instanceof MethodElement method && cmd != null) {
-            
+
             //Loading @Command/@SubCommand on methods
             if (!methodSelector.canBeSelected(imperat, parser, method, true)) {
                 ImperatDebugger.debugForTesting("Method '%s' has failed verification", method.getName());
                 return cmd;
             }
-            
+
             var usage = loadUsage(parentCmd, cmd, method);
-            
+
             if (usage != null) {
                 cmd.addUsage(usage);
             }
-            
+
             return cmd;
-            
+
         } else if (parseElement instanceof ClassElement commandClass) {
             //Loading @Command/@SubCommand on classes
 
@@ -289,7 +334,8 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
                 if (element instanceof MethodElement method) {
                     if (cmd == null) {
-                        throw new IllegalStateException("Method  '" + method.getElement().getName() + "' Cannot be treated as usage/subcommand, it doesn't have a parent ");
+                        throw new IllegalStateException(
+                                "Method  '" + method.getElement().getName() + "' Cannot be treated as usage/subcommand, it doesn't have a parent ");
                     }
 
                     if (!methodSelector.canBeSelected(imperat, parser, method, true)) {
@@ -297,7 +343,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                     }
 
                     // Process @Usage methods first (skip @SubCommand for now)
-                    if(method.isAnnotationPresent(Usage.class) && !method.isAnnotationPresent(SubCommand.class)) {
+                    if (method.isAnnotationPresent(Usage.class) && !method.isAnnotationPresent(SubCommand.class)) {
                         var usage = loadUsage(parentCmd, cmd, method);
                         if (usage != null) {
                             cmd.addUsage(usage);
@@ -312,17 +358,18 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
                 if (element instanceof MethodElement method) {
                     if (cmd == null) {
-                        throw new IllegalStateException("Method  '" + method.getElement().getName() + "' Cannot be treated as usage/subcommand, it doesn't have a parent ");
+                        throw new IllegalStateException(
+                                "Method  '" + method.getElement().getName() + "' Cannot be treated as usage/subcommand, it doesn't have a parent ");
                     }
 
                     if (!methodSelector.canBeSelected(imperat, parser, method, true)) {
                         return cmd;
                     }
 
-                    if(method.isAnnotationPresent(SubCommand.class)) {
+                    if (method.isAnnotationPresent(SubCommand.class)) {
                         var subAnn = method.getAnnotation(SubCommand.class);
                         assert subAnn != null;
-                        cmd.addSubCommand(loadCommand(cmd, method, subAnn),  extractAttachmentMode(commandClass, subAnn));
+                        cmd.addSubCommand(loadCommand(cmd, method, subAnn), extractAttachmentMode(commandClass, subAnn));
                     }
 
 
@@ -333,18 +380,19 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                         var innerCmdAnn = innerClass.getAnnotation(Command.class);
                         assert innerCmdAnn != null;
                         imperat.registerSimpleCommand(
-                            loadCommand(null, innerClass, innerCmdAnn)
+                                loadCommand(null, innerClass, innerCmdAnn)
                         );
                         return null;
                     } else if (innerClass.isAnnotationPresent(SubCommand.class)) {
                         if (cmd == null) {
-                            throw new IllegalStateException("Inner class '" + innerClass.getElement().getSimpleName() + "' Cannot be  treated as subcommand, it doesn't have a parent ");
+                            throw new IllegalStateException("Inner class '" + innerClass.getElement().getSimpleName()
+                                                                    + "' Cannot be  treated as subcommand, it doesn't have a parent ");
                         }
                         SubCommand subCommandAnn = innerClass.getAnnotation(SubCommand.class);
                         assert subCommandAnn != null;
 
                         cmd.addSubCommand(
-                            loadCommand(cmd, innerClass, subCommandAnn), extractAttachmentMode(commandClass, subCommandAnn)
+                                loadCommand(cmd, innerClass, subCommandAnn), extractAttachmentMode(commandClass, subCommandAnn)
                         );
                     }
 
@@ -356,25 +404,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         }
 
         return cmd;
-    }
-
-    private AttachmentMode extractAttachmentMode(ClassElement commandClass, SubCommand subCommandAnn) {
-        AttachmentMode attachmentMode = config.getDefaultAttachmentMode() == AttachmentMode.UNSET ? subCommandAnn.attachment() : config.getDefaultAttachmentMode();
-        GlobalAttachmentMode globalAttachmentMode = commandClass.getAnnotation(GlobalAttachmentMode.class);
-        if(globalAttachmentMode != null && attachmentMode == AttachmentMode.UNSET) {
-            attachmentMode = globalAttachmentMode.value();
-        }
-        return attachmentMode;
-    }
-
-    @SuppressWarnings("unchecked")
-    private CommandPreProcessor<S> loadPreProcessorInstance(Class<? extends CommandPreProcessor<?>> clazz) {
-        return (CommandPreProcessor<S>) config.getInstanceFactory().createInstance(config, clazz);
-    }
-
-    @SuppressWarnings("unchecked")
-    private CommandPostProcessor<S> loadPostProcessorInstance(Class<? extends CommandPostProcessor<?>> clazz) {
-        return (CommandPostProcessor<S>) config.getInstanceFactory().createInstance(config, clazz);
     }
 
     /*@SuppressWarnings("unchecked")
@@ -392,13 +421,32 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     
      */
 
+    private AttachmentMode extractAttachmentMode(ClassElement commandClass, SubCommand subCommandAnn) {
+        AttachmentMode attachmentMode =
+                config.getDefaultAttachmentMode() == AttachmentMode.UNSET ? subCommandAnn.attachment() : config.getDefaultAttachmentMode();
+        GlobalAttachmentMode globalAttachmentMode = commandClass.getAnnotation(GlobalAttachmentMode.class);
+        if (globalAttachmentMode != null && attachmentMode == AttachmentMode.UNSET) {
+            attachmentMode = globalAttachmentMode.value();
+        }
+        return attachmentMode;
+    }
+
+    @SuppressWarnings("unchecked")
+    private CommandPreProcessor<S> loadPreProcessorInstance(Class<? extends CommandPreProcessor<?>> clazz) {
+        return (CommandPreProcessor<S>) config.getInstanceFactory().createInstance(config, clazz);
+    }
+
+    @SuppressWarnings("unchecked")
+    private CommandPostProcessor<S> loadPostProcessorInstance(Class<? extends CommandPostProcessor<?>> clazz) {
+        return (CommandPostProcessor<S>) config.getInstanceFactory().createInstance(config, clazz);
+    }
 
     private CommandUsage<S> loadUsage(
-        @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
-        @NotNull studio.mevera.imperat.command.Command<S> loadedCmd,
-        MethodElement method
+            @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
+            @NotNull studio.mevera.imperat.command.Command<S> loadedCmd,
+            MethodElement method
     ) {
- 
+
         MethodUsageData<S> usageData = loadParameters(method, parentCmd);
         var execution = MethodCommandExecutor.of(imperat, method, usageData.inheritedTotalParameters());
 
@@ -408,27 +456,29 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         Async async = method.getAnnotation(Async.class);
 
         var builder = CommandUsage.<S>builder()
-            .parameters(usageData.personalParameters())
-            .execute(execution);
-        
+                              .parameters(usageData.personalParameters())
+                              .execute(execution);
+
         Usage usageAnn = method.getAnnotation(Usage.class);
-        
-        if(usageAnn != null) {
+
+        if (usageAnn != null) {
             String[] examples = Arrays.stream(usageAnn.examples())
-                    .map(config::replacePlaceholders)
-                    .toArray(String[]::new);
+                                        .map(config::replacePlaceholders)
+                                        .toArray(String[]::new);
             builder.examples(examples);
         }
-        
-        if (description != null)
-            builder.description(
-                config.replacePlaceholders(description.value())
-            );
 
-        if (permission != null)
-            builder.permission(
-                config.replacePlaceholders(permission.value())
+        if (description != null) {
+            builder.description(
+                    config.replacePlaceholders(description.value())
             );
+        }
+
+        if (permission != null) {
+            builder.permission(
+                    config.replacePlaceholders(permission.value())
+            );
+        }
 
         if (cooldown != null) {
             ImperatDebugger.debug("Method '%s' has cooldown", method.getName());
@@ -436,18 +486,19 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             builder.cooldown(cooldown.value(), cooldown.unit(), cooldownPerm.isEmpty() ? null : cooldownPerm);
         }
 
-        if (async != null)
+        if (async != null) {
             builder.coordinator(CommandCoordinator.async());
+        }
         boolean help = method.isHelp();
         return builder
-            //.registerFlags(usageData.freeFlags)
-            .build(loadedCmd, help);
+                       //.registerFlags(usageData.freeFlags)
+                       .build(loadedCmd, help);
 
     }
 
     private MethodUsageData<S> loadParameters(
-        @NotNull MethodElement method,
-        @Nullable studio.mevera.imperat.command.Command<S> parentCmd
+            @NotNull MethodElement method,
+            @Nullable studio.mevera.imperat.command.Command<S> parentCmd
     ) {
 
         ImperatDebugger.debugForTesting("Loading for method '%s'", method.getName());
@@ -457,10 +508,10 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         boolean doesRequireParameterInheritance = doesRequireParameterInheritance(parentCmd, method);
         ImperatDebugger.debug("Method '%s' Requires inheritance= " + doesRequireParameterInheritance, method.getName());
-        
+
         if (doesRequireParameterInheritance(parentCmd, method)) {
             LinkedList<studio.mevera.imperat.command.Command<S>> parenteralSequence = getParenteralSequence(parentCmd);
-            for(studio.mevera.imperat.command.Command<S> parent : parenteralSequence) {
+            for (studio.mevera.imperat.command.Command<S> parent : parenteralSequence) {
                 parent.getMainUsage().getParameters()
                         .forEach((param) -> {
                             if (!param.isFlag()) {
@@ -480,22 +531,26 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         ParameterElement senderParam = null;
 
-        if(doesRequireParameterInheritance && originalMethodParameters.size()-1 == 0 && !mainUsageParameters.isEmpty() && parentCmd != null) {
-            throw new IllegalStateException("You have inherited parameters ('%s') that are not declared in the method '%s' in class '%s'".formatted(inheritedParamsFormatted, method.getName(), method.getParent().getName()));
+        if (doesRequireParameterInheritance && originalMethodParameters.size() - 1 == 0 && !mainUsageParameters.isEmpty() && parentCmd != null) {
+            throw new IllegalStateException(
+                    "You have inherited parameters ('%s') that are not declared in the method '%s' in class '%s'".formatted(inheritedParamsFormatted,
+                            method.getName(), method.getParent().getName()));
         }
 
         while (!originalMethodParameters.isEmpty()) {
 
             ParameterElement parameterElement = originalMethodParameters.peek();
-            if (parameterElement == null) break;
+            if (parameterElement == null) {
+                break;
+            }
             //Type type = parameterElement.getElement().getParameterizedType();
-            if ( senderParam == null && isSenderParameter(parameterElement) ) {
+            if (senderParam == null && isSenderParameter(parameterElement)) {
                 senderParam = originalMethodParameters.remove();
                 continue;
             }
 
             CommandParameter<S> commandParameter = loadParameter(parameterElement);
-            if(commandParameter == null) {
+            if (commandParameter == null) {
                 originalMethodParameters.remove();
                 continue;
             }
@@ -508,7 +563,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             }*/
 
             CommandParameter<S> mainParameter = mainUsageParameters.peek();
-            if(mainParameter != null) {
+            if (mainParameter != null) {
                 ImperatDebugger.debugForTesting("Comparing main-usage parameter '%s' with loaded parameter '%s'", mainParameter.format(),
                         commandParameter.format());
             }
@@ -522,7 +577,8 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             }
 
             if (mainParameter.similarTo(commandParameter)) {
-                ImperatDebugger.debugForTesting("Main parameter '%s' is exactly similar to loaded parameter '%s'", mainParameter.format(), commandParameter.format());
+                ImperatDebugger.debugForTesting("Main parameter '%s' is exactly similar to loaded parameter '%s'", mainParameter.format(),
+                        commandParameter.format());
                 var methodParam = originalMethodParameters.remove();
                 ImperatDebugger.debugForTesting("Removing '%s' from method params", methodParam.getName());
                 var mainUsageParam = mainUsageParameters.remove();
@@ -539,35 +595,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return new MethodUsageData<>(personalMethodInputParameters, totalMethodParameters);
     }
 
-    private static <S extends Source> boolean doesRequireParameterInheritance(
-            @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
-            @NotNull MethodElement method
-    ) {
-        boolean requiresParameterInheritance = false;
-
-        if(method.isAnnotationPresent(SubCommand.class)) {
-            var attachment = Objects.requireNonNull(method.getAnnotation(SubCommand.class)).attachment();
-            if(parentCmd == null) {
-                requiresParameterInheritance = attachment.requiresParameterInheritance();
-            }else {
-                if(attachment == AttachmentMode.DEFAULT) {
-                    requiresParameterInheritance = parentCmd.getDefaultUsage().size() > 0;
-                }else
-                    requiresParameterInheritance = (attachment == AttachmentMode.MAIN || attachment == AttachmentMode.UNSET);
-            }
-        }
-        else if (method.isAnnotationPresent(Usage.class)) {
-            var ann =  method.getParent().getAnnotation(SubCommand.class);
-            if(ann != null) {
-                requiresParameterInheritance = ann.attachment().requiresParameterInheritance();
-            }
-            else if(parentCmd != null) {
-                requiresParameterInheritance = parentCmd.getMainUsage().getParameters().isEmpty();
-            }
-        }
-        return requiresParameterInheritance;
-    }
-
     private boolean isSenderParameter(ParameterElement parameter) {
         Type type = parameter.getElement().getParameterizedType();
         return imperat.canBeSender(type) || config.hasSourceResolver(type);
@@ -576,38 +603,20 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     private String getMethodParamsCollected(LinkedList<ParameterElement> methodParameters) {
 
         StringBuilder builder = new StringBuilder();
-        for(var pe : methodParameters) {
+        for (var pe : methodParameters) {
             builder.append(pe.getName()).append(" ");
         }
         return builder.toString();
     }
 
-    private static <S extends Source> @NotNull StringBuilder getMainUsageParametersCollected(StrictParameterList<S> mainUsageParameters) {
-        StringBuilder builder = new StringBuilder();
-        for(var p : mainUsageParameters) {
-            builder.append(p.format()).append(" ");
-        }
-        return builder;
-    }
-
-    private static <S extends Source> @NotNull LinkedList<studio.mevera.imperat.command.Command<S>> getParenteralSequence(@Nullable studio.mevera.imperat.command.Command<S> parentCmd) {
-        studio.mevera.imperat.command.Command<S> currentParent = parentCmd;
-        LinkedList<studio.mevera.imperat.command.Command<S>> parenteralSequence = new LinkedList<>();
-        while (currentParent != null) {
-            parenteralSequence.addFirst(currentParent);
-            currentParent = currentParent.parent();
-        }
-        return parenteralSequence;
-    }
-
     @SuppressWarnings("unchecked")
     private <T> @Nullable CommandParameter<S> loadParameter(
-        @NotNull ParameterElement parameter
+            @NotNull ParameterElement parameter
     ) {
 
         //Parameter parameter = element.getElement();
 
-        if(parameter.isContextResolved()) {
+        if (parameter.isContextResolved()) {
             return null;
         }
 
@@ -637,24 +646,28 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         if (suggestAnnotation != null) {
             suggestionResolver = SuggestionResolver.staticSuggestions(
-                config.replacePlaceholders(suggestAnnotation.value())
+                    config.replacePlaceholders(suggestAnnotation.value())
             );
         } else if (suggestionProvider != null) {
             String suggestionResolverName = config.replacePlaceholders(suggestionProvider.value().toLowerCase());
             var namedResolver = config.getNamedSuggestionResolver(
-                suggestionResolverName
+                    suggestionResolverName
             );
-            if (namedResolver != null)
+            if (namedResolver != null) {
                 suggestionResolver = namedResolver;
-            else {
+            } else {
                 throw new IllegalStateException("Unregistered named suggestion resolver : " + suggestionResolverName);
             }
         }
 
         boolean greedy = parameter.getAnnotation(Greedy.class) != null;
-        boolean allowsGreedy = parameter.getType() == String.class || (TypeUtility.isAcceptableGreedyWrapper(parameter.getType()) && TypeUtility.hasGenericType(parameter.getType(), String.class));
+        boolean allowsGreedy =
+                parameter.getType() == String.class || (TypeUtility.isAcceptableGreedyWrapper(parameter.getType()) && TypeUtility.hasGenericType(
+                        parameter.getType(), String.class));
         if (greedy && !allowsGreedy) {
-            throw new IllegalArgumentException("Argument '" + parameter.getName() + "' is greedy while having a non-greedy valueType '" + parameter.getType().getTypeName() + "'");
+            throw new IllegalArgumentException(
+                    "Argument '" + parameter.getName() + "' is greedy while having a non-greedy valueType '" + parameter.getType().getTypeName()
+                            + "'");
         }
 
         Description desc = Description.EMPTY;
@@ -662,7 +675,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             var descAnn = parameter.getAnnotation(studio.mevera.imperat.annotations.Description.class);
             assert descAnn != null;
             desc = Description.of(
-                config.replacePlaceholders(descAnn.value())
+                    config.replacePlaceholders(descAnn.value())
             );
         }
 
@@ -691,47 +704,47 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             }
 
             return AnnotationParameterDecorator.decorate(
-                CommandParameter.flag(name, type)
-                    .suggestForInputValue(suggestionResolver)
-                    .aliases(getAllExceptFirst(flagAliases))
-                    .flagDefaultInputValue(optionalValueSupplier)
-                    .description(desc)
-                    .permission(permission)
-                    .build(),
-                parameter
+                    CommandParameter.flag(name, type)
+                            .suggestForInputValue(suggestionResolver)
+                            .aliases(getAllExceptFirst(flagAliases))
+                            .flagDefaultInputValue(optionalValueSupplier)
+                            .description(desc)
+                            .permission(permission)
+                            .build(),
+                    parameter
             );
         } else if (switchAnnotation != null) {
             String[] switchAliases = switchAnnotation.value();
             return AnnotationParameterDecorator.decorate(
-                CommandParameter.<S>flagSwitch(name)
-                    .aliases(getAllExceptFirst(switchAliases))
-                    .description(desc)
-                    .permission(permission)
-                    .build(),
-                parameter
+                    CommandParameter.<S>flagSwitch(name)
+                            .aliases(getAllExceptFirst(switchAliases))
+                            .description(desc)
+                            .permission(permission)
+                            .build(),
+                    parameter
             );
         }
 
 
-        if(parameter.isAnnotationPresent(Values.class)) {
+        if (parameter.isAnnotationPresent(Values.class)) {
             Values valuesAnnotation = parameter.getAnnotation(Values.class);
             assert valuesAnnotation != null;
 
             Set<String> values = Arrays.stream(valuesAnnotation.value())
-                    .distinct()
-                    .map(config::replacePlaceholders)
-                    .flatMap(replaced -> {
-                        if (replaced.contains("|")) {
-                            return Arrays.stream(replaced.split(VALUES_SEPARATION_CHAR));
-                        } else {
-                            return Stream.of(replaced);
-                        }
-                    })
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+                                         .distinct()
+                                         .map(config::replacePlaceholders)
+                                         .flatMap(replaced -> {
+                                             if (replaced.contains("|")) {
+                                                 return Arrays.stream(replaced.split(VALUES_SEPARATION_CHAR));
+                                             } else {
+                                                 return Stream.of(replaced);
+                                             }
+                                         })
+                                         .collect(Collectors.toCollection(LinkedHashSet::new));
 
             type = ConstrainedParameterTypeDecorator.of(type, values, valuesAnnotation.caseSensitive());
         }
-        
+
         CommandParameter<S> delegate = CommandParameter.of(
                 name, type, permission, desc,
                 optional, greedy, optionalValueSupplier, suggestionResolver
@@ -741,15 +754,15 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             assert formatAnnotation != null;
             delegate.setFormat(config.replacePlaceholders(formatAnnotation.value()));
         }
-        
+
         CommandParameter<S> param = AnnotationParameterDecorator.decorate(delegate, parameter);
 
         if (TypeUtility.isNumericType(TypeWrap.of(param.valueType()))
-            && parameter.isAnnotationPresent(Range.class)) {
+                    && parameter.isAnnotationPresent(Range.class)) {
             Range range = parameter.getAnnotation(Range.class);
             assert range != null;
             param = NumericParameterDecorator.decorate(
-                param, NumericRange.of(range.min(), range.max())
+                    param, NumericRange.of(range.min(), range.max())
             );
         }
 
@@ -764,8 +777,8 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     }
 
     private record MethodUsageData<S extends Source>(
-        List<CommandParameter<S>> personalParameters,
-        List<CommandParameter<S>> inheritedTotalParameters
+            List<CommandParameter<S>> personalParameters,
+            List<CommandParameter<S>> inheritedTotalParameters
     ) {
 
     }

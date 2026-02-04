@@ -16,8 +16,8 @@ public final class CooldownException extends CommandException {
         Duration elapsed = Duration.between(lastTimeExecuted, Instant.now());
         var remaining = cooldownDuration.minus(elapsed);
         this.remainingDuration = remaining.isNegative()
-                ? Duration.ZERO
-                : remaining;
+                                         ? Duration.ZERO
+                                         : remaining;
     }
 
 

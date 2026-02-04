@@ -17,11 +17,11 @@ public final class MethodElement extends ParseElement<Method> {
     private int inputCount = 0;
     private int optionalCount = 0;
     private boolean help = false;
-    
+
     public <S extends Source> MethodElement(
-        @NotNull AnnotationParser<S> parser,
-        @Nullable ClassElement owningElement,
-        @NotNull Method element
+            @NotNull AnnotationParser<S> parser,
+            @Nullable ClassElement owningElement,
+            @NotNull Method element
     ) {
         super(parser, owningElement, element);
         var params = element.getParameters();
@@ -30,15 +30,14 @@ public final class MethodElement extends ParseElement<Method> {
             ParameterElement parameterElement = new ParameterElement(parser, owningElement, this, parameter);
             //ImperatDebugger.debug("Adding param '%s' to method '%s'", parameterElement.getName(), this.getName());
             parameters.add(parameterElement);
-            if (i > 0 ) {
+            if (i > 0) {
 
-                if(!parameterElement.isContextResolved()) {
+                if (!parameterElement.isContextResolved()) {
                     inputCount++;
-                    if(parameterElement.isOptional()) {
+                    if (parameterElement.isOptional()) {
                         optionalCount++;
                     }
-                }
-                else if(parameterElement.getElement().getType().equals(CommandHelp.class)) {
+                } else if (parameterElement.getElement().getType().equals(CommandHelp.class)) {
                     help = true;
                 }
 
@@ -48,7 +47,9 @@ public final class MethodElement extends ParseElement<Method> {
     }
 
     public @Nullable ParameterElement getParameterAt(int index) {
-        if (index < 0 || index >= size()) return null;
+        if (index < 0 || index >= size()) {
+            return null;
+        }
         return parameters.get(index);
     }
 
@@ -81,13 +82,13 @@ public final class MethodElement extends ParseElement<Method> {
     public boolean isAllOptionalInput() {
         return inputCount == optionalCount;
     }
-    
+
     @Override
     public @NotNull ParseElement<?> getParent() {
         assert super.getParent() != null;
         return super.getParent();
     }
-    
+
     public boolean isHelp() {
         return help;
     }

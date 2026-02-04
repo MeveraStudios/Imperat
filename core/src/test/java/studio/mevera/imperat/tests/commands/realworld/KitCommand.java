@@ -12,7 +12,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
 public final class KitCommand {
 
     @SubCommand(
-        "create"
+            "create"
     )
     public void createKit(TestSource source, @Named("kit") String kit, @Named("weight") @Optional @Default("1") Integer weight) {
         ImperatDebugger.debug("kit=%s, weight=%s", kit, weight);

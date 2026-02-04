@@ -7,7 +7,7 @@ public enum ShiftTarget {
     PARAMETER_ONLY((pos) -> pos.parameter < pos.maxParameters()),
 
     ALL((pos) ->
-        pos.raw < pos.maxRaws() && pos.parameter < pos.maxParameters());
+                pos.raw < pos.maxRaws() && pos.parameter < pos.maxParameters());
 
     private final PositionShiftCondition canContinueCheck;
 

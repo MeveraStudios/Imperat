@@ -24,55 +24,65 @@ import java.util.Set;
  * @param <S> the type of source that commands and nodes operate on, must extend {@link Source}
  */
 public interface CommandTree<S extends Source> {
-    
+
+    static <S extends Source> CommandTree<S> create(ImperatConfig<S> imperatConfig, Command<S> command) {
+        return new StandardCommandTree<>(imperatConfig, command);
+    }
+
+    static <S extends Source> CommandTree<S> parsed(ImperatConfig<S> imperatConfig, Command<S> command) {
+        var tree = new StandardCommandTree<>(imperatConfig, command);
+        tree.parseCommandUsages();
+        return tree;
+    }
+
     /**
      * Gets the root command of this command tree.
      *
      * @return the root command, never null
      */
     @NotNull Command<S> root();
-    
+
     /**
      * Gets the root node of this command tree.
      *
      * @return the root command node, never null
      */
     @NotNull CommandNode<S> rootNode();
-    
+
     /**
      * Gets the unique versioned tree.
      * @return the unique versioned tree.
      */
     @NotNull CommandNode<S> uniqueVersionedTree();
-    
+
     /**
      * The number of nodes cached in this {@link CommandTree}.
      * @return the number of nodes representing the size
      * of this N-ary tree
      */
     int size();
-    
+
     /**
      * The size of the unique versioned tree
      * @see #uniqueVersionedTree()
      * @return The size of the unique versioned tree.
      */
     int uniqueSize();
-    
+
     /**
      * Parses the given command usage and updates the command tree accordingly.
      *
      * @param usage the command usage to parse, must not be null
      */
     void parseUsage(@NotNull CommandUsage<S> usage);
-    
+
     /**
      * Compute Permissions in APA(AutoPermissionAssign) mode
      * This is a method that shall take some considerable amount of resources whenever
      * an instance of {@link Command} is created using its {@link Command.Builder}.
      */
     void computePermissions();
-    
+
     /**
      * This should fetch the command parameter's assigned permission.
      * Use this method when necessary only.
@@ -81,7 +91,7 @@ public interface CommandTree<S extends Source> {
      * @return the permission that was auto assigned for it.
      */
     @Nullable String getAutoAssignedPermission(@NotNull CommandParameter<S> commandParameter);
-    
+
     /**
      * Matches the given input against this command tree and returns a dispatch context.
      *
@@ -90,7 +100,7 @@ public interface CommandTree<S extends Source> {
      * @return a command dispatch context containing matching results, never null
      */
     @NotNull CommandPathSearch<S> contextMatch(Context<S> context, @NotNull ArgumentInput input);
-    
+
     /**
      * Generates tab-completion suggestions based on the current command context.
      *
@@ -100,7 +110,7 @@ public interface CommandTree<S extends Source> {
     @NotNull List<String> tabComplete(
             @NotNull SuggestionContext<S> context
     );
-    
+
     /**
      * Queries the help system to retrieve a set of help entries that match the specified criteria.
      *
@@ -119,7 +129,7 @@ public interface CommandTree<S extends Source> {
     HelpEntryList<S> queryHelp(
             @NotNull HelpQuery<S> query
     );
-    
+
     /**
      * Collects the closest usages to a context, this traverses the whole {@link  CommandTree}
      * from the beginning , visiting every branch/chain possible.
@@ -129,15 +139,5 @@ public interface CommandTree<S extends Source> {
      * @return A set of the closest usages to a {@link Context}
      */
     Set<CommandUsage<S>> getClosestUsages(Context<S> context);
-    
-    static <S extends Source> CommandTree<S> create(ImperatConfig<S> imperatConfig, Command<S> command) {
-        return new StandardCommandTree<>(imperatConfig, command);
-    }
-    
-    static <S extends Source> CommandTree<S> parsed(ImperatConfig<S> imperatConfig, Command<S> command) {
-        var tree = new StandardCommandTree<>(imperatConfig, command);
-        tree.parseCommandUsages();
-        return tree;
-    }
-    
+
 }

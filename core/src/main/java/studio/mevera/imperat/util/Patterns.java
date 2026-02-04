@@ -26,9 +26,9 @@ public final class Patterns {
 
     public static String withoutFlagSign(String currentRaw) {
         int index = 0;
-        if(isSingleFlag(currentRaw)) {
+        if (isSingleFlag(currentRaw)) {
             index = 1;
-        }else if(isDoubleFlag(currentRaw)) {
+        } else if (isDoubleFlag(currentRaw)) {
             index = 2;
         }
         return currentRaw.substring(index);

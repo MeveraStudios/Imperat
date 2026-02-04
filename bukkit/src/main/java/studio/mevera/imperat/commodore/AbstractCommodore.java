@@ -69,10 +69,11 @@ abstract class AbstractCommodore implements Commodore<Command> {
     static {
         try {
             final Class<?> commandListenerWrapper;
-            if (Version.isOver(1, 16, 5))
+            if (Version.isOver(1, 16, 5)) {
                 commandListenerWrapper = BukkitUtil.ClassesRefUtil.mcClass("commands.CommandListenerWrapper");
-            else
+            } else {
                 commandListenerWrapper = BukkitUtil.ClassesRefUtil.nmsClass("CommandListenerWrapper");
+            }
 
             CUSTOM_SUGGESTIONS_FIELD = ArgumentCommandNode.class.getDeclaredField("customSuggestions");
             CUSTOM_SUGGESTIONS_FIELD.setAccessible(true);
@@ -144,7 +145,9 @@ abstract class AbstractCommodore implements Commodore<Command> {
     }
 
     protected static <S> LiteralCommandNode<S> renameLiteralNode(LiteralCommandNode<S> node, String newLiteral) {
-        LiteralCommandNode<S> clone = new LiteralCommandNode<>(newLiteral, node.getCommand(), node.getRequirement(), node.getRedirect(), node.getRedirectModifier(), node.isFork());
+        LiteralCommandNode<S> clone =
+                new LiteralCommandNode<>(newLiteral, node.getCommand(), node.getRequirement(), node.getRedirect(), node.getRedirectModifier(),
+                        node.isFork());
         for (CommandNode<S> child : node.getChildren()) {
             clone.addChild(child);
         }
@@ -161,7 +164,9 @@ abstract class AbstractCommodore implements Commodore<Command> {
      * @return the aliases
      */
     protected static Collection<String> getAliases(Command command) {
-        if (command == null) return Collections.emptyList();
+        if (command == null) {
+            return Collections.emptyList();
+        }
 
         Stream<String> aliasesStream = Stream.concat(
                 Stream.of(command.getLabel()),

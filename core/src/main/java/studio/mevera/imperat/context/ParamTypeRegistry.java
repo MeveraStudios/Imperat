@@ -56,6 +56,9 @@ import java.util.function.Supplier;
 public final class ParamTypeRegistry<S extends Source> extends Registry<Type, Supplier<ParameterType>> {
 
     private final Registry<Type, Supplier<Collection<?>>> collectionInitializer = new Registry<>(LinkedHashMap::new);
+    private final Registry<Type, Function<Integer, Object[]>> arrayInitializer = new Registry<>(LinkedHashMap::new);
+    private final Registry<Type, Supplier<Map<?, ?>>> mapInitializer = new Registry<>(LinkedHashMap::new);
+
     {
         // List implementations
         collectionInitializer.setData(ArrayList.class, ArrayList::new);
@@ -64,14 +67,14 @@ public final class ParamTypeRegistry<S extends Source> extends Registry<Type, Su
         collectionInitializer.setData(Stack.class, Stack::new);
         collectionInitializer.setData(CopyOnWriteArrayList.class, CopyOnWriteArrayList::new);
 
-// Set implementations
+        // Set implementations
         collectionInitializer.setData(HashSet.class, HashSet::new);
         collectionInitializer.setData(LinkedHashSet.class, LinkedHashSet::new);
         collectionInitializer.setData(TreeSet.class, TreeSet::new);
         collectionInitializer.setData(CopyOnWriteArraySet.class, CopyOnWriteArraySet::new);
         collectionInitializer.setData(ConcurrentSkipListSet.class, ConcurrentSkipListSet::new);
 
-// Queue/Deque implementations
+        // Queue/Deque implementations
         collectionInitializer.setData(PriorityQueue.class, PriorityQueue::new);
         collectionInitializer.setData(ArrayDeque.class, ArrayDeque::new);
         collectionInitializer.setData(ConcurrentLinkedQueue.class, ConcurrentLinkedQueue::new);
@@ -83,8 +86,6 @@ public final class ParamTypeRegistry<S extends Source> extends Registry<Type, Su
         collectionInitializer.setData(LinkedTransferQueue.class, LinkedTransferQueue::new);
     }
 
-
-    private final Registry<Type, Function<Integer, Object[]>> arrayInitializer = new Registry<>(LinkedHashMap::new);
     {
         // Wrapped types array initializers with size parameter
         arrayInitializer.setData(Boolean.class, Boolean[]::new);
@@ -98,7 +99,6 @@ public final class ParamTypeRegistry<S extends Source> extends Registry<Type, Su
         arrayInitializer.setData(String.class, String[]::new);
     }
 
-    private final Registry<Type, Supplier<Map<?, ?>>> mapInitializer = new Registry<>(LinkedHashMap::new);
     {
 
         // Standard Map Implementations
@@ -142,27 +142,30 @@ public final class ParamTypeRegistry<S extends Source> extends Registry<Type, Su
         var collectionType = fullType.getRawType();
         var data = collectionInitializer.getData(collectionType);
         return data.map(collectionSupplier -> (Supplier<C>) collectionSupplier)
-                .orElseGet(() -> (Supplier<C>) collectionInitializer.search((ctype, supplier) -> TypeWrap.of(collectionType).isSupertypeOf(ctype))
-                .orElseThrow(() -> new IllegalArgumentException("Unknown collection-type detected '" + collectionType.getTypeName() + "'")));
+                       .orElseGet(
+                               () -> (Supplier<C>) collectionInitializer.search((ctype, supplier) -> TypeWrap.of(collectionType).isSupertypeOf(ctype))
+                                                           .orElseThrow(() -> new IllegalArgumentException(
+                                                                   "Unknown collection-type detected '" + collectionType.getTypeName() + "'")));
     }
 
     Function<Integer, Object[]> initializeNewArray(TypeWrap<?> componentType) {
         var data = arrayInitializer.getData(componentType.getType());
-        if(data.isEmpty()) {
+        if (data.isEmpty()) {
 
             Function<Integer, Object[]> func = null;
-            for(Type key : arrayInitializer.getKeys()) {
-                if(componentType.isSupertypeOf(key)) {
+            for (Type key : arrayInitializer.getKeys()) {
+                if (componentType.isSupertypeOf(key)) {
                     func = arrayInitializer.getData(key).orElse(null);
-                    if(func != null)
+                    if (func != null) {
                         break;
+                    }
                 }
             }
-            if(func == null) {
+            if (func == null) {
                 throw new IllegalArgumentException("Unknown array-type detected '" + componentType.getType().getTypeName() + "'");
             }
             return func;
-        }else {
+        } else {
             return data.get();
         }
     }
@@ -171,17 +174,19 @@ public final class ParamTypeRegistry<S extends Source> extends Registry<Type, Su
         Type mapRawType = fullType.getRawType();
         var initializer = mapInitializer.getData(mapRawType);
         return initializer.map(mapSupplier -> (Supplier<M>) mapSupplier)
-                .orElseGet(() -> (Supplier<M>) mapInitializer.search((ctype, supplier) -> TypeWrap.of(mapRawType).isSupertypeOf(ctype))
-                .orElseThrow(() -> new IllegalArgumentException("Unknown map-type detected '" + mapRawType.getTypeName() + "'")));
+                       .orElseGet(() -> (Supplier<M>) mapInitializer.search((ctype, supplier) -> TypeWrap.of(mapRawType).isSupertypeOf(ctype))
+                                                              .orElseThrow(() -> new IllegalArgumentException(
+                                                                      "Unknown map-type detected '" + mapRawType.getTypeName() + "'")));
     }
 
     private <E, C extends Collection<E>> ParameterCollection<S, E, C> getCollectionResolver(TypeWrap<?> type) {
         var parameterizedTypes = type.getParameterizedTypes();
-        if(parameterizedTypes == null) {
+        if (parameterizedTypes == null) {
             throw new IllegalArgumentException("NULL PARAMETERIZED TYPES");
         }
         TypeWrap<E> componentType = (TypeWrap<E>) TypeWrap.of(parameterizedTypes[0]);
-        ParameterType<S, E> componentResolver = (ParameterType<S, E>) getResolver(componentType.getType()).orElseThrow(()-> new IllegalArgumentException("Unknown component-type detected '" + componentType.getType().getTypeName() + "'"));
+        ParameterType<S, E> componentResolver = (ParameterType<S, E>) getResolver(componentType.getType()).orElseThrow(
+                () -> new IllegalArgumentException("Unknown component-type detected '" + componentType.getType().getTypeName() + "'"));
         return new ParameterCollection<>((TypeWrap<C>) type, initializeNewCollection(type), componentResolver);
     }
 
@@ -190,45 +195,59 @@ public final class ParamTypeRegistry<S extends Source> extends Registry<Type, Su
         if (componentType == null) {
             throw new IllegalArgumentException("NULL COMPONENT TYPE");
         }
-        ParameterType<S, E> componentResolver = (ParameterType<S, E>) getResolver(componentType.getType()).orElseThrow(()-> new IllegalArgumentException("Unknown component-type detected '" + componentType.getType().getTypeName() + "'"));
-        return new ParameterArray<>((TypeWrap<E[]>) type, initializeNewArray(componentType), componentResolver) {};
+        ParameterType<S, E> componentResolver = (ParameterType<S, E>) getResolver(componentType.getType()).orElseThrow(
+                () -> new IllegalArgumentException("Unknown component-type detected '" + componentType.getType().getTypeName() + "'"));
+        return new ParameterArray<>((TypeWrap<E[]>) type, initializeNewArray(componentType), componentResolver) {
+        };
     }
 
     private <K, V, M extends Map<K, V>> ParameterMap<S, K, V, M> getMapResolver(TypeWrap<?> type) {
         var parameterizedTypes = type.getParameterizedTypes();
-        if(parameterizedTypes == null || parameterizedTypes.length == 0) {
+        if (parameterizedTypes == null || parameterizedTypes.length == 0) {
             throw new IllegalArgumentException("Raw types are not allowed as parameters !");
         }
         TypeWrap<K> keyType = (TypeWrap<K>) TypeWrap.of(parameterizedTypes[0]);
         TypeWrap<V> valueType = (TypeWrap<V>) TypeWrap.of(parameterizedTypes[0]);
 
-        ParameterType<S, K> keyResolver = (ParameterType<S, K>) getResolver(keyType.getType()).orElseThrow(()-> new IllegalArgumentException("Unknown component-type detected '" + keyType.getType().getTypeName() + "'"));
-        ParameterType<S, V> valueResolver = (ParameterType<S, V>) getResolver(valueType.getType()).orElseThrow(()-> new IllegalArgumentException("Unknown component-type detected '" + valueType.getType().getTypeName() + "'"));
+        ParameterType<S, K> keyResolver = (ParameterType<S, K>) getResolver(keyType.getType()).orElseThrow(
+                () -> new IllegalArgumentException("Unknown component-type detected '" + keyType.getType().getTypeName() + "'"));
+        ParameterType<S, V> valueResolver = (ParameterType<S, V>) getResolver(valueType.getType()).orElseThrow(
+                () -> new IllegalArgumentException("Unknown component-type detected '" + valueType.getType().getTypeName() + "'"));
 
         return new ParameterMap<>((TypeWrap<M>) type, initializeNewMap(type), keyResolver, valueResolver);
     }
 
     private <T> ParameterCompletableFuture<S, T> getFutureResolver(TypeWrap<?> type) {
         var parameterizedTypes = type.getParameterizedTypes();
-        if(parameterizedTypes == null || parameterizedTypes.length == 0) {
+        if (parameterizedTypes == null || parameterizedTypes.length == 0) {
             throw new IllegalArgumentException("Raw types are not allowed as parameters !");
         }
         TypeWrap<T> futureTypeInput = (TypeWrap<T>) TypeWrap.of(parameterizedTypes[0]);
-        ParameterType<S, T> futureTypeResolver = (ParameterType<S, T>) getResolver(futureTypeInput.getType()).orElseThrow(()-> new IllegalArgumentException("Unknown "
-                + "component-type detected '" + futureTypeInput.getType().getTypeName() + "'"));
+        ParameterType<S, T> futureTypeResolver =
+                (ParameterType<S, T>) getResolver(futureTypeInput.getType()).orElseThrow(() -> new IllegalArgumentException("Unknown "
+                                                                                                                                    + "component"
+                                                                                                                                    + "-type "
+                                                                                                                                    + "detected '"
+                                                                                                                                    + futureTypeInput.getType()
+                                                                                                                                              .getTypeName()
+                                                                                                                                    + "'"));
 
         return ParameterTypes.future((TypeWrap<CompletableFuture<T>>) type, futureTypeResolver);
     }
 
     private <T> ParameterOptional<S, T> getOptionalResolver(TypeWrap<?> type) {
         var parameterizedTypes = type.getParameterizedTypes();
-        if(parameterizedTypes == null || parameterizedTypes.length == 0) {
+        if (parameterizedTypes == null || parameterizedTypes.length == 0) {
             throw new IllegalArgumentException("Raw types are not allowed as parameters !");
         }
         TypeWrap<T> optionalType = (TypeWrap<T>) TypeWrap.of(parameterizedTypes[0]);
         ParameterType<S, T> optionalTypeResolver =
-                (ParameterType<S, T>) getResolver(optionalType.getType()).orElseThrow(()-> new IllegalArgumentException("Unknown "
-                + "component-type detected '" + optionalType.getType().getTypeName() + "'"));
+                (ParameterType<S, T>) getResolver(optionalType.getType()).orElseThrow(() -> new IllegalArgumentException("Unknown "
+                                                                                                                                 + "component-type "
+                                                                                                                                 + "detected '"
+                                                                                                                                 + optionalType.getType()
+                                                                                                                                           .getTypeName()
+                                                                                                                                 + "'"));
 
         return ParameterTypes.optional((TypeWrap<Optional<T>>) type, optionalTypeResolver);
     }
@@ -239,58 +258,51 @@ public final class ParamTypeRegistry<S extends Source> extends Registry<Type, Su
 
     public <ArrayComponent> void registerArrayInitializer(Class<ArrayComponent> type, Function<Integer, Object[]> initializerFunction) {
         var sample = initializerFunction.apply(0);
-        if(!TypeUtility.matches(sample.getClass().getComponentType(), type)) {
-            throw new IllegalArgumentException("Array initializer type '%s' does not match '%s'".formatted(type.getName(), sample.getClass().getComponentType()));
+        if (!TypeUtility.matches(sample.getClass().getComponentType(), type)) {
+            throw new IllegalArgumentException(
+                    "Array initializer type '%s' does not match '%s'".formatted(type.getName(), sample.getClass().getComponentType()));
         }
         arrayInitializer.setData(type, initializerFunction);
     }
 
-    public <M extends Map<?, ?>>  void registerMapInitializer(Class<M> type, Supplier<M> initializerFunction) {
+    public <M extends Map<?, ?>> void registerMapInitializer(Class<M> type, Supplier<M> initializerFunction) {
         mapInitializer.setData(type, (Supplier<Map<?, ?>>) initializerFunction);
     }
 
     public <T> Optional<ParameterType<S, T>> getResolver(Type type) {
         return
                 Optional.ofNullable(getData(TypeUtility.primitiveToBoxed(type))
-                .map(Supplier::get)
-        .orElseGet(() -> {
+                                            .map(Supplier::get)
+                                            .orElseGet(() -> {
 
-            var wrap = TypeWrap.of(type);
-            if(wrap.isArray()) {
-                //array type
-                return getArrayResolver(wrap);
+                                                var wrap = TypeWrap.of(type);
+                                                if (wrap.isArray()) {
+                                                    //array type
+                                                    return getArrayResolver(wrap);
 
-            }else if(wrap.isSubtypeOf(Collection.class)) {
-                //collection type
-                return this.getCollectionResolver(wrap);
-            }
-            else if(wrap.isSubtypeOf(Map.class)) {
-                //map type
-                return this.getMapResolver(wrap);
-            }
+                                                } else if (wrap.isSubtypeOf(Collection.class)) {
+                                                    //collection type
+                                                    return this.getCollectionResolver(wrap);
+                                                } else if (wrap.isSubtypeOf(Map.class)) {
+                                                    //map type
+                                                    return this.getMapResolver(wrap);
+                                                } else if (wrap.getRawType().equals(CompletableFuture.class)) {
+                                                    return this.getFutureResolver(wrap);
+                                                } else if (wrap.getRawType().equals(Optional.class)) {
+                                                    return this.getOptionalResolver(wrap);
+                                                } else if (TypeUtility.isNumericType(wrap)) {
+                                                    return ParameterTypes.numeric((Class<? extends Number>) type);
+                                                } else if (TypeUtility.areRelatedTypes(type, Enum.class)) {
+                                                    return new ParameterEnum<>((TypeWrap<Enum<?>>) TypeWrap.of(type));
+                                                }
 
-            else if(wrap.getRawType().equals(CompletableFuture.class)) {
-                return this.getFutureResolver(wrap);
-            }
-
-            else if(wrap.getRawType().equals(Optional.class)) {
-                return this.getOptionalResolver(wrap);
-            }
-
-            else if (TypeUtility.isNumericType(wrap))
-                return ParameterTypes.numeric((Class<? extends Number>) type);
-
-            else if (TypeUtility.areRelatedTypes(type, Enum.class)) {
-                return new ParameterEnum<>((TypeWrap<Enum<?>>) TypeWrap.of(type));
-            }
-
-            for (var registeredType : getKeys()) {
-                if (TypeUtility.areRelatedTypes(type, registeredType)) {
-                    return getData(registeredType).map((s)-> ((ParameterType<S, T>)s.get()) ).orElse(null);
-                }
-            }
-            return null;
-        }));
+                                                for (var registeredType : getKeys()) {
+                                                    if (TypeUtility.areRelatedTypes(type, registeredType)) {
+                                                        return getData(registeredType).map((s) -> ((ParameterType<S, T>) s.get())).orElse(null);
+                                                    }
+                                                }
+                                                return null;
+                                            }));
     }
 
 }

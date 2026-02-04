@@ -21,8 +21,9 @@ public abstract class TypeCapturer {
 
         if (genericSuperClass instanceof ParameterizedType parameterized) {
             Type[] args = parameterized.getActualTypeArguments();
-            if (index < 0 || index >= args.length)
+            if (index < 0 || index >= args.length) {
                 throw new IndexOutOfBoundsException("No type argument at index " + index);
+            }
 
             return resolveType(args[index]);
         }
@@ -48,8 +49,9 @@ public abstract class TypeCapturer {
 
                 if (raw.equals(targetSuperclass)) {
                     Type[] args = parameterized.getActualTypeArguments();
-                    if (index < 0 || index >= args.length)
+                    if (index < 0 || index >= args.length) {
                         throw new IndexOutOfBoundsException("No type argument at index " + index);
+                    }
 
                     return resolveType(args[index]);
                 }
@@ -171,6 +173,7 @@ public abstract class TypeCapturer {
     }
 
     private static class ResolvedParameterizedType implements ParameterizedType {
+
         private final Class<?> raw;
         private final Type[] args;
         private final Type owner;
@@ -202,7 +205,9 @@ public abstract class TypeCapturer {
             if (args.length > 0) {
                 sb.append("<");
                 for (int i = 0; i < args.length; i++) {
-                    if (i > 0) sb.append(", ");
+                    if (i > 0) {
+                        sb.append(", ");
+                    }
                     sb.append(args[i].getTypeName());
                 }
                 sb.append(">");
@@ -212,6 +217,7 @@ public abstract class TypeCapturer {
     }
 
     private static class ResolvedGenericArrayType implements GenericArrayType {
+
         private final Type component;
 
         ResolvedGenericArrayType(Type component) {

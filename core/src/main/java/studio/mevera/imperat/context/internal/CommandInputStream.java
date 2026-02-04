@@ -63,11 +63,72 @@ import java.util.Optional;
  * @see StreamPosition
  */
 public interface CommandInputStream<S extends Source> {
-    
+
     // ========================================
     // CORE POSITION AND STATE METHODS
     // ========================================
-    
+
+    /**
+     * Creates a new {@link CommandInputStream} instance with the specified raw arguments
+     * and command usage information. The usage information determines how the raw
+     * arguments are mapped to typed command parameters.
+     *
+     * <p>This factory method is the primary way to create command input streams
+     * from parsed command input and detected command structure.
+     *
+     * @param <S> the type of command source
+     * @param queue the queue containing all raw argument strings
+     * @param usage the command usage definition that describes expected parameters
+     * @return a new {@link CommandInputStream} instance initialized with the
+     *         provided data
+     * @throws IllegalArgumentException if queue or usage is {@code null}
+     */
+    static <S extends Source> CommandInputStream<S> of(ArgumentInput queue, CommandUsage<S> usage) {
+        return new CommandInputStreamImpl<>(queue, usage);
+    }
+
+    /**
+     * Creates a new {@link CommandInputStream} with a single string as input.
+     * This factory method is useful for creating streams for single-argument
+     * parsing or testing scenarios.
+     *
+     * @param <S> the type of command source
+     * @param parameter the command parameter associated with the input string
+     * @param str the raw input string to be processed
+     * @return a new {@link CommandInputStream} instance containing the single input
+     * @throws IllegalArgumentException if parameter or str is {@code null}
+     */
+    static <S extends Source> CommandInputStream<S> ofSingleString(@NotNull CommandParameter<S> parameter, @NotNull String str) {
+        return new CommandInputStreamImpl<>(ArgumentInput.of(str), List.of(parameter));
+    }
+
+    // ========================================
+    // CURRENT ELEMENT ACCESS METHODS
+    // ========================================
+
+    /**
+     * Creates a substream of the specified parent stream with new input content.
+     * The substream inherits the current parameter context from the parent stream
+     * but operates on the new input string.
+     *
+     * <p>This method is useful for recursive parsing scenarios where a parameter
+     * value needs to be parsed as a nested command structure.
+     *
+     * @param <S> the type of command source
+     * @param stream the parent command input stream to derive context from
+     * @param input the raw input string for the new substream
+     * @return a new {@link CommandInputStream} instance representing the substream
+     * @throws NoSuchElementException if the parent stream has no current parameter available
+     * @throws IllegalArgumentException if stream or input is {@code null}
+     */
+    static <S extends Source> CommandInputStream<S> subStream(@NotNull CommandInputStream<S> stream, @NotNull String input) {
+        CommandParameter<S> param = stream.currentParameterIfPresent();
+        if (param == null) {
+            throw new NoSuchElementException("No current parameter available");
+        }
+        return ofSingleString(param, input);
+    }
+
     /**
      * Retrieves the current cursor position within the input stream.
      * The position object contains cursors for all navigation levels
@@ -76,7 +137,7 @@ public interface CommandInputStream<S extends Source> {
      * @return the current stream position, never {@code null}
      */
     @NotNull StreamPosition<S> position();
-    
+
     /**
      * Creates a deep copy of this command input stream.
      * The copy maintains independent cursor positions and can be navigated
@@ -89,11 +150,7 @@ public interface CommandInputStream<S extends Source> {
      *         copy of this stream
      */
     CommandInputStream<S> copy();
-    
-    // ========================================
-    // CURRENT ELEMENT ACCESS METHODS
-    // ========================================
-    
+
     /**
      * Retrieves the command parameter at the current cursor position
      * without advancing the cursor.
@@ -103,7 +160,7 @@ public interface CommandInputStream<S extends Source> {
      */
     @Nullable
     CommandParameter<S> currentParameterIfPresent();
-    
+
     /**
      * Retrieves the command parameter at the current cursor position
      * wrapped in an Optional container.
@@ -115,7 +172,7 @@ public interface CommandInputStream<S extends Source> {
     default Optional<CommandParameter<S>> currentParameter() {
         return Optional.ofNullable(currentParameterIfPresent());
     }
-    
+
     /**
      * Retrieves the raw input string at the current cursor position
      * without advancing the cursor.
@@ -125,7 +182,11 @@ public interface CommandInputStream<S extends Source> {
      */
     @Nullable
     String currentRawIfPresent();
-    
+
+    // ========================================
+    // PEEK METHODS (LOOKAHEAD)
+    // ========================================
+
     /**
      * Retrieves the raw input string at the current cursor position
      * wrapped in an Optional container.
@@ -137,7 +198,7 @@ public interface CommandInputStream<S extends Source> {
     default Optional<String> currentRaw() {
         return Optional.ofNullable(currentRawIfPresent());
     }
-    
+
     /**
      * Retrieves the character at the current cursor position within
      * the current raw input string without advancing the cursor.
@@ -147,7 +208,7 @@ public interface CommandInputStream<S extends Source> {
      */
     @Nullable
     Character currentLetterIfPresent();
-    
+
     /**
      * Retrieves the character at the current cursor position wrapped
      * in an Optional container.
@@ -159,11 +220,7 @@ public interface CommandInputStream<S extends Source> {
     default Optional<Character> currentLetter() {
         return Optional.ofNullable(currentLetterIfPresent());
     }
-    
-    // ========================================
-    // PEEK METHODS (LOOKAHEAD)
-    // ========================================
-    
+
     /**
      * Peeks at the next command parameter without advancing the cursor.
      * This method allows lookahead parsing to determine the next parameter
@@ -173,7 +230,7 @@ public interface CommandInputStream<S extends Source> {
      */
     @Nullable
     CommandParameter<S> peekParameterIfPresent();
-    
+
     /**
      * Peeks at the next command parameter wrapped in an Optional container.
      *
@@ -183,7 +240,11 @@ public interface CommandInputStream<S extends Source> {
     default Optional<CommandParameter<S>> peekParameter() {
         return Optional.ofNullable(peekParameterIfPresent());
     }
-    
+
+    // ========================================
+    // PREVIOUS ELEMENT ACCESS METHODS
+    // ========================================
+
     /**
      * Peeks at the next raw input string without advancing the cursor.
      * This method allows lookahead parsing to examine the next input
@@ -193,7 +254,7 @@ public interface CommandInputStream<S extends Source> {
      */
     @Nullable
     String peekRawIfPresent();
-    
+
     /**
      * Peeks at the next raw input string wrapped in an Optional container.
      *
@@ -203,7 +264,11 @@ public interface CommandInputStream<S extends Source> {
     default Optional<String> peekRaw() {
         return Optional.ofNullable(peekRawIfPresent());
     }
-    
+
+    // ========================================
+    // CONSUMING/ADVANCING METHODS
+    // ========================================
+
     /**
      * Peeks at the next character without advancing the cursor.
      * This method allows character-level lookahead parsing.
@@ -212,11 +277,7 @@ public interface CommandInputStream<S extends Source> {
      *         or {@link Optional#empty()} if none exists
      */
     Optional<Character> peekLetter();
-    
-    // ========================================
-    // PREVIOUS ELEMENT ACCESS METHODS
-    // ========================================
-    
+
     /**
      * Retrieves the previous command parameter without moving the cursor.
      * This method allows backward navigation through the parameter list.
@@ -225,7 +286,7 @@ public interface CommandInputStream<S extends Source> {
      *         or {@link Optional#empty()} if no previous parameter exists
      */
     Optional<CommandParameter<S>> prevParameter();
-    
+
     /**
      * Retrieves the previous raw input string without moving the cursor.
      * This method allows backward navigation through the input queue.
@@ -234,11 +295,7 @@ public interface CommandInputStream<S extends Source> {
      *         or {@link Optional#empty()} if no previous input exists
      */
     Optional<String> prevRaw();
-    
-    // ========================================
-    // CONSUMING/ADVANCING METHODS
-    // ========================================
-    
+
     /**
      * Advances the cursor to the next parameter and returns it.
      * This method consumes the parameter and moves the cursor forward.
@@ -246,7 +303,7 @@ public interface CommandInputStream<S extends Source> {
      * @return the next command parameter, or {@code null} if no more parameters exist
      */
     @Nullable CommandParameter<S> nextParameter();
-    
+
     /**
      * Advances the cursor to the next raw input and returns it.
      * This method consumes the input and moves the cursor forward.
@@ -254,7 +311,11 @@ public interface CommandInputStream<S extends Source> {
      * @return the next raw input string, or {@code null} if no more input exists
      */
     @Nullable String nextInput();
-    
+
+    // ========================================
+    // AVAILABILITY CHECK METHODS
+    // ========================================
+
     /**
      * Removes and returns the current command parameter while advancing the cursor.
      * This method is equivalent to calling {@link #currentParameter()} followed
@@ -264,7 +325,7 @@ public interface CommandInputStream<S extends Source> {
      *         or {@link Optional#empty()} if none exists
      */
     Optional<CommandParameter<S>> popParameter();
-    
+
     /**
      * Removes and returns the current raw input while advancing the cursor.
      * This method is equivalent to calling {@link #currentRaw()} followed
@@ -274,7 +335,7 @@ public interface CommandInputStream<S extends Source> {
      *         or {@link Optional#empty()} if none exists
      */
     Optional<String> popRaw();
-    
+
     /**
      * Removes and returns the current character while advancing the cursor.
      * This method is useful for character-by-character parsing of complex
@@ -284,25 +345,21 @@ public interface CommandInputStream<S extends Source> {
      *         or {@link Optional#empty()} if none exists
      */
     Optional<Character> popLetter();
-    
-    // ========================================
-    // AVAILABILITY CHECK METHODS
-    // ========================================
-    
+
     /**
      * Checks if there is a command parameter available at the current cursor position.
      *
      * @return {@code true} if current parameter is available, {@code false} otherwise
      */
     boolean isCurrentParameterAvailable();
-    
+
     /**
      * Checks if there is a raw input string available at the current cursor position.
      *
      * @return {@code true} if current raw input is available, {@code false} otherwise
      */
     boolean isCurrentRawInputAvailable();
-    
+
     /**
      * Checks if there is a character available at the current cursor position
      * within the current raw input string.
@@ -310,7 +367,7 @@ public interface CommandInputStream<S extends Source> {
      * @return {@code true} if current character is available, {@code false} otherwise
      */
     boolean isCurrentLetterAvailable();
-    
+
     /**
      * Checks if there is a next command parameter available in the stream.
      * This method allows checking for the availability of the next parameter
@@ -319,7 +376,7 @@ public interface CommandInputStream<S extends Source> {
      * @return {@code true} if a next command parameter exists, {@code false} otherwise
      */
     boolean hasNextParameter();
-    
+
     /**
      * Checks if there is a next raw input string available in the stream.
      * This method allows checking for the availability of the next input
@@ -328,7 +385,11 @@ public interface CommandInputStream<S extends Source> {
      * @return {@code true} if a next raw input exists, {@code false} otherwise
      */
     boolean hasNextRaw();
-    
+
+    // ========================================
+    // SKIP METHODS
+    // ========================================
+
     /**
      * Checks if there is another character available for reading in the
      * current input string.
@@ -336,25 +397,21 @@ public interface CommandInputStream<S extends Source> {
      * @return {@code true} if a next character exists, {@code false} otherwise
      */
     boolean hasNextLetter();
-    
+
     /**
      * Checks if there is a previous command parameter available in the stream.
      *
      * @return {@code true} if a previous command parameter exists, {@code false} otherwise
      */
     boolean hasPreviousParameter();
-    
+
     /**
      * Checks if there is a previous raw input string available in the stream.
      *
      * @return {@code true} if a previous raw input exists, {@code false} otherwise
      */
     boolean hasPreviousRaw();
-    
-    // ========================================
-    // SKIP METHODS
-    // ========================================
-    
+
     /**
      * Skips the current input element and advances the appropriate cursor.
      * The specific behavior depends on the current stream position and
@@ -364,7 +421,11 @@ public interface CommandInputStream<S extends Source> {
      *         {@code false} if no input was available to skip
      */
     boolean skip();
-    
+
+    // ========================================
+    // POSITION QUERY METHODS
+    // ========================================
+
     /**
      * Skips the current command parameter and advances the parameter cursor.
      * This method moves to the next typed parameter in the parameter list.
@@ -378,7 +439,7 @@ public interface CommandInputStream<S extends Source> {
         streamPosition.shiftRight(ShiftTarget.PARAMETER_ONLY);
         return streamPosition.parameter > prevParam;
     }
-    
+
     /**
      * Skips the current raw input and advances the raw input cursor.
      * This method moves to the next space-separated argument in the input queue.
@@ -392,7 +453,7 @@ public interface CommandInputStream<S extends Source> {
         streamPosition.shiftRight(ShiftTarget.RAW_ONLY);
         return streamPosition.raw > prevRaw;
     }
-    
+
     /**
      * Skips the current character and advances the character cursor.
      * This method is used for character-level navigation within input strings.
@@ -401,11 +462,7 @@ public interface CommandInputStream<S extends Source> {
      *         {@code false} if no character was available to skip
      */
     boolean skipLetter();
-    
-    // ========================================
-    // POSITION QUERY METHODS
-    // ========================================
-    
+
     /**
      * Retrieves the current position index of the parameter cursor.
      *
@@ -414,7 +471,11 @@ public interface CommandInputStream<S extends Source> {
     default int currentParameterPosition() {
         return position().parameter;
     }
-    
+
+    // ========================================
+    // COLLECTION ACCESS METHODS
+    // ========================================
+
     /**
      * Retrieves the current position index of the raw input cursor.
      *
@@ -423,7 +484,7 @@ public interface CommandInputStream<S extends Source> {
     default int currentRawPosition() {
         return position().raw;
     }
-    
+
     /**
      * Retrieves the total number of command parameters in the stream.
      *
@@ -432,7 +493,11 @@ public interface CommandInputStream<S extends Source> {
     default int parametersLength() {
         return getParametersList().size();
     }
-    
+
+    // ========================================
+    // UTILITY/HELPER METHODS
+    // ========================================
+
     /**
      * Retrieves the total number of raw input strings in the stream.
      *
@@ -441,11 +506,7 @@ public interface CommandInputStream<S extends Source> {
     default int rawsLength() {
         return getRawQueue().size();
     }
-    
-    // ========================================
-    // COLLECTION ACCESS METHODS
-    // ========================================
-    
+
     /**
      * Retrieves the complete list of command parameters associated with this stream.
      * This provides access to all parameter metadata for validation or processing.
@@ -453,7 +514,7 @@ public interface CommandInputStream<S extends Source> {
      * @return an immutable {@link List} of command parameters, never {@code null}
      */
     @NotNull List<CommandParameter<S>> getParametersList();
-    
+
     /**
      * Retrieves the underlying queue containing all raw input strings.
      * This provides access to the complete input data for batch operations
@@ -462,11 +523,7 @@ public interface CommandInputStream<S extends Source> {
      * @return the {@link ArgumentInput} containing all raw inputs, never {@code null}
      */
     @NotNull ArgumentInput getRawQueue();
-    
-    // ========================================
-    // UTILITY/HELPER METHODS
-    // ========================================
-    
+
     /**
      * Advances the character cursor until the specified target character is encountered.
      * The target character is also consumed (skipped) by this operation.
@@ -480,7 +537,7 @@ public interface CommandInputStream<S extends Source> {
      */
     default boolean skipTill(char target) {
         boolean reached = false;
-        
+
         while (hasNextLetter()) {
             Character current = currentLetterIfPresent();
             if (current != null && current == target) {
@@ -493,7 +550,7 @@ public interface CommandInputStream<S extends Source> {
         skipLetter();
         return reached;
     }
-    
+
     /**
      * Collects and returns all characters before the first occurrence of the specified character.
      * The character cursor is advanced to the position just before the target character.
@@ -519,7 +576,11 @@ public interface CommandInputStream<S extends Source> {
         }
         return builder.toString();
     }
-    
+
+    // ========================================
+    // STATIC FACTORY METHODS
+    // ========================================
+
     /**
      * Reads and returns the current raw input without advancing the cursor.
      * This method provides a fail-fast alternative to {@link #currentRawIfPresent()}
@@ -535,11 +596,11 @@ public interface CommandInputStream<S extends Source> {
         }
         return current;
     }
-    
-    default void endInput(){
+
+    default void endInput() {
         position().raw = position().maxRawLength;
     }
-    
+
     /**
      * Marks the specified parameter as exempt from normal processing.
      * Exempt parameters are typically flag parameters that have been
@@ -553,68 +614,6 @@ public interface CommandInputStream<S extends Source> {
      * @throws IllegalArgumentException if matchingFlagParameter is {@code null}
      */
     void exemptParameter(CommandParameter<S> matchingFlagParameter);
-    
-    // ========================================
-    // STATIC FACTORY METHODS
-    // ========================================
-    
-    /**
-     * Creates a new {@link CommandInputStream} instance with the specified raw arguments
-     * and command usage information. The usage information determines how the raw
-     * arguments are mapped to typed command parameters.
-     *
-     * <p>This factory method is the primary way to create command input streams
-     * from parsed command input and detected command structure.
-     *
-     * @param <S> the type of command source
-     * @param queue the queue containing all raw argument strings
-     * @param usage the command usage definition that describes expected parameters
-     * @return a new {@link CommandInputStream} instance initialized with the
-     *         provided data
-     * @throws IllegalArgumentException if queue or usage is {@code null}
-     */
-    static <S extends Source> CommandInputStream<S> of(ArgumentInput queue, CommandUsage<S> usage) {
-        return new CommandInputStreamImpl<>(queue, usage);
-    }
-    
-    /**
-     * Creates a new {@link CommandInputStream} with a single string as input.
-     * This factory method is useful for creating streams for single-argument
-     * parsing or testing scenarios.
-     *
-     * @param <S> the type of command source
-     * @param parameter the command parameter associated with the input string
-     * @param str the raw input string to be processed
-     * @return a new {@link CommandInputStream} instance containing the single input
-     * @throws IllegalArgumentException if parameter or str is {@code null}
-     */
-    static <S extends Source> CommandInputStream<S> ofSingleString(@NotNull CommandParameter<S> parameter, @NotNull String str) {
-        return new CommandInputStreamImpl<>(ArgumentInput.of(str), List.of(parameter));
-    }
-    
-    /**
-     * Creates a substream of the specified parent stream with new input content.
-     * The substream inherits the current parameter context from the parent stream
-     * but operates on the new input string.
-     *
-     * <p>This method is useful for recursive parsing scenarios where a parameter
-     * value needs to be parsed as a nested command structure.
-     *
-     * @param <S> the type of command source
-     * @param stream the parent command input stream to derive context from
-     * @param input the raw input string for the new substream
-     * @return a new {@link CommandInputStream} instance representing the substream
-     * @throws NoSuchElementException if the parent stream has no current parameter available
-     * @throws IllegalArgumentException if stream or input is {@code null}
-     */
-    static <S extends Source> CommandInputStream<S> subStream(@NotNull CommandInputStream<S> stream, @NotNull String input) {
-        CommandParameter<S> param = stream.currentParameterIfPresent();
-        if (param == null) {
-            throw new NoSuchElementException("No current parameter available");
-        }
-        return ofSingleString(param, input);
-    }
-
 
     default boolean hasFinished() {
         return !hasNextRaw();

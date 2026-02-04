@@ -26,35 +26,37 @@ public final class TypeUtility {
     );
 
     static Set<Type> NUMERIC_PRIMITIVES = Set.of(
-        short.class, byte.class, int.class,
-        long.class, float.class, double.class
+            short.class, byte.class, int.class,
+            long.class, float.class, double.class
     );
 
     static Map<Type, Type> PRIMITIVES_TO_BOXED = Map.of(
-        boolean.class, Boolean.class,
-        short.class, Short.class,
-        int.class, Integer.class,
-        long.class, Long.class,
-        float.class, Float.class,
-        double.class, Double.class,
-        byte.class, Byte.class
+            boolean.class, Boolean.class,
+            short.class, Short.class,
+            int.class, Integer.class,
+            long.class, Long.class,
+            float.class, Float.class,
+            double.class, Double.class,
+            byte.class, Byte.class
     );
 
     static Map<Type, Type> BOXED_TO_PRIMITIVES = Map.of(
-        Boolean.class, boolean.class,
-        Short.class, short.class,
-        Integer.class, int.class,
-        Long.class, long.class,
-        Float.class, float.class,
-        Double.class, double.class,
-        Byte.class, byte.class
+            Boolean.class, boolean.class,
+            Short.class, short.class,
+            Integer.class, int.class,
+            Long.class, long.class,
+            Float.class, float.class,
+            Double.class, double.class,
+            Byte.class, byte.class
     );
 
     private TypeUtility() {
     }
 
     public static boolean isInteger(String string) {
-        if (string == null) return false;
+        if (string == null) {
+            return false;
+        }
         try {
             Integer.parseInt(string);
             return true;
@@ -64,7 +66,9 @@ public final class TypeUtility {
     }
 
     public static boolean isBoolean(String string) {
-        if (string == null) return false;
+        if (string == null) {
+            return false;
+        }
         return Boolean.parseBoolean(string);
     }
 
@@ -78,7 +82,9 @@ public final class TypeUtility {
     }
 
     public static boolean isDouble(String str) {
-        if (str == null) return false;
+        if (str == null) {
+            return false;
+        }
         try {
             Double.parseDouble(str);
             return true;
@@ -88,7 +94,9 @@ public final class TypeUtility {
     }
 
     public static boolean isShort(String str) {
-        if (str == null) return false;
+        if (str == null) {
+            return false;
+        }
         try {
             Short.parseShort(str);
             return true;
@@ -98,7 +106,9 @@ public final class TypeUtility {
     }
 
     public static boolean isByte(String str) {
-        if (str == null) return false;
+        if (str == null) {
+            return false;
+        }
         try {
             Byte.parseByte(str);
             return true;
@@ -108,7 +118,9 @@ public final class TypeUtility {
     }
 
     public static boolean isLong(String str) {
-        if (str == null) return false;
+        if (str == null) {
+            return false;
+        }
         try {
             Long.parseLong(str);
             return true;
@@ -195,8 +207,8 @@ public final class TypeUtility {
 
     public static boolean areRelatedTypes(Type type1, Type type2) {
         return matches(type1, type2)
-            || TypeWrap.of(type1).isSupertypeOf(type2)
-            || TypeWrap.of(type2).isSupertypeOf(type1);
+                       || TypeWrap.of(type1).isSupertypeOf(type2)
+                       || TypeWrap.of(type2).isSupertypeOf(type1);
     }
 
     public static boolean isNumber(String str) {
@@ -211,12 +223,12 @@ public final class TypeUtility {
     public static boolean hasGenericType(@NotNull Type type, @NotNull Type genericToFind) {
         TypeWrap<?> typeWrap = TypeWrap.of(type);
         Type[] typeParams = typeWrap.getParameterizedTypes();
-        if(typeParams == null) {
+        if (typeParams == null) {
             return false;
         }
 
-        for(Type genericTypeParam : typeParams) {
-            if(genericTypeParam.equals(genericToFind)) {
+        for (Type genericTypeParam : typeParams) {
+            if (genericTypeParam.equals(genericToFind)) {
                 return true;
             }
         }
@@ -225,15 +237,15 @@ public final class TypeUtility {
 
     public static <S extends Source> boolean areTrueFlagsOfSameInputType(Set<FlagParameter<S>> flagDataSet) {
         ParameterType<S, ?> inputType = null;
-        for(FlagParameter<S> flagParam : flagDataSet) {
+        for (FlagParameter<S> flagParam : flagDataSet) {
             FlagData<S> flagData = flagParam.flagData();
             ParameterType<S, ?> otherInputType = flagData.inputType();
-            if(otherInputType == null) {
+            if (otherInputType == null) {
                 return false;
             }
 
-            if(inputType != null && !otherInputType.equalsExactly(inputType.type())) {
-               return false;
+            if (inputType != null && !otherInputType.equalsExactly(inputType.type())) {
+                return false;
             }
             inputType = flagData.inputType();
         }

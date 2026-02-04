@@ -14,6 +14,10 @@ import java.util.List;
  */
 public sealed interface ElementSelector<E extends ParseElement<?>> permits SimpleElementSelector {
 
+    static <E extends ParseElement<?>> ElementSelector<E> create() {
+        return new SimpleElementSelector<>();
+    }
+
     /**
      * @return the rules that all must be followed to select a single {@link ParseElement}
      * * during annotation parsing.
@@ -39,7 +43,7 @@ public sealed interface ElementSelector<E extends ParseElement<?>> permits Simpl
 
     default boolean canBeSelected(Imperat<?> imperat, AnnotationParser<?> parse, E element, boolean fail) {
         for (var rule : getRules()) {
-            
+
             if (!rule.test(imperat, parse, element)) {
                 if (fail) {
                     rule.onFailure(parse, element);
@@ -48,10 +52,6 @@ public sealed interface ElementSelector<E extends ParseElement<?>> permits Simpl
             }
         }
         return true;
-    }
-
-    static <E extends ParseElement<?>> ElementSelector<E> create() {
-        return new SimpleElementSelector<>();
     }
 
 }

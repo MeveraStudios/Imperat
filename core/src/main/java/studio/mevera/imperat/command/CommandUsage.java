@@ -30,7 +30,8 @@ import java.util.function.Predicate;
  *
  * @see Command
  */
-public sealed interface CommandUsage<S extends Source> extends Iterable<CommandParameter<S>>, PermissionHolder, DescriptionHolder, CooldownHolder  permits CommandUsageImpl{
+public sealed interface CommandUsage<S extends Source> extends Iterable<CommandParameter<S>>, PermissionHolder, DescriptionHolder, CooldownHolder
+        permits CommandUsageImpl {
 
 
     static <S extends Source> String formatWithTypes(Command<S> command, CommandUsage<S> usage) {
@@ -47,6 +48,34 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             i++;
         }
         return builder.toString();
+    }
+
+    static <S extends Source> String format(@Nullable String label, CommandUsage<S> usage) {
+        Preconditions.notNull(usage, "usage");
+        StringBuilder builder = new StringBuilder(label == null ? "" : label);
+        if (label != null) {
+            builder.append(' ');
+        }
+
+        List<CommandParameter<S>> params = usage.loadCombinedParameters();
+        int i = 0;
+        for (CommandParameter<S> parameter : params) {
+            builder.append(parameter.format());
+            if (i != params.size() - 1) {
+                builder.append(' ');
+            }
+            i++;
+        }
+        return builder.toString();
+    }
+
+    static <S extends Source> String format(@Nullable Command<S> command, CommandUsage<S> usage) {
+        String label = command == null ? null : command.name();
+        return format(label, usage);
+    }
+
+    static <S extends Source> Builder<S> builder() {
+        return new Builder<>();
     }
 
     /**
@@ -139,17 +168,17 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @return the pre-defined examples for this {@link CommandUsage}
      */
     List<String> getExamples();
-    
+
     /**
      * Adds an example to the usage
      * @param example the example to add using this usage.
      */
     void addExample(String example);
-    
+
     default void addExamples(List<String> examples) {
         examples.forEach(this::addExample);
     }
-    
+
     /**
      * Fetches the parameter at the index
      *
@@ -191,12 +220,12 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         //comboParams.addAll(usage.getParameters());
 
         return CommandUsage.<S>builder()
-            .coordinator(usage.getCoordinator())
-            .description(subCommand.description().getValue())
-            .cooldown(usage.getCooldown())
-            .parameters(comboParams)
-            .execute(usage.getExecution())
-            .build(subCommand, usage.isHelp());
+                       .coordinator(usage.getCoordinator())
+                       .description(subCommand.description().getValue())
+                       .cooldown(usage.getCooldown())
+                       .parameters(comboParams)
+                       .execute(usage.getExecution())
+                       .build(subCommand, usage.isHelp());
     }
 
     /**
@@ -284,41 +313,13 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @return whether this usage has this sequence of parameters
      */
     boolean hasParameters(List<CommandParameter<S>> parameters);
-    
+
     default int size() {
         return getParameters().size();
     }
 
     default String formatted() {
         return format((String) null, this);
-    }
-
-    static <S extends Source> String format(@Nullable String label, CommandUsage<S> usage) {
-        Preconditions.notNull(usage, "usage");
-        StringBuilder builder = new StringBuilder(label == null ? "" : label);
-        if(label != null) {
-            builder.append(' ');
-        }
-
-        List<CommandParameter<S>> params = usage.loadCombinedParameters();
-        int i = 0;
-        for (CommandParameter<S> parameter : params) {
-            builder.append(parameter.format());
-            if (i != params.size() - 1) {
-                builder.append(' ');
-            }
-            i++;
-        }
-        return builder.toString();
-    }
-
-    static <S extends Source> String format(@Nullable Command<S> command, CommandUsage<S> usage) {
-        String label = command == null ? null : command.name();
-        return format(label, usage);
-    }
-
-    static <S extends Source> Builder<S> builder() {
-        return new Builder<>();
     }
 
     default CommandParameter<S> getLastParam() {
@@ -330,24 +331,24 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
     class Builder<S extends Source> {
 
         private final List<CommandParameter<S>> parameters = new ArrayList<>();
+        private final Set<FlagParameter<S>> flags = new HashSet<>();
+        private final List<String> examples = new ArrayList<>(3);
         private CommandExecution<S> execution = CommandExecution.empty();
         private String description = "N/A";
         private String permission = null;
         private UsageCooldown cooldown = null;
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
-        private final Set<FlagParameter<S>> flags = new HashSet<>();
-        private final List<String> examples = new ArrayList<>(3);
-        
+
         Builder() {
 
         }
-        
+
 
         public Builder<S> coordinator(CommandCoordinator<S> commandCoordinator) {
             this.commandCoordinator = commandCoordinator;
             return this;
         }
-        
+
         public Builder<S> examples(String... examples) {
             this.examples.addAll(Arrays.asList(examples));
             return this;
@@ -387,10 +388,10 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         @SafeVarargs
         public final Builder<S> parameters(ParameterBuilder<S, ?>... builders) {
             return parameters(
-                Arrays.stream(builders).map(ParameterBuilder::build).toList()
+                    Arrays.stream(builders).map(ParameterBuilder::build).toList()
             );
         }
-        
+
         public final Builder<S> parameterBuilders(List<? extends ParameterBuilder<S, ?>> builders) {
             return parameters(
                     builders.stream().map(ParameterBuilder::build).toList()
@@ -418,15 +419,15 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             this.flags.addAll(flags);
             return this;
         }
-        
+
         public Builder<S> setPropertiesFromCommandMainUsage(Command<S> command) {
             CommandUsage<S> mainUsage = command.getMainUsage();
-            
+
             //copy only meta properties
             this.description = mainUsage.description().getValue();
             this.permission = mainUsage.getPermissions().stream()
-                    .findAny().orElse(null);
-            
+                                      .findAny().orElse(null);
+
             this.execution = mainUsage.getExecution();
             this.cooldown = mainUsage.getCooldown();
             this.commandCoordinator = mainUsage.getCoordinator();
@@ -442,7 +443,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             impl.describe(description);
             impl.setCooldown(cooldown);
             impl.addParameters(
-                parameters.stream().peek((p) -> p.parent(command)).toList()
+                    parameters.stream().peek((p) -> p.parent(command)).toList()
             );
             flags.forEach(impl::addFlag);
             impl.addExamples(this.examples);
@@ -458,6 +459,6 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             return build(command, true);
         }
     }
-    
+
 
 }

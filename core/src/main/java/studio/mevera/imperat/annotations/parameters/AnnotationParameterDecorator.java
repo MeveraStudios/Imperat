@@ -19,18 +19,18 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
 
     AnnotationParameterDecorator(CommandParameter<S> parameter, ParameterElement element) {
         super(
-            parameter.name(), parameter.type(), parameter.getSinglePermission(),
-            parameter.description(), parameter.isOptional(),
-            parameter.isFlag(), parameter.isGreedy(),
-            parameter.getDefaultValueSupplier(), parameter.getSuggestionResolver()
+                parameter.name(), parameter.type(), parameter.getSinglePermission(),
+                parameter.description(), parameter.isOptional(),
+                parameter.isFlag(), parameter.isGreedy(),
+                parameter.getDefaultValueSupplier(), parameter.getSuggestionResolver()
         );
         this.parameter = parameter;
         this.element = element;
     }
 
     public static <S extends Source> AnnotationParameterDecorator<S> decorate(
-        CommandParameter<S> parameter,
-        ParameterElement element
+            CommandParameter<S> parameter,
+            ParameterElement element
     ) {
         return new AnnotationParameterDecorator<>(parameter, element);
     }
@@ -94,8 +94,8 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
     public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
         CommandParameter<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
         AnnotationParameterDecorator<S> copy = new AnnotationParameterDecorator<>(
-            copiedParameter,
-            this.element
+                copiedParameter,
+                this.element
         );
         copy.setFormat(this.format);
         return copy;

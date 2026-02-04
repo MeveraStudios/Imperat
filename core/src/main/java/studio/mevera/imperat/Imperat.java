@@ -32,14 +32,14 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * Shuts down the platform
      */
     void shutdownPlatform();
-    
+
     /**
      * The config for imperat
      *
      * @return the config holding all variables.
      */
     @NotNull ImperatConfig<S> config();
-    
+
     /**
      * Dispatches and executes a command using {@link Context} only
      *
@@ -89,7 +89,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
      * @return the usage match setResult
      */
     @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandLine);
-    
+
     /**
      * @param sender          the sender writing the command
      * @param fullCommandLine the full command line

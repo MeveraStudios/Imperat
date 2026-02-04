@@ -25,13 +25,14 @@ public final class ParameterEnum<S extends Source> extends BaseParameterType<S, 
     }
 
     @Override
-    public @NotNull Enum<?> resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+    public @NotNull Enum<?> resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input)
+            throws
             CommandException {
 
         Type enumType = commandInputStream.currentParameter()
-            .filter(param -> TypeUtility.matches(type, Enum.class))
-            .map(CommandParameter::valueType)
-            .orElse(type);
+                                .filter(param -> TypeUtility.matches(type, Enum.class))
+                                .map(CommandParameter::valueType)
+                                .orElse(type);
 
         try {
             return Enum.valueOf((Class<? extends Enum>) enumType, input);

@@ -23,10 +23,10 @@ import java.util.Set;
 public interface AnnotationReader<S extends Source> {
 
     static <S extends Source> AnnotationReader<S> read(
-        Imperat<S> imperat,
-        ElementSelector<MethodElement> methodSelector,
-        AnnotationParser<S> parser,
-        Object target
+            Imperat<S> imperat,
+            ElementSelector<MethodElement> methodSelector,
+            AnnotationParser<S> parser,
+            Object target
     ) {
         return new AnnotationReaderImpl<>(imperat, methodSelector, parser, target);
     }
@@ -36,7 +36,7 @@ public interface AnnotationReader<S extends Source> {
     ClassElement getParsedClass();
 
     void acceptCommandsParsing(CommandClassVisitor<S, Set<Command<S>>> visitor);
-    
+
     <E extends Throwable> void acceptThrowableResolversParsing(CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> visitor);
 
 }

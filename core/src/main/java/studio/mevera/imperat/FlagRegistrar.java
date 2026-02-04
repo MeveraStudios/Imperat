@@ -25,9 +25,9 @@ public interface FlagRegistrar<S extends Source> {
 
     default boolean isFlagRegistered(String flagName) {
         return getRegisteredFlags().stream()
-                .anyMatch(flag -> flag.name().equalsIgnoreCase(flagName) ||
-                        flag.flagData().aliases().stream()
-                                .anyMatch(alias -> alias.equalsIgnoreCase(flagName)));
+                       .anyMatch(flag -> flag.name().equalsIgnoreCase(flagName) ||
+                                                 flag.flagData().aliases().stream()
+                                                         .anyMatch(alias -> alias.equalsIgnoreCase(flagName)));
     }
 
 }

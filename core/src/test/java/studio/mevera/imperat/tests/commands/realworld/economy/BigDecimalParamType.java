@@ -13,31 +13,32 @@ import studio.mevera.imperat.tests.TestSource;
 import java.math.BigDecimal;
 
 public class BigDecimalParamType extends BaseParameterType<TestSource, BigDecimal> {
-    
-    
+
+
     @Override
-    public @Nullable BigDecimal resolve(@NotNull ExecutionContext<TestSource> context, @NotNull CommandInputStream<TestSource> inputStream, @NotNull String input) throws
+    public @Nullable BigDecimal resolve(@NotNull ExecutionContext<TestSource> context, @NotNull CommandInputStream<TestSource> inputStream,
+            @NotNull String input) throws
             CommandException {
         try {
             double d = Double.parseDouble(input);
             return BigDecimal.valueOf(d);
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             throw new IllegalArgumentException(ex);
         }
     }
-    
+
     @Override
     public boolean matchesInput(int rawPosition, Context<TestSource> context, CommandParameter<TestSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
         }
-        
+
         try {
             double d = Double.parseDouble(input);
             BigDecimal.valueOf(d);
             return true;
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             return false;
         }
     }

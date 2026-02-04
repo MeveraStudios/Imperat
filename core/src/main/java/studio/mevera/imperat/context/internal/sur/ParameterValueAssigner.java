@@ -13,9 +13,9 @@ import studio.mevera.imperat.exception.CommandException;
 
 @SuppressWarnings("unchecked")
 public final class ParameterValueAssigner<S extends Source> {
-    
+
     private static final ParameterChain<?> DEFAULT_CHAIN = createDefaultChain();
-    
+
     private final ExecutionContext<S> context;
     private final CommandInputStream<S> stream;
     private final ParameterChain<S> chain;
@@ -23,7 +23,7 @@ public final class ParameterValueAssigner<S extends Source> {
     ParameterValueAssigner(ExecutionContext<S> context, CommandUsage<S> usage) {
         this(context, usage, (ParameterChain<S>) DEFAULT_CHAIN);
     }
-    
+
     ParameterValueAssigner(ExecutionContext<S> context, CommandUsage<S> usage, ParameterChain<S> customChain) {
         this.context = context;
         this.chain = customChain;
@@ -32,29 +32,29 @@ public final class ParameterValueAssigner<S extends Source> {
 
     private static <S extends Source> ParameterChain<S> createDefaultChain() {
         return ChainFactory.<S>builder()
-            .withHandler(new EmptyInputHandler<>())
-            .withHandler(new SubCommandHandler<>())
-            .withHandler(new RequiredParameterHandler<>())
-            .withHandler(new OptionalParameterHandler<>())
-            //.withHandler(new FreeFlagHandler<>())
-            .build();
+                       .withHandler(new EmptyInputHandler<>())
+                       .withHandler(new SubCommandHandler<>())
+                       .withHandler(new RequiredParameterHandler<>())
+                       .withHandler(new OptionalParameterHandler<>())
+                       //.withHandler(new FreeFlagHandler<>())
+                       .build();
     }
 
     public static <S extends Source> ParameterValueAssigner<S> create(
-        ExecutionContext<S> context,
-        CommandUsage<S> usage
+            ExecutionContext<S> context,
+            CommandUsage<S> usage
     ) {
         return new ParameterValueAssigner<>(context, usage);
     }
-    
+
     public static <S extends Source> ParameterValueAssigner<S> createWithCustomChain(
-        ExecutionContext<S> context,
-        CommandUsage<S> usage,
-        ParameterChain<S> customChain
+            ExecutionContext<S> context,
+            CommandUsage<S> usage,
+            ParameterChain<S> customChain
     ) {
         return new ParameterValueAssigner<>(context, usage, customChain);
     }
-    
+
     public void resolve() throws CommandException {
         // ADD: Time the chain execution
         chain.execute(context, stream);

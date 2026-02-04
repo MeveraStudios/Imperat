@@ -49,13 +49,13 @@ public final class AnnotationFactory {
      * @return The newly created annotation
      */
     public static @NotNull <T extends Annotation> T create(@NotNull Class<T> type,
-                                                           @NotNull Map<String, Object> members) {
+            @NotNull Map<String, Object> members) {
         Preconditions.notNull(type, "type");
         Preconditions.notNull(members, "members");
         return type.cast(Proxy.newProxyInstance(
-            type.getClassLoader(),
-            new Class<?>[]{type},
-            new DynamicAnnotationHandler(type, members)
+                type.getClassLoader(),
+                new Class<?>[]{type},
+                new DynamicAnnotationHandler(type, members)
         ));
     }
 
@@ -71,11 +71,12 @@ public final class AnnotationFactory {
      * @return The newly created annotation
      */
     public static @NotNull <T extends Annotation> T create(@NotNull Class<T> type,
-                                                           @NotNull Object... members) {
+            @NotNull Object... members) {
         Preconditions.notNull(type, "type");
         Preconditions.notNull(members, "members");
-        if (members.length % 2 != 0)
+        if (members.length % 2 != 0) {
             throw new IllegalArgumentException("Cannot have a non-even amount of members! Found " + members.length);
+        }
         Map<String, Object> values = new HashMap<>();
         for (int i = 0; i < members.length; i += 2) {
             String key = String.valueOf(members[i]);
@@ -83,9 +84,9 @@ public final class AnnotationFactory {
             values.put(key, value);
         }
         return type.cast(Proxy.newProxyInstance(
-            type.getClassLoader(),
-            new Class<?>[]{type},
-            new DynamicAnnotationHandler(type, values)
+                type.getClassLoader(),
+                new Class<?>[]{type},
+                new DynamicAnnotationHandler(type, values)
         ));
     }
 
@@ -173,8 +174,9 @@ public final class AnnotationFactory {
                     return annotationType;
                 default: {
                     Object v = annotationMembers.get(method.getName());
-                    if (v == null)
+                    if (v == null) {
                         throw new AbstractMethodError(method.getName());
+                    }
                     return v instanceof Supplier ? ((Supplier<?>) v).get() : v;
                 }
             }

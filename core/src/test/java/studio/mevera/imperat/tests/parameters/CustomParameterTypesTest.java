@@ -11,7 +11,7 @@ import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Custom Parameter Types Tests")
 public class CustomParameterTypesTest extends BaseImperatTest {
-    
+
     @ParameterizedTest
     @EnumSource(CustomEnum.class)
     @DisplayName("Should parse custom enum values correctly")
@@ -20,14 +20,14 @@ public class CustomParameterTypesTest extends BaseImperatTest {
         assertSuccess(result);
         assertArgument(result, "enumHere", expectedEnum);
     }
-    
+
     @Test
     @DisplayName("Should fail for invalid enum values")
     void testInvalidEnumValues() {
         ExecutionResult<TestSource> result = execute("customenum INVALID_VALUE");
         assertFailure(result);
     }
-    
+
     @ParameterizedTest
     @ValueSource(strings = {"1d", "24h", "30m", "permanent"})
     @DisplayName("Should parse duration values correctly")
@@ -37,21 +37,21 @@ public class CustomParameterTypesTest extends BaseImperatTest {
         assertArgument(result, "rank", "mod");
         assertArgument(result, "permission", "server.fly");
     }
-    
+
     @Test
     @DisplayName("Should handle CompletableFuture parameter types")
     void testCompletableFutureParameterType() {
         ExecutionResult<TestSource> result = execute("testcf Thor is the best hero");
         assertSuccess(result);
     }
-    
+
     @Test
     @DisplayName("Should handle Optional parameter types")
     void testOptionalParameterType() {
         ExecutionResult<TestSource> result = execute("testoptional Hulk is always angry");
         assertSuccess(result);
     }
-    
+
     @Test
     @DisplayName("Should handle group parameter type")
     void testGroupParameterType() {
@@ -59,7 +59,7 @@ public class CustomParameterTypesTest extends BaseImperatTest {
         assertSuccess(result);
         // Group parameter should resolve to a Group object
     }
-    
+
     @Test
     @DisplayName("Should handle group subcommands")
     void testGroupSubcommands() {

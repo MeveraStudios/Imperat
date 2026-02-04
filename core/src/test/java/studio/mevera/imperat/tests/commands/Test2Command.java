@@ -22,7 +22,7 @@ public class Test2Command {
     @SubCommand("array")
     public void def(TestSource source, @Named("myArray") String[] array) {
         source.reply("SIZE= " + array.length);
-        for(var entry : array) {
+        for (var entry : array) {
             source.reply("-> " + entry);
         }
         // /test2 array hi hello how are you
@@ -31,7 +31,7 @@ public class Test2Command {
     @SubCommand("collection")
     public void def(TestSource source, @Named("myCollection") List<String> collection) {
         source.reply("SIZE= " + collection.size());
-        for(var entry : collection) {
+        for (var entry : collection) {
             source.reply("-> " + entry);
         }
     }
@@ -39,7 +39,7 @@ public class Test2Command {
     @SubCommand("map")
     public void def(TestSource source, @Named("myMap") Map<String, String> map) {
         source.reply("SIZE= " + map.size());
-        for(var entry : map.entrySet()) {
+        for (var entry : map.entrySet()) {
             source.reply("-> " + entry.getKey() + ":" + entry.getValue());
         }
     }

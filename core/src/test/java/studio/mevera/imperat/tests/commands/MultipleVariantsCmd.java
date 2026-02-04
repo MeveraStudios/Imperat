@@ -6,6 +6,7 @@ import studio.mevera.imperat.tests.TestSource;
 
 @Command("mv")
 public class MultipleVariantsCmd {
+
     @Usage
     public void v1(TestSource source, String str1) {
         source.reply("Executed variant one with str1=" + str1);

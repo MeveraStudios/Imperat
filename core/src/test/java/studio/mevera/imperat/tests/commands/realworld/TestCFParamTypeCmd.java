@@ -9,10 +9,10 @@ import java.util.concurrent.CompletableFuture;
 
 @Command("testcf")
 public class TestCFParamTypeCmd {
-    
+
     @Usage
     public void test(TestSource source, @Greedy CompletableFuture<String> future) {
         future.whenComplete(((s, throwable) -> source.reply(s)));
     }
-    
+
 }

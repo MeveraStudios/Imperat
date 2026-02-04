@@ -18,6 +18,10 @@ import java.util.Optional;
 public interface CooldownHandler<S extends Source> {
 
 
+    static <S extends Source> CooldownHandler<S> createDefault(CommandUsage<S> usage) {
+        return new DefaultCooldownHandler<>(usage);
+    }
+
     /**
      * Sets the last time of execution to this
      * current moment using {@link System#currentTimeMillis()}
@@ -53,8 +57,9 @@ public interface CooldownHandler<S extends Source> {
             return !remaining.isZero() && !remaining.isNegative();
         }).orElse(false);
 
-        if (!result)
+        if (!result) {
             removeCooldown(source);
+        }
         return result;
     }
 
@@ -66,7 +71,6 @@ public interface CooldownHandler<S extends Source> {
      */
     void removeCooldown(S source);
 
-
     /**
      * Fetches the last time the command source
      * executed a specific command usage
@@ -75,8 +79,4 @@ public interface CooldownHandler<S extends Source> {
      * @return the last time the sender executed {@link CommandUsage}
      */
     Optional<Instant> getLastTimeExecuted(S source);
-
-    static <S extends Source> CooldownHandler<S> createDefault(CommandUsage<S> usage) {
-        return new DefaultCooldownHandler<>(usage);
-    }
 }

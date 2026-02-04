@@ -19,14 +19,14 @@ import java.lang.annotation.Annotation;
  * @param <S> the type of the command source (e.g., console, player, etc.)
  */
 public interface AnnotationInjector<S extends Source> {
-    
+
     /**
      * Fetches the annotation parser
      * @see AnnotationParser
      * @return the annotation parser instance.
      */
     AnnotationParser<S> getAnnotationParser();
-    
+
     /**
      * Changes the instance of {@link AnnotationParser}
      *
@@ -53,10 +53,10 @@ public interface AnnotationInjector<S extends Source> {
      * @param <A>      the valueType of annotation to replace
      */
     <A extends Annotation> void registerAnnotationReplacer(
-        final Class<A> type,
-        final AnnotationReplacer<A> replacer
+            final Class<A> type,
+            final AnnotationReplacer<A> replacer
     );
-    
+
     /**
      * Parses the instance's class that contains {@link ExceptionHandler} annotation
      * into multiple throwable resolvers to be registered and injected into {@link Imperat}

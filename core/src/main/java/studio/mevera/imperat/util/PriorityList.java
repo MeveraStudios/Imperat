@@ -2,7 +2,13 @@ package studio.mevera.imperat.util;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -178,6 +184,7 @@ public class PriorityList<E> implements Iterable<E> {
      * then by insertion order for equal priorities.
      */
     private static class PriorityKey implements Comparable<PriorityKey> {
+
         final Priority priority;
         final int insertionOrder;
 
@@ -199,10 +206,14 @@ public class PriorityList<E> implements Iterable<E> {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof PriorityKey that)) return false;
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof PriorityKey that)) {
+                return false;
+            }
             return insertionOrder == that.insertionOrder &&
-                   Objects.equals(priority, that.priority);
+                           Objects.equals(priority, that.priority);
         }
 
         @Override
@@ -216,6 +227,7 @@ public class PriorityList<E> implements Iterable<E> {
      * All mutation operations throw {@link UnsupportedOperationException}.
      */
     private static class UnmodifiablePriorityList<E> extends PriorityList<E> {
+
         private final PriorityList<E> delegate;
 
         UnmodifiablePriorityList(PriorityList<E> delegate) {
@@ -261,7 +273,7 @@ public class PriorityList<E> implements Iterable<E> {
         @Override
         public Iterator<E> iterator() {
             Iterator<E> it = delegate.iterator();
-            return new Iterator<E>() {
+            return new Iterator<>() {
                 @Override
                 public boolean hasNext() {
                     return it.hasNext();

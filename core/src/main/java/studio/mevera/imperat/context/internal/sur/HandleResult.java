@@ -10,18 +10,18 @@ import studio.mevera.imperat.exception.CommandException;
 public enum HandleResult {
     /** Terminates the handler chain execution */
     TERMINATE,
-    
+
     /** Continues to the next iteration of the main loop */
     NEXT_ITERATION,
-    
+
     /** Proceeds to the next handler in the chain */
     NEXT_HANDLER,
-    
+
     /** Indicates an error occurred during handling */
     FAILURE;
-    
+
     private CommandException exception;
-    
+
     /**
      * Creates a failure result with the specified exception.
      *
@@ -33,7 +33,7 @@ public enum HandleResult {
         result.exception = exception;
         return result;
     }
-    
+
     /**
      * Gets the exception associated with this result.
      *

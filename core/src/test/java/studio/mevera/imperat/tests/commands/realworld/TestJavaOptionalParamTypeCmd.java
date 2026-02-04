@@ -9,10 +9,10 @@ import java.util.Optional;
 
 @Command("testoptional")
 public class TestJavaOptionalParamTypeCmd {
-    
+
     @Usage
     public void test(TestSource source, @Greedy Optional<String> text) {
         text.ifPresent(source::reply);
     }
-    
+
 }

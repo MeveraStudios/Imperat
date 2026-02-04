@@ -29,7 +29,7 @@ public final class ParameterOptional<S extends Source, T> extends BaseParameterT
             @NotNull String input
     ) throws CommandException {
         return Optional.ofNullable(
-                typeResolver.resolve(context,inputStream, input)
+                typeResolver.resolve(context, inputStream, input)
         );
     }
 
@@ -47,7 +47,7 @@ public final class ParameterOptional<S extends Source, T> extends BaseParameterT
     public OptionalValueSupplier supplyDefaultValue() {
         return typeResolver.supplyDefaultValue();
     }
-    
+
     @Override
     public boolean isGreedy(CommandParameter<S> parameter) {
         return typeResolver.isGreedy(parameter);

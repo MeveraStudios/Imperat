@@ -31,12 +31,12 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
     private final ClassElement classElement;
 
     AnnotationReaderImpl(
-        Imperat<S> imperat,
-        ElementSelector<MethodElement> methodSelector,
-        AnnotationParser<S> parser,
-        Object instance
+            Imperat<S> imperat,
+            ElementSelector<MethodElement> methodSelector,
+            AnnotationParser<S> parser,
+            Object instance
     ) {
-        if(AnnotationHelper.isAbnormalClass(instance.getClass())) {
+        if (AnnotationHelper.isAbnormalClass(instance.getClass())) {
             throw new IllegalArgumentException("Failed to parse the abnormal class '%s'".formatted(instance.getClass().getTypeName()));
         }
         this.imperat = imperat;
@@ -52,15 +52,15 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
     }
 
     private @NotNull ClassElement readClass(
-        Imperat<S> imperat,
-        AnnotationParser<S> parser,
-        @Nullable ClassElement parent,
-        @NotNull Class<?> clazz
+            Imperat<S> imperat,
+            AnnotationParser<S> parser,
+            @Nullable ClassElement parent,
+            @NotNull Class<?> clazz
     ) {
 
         ClassElement root = parent == null ?
-                new ClassElement(parser, null, clazz, rootCommandClass.proxyInstance())
-                : new ClassElement(parser, parent, clazz);
+                                    new ClassElement(parser, null, clazz, rootCommandClass.proxyInstance())
+                                    : new ClassElement(parser, parent, clazz);
 
         //Adding methods with their parameters
         List<Method> methods;
@@ -70,7 +70,7 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
             ImperatDebugger.error(AnnotationReaderImpl.class, "readClass", e);
             throw new RuntimeException(e);
         }
-        
+
         //Arrays.sort(methods, METHOD_COMPARATOR);
         for (Method method : methods) {
             MethodElement methodElement = new MethodElement(parser, root, method);
@@ -86,7 +86,7 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
             for (Class<?> subClass : externalSubCommand.value()) {
                 ImperatDebugger.debug("Found %s's external sub command class '%s'", root.getElement().getTypeName(), subClass.getTypeName());
                 root.addChild(
-                    readClass(imperat, parser, root, subClass)
+                        readClass(imperat, parser, root, subClass)
                 );
             }
         }
@@ -102,7 +102,7 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
         }
 
         for (Class<?> child : innerClasses) {
-            if(AnnotationHelper.isAbnormalClass(child)) {
+            if (AnnotationHelper.isAbnormalClass(child)) {
                 ImperatDebugger.debug("Ignoring abnormal sub class '%s'", child.getTypeName());
                 continue;
             }
@@ -128,23 +128,25 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
     @Override
     public void acceptCommandsParsing(CommandClassVisitor<S, Set<Command<S>>> visitor) {
         var collectedCommands = classElement.accept(visitor);
-        if(collectedCommands == null) return;
-        
+        if (collectedCommands == null) {
+            return;
+        }
+
         for (Command<S> loaded : collectedCommands) {
             imperat.registerSimpleCommand(loaded);
         }
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public <E extends Throwable> void acceptThrowableResolversParsing(CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> visitor) {
         Set<MethodThrowableResolver<?, S>> collectedErrorHandlers = classElement.accept(visitor);
-        if(collectedErrorHandlers == null) {
+        if (collectedErrorHandlers == null) {
             return;
         }
         for (var errorHandler : collectedErrorHandlers) {
             Class<E> castedExceptionType = (Class<E>) errorHandler.getExceptionType();
-            imperat.config().setThrowableResolver(castedExceptionType, (MethodThrowableResolver<E, S>)errorHandler);
+            imperat.config().setThrowableResolver(castedExceptionType, (MethodThrowableResolver<E, S>) errorHandler);
         }
     }
 }

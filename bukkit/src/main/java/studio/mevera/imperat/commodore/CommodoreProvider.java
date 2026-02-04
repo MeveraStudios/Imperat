@@ -37,6 +37,7 @@ import java.util.Objects;
  * Factory for getting instances of {@link Commodore}.
  */
 public final class CommodoreProvider {
+
     private static boolean SUPPORTED;
 
     static {

@@ -10,7 +10,7 @@ import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Flags and Switches Tests")
 public class FlagsAndSwitchesTest extends BaseImperatTest {
-    
+
     @Test
     @DisplayName("Should handle switch flags correctly")
     void testSwitchFlags() {
@@ -21,7 +21,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
         assertFlag(result, "ip", false);
         assertArgument(result, "reason", "Breaking server laws");
     }
-    
+
     @Test
     @DisplayName("Should handle activated switch flags")
     void testActivatedSwitchFlags() {
@@ -31,7 +31,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
         assertFlag(result, "silent", true);
         assertFlag(result, "ip", false);
     }
-    
+
     @Test
     @DisplayName("Should handle multiple switch flags")
     void testMultipleSwitchFlags() {
@@ -41,7 +41,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
         assertFlag(result, "silent", true);
         assertFlag(result, "ip", true);
     }
-    
+
     @Test
     @DisplayName("Should handle value flags")
     void testValueFlags() {
@@ -49,7 +49,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
         assertSuccess(result);
         assertFlag(result, "message", "Initial commit");
     }
-    
+
     @Test
     @DisplayName("Should handle mixed flags and arguments")
     void testMixedFlagsAndArguments() {
@@ -60,7 +60,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
         assertArgument(result, "duration", "1d");
         assertArgument(result, "reason", "Cheating is bad");
     }
-    
+
     @Test
     @DisplayName("Should handle flag aliases")
     void testFlagAliases() {
@@ -69,17 +69,17 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
         assertArgument(result, "target", "mqzen");
         assertFlag(result, "silent", true);
     }
-    
+
     @ParameterizedTest
     @CsvSource({
-        "'ban mqzen -s', mqzen, true, false, permanent, 'Breaking server laws'",
-        "'ban mqzen -ip', mqzen, false, true, permanent, 'Breaking server laws'",
-        "'ban mqzen -s -ip', mqzen, true, true, permanent, 'Breaking server laws'",
-        "'ban mqzen -ip -s', mqzen, true, true, permanent, 'Breaking server laws'"
+            "'ban mqzen -s', mqzen, true, false, permanent, 'Breaking server laws'",
+            "'ban mqzen -ip', mqzen, false, true, permanent, 'Breaking server laws'",
+            "'ban mqzen -s -ip', mqzen, true, true, permanent, 'Breaking server laws'",
+            "'ban mqzen -ip -s', mqzen, true, true, permanent, 'Breaking server laws'"
     })
     @DisplayName("Should handle various flag combinations")
-    void testVariousFlagCombinations(String commandLine, String expectedTarget, boolean expectedSilent, 
-                                   boolean expectedIp, String expectedDuration, String expectedReason) {
+    void testVariousFlagCombinations(String commandLine, String expectedTarget, boolean expectedSilent,
+            boolean expectedIp, String expectedDuration, String expectedReason) {
         ExecutionResult<TestSource> result = execute(commandLine);
         assertSuccess(result);
         assertArgument(result, "target", expectedTarget);
@@ -88,7 +88,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
         assertArgument(result, "duration", expectedDuration);
         assertArgument(result, "reason", expectedReason);
     }
-    
+
     @Test
     @DisplayName("Should handle middle flag with arguments")
     void testMiddleFlagWithArguments() {

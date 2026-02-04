@@ -26,7 +26,7 @@ import studio.mevera.imperat.verification.UsageVerifier;
  * </p>
  */
 public final class UsageRegistrationException extends RuntimeException {
-    
+
     /**
      * Constructs a new UsageRegistrationException for the given command and usage that
      * violates the usage rules.
@@ -39,11 +39,11 @@ public final class UsageRegistrationException extends RuntimeException {
      * @see ConfigBuilder#usageVerifier(UsageVerifier) for registering custom verifiers
      */
     public <S extends Source> UsageRegistrationException(
-        final Command<S> command,
-        final CommandUsage<S> usage
+            final Command<S> command,
+            final CommandUsage<S> usage
     ) {
         super(
-            String.format("Invalid command usage: '%s'", CommandUsage.format(command, usage))
+                String.format("Invalid command usage: '%s'", CommandUsage.format(command, usage))
         );
     }
 

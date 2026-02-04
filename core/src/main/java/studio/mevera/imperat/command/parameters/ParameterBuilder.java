@@ -35,7 +35,7 @@ public sealed class ParameterBuilder<S extends Source, T> permits FlagBuilder {
     ParameterBuilder(String name, ParameterType<S, T> type, boolean optional) {
         this(name, type, optional, false);
     }
-    
+
     public static <S extends Source> ParameterBuilder<S, Command<S>> literalBuilder(String name) {
         return new ParameterBuilder<>(name, ParameterTypes.command(name, new ArrayList<>()), false, false);
     }
@@ -75,9 +75,9 @@ public sealed class ParameterBuilder<S extends Source, T> permits FlagBuilder {
 
     public CommandParameter<S> build() {
         return CommandParameter.of(
-            name, type, permission, description,
-            optional, greedy, valueSupplier,
-            suggestionResolver
+                name, type, permission, description,
+                optional, greedy, valueSupplier,
+                suggestionResolver
         );
     }
 

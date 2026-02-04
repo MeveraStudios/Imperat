@@ -7,6 +7,7 @@ import studio.mevera.imperat.command.tree.help.theme.BaseHelpTheme;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
 
 public abstract class AdventureHelpTheme extends BaseHelpTheme<BungeeSource, Component> {
+
     protected AdventureHelpTheme(
             @NotNull HelpTheme.PresentationStyle style,
             int indentMultiplier

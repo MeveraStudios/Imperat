@@ -9,13 +9,13 @@ public final class TestImperatConfig extends ConfigBuilder<TestSource, TestImper
         super();
     }
 
+    public static TestImperatConfig builder() {
+        return new TestImperatConfig();
+    }
+
     @Override
     public @NotNull TestImperat build() {
         return new TestImperat(config);
-    }
-
-    public static TestImperatConfig builder() {
-        return new TestImperatConfig();
     }
 
 

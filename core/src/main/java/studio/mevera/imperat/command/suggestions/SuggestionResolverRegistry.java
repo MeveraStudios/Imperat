@@ -40,7 +40,7 @@ public final class SuggestionResolverRegistry<S extends Source> {
     }
 
     public void registerNamedResolver(String name,
-                                      SuggestionResolver<S> suggestionResolver) {
+            SuggestionResolver<S> suggestionResolver) {
         resolversPerName.put(name, suggestionResolver);
     }
 
@@ -50,12 +50,13 @@ public final class SuggestionResolverRegistry<S extends Source> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public final class EnumSuggestionResolver implements SuggestionResolver<S> {
+
         private final Map<Type, List<String>> PRE_LOADED_ENUMS = new HashMap<>();
 
         public void registerEnumResolver(Type raw) {
             Class<Enum> enumClass = (Class<Enum>) raw;
             PRE_LOADED_ENUMS.computeIfAbsent(raw,
-                (v) -> Arrays.stream(enumClass.getEnumConstants()).map(Enum::name).toList());
+                    (v) -> Arrays.stream(enumClass.getEnumConstants()).map(Enum::name).toList());
         }
 
         private Optional<List<String>> getResults(Type type) {
@@ -66,10 +67,10 @@ public final class SuggestionResolverRegistry<S extends Source> {
         public List<String> autoComplete(SuggestionContext<S> context, CommandParameter<S> parameter) {
             Type type = parameter.valueType();
             return getResults(type)
-                .orElseGet(() -> {
-                    registerEnumResolver(type);
-                    return getResults(type).orElse(Collections.emptyList());
-                });
+                           .orElseGet(() -> {
+                               registerEnumResolver(type);
+                               return getResults(type).orElse(Collections.emptyList());
+                           });
         }
     }
 

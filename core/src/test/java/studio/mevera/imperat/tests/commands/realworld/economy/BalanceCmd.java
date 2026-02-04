@@ -19,7 +19,7 @@ public class BalanceCmd {
             @Flag({"currency", "c"}) @Default("GOLD") Currency currency
     ) {
         System.out.println("CURRENCY= '" + currency.getName() + "'");
-        System.out.println("TARGET= '" + target.toString() +"'");
+        System.out.println("TARGET= '" + target.toString() + "'");
     }
 
 }

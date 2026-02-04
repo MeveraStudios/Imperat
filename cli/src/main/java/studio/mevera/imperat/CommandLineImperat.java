@@ -44,17 +44,6 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
     private InputStream input;
 
     /**
-     * Creates a new configuration builder for CommandLineImperat.
-     * This is the recommended way to create and configure a CommandLineImperat instance.
-     *
-     * @param inputStream the input stream for command line input (e.g., System.in)
-     * @return a new CommandLineConfigBuilder instance
-     */
-    public static CommandLineConfigBuilder builder(InputStream inputStream) {
-        return new CommandLineConfigBuilder(inputStream);
-    }
-
-    /**
      * Package-private constructor used by CommandLineConfigBuilder.
      * Use {@link #builder(InputStream)} to create instances.
      *
@@ -64,6 +53,17 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
     CommandLineImperat(InputStream inputStream, ImperatConfig<ConsoleSource> config) {
         super(config);
         this.input = inputStream;
+    }
+
+    /**
+     * Creates a new configuration builder for CommandLineImperat.
+     * This is the recommended way to create and configure a CommandLineImperat instance.
+     *
+     * @param inputStream the input stream for command line input (e.g., System.in)
+     * @return a new CommandLineConfigBuilder instance
+     */
+    public static CommandLineConfigBuilder builder(InputStream inputStream) {
+        return new CommandLineConfigBuilder(inputStream);
     }
 
     /**

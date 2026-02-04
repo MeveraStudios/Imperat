@@ -116,38 +116,48 @@ final class SyntaxDataLoader {
             return ArgumentType.Integer(id);
         }
 
-        if (TypeUtility.matches(type, boolean.class))
+        if (TypeUtility.matches(type, boolean.class)) {
             return ArgumentType.Boolean(id);
+        }
 
-        if (TypeUtility.matches(type, double.class))
+        if (TypeUtility.matches(type, double.class)) {
             return ArgumentType.Double(id);
+        }
 
-        if (TypeUtility.matches(type, float.class))
+        if (TypeUtility.matches(type, float.class)) {
             return ArgumentType.Float(id);
+        }
 
 
-        if (TypeUtility.matches(type, Enum.class))
+        if (TypeUtility.matches(type, Enum.class)) {
             return ArgumentType.Enum(id, (Class<? extends Enum<?>>) type);
+        }
 
         // Minestom specific types
         //TODO add value resolvers and suggestion resolvers for these extra types
-        if (TypeUtility.matches(type, Color.class))
+        if (TypeUtility.matches(type, Color.class)) {
             return ArgumentType.Color(id);
+        }
 
-        if (TypeUtility.matches(type, Particle.class))
+        if (TypeUtility.matches(type, Particle.class)) {
             return ArgumentType.Particle(id);
+        }
 
-        if (TypeUtility.matches(type, Block.class))
+        if (TypeUtility.matches(type, Block.class)) {
             return ArgumentType.BlockState(id);
+        }
 
-        if (TypeUtility.matches(type, UUID.class))
+        if (TypeUtility.matches(type, UUID.class)) {
             return ArgumentType.UUID(id);
+        }
 
-        if (TypeUtility.matches(type, ItemStack.class))
+        if (TypeUtility.matches(type, ItemStack.class)) {
             return ArgumentType.ItemStack(id);
+        }
 
-        if (TypeUtility.matches(type, Component.class))
+        if (TypeUtility.matches(type, Component.class)) {
             return ArgumentType.Component(id);
+        }
         
         /*if (TypeUtility.matches(valueType, RelativeVec.class))
             return ArgumentType.RelativeVec3(id);

@@ -13,9 +13,10 @@ import studio.mevera.imperat.context.Source;
  * @param <S> The type of {@link Source} from which the command was executed.
  */
 public class HelpRenderOptions<S extends Source, C> {
-    
+
     private final HelpTheme<S, C> theme;
     private final Layout layout;
+
     /**
      * Private constructor to enforce the use of the static builder method.
      */
@@ -23,7 +24,7 @@ public class HelpRenderOptions<S extends Source, C> {
         this.theme = theme;
         this.layout = layout;
     }
-    
+
     /**
      * Creates a new builder for configuring help rendering options.
      *
@@ -36,18 +37,7 @@ public class HelpRenderOptions<S extends Source, C> {
     ) {
         return new HelpRenderOptions<>(theme, layout);
     }
-    
-    /**
-     * An enumeration of the available help documentation layouts.
-     */
-    public enum Layout {
-        /** Simple list view where commands are displayed one after another. */
-        LIST,
-        
-        /** A tree structure view that shows command nesting and hierarchy. */
-        TREE,
-    }
-    
+
     /**
      * Gets the current rendering theme.
      *
@@ -56,7 +46,7 @@ public class HelpRenderOptions<S extends Source, C> {
     public HelpTheme<S, C> getTheme() {
         return theme;
     }
-    
+
     /**
      * Gets the current rendering layout.
      *
@@ -65,5 +55,16 @@ public class HelpRenderOptions<S extends Source, C> {
     public Layout getLayout() {
         return layout;
     }
-    
+
+    /**
+     * An enumeration of the available help documentation layouts.
+     */
+    public enum Layout {
+        /** Simple list view where commands are displayed one after another. */
+        LIST,
+
+        /** A tree structure view that shows command nesting and hierarchy. */
+        TREE,
+    }
+
 }

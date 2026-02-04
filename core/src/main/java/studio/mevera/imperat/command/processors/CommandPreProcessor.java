@@ -24,9 +24,9 @@ public interface CommandPreProcessor<S extends Source> extends CommandProcessor<
      * @throws CommandException the exception to throw if something happens
      */
     void process(
-        Imperat<S> imperat,
-        Context<S> context,
-        CommandUsage<S> usage
+            Imperat<S> imperat,
+            Context<S> context,
+            CommandUsage<S> usage
     ) throws CommandException;
 
 }

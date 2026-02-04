@@ -15,7 +15,8 @@ import studio.mevera.imperat.exception.UnknownRoleException;
 public final class ParameterRole extends BaseParameterType<JdaSource, Role> {
 
     @Override
-    public @NotNull Role resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws
+    public @NotNull Role resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream,
+            @NotNull String input) throws
             CommandException {
         var guild = context.source().origin().getGuild();
         if (guild == null) {

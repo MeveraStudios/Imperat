@@ -31,7 +31,9 @@ public class ParameterCollection<S extends Source, E, C extends Collection<E>> e
         while (commandInputStream.isCurrentRawInputAvailable()) {
 
             String raw = commandInputStream.currentRaw().orElse(null);
-            if(raw == null) break;
+            if (raw == null) {
+                break;
+            }
 
             E element = componentResolver.resolve(context, CommandInputStream.subStream(commandInputStream, raw), raw);
             newCollection.add(element);
@@ -40,7 +42,7 @@ public class ParameterCollection<S extends Source, E, C extends Collection<E>> e
         }
         return newCollection;
     }
-    
+
     @Override
     public boolean isGreedy(CommandParameter<S> parameter) {
         return true;

@@ -10,7 +10,7 @@ import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Argument Parsing Tests")
 public class ArgumentParsingTest extends BaseImperatTest {
-    
+
     @Test
     @DisplayName("Should parse required string arguments correctly")
     void testRequiredStringArguments() {
@@ -19,7 +19,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
         assertArgument(result, "otherText", "hello");
         assertArgument(result, "otherText2", "world");
     }
-    
+
     @Test
     @DisplayName("Should handle optional arguments with defaults")
     void testOptionalArgumentsWithDefaults() {
@@ -29,7 +29,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
         assertArgument(result, "player", null);
         assertArgument(result, "amount", 1);
     }
-    
+
     @Test
     @DisplayName("Should parse custom parameter types")
     void testCustomParameterTypes() {
@@ -39,24 +39,24 @@ public class ArgumentParsingTest extends BaseImperatTest {
         assertArgument(result, "player", new TestPlayer("mqzen"));
         assertArgument(result, "amount", 5);
     }
-    
+
     @ParameterizedTest
     @CsvSource({
-        "give apple, apple, null, 1",
-        "give apple mqzen, apple, mqzen, 1",
-        "give apple 5, apple, null, 5"
+            "give apple, apple, null, 1",
+            "give apple mqzen, apple, mqzen, 1",
+            "give apple 5, apple, null, 5"
     })
     @DisplayName("Should handle various optional argument combinations")
-    void testOptionalArgumentCombinations(String commandLine, String expectedItem, 
-                                         String expectedPlayer, Integer expectedAmount) {
+    void testOptionalArgumentCombinations(String commandLine, String expectedItem,
+            String expectedPlayer, Integer expectedAmount) {
         ExecutionResult<TestSource> result = execute(commandLine);
         assertSuccess(result);
         assertArgument(result, "item", expectedItem);
         TestPlayer expectedPlayerObj = expectedPlayer.equals("null") ? null : new TestPlayer(expectedPlayer);
         assertArgument(result, "player", expectedPlayerObj);
-        assertArgument(result, "amount",  expectedAmount);
+        assertArgument(result, "amount", expectedAmount);
     }
-    
+
     @Test
     @DisplayName("Should handle greedy arguments")
     void testGreedyArguments() {
@@ -65,17 +65,17 @@ public class ArgumentParsingTest extends BaseImperatTest {
         assertArgument(result, "target", "target");
         assertArgument(result, "message", "this is a long message");
     }
-    
+
     @Test
     @DisplayName("Should parse array parameters")
     void testArrayParameters() {
         ExecutionResult<TestSource> result = execute("test2 array member mod srmod owner");
         assertSuccess(result);
-        
+
         String[] expectedArray = {"member", "mod", "srmod", "owner"};
         assertArrayArgs(result, "myArray", expectedArray);
     }
-    
+
     @Test
     @DisplayName("Should handle collection parameters")
     void testCollectionParameters() {
@@ -83,7 +83,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
         assertSuccess(result);
         // The collection should contain the parsed elements
     }
-    
+
     @Test
     @DisplayName("Should handle map parameters")
     void testMapParameters() {

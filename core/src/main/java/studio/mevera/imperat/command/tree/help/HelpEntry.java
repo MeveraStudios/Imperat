@@ -18,10 +18,10 @@ import java.util.Objects;
  * @param <S> The type of {@link Source} from which the command was executed.
  */
 public final class HelpEntry<S extends Source> {
-    
+
     private final ParameterNode<S, ?> node;
     private final @NotNull CommandUsage<S> pathway;
-    
+
     /**
      * Constructs a new HelpEntry from an executable {@link ParameterNode}.
      *
@@ -29,15 +29,15 @@ public final class HelpEntry<S extends Source> {
      * @throws IllegalArgumentException if the provided node is not executable.
      */
     HelpEntry(ParameterNode<S, ?> node) {
-        if(!node.isExecutable()) {
+        if (!node.isExecutable()) {
             throw new IllegalArgumentException("Node '" + node.format() + "' is not executable");
         }
         this.node = node;
-        
+
         assert node.getExecutableUsage() != null;
         this.pathway = node.getExecutableUsage();
     }
-    
+
     /**
      * Retrieves the command usage pathway associated with this help entry.
      *
@@ -46,7 +46,7 @@ public final class HelpEntry<S extends Source> {
     public @NotNull CommandUsage<S> getPathway() {
         return pathway;
     }
-    
+
     /**
      * Retrieves the parameter node associated with this help entry.
      *
@@ -55,7 +55,7 @@ public final class HelpEntry<S extends Source> {
     public ParameterNode<S, ?> getNode() {
         return node;
     }
-    
+
     /**
      * Compares this HelpEntry to another object for equality.
      * <p>
@@ -66,10 +66,12 @@ public final class HelpEntry<S extends Source> {
      */
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof HelpEntry<?> helpEntry)) return false;
+        if (!(object instanceof HelpEntry<?> helpEntry)) {
+            return false;
+        }
         return Objects.equals(node, helpEntry.node);
     }
-    
+
     /**
      * Computes the hash code for this HelpEntry based on its parameter node.
      *

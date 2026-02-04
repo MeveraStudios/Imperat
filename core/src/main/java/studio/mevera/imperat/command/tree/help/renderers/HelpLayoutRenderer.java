@@ -14,7 +14,7 @@ import studio.mevera.imperat.context.Source;
  * @param <C> the component type
  */
 public interface HelpLayoutRenderer<S extends Source, C> {
-    
+
     /**
      * Renders the help documentation to the source.
      *

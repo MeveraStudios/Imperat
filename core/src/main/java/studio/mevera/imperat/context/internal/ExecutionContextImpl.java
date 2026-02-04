@@ -36,15 +36,15 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     private final Registry<Command<S>, Registry<String, Argument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
     //all resolved arguments EXCEPT for subcommands and flags.
     private final Registry<String, Argument<S>> allResolvedArgs = new Registry<>(LinkedHashMap::new);
-    
+
     //last command used
     private final Command<S> lastCommand;
-    
+
     private final CommandPathSearch<S> pathSearch;
-    
+
     ExecutionContextImpl(
-        Context<S> context,
-        CommandPathSearch<S> pathSearch
+            Context<S> context,
+            CommandPathSearch<S> pathSearch
     ) {
         super(context.imperat(), context.command(), context.source(), context.label(), context.arguments());
         this.pathSearch = pathSearch;
@@ -64,8 +64,8 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @Override
     public @Nullable Argument<S> getResolvedArgument(Command<S> command, String name) {
         return resolvedArgumentsPerCommand.getData(command)
-            .flatMap((resolvedArgs) -> resolvedArgs.getData(name))
-            .orElse(null);
+                       .flatMap((resolvedArgs) -> resolvedArgs.getData(name))
+                       .orElse(null);
     }
 
     /**
@@ -75,8 +75,8 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @Override
     public List<Argument<S>> getResolvedArguments(Command<S> command) {
         return resolvedArgumentsPerCommand.getData(command)
-            .map((argMap) -> (List<Argument<S>>) new ArrayList<Argument<S>>(argMap.getAll()))
-            .orElse(Collections.emptyList());
+                       .map((argMap) -> (List<Argument<S>>) new ArrayList<Argument<S>>(argMap.getAll()))
+                       .orElse(Collections.emptyList());
     }
 
     /**
@@ -107,7 +107,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @SuppressWarnings("unchecked")
     public <T> @Nullable T getArgument(String name) {
         return (T) allResolvedArgs.getData(name).map(Argument::value)
-            .orElse(null);
+                           .orElse(null);
     }
 
     @Override
@@ -143,13 +143,13 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     public Collection<? extends ExtractedFlagArgument> getResolvedFlags() {
         return flagRegistry.getAll();
     }
-    
-    
+
+
     @Override
     public @NotNull CommandPathSearch<S> getPathwaySearch() {
         return pathSearch;
     }
-    
+
     @Override
     public Optional<ExtractedFlagArgument> getFlag(String flagName) {
         return flagRegistry.getData(flagName);
@@ -167,11 +167,11 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @SuppressWarnings("unchecked")
     public <T> @Nullable T getFlagValue(String flagName) {
         return (T) getFlag(flagName)
-            .map(ExtractedFlagArgument::value)
-            .orElse(null);
+                           .map(ExtractedFlagArgument::value)
+                           .orElse(null);
     }
-    
-    
+
+
     @Override
     public void resolve() throws CommandException {
         var resolver = ParameterValueAssigner.create(this, usage);
@@ -179,14 +179,13 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     }
 
 
-
     @Override
     public <T> void resolveArgument(
-        Command<S> command,
-        @Nullable String raw,
-        int index,
-        CommandParameter<S> parameter,
-        @Nullable T value
+            Command<S> command,
+            @Nullable String raw,
+            int index,
+            CommandParameter<S> parameter,
+            @Nullable T value
     ) throws InvalidArgumentException {
         final Argument<S> argument = new Argument<>(raw, parameter, index, value);
         parameter.validate(this, argument);
@@ -214,7 +213,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     public @NotNull Command<S> getLastUsedCommand() {
         return lastCommand;
     }
-    
+
     /**
      * @return The used usage to use it to resolve commands
      */
@@ -226,19 +225,19 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @Override
     public boolean hasResolvedFlag(FlagData<S> flagData) {
         return flagRegistry.getData(flagData.name())
-                .isPresent();
+                       .isPresent();
     }
 
     @Override
     public void debug() {
-        if(allResolvedArgs.size() == 0) {
+        if (allResolvedArgs.size() == 0) {
             ImperatDebugger.debug("No arguments were resolved!");
             return;
         }
 
         for (var arg : allResolvedArgs.getAll()) {
             ImperatDebugger.debug("Argument '%s' at index #%s with input='%s' with value='%s'",
-                arg.parameter().format(), arg.index(), arg.raw(), arg.value());
+                    arg.parameter().format(), arg.index(), arg.raw(), arg.value());
         }
     }
 

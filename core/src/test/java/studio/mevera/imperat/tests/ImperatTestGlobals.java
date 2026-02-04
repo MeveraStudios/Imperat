@@ -65,28 +65,31 @@ import java.util.List;
  * Global test source and base test infrastructure for Imperat command framework tests.
  */
 public class ImperatTestGlobals {
-    
+
     /** Global test infrastructure instances */
     public static final TestImperat IMPERAT = TestImperatConfig.builder()
-            .usageVerifier(UsageVerifier.typeTolerantVerifier())
-            //.permissionChecker((src, perm)-> perm == null || src.hasPermission(perm))
-            .contextResolver(PlayerData.class, new PlayerDataContextResolver())
-            .parameterType(Group.class, new ParameterGroup())
-            .parameterType(Duration.class, new JavaDurationParameterType())
-            .parameterType(TestPlayer.class, new TestPlayerParamType())
-            .parameterType(CustomDuration.class, new CustomDurationParameterType<>())
-            .parameterType(BigDecimal.class, new BigDecimalParamType())
-            .parameterType(Currency.class, new CurrencyParamType())
-            .handleMiddleOptionalArgSkipping(true)
-            .contextResolver(new TypeWrap<CommandHelp<TestSource>>() {}.getType(), (ctx, pe)-> CommandHelp.create(ctx))
-            .contextResolver(new TypeWrap<Context<TestSource>>(){}.getType(), (ctx, pe)-> ctx)
-            .handleMiddleOptionalArgSkipping(true)
-            .overlapOptionalParameterSuggestions(true)
-            .build();
-    
+                                                      .usageVerifier(UsageVerifier.typeTolerantVerifier())
+                                                      //.permissionChecker((src, perm)-> perm == null || src.hasPermission(perm))
+                                                      .contextResolver(PlayerData.class, new PlayerDataContextResolver())
+                                                      .parameterType(Group.class, new ParameterGroup())
+                                                      .parameterType(Duration.class, new JavaDurationParameterType())
+                                                      .parameterType(TestPlayer.class, new TestPlayerParamType())
+                                                      .parameterType(CustomDuration.class, new CustomDurationParameterType<>())
+                                                      .parameterType(BigDecimal.class, new BigDecimalParamType())
+                                                      .parameterType(Currency.class, new CurrencyParamType())
+                                                      .handleMiddleOptionalArgSkipping(true)
+                                                      .contextResolver(new TypeWrap<CommandHelp<TestSource>>() {
+                                                      }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
+                                                      .contextResolver(new TypeWrap<Context<TestSource>>() {
+                                                      }.getType(), (ctx, pe) -> ctx)
+                                                      .handleMiddleOptionalArgSkipping(true)
+                                                      .overlapOptionalParameterSuggestions(true)
+                                                      .build();
+    public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);
+
     static {
         System.out.println("=== ImperatTestGlobals static initializer START ===");
-        IMPERAT.registerAnnotationReplacer(MyCustomAnnotation.class,(element, ann)-> {
+        IMPERAT.registerAnnotationReplacer(MyCustomAnnotation.class, (element, ann) -> {
             Command cmdAnn = AnnotationFactory.create(Command.class, "value",
                     new String[]{ann.name()});
             return List.of(cmdAnn);
@@ -97,24 +100,24 @@ public class ImperatTestGlobals {
         IMPERAT.registerSimpleCommand(CHAINED_SUBCOMMANDS_CMD);
         IMPERAT.registerCommand(AnnotatedGroupCommand.class);
         IMPERAT.registerCommand(OptionalArgCommand.class);
-//;
+        //;
         IMPERAT.registerCommand(GitCommand.class);
         IMPERAT.registerCommand(MessageCmd.class);
         IMPERAT.registerCommand(EmptyCmd.class);
         IMPERAT.registerCommand(KitCommand.class);
-        
+
         IMPERAT.registerCommands(TestCommand.class, Test2Command.class, Test3Command.class, TestCustomAnnotationCmd.class);
-        
+
         IMPERAT.registerCommand(GiveCmd.class);
         IMPERAT.registerCommand(BanCommand.class);
         IMPERAT.registerCommand(KingdomChatCommand.class);
         IMPERAT.registerCommand(Ban2Command.class);
-        
+
         IMPERAT.registerCommands(TestAC.class, TestAC2.class);
-        
+
         IMPERAT.registerCommand(PartyCommand.class);
         IMPERAT.registerCommand(GuildMOTDCommand.class);
-        
+
         IMPERAT.registerCommands(
                 TestJavaOptionalParamTypeCmd.class,
                 TestCFParamTypeCmd.class,
@@ -128,9 +131,9 @@ public class ImperatTestGlobals {
                 TestPerm.class,
                 FailingCmd.class
         );
-        
+
         IMPERAT.registerCommands(EconomyCommand.class, BalanceCmd.class);
-        
+
         // Register syntax test commands
         IMPERAT.registerCommand(UsageTestCommand.class);
 
@@ -139,9 +142,7 @@ public class ImperatTestGlobals {
         IMPERAT.debug(false);
         System.out.println("=== ImperatTestGlobals static initializer END ===");
     }
-    
-    public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);
-    
+
     /** Reset global state for tests */
     public static void resetTestState() {
     }

@@ -12,6 +12,7 @@ import java.util.StringJoiner;
 final class ArgumentInputImpl extends LinkedList<String> implements ArgumentInput {
 
     private final String originalRaw;
+
     ArgumentInputImpl(String originalRaw, @NotNull Collection<? extends String> input) {
         super(input);
         this.originalRaw = originalRaw;
@@ -46,7 +47,7 @@ final class ArgumentInputImpl extends LinkedList<String> implements ArgumentInpu
         }
         return joiner.toString();
     }
-    
+
 
     @Override
     public @NotNull ArgumentInput copy() {

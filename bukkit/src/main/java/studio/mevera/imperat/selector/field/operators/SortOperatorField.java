@@ -15,9 +15,9 @@ final class SortOperatorField extends OperatorField<SortOption> {
     SortOperatorField(String name) {
         super(name, TypeWrap.of(SortOption.class));
         Arrays.stream(SortOption.values())
-            .map(SortOption::name)
-            .map(String::toLowerCase)
-            .forEach(suggestions::add);
+                .map(SortOption::name)
+                .map(String::toLowerCase)
+                .forEach(suggestions::add);
     }
 
     /**

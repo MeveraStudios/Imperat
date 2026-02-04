@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends BaseParameterType<S, M> {
+
     private final static String ENTRY_SEPARATOR = ",";
 
     private final Supplier<M> mapInitializer;
@@ -41,16 +42,18 @@ public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends B
         while (commandInputStream.isCurrentRawInputAvailable()) {
 
             String raw = commandInputStream.currentRaw().orElse(null);
-            if(raw == null) break;
+            if (raw == null) {
+                break;
+            }
 
-            if(!raw.contains(ENTRY_SEPARATOR)) {
+            if (!raw.contains(ENTRY_SEPARATOR)) {
                 throw new InvalidMapEntryFormatException(raw, ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR);
                 //throw new SourceException("Invalid map entry '%s', entry doesn't contain '%s'", raw, ENTRY_SEPARATOR);
             }
 
             String[] split = raw.split(ENTRY_SEPARATOR);
-            if(split.length != 2) {
-                throw new InvalidMapEntryFormatException(raw,ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS);
+            if (split.length != 2) {
+                throw new InvalidMapEntryFormatException(raw, ENTRY_SEPARATOR, InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS);
                 //throw new SourceException("Invalid map entry '%s', entry is not made of 2 elements", raw);
             }
 
@@ -69,7 +72,7 @@ public class ParameterMap<S extends Source, K, V, M extends Map<K, V>> extends B
         }
         return newMap;
     }
-    
+
     @Override
     public boolean isGreedy(CommandParameter<S> parameter) {
         return true;

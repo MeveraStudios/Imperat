@@ -25,8 +25,8 @@ public final class JavaDurationParser {
         if (durationStr == null || durationStr.trim().isEmpty()) {
             throw new IllegalArgumentException("CustomDuration string cannot be null or empty");
         }
-        
-        if(durationStr.startsWith("perm")) {
+
+        if (durationStr.startsWith("perm")) {
             return Duration.ZERO;
         }
 
@@ -137,7 +137,9 @@ public final class JavaDurationParser {
             // Join all but last with commas, then add "and" before the last
             StringBuilder result = new StringBuilder();
             for (int i = 0; i < components.size() - 1; i++) {
-                if (i > 0) result.append(", ");
+                if (i > 0) {
+                    result.append(", ");
+                }
                 result.append(components.get(i));
             }
             result.append(", and ").append(components.get(components.size() - 1));

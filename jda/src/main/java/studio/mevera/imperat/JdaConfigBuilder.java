@@ -33,8 +33,10 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
     }
 
     private void registerContextResolvers() {
-        config.registerContextResolver(new TypeWrap<ExecutionContext<JdaSource>>() {}.getType(), (ctx, param) -> ctx);
-        config.registerContextResolver(new TypeWrap<CommandHelp<JdaSource>>() {}.getType(), (ctx, param) -> CommandHelp.create(ctx));
+        config.registerContextResolver(new TypeWrap<ExecutionContext<JdaSource>>() {
+        }.getType(), (ctx, param) -> ctx);
+        config.registerContextResolver(new TypeWrap<CommandHelp<JdaSource>>() {
+        }.getType(), (ctx, param) -> CommandHelp.create(ctx));
         config.registerContextResolver(SlashCommandInteractionEvent.class, (ctx, param) -> ctx.source().origin());
         config.registerContextResolver(JDA.class, (ctx, param) -> jda);
         config.registerContextResolver(Guild.class, (ctx, param) -> ctx.source().origin().getGuild());
@@ -59,15 +61,15 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
 
     private void registerThrowableResolvers() {
         config.setThrowableResolver(UnknownUserException.class, (ex, ctx) ->
-            ctx.source().error("User '" + ex.getIdentifier() + "' could not be found")
+                                                                        ctx.source().error("User '" + ex.getIdentifier() + "' could not be found")
         );
 
         config.setThrowableResolver(UnknownMemberException.class, (ex, ctx) ->
-            ctx.source().error("Member '" + ex.getIdentifier() + "' could not be found")
+                                                                          ctx.source().error("Member '" + ex.getIdentifier() + "' could not be found")
         );
 
         config.setThrowableResolver(NoDMSException.class, (ex, ctx) ->
-            ctx.source().error(ex.getMessage())
+                                                                  ctx.source().error(ex.getMessage())
         );
     }
 

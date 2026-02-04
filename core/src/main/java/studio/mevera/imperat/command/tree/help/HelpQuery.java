@@ -18,11 +18,11 @@ import java.util.function.Predicate;
  * @param <S> The type of {@link Source} from which the command was executed.
  */
 public final class HelpQuery<S extends Source> {
-    
+
     private final int maxDepth, limit;
     private final @NotNull Queue<HelpFilter<S>> filters;
     private final @NotNull Predicate<CommandUsage<S>> rootUsagePredicate;
-    
+
     /**
      * Constructs a new HelpQuery. This constructor is private to enforce
      * the use of the {@link Builder} class.
@@ -37,7 +37,7 @@ public final class HelpQuery<S extends Source> {
         this.filters = filters;
         this.rootUsagePredicate = rootUsagePredicate;
     }
-    
+
     /**
      * Creates a new builder for constructing a {@link HelpQuery}.
      *
@@ -47,7 +47,7 @@ public final class HelpQuery<S extends Source> {
     public static <S extends Source> Builder<S> builder() {
         return new Builder<>();
     }
-    
+
     /**
      * Gets the maximum number of help entries to return.
      *
@@ -56,7 +56,7 @@ public final class HelpQuery<S extends Source> {
     public int getLimit() {
         return limit;
     }
-    
+
     /**
      * Gets the maximum depth to traverse the command tree when searching for help entries.
      *
@@ -65,7 +65,7 @@ public final class HelpQuery<S extends Source> {
     public int getMaxDepth() {
         return maxDepth;
     }
-    
+
     /**
      * Gets the queue of filters to apply to the help entries.
      *
@@ -74,14 +74,14 @@ public final class HelpQuery<S extends Source> {
     public @NotNull Queue<HelpFilter<S>> getFilters() {
         return filters;
     }
-    
+
     /**
      * @return Fetches the condition for including the root's {@link CommandUsage}
      */
     public @NotNull Predicate<CommandUsage<S>> getRootUsagePredicate() {
         return rootUsagePredicate;
     }
-    
+
     /**
      * A builder class for creating instances of {@link HelpQuery}.
      * <p>
@@ -91,17 +91,18 @@ public final class HelpQuery<S extends Source> {
      * @param <S> The type of {@link Source}.
      */
     public static class Builder<S extends Source> {
-        
+
+        private final @NotNull Queue<HelpFilter<S>> filters = new LinkedList<>();
         private int maxDepth = 25;
         private int limit = 50;
-        private final @NotNull Queue<HelpFilter<S>> filters = new LinkedList<>();
-        private @NotNull Predicate<CommandUsage<S>> rootUsagePredicate = (u)-> u.size() > 0;
+        private @NotNull Predicate<CommandUsage<S>> rootUsagePredicate = (u) -> u.size() > 0;
+
         /**
          * Private constructor to enforce builder pattern.
          */
         Builder() {
         }
-        
+
         /**
          * Sets the maximum depth to traverse the command tree.
          *
@@ -112,7 +113,7 @@ public final class HelpQuery<S extends Source> {
             this.maxDepth = depth;
             return this;
         }
-        
+
         /**
          * Sets the maximum number of help entries to return.
          *
@@ -123,7 +124,7 @@ public final class HelpQuery<S extends Source> {
             this.limit = limit;
             return this;
         }
-        
+
         /**
          * Sets the condition for including the root's <strong>MAIN</strong>command usage.
          * @param rootUsagePredicate the condition/predicate to include the root.
@@ -133,7 +134,7 @@ public final class HelpQuery<S extends Source> {
             this.rootUsagePredicate = rootUsagePredicate;
             return this;
         }
-        
+
         /**
          * Adds a filter to the queue of filters.
          *
@@ -144,7 +145,7 @@ public final class HelpQuery<S extends Source> {
             filters.add(filter);
             return this;
         }
-        
+
         /**
          * Builds an immutable {@link HelpQuery} instance with the configured parameters.
          *
@@ -153,7 +154,7 @@ public final class HelpQuery<S extends Source> {
         public @NotNull HelpQuery<S> build() {
             return new HelpQuery<>(maxDepth, limit, filters, rootUsagePredicate);
         }
-     
+
     }
-    
+
 }

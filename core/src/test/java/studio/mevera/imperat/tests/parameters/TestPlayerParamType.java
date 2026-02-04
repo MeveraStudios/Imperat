@@ -13,7 +13,7 @@ import studio.mevera.imperat.tests.arguments.TestPlayer;
 import java.util.List;
 
 public final class TestPlayerParamType extends BaseParameterType<TestSource, TestPlayer> {
-    
+
     @Override
     public TestPlayer resolve(
             @NotNull ExecutionContext<TestSource> context,
@@ -33,27 +33,27 @@ public final class TestPlayerParamType extends BaseParameterType<TestSource, Tes
         }
         return new TestPlayer(input);
     }
-    
+
     @Override
     public boolean matchesInput(int rawPosition, Context<TestSource> context, CommandParameter<TestSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
         }
-        
-        try{
+
+        try {
             Double.parseDouble(input);
             return false;
-        }catch (Exception exception) {
-            System.out.println("Matching input = '" + input  +"'");
+        } catch (Exception exception) {
+            System.out.println("Matching input = '" + input + "'");
             System.out.println("Contains '-' ? " + input.contains("-"));
             return !input.contains("-");
         }
     }
-    
+
     @Override
     public SuggestionResolver<TestSource> getSuggestionResolver() {
-        return (ctx, p)-> {
+        return (ctx, p) -> {
             return List.of("MQZEN", "MOHAMED");
         };
     }

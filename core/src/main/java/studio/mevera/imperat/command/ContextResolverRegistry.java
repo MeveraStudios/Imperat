@@ -21,8 +21,10 @@ public final class ContextResolverRegistry<S extends Source> extends Registry<Ty
     private ContextResolverRegistry() {
         super();
         //this.registerResolver(TypeWrap.of(CommandHelp.class).getType(), (ctx, param) -> new CommandHelp(config, ctx));
-        this.registerResolver(new TypeWrap<ExecutionContext<S>>(){}.getType(), (ctx, param)-> ctx);
-        this.registerResolver(new TypeWrap<ArgumentInput>(){}.getType(),(ctx, param)-> ctx.arguments());
+        this.registerResolver(new TypeWrap<ExecutionContext<S>>() {
+        }.getType(), (ctx, param) -> ctx);
+        this.registerResolver(new TypeWrap<ArgumentInput>() {
+        }.getType(), (ctx, param) -> ctx.arguments());
     }
 
     public static <S extends Source> ContextResolverRegistry<S> createDefault() {
@@ -47,8 +49,8 @@ public final class ContextResolverRegistry<S extends Source> extends Registry<Ty
         ContextResolverFactory<S, T> factory = (ContextResolverFactory<S, T>) getFactoryFor(type).orElse(null);
         if (factory == null) {
             return factories.getData(type)
-                .map((defaultFactory) -> ((ContextResolverFactory<S, T>) defaultFactory).create(type, element))
-                .orElse((ContextResolver<S, T>) getData(type).orElse(null));
+                           .map((defaultFactory) -> ((ContextResolverFactory<S, T>) defaultFactory).create(type, element))
+                           .orElse((ContextResolver<S, T>) getData(type).orElse(null));
         }
         return factory.create(type, element);
     }

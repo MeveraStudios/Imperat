@@ -45,7 +45,7 @@ public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleSource,
         registerSourceResolvers();
         registerContextResolvers();
     }
-    
+
     /**
      * Registers source resolvers for type-safe command source handling.
      * For CLI applications, this sets up PrintStream source resolution.
@@ -53,26 +53,28 @@ public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleSource,
     private void registerSourceResolvers() {
         config.registerSourceResolver(PrintStream.class, (consoleSource, ctx) -> consoleSource.origin());
     }
-    
+
     /**
      * Registers context resolvers for automatic dependency injection in commands.
      * This allows command methods to receive CLI-specific objects as parameters.
      */
     private void registerContextResolvers() {
         config.registerContextResolver(
-                new TypeWrap<ExecutionContext<ConsoleSource>>() {}.getType(),
-                (ctx, paramElement)-> ctx
+                new TypeWrap<ExecutionContext<ConsoleSource>>() {
+                }.getType(),
+                (ctx, paramElement) -> ctx
         );
         config.registerContextResolver(
-                new TypeWrap<CommandHelp<ConsoleSource>>() {}.getType(),
-                (ctx, paramElement)-> CommandHelp.create(ctx)
+                new TypeWrap<CommandHelp<ConsoleSource>>() {
+                }.getType(),
+                (ctx, paramElement) -> CommandHelp.create(ctx)
         );
-        
+
         // Enhanced context resolvers similar to Velocity (limited for CLI)
         config.registerContextResolver(InputStream.class, (ctx, paramElement) -> inputStream);
         config.registerContextResolver(PrintStream.class, (ctx, paramElement) -> ctx.source().origin());
     }
-    
+
     /**
      * Builds the configured CommandLineImperat instance.
      *

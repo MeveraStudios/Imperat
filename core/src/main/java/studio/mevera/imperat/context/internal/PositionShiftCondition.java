@@ -4,5 +4,6 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 interface PositionShiftCondition {
+
     boolean canContinue(@NotNull StreamPosition<?> streamPosition);
 }

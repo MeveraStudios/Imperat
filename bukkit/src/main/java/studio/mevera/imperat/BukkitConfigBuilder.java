@@ -81,11 +81,13 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
 
     private void registerContextResolvers() {
         config.registerContextResolver(
-                new TypeWrap<ExecutionContext<BukkitSource>>() {}.getType(),
+                new TypeWrap<ExecutionContext<BukkitSource>>() {
+                }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextResolver(
-                new TypeWrap<CommandHelp<BukkitSource>>() {}.getType(),
+                new TypeWrap<CommandHelp<BukkitSource>>() {
+                }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 
@@ -115,7 +117,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
 
     private void addThrowableHandlers() {
         config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context) ->
-                context.source().error("Only players can do this!"));
+                                                                              context.source().error("Only players can do this!"));
 
         config.setThrowableResolver(
                 OnlyConsoleAllowedException.class,
@@ -123,7 +125,9 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         );
 
         config.setThrowableResolver(InvalidSelectorFieldCriteriaFormat.class, (ex, context) ->
-                context.source().error("Invalid field-criteria format '" + ex.getFieldCriteriaInput() + "'"));
+                                                                                      context.source().error("Invalid field-criteria format '"
+                                                                                                                     + ex.getFieldCriteriaInput()
+                                                                                                                     + "'"));
 
         config.setThrowableResolver(
                 UnknownSelectorFieldException.class,

@@ -22,14 +22,14 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
     private final ElementSelector<MethodElement> methodSelector;
     private final CommandClassVisitor<S, Set<Command<S>>> commandParsingVisitor;
     private final CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> throwableHandlerVisitor;
-    
+
     AnnotationParserImpl(Imperat<S> dispatcher) {
         super(dispatcher);
         this.annotationRegistry = new AnnotationRegistry();
 
         this.methodSelector = ElementSelector.create();
         methodSelector.addRule(
-            MethodRules.IS_PUBLIC/*.and(MethodRules.RETURNS_VOID)*/.and(MethodRules.HAS_A_MAIN_ANNOTATION)
+                MethodRules.IS_PUBLIC/*.and(MethodRules.RETURNS_VOID)*/.and(MethodRules.HAS_A_MAIN_ANNOTATION)
         );
 
         this.commandParsingVisitor = CommandClassVisitor.newCommandParsingVisitor(dispatcher, this);
@@ -43,14 +43,14 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
         AnnotationReader<S> reader = AnnotationReader.read(imperat, methodSelector, this, instance);
         reader.acceptCommandsParsing(commandParsingVisitor);
     }
-    
+
     @Override
     public <T> void parseThrowableHandlerClass(T instance) {
         AnnotationReader<S> reader = AnnotationReader.read(imperat, CommandClassVisitor.ERROR_HANDLING_METHOD_SELECTOR, this, instance);
         reader.acceptThrowableResolversParsing(throwableHandlerVisitor);
     }
-    
-    
+
+
     /**
      * Registers a valueType of annotations so that it can be
      * detected by {@link AnnotationReader} , it's useful as it allows that valueType of annotation

@@ -24,12 +24,12 @@ final class InternalVelocityCommand<P> implements SimpleCommand {
 
     private CommandMeta createMeta(CommandManager commandManager) {
         var builder = commandManager.metaBuilder(command.name())
-            .plugin(imperat.getPlugin());
+                              .plugin(imperat.getPlugin());
         if (command.aliases().isEmpty()) {
             return builder.build();
         }
         return builder.aliases(command.aliases().toArray(new String[0]))
-            .build();
+                       .build();
     }
 
     public CommandMeta getMeta() {
@@ -47,21 +47,21 @@ final class InternalVelocityCommand<P> implements SimpleCommand {
     @Override
     public List<String> suggest(Invocation invocation) {
         StringBuilder builder = new StringBuilder(invocation.alias()).append(" ");
-        for(String arg : invocation.arguments()) {
+        for (String arg : invocation.arguments()) {
             builder.append(arg).append(" ");
         }
         return imperat.autoComplete(
-                    imperat.wrapSender(invocation.source()), builder.toString()
-                ).join();
+                imperat.wrapSender(invocation.source()), builder.toString()
+        ).join();
     }
 
     @Override
     public boolean hasPermission(Invocation invocation) {
         return imperat.config().getPermissionChecker().hasPermission(
-            imperat.wrapSender(invocation.source()),
-            imperat.config().isAutoPermissionAssignMode()
-                    ? imperat.config().getPermissionLoader().load(command)
-                    : command.getMainPermission()
+                imperat.wrapSender(invocation.source()),
+                imperat.config().isAutoPermissionAssignMode()
+                        ? imperat.config().getPermissionLoader().load(command)
+                        : command.getMainPermission()
         );
     }
 

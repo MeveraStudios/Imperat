@@ -18,15 +18,18 @@ final class GamemodeField extends PredicateField<GameMode> {
     GamemodeField(String name) {
         super(name, TypeWrap.of(GameMode.class));
         Arrays.stream(GameMode.values())
-            .map(GameMode::name)
-            .map(String::toLowerCase)
-            .forEach(suggestions::add);
+                .map(GameMode::name)
+                .map(String::toLowerCase)
+                .forEach(suggestions::add);
     }
 
     @Override
-    protected @NotNull EntityCondition getCondition(GameMode value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context) {
+    protected @NotNull EntityCondition getCondition(GameMode value, CommandInputStream<BukkitSource> commandInputStream,
+            Context<BukkitSource> context) {
         return ((sender, entity) -> {
-            if (!(entity instanceof HumanEntity humanEntity)) return false;
+            if (!(entity instanceof HumanEntity humanEntity)) {
+                return false;
+            }
             return humanEntity.getGameMode() == value;
         });
     }

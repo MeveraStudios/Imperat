@@ -79,7 +79,8 @@ public class HytaleParameterType<T> extends BaseParameterType<HytaleSource, T> {
     @FunctionalInterface
     public interface ExceptionProvider {
 
-        ExceptionProvider DEFAULT = (in) -> new ParseException(in) {};
+        ExceptionProvider DEFAULT = (in) -> new ParseException(in) {
+        };
 
         CommandException fetch(String input);
     }

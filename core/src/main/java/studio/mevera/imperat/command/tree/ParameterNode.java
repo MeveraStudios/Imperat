@@ -5,10 +5,10 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.PriorityList;
 
 import java.util.Objects;
@@ -17,15 +17,10 @@ import java.util.function.Predicate;
 public abstract class ParameterNode<S extends Source, T extends CommandParameter<S>> implements Comparable<ParameterNode<S, ?>> {
 
     protected final @NotNull T data;
-
-    protected @Nullable CommandUsage<S> executableUsage;
-
     private final PriorityList<ParameterNode<S, ?>> children = new PriorityList<>();
-
     private final int depth;
-    
     private final @Nullable ParameterNode<S, ?> parent;
-    
+    protected @Nullable CommandUsage<S> executableUsage;
     private String permission;
 
     protected ParameterNode(@Nullable ParameterNode<S, ?> parent, @NotNull T data, int depth, @Nullable CommandUsage<S> executableUsage) {
@@ -35,7 +30,7 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         this.executableUsage = executableUsage;
         this.permission = data.getSinglePermission();
     }
-    
+
     public static <S extends Source> CommandNode<S> createCommandNode(
             @Nullable ParameterNode<S, ?> parent,
             @NotNull Command<S> data,
@@ -44,27 +39,28 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     ) {
         return new CommandNode<>(parent, data, depth, executableUsage);
     }
+
     public static <S extends Source> ArgumentNode<S> createArgumentNode(
-            ParameterNode<S,?> parent,
+            ParameterNode<S, ?> parent,
             CommandParameter<S> data,
             int depth,
             @Nullable CommandUsage<S> executableUsage
     ) {
         return new ArgumentNode<>(parent, data, depth, executableUsage);
     }
-    
+
     public String getPermission() {
         return permission;
     }
-    
+
     public void setPermission(String permission) {
         this.permission = permission;
     }
-    
+
     public int getDepth() {
         return depth;
     }
-    
+
     public @Nullable CommandUsage<S> getExecutableUsage() {
         return executableUsage;
     }
@@ -81,16 +77,18 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     public T getData() {
         return data;
     }
-    
+
     public void addChild(ParameterNode<S, ?> node) {
-        if (children.contains(node)) return;
+        if (children.contains(node)) {
+            return;
+        }
         children.add(node.priority(), node);
     }
 
     public PriorityList<ParameterNode<S, ?>> getChildren() {
         return children;
     }
-    
+
     public boolean matchesInput(int depth, Context<S> ctx) {
         // Check supported types in LIFO order
         return matchesInput(depth, ctx, false);
@@ -100,11 +98,11 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         var primaryType = data.type();
         boolean primaryMatches = matchesInput(primaryType, depth, ctx);
 
-        if(strict || isCommand()) {
+        if (strict || isCommand()) {
             return primaryMatches;
         }
 
-        if(primaryMatches) {
+        if (primaryMatches) {
             return true;
         }
 
@@ -114,12 +112,14 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     }
 
     private @Nullable ParameterNode<S, ?> findNeighborOfType(int depth, Context<S> context) {
-        if(parent == null) {
+        if (parent == null) {
             return null;
         }
-        for(var sibling : parent.getChildren()) {
-            if(sibling.equals(this)) continue;
-            if(sibling.matchesInput(depth, context, true)) {
+        for (var sibling : parent.getChildren()) {
+            if (sibling.equals(this)) {
+                continue;
+            }
+            if (sibling.matchesInput(depth, context, true)) {
                 return sibling;
             }
         }
@@ -130,7 +130,7 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         return type.matchesInput(depth, ctx, data);
     }
 
-    
+
     public abstract String format();
 
     public boolean isLast() {
@@ -179,28 +179,33 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     public boolean isFlag() {
         return this.data.isFlag();
     }
-    
+
     public @Nullable ParameterNode<S, ?> getParent() {
         return parent;
     }
-    
+
     public boolean isRoot() {
         return parent == null;
     }
-    
+
     public int getNumberOfParametersToConsume() {
         int incrementation = this.data.type().getNumberOfParametersToConsume();
-        if(incrementation < 1) incrementation = 1;
+        if (incrementation < 1) {
+            incrementation = 1;
+        }
         return incrementation;
     }
-    
+
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof ParameterNode<?, ?> that)) return false;
-        return Objects.equals(this.parent, that.parent) && Objects.equals(data.name(), that.data.name()) && this.depth == that.depth && Objects.equals(
+        if (!(o instanceof ParameterNode<?, ?> that)) {
+            return false;
+        }
+        return Objects.equals(this.parent, that.parent) && Objects.equals(data.name(), that.data.name()) && this.depth == that.depth
+                       && Objects.equals(
                 children, that.children);
     }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(this.parent, data.name(), this.depth, children);

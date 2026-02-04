@@ -5,13 +5,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -111,7 +111,7 @@ public interface ParameterType<S extends Source, T> {
     default TypeWrap<T> wrappedType() {
         return (TypeWrap<T>) TypeWrap.of(type());
     }
-    
+
     /**
      * Determines if this parameter type is greedy, meaning it consumes multiple arguments.
      * By default, returns {@code false}.
@@ -123,7 +123,7 @@ public interface ParameterType<S extends Source, T> {
     default boolean isGreedy(CommandParameter<S> parameter) {
         return false;
     }
-    
+
     /**
      * Returns the number of arguments consumed by this parameter type.
      * By default, returns {@code 1}.
@@ -136,15 +136,15 @@ public interface ParameterType<S extends Source, T> {
     }
 
     /**
-    * Returns this parameter type\`s selection priority when multiple {@link ParameterType}s
-    * could handle the same Java {@link Type}.
-    *
-    * <p>Higher priority types should be preferred by the resolution/registration logic.</p>
-    *
-    * @return the priority for this parameter type; defaults to {@link Priority#NORMAL}.
-    */
+     * Returns this parameter type\`s selection priority when multiple {@link ParameterType}s
+     * could handle the same Java {@link Type}.
+     *
+     * <p>Higher priority types should be preferred by the resolution/registration logic.</p>
+     *
+     * @return the priority for this parameter type; defaults to {@link Priority#NORMAL}.
+     */
     @ApiStatus.AvailableSince("3.0.0")
     default Priority getPriority() {
-     return Priority.NORMAL;
+        return Priority.NORMAL;
     }
 }

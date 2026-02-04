@@ -29,16 +29,17 @@ class SlashCommandMapperTest {
     @Test
     void flattensOptionalParametersAfterRequiredOnRoot() {
         Command<JdaSource> command = Command.create(imperat, "mix")
-                .usage(CommandUsage.<JdaSource>builder()
-                        .parameters(
-                                CommandParameter.requiredText("first"),
-                                CommandParameter.optionalText("middle"),
-                                CommandParameter.requiredInt("count"),
-                                CommandParameter.optionalText("trail")
-                        )
-                        .execute((source, ctx) -> {})
-                )
-                .build();
+                                             .usage(CommandUsage.<JdaSource>builder()
+                                                            .parameters(
+                                                                    CommandParameter.requiredText("first"),
+                                                                    CommandParameter.optionalText("middle"),
+                                                                    CommandParameter.requiredInt("count"),
+                                                                    CommandParameter.optionalText("trail")
+                                                            )
+                                                            .execute((source, ctx) -> {
+                                                            })
+                                             )
+                                             .build();
 
         SlashCommandMapper.SlashMapping mapping = mapper.mapCommand(command);
         SlashCommandData data = mapping.commandData();
@@ -59,31 +60,35 @@ class SlashCommandMapperTest {
     @Test
     void preservesDeepSubcommandPaths() {
         Command<JdaSource> command = Command.create(imperat, "root")
-                .subCommand(
-                        Command.create(imperat, "alpha")
-                                .usage(CommandUsage.<JdaSource>builder()
-                                        .parameters(CommandParameter.requiredText("alphaArg"))
-                                        .execute((source, ctx) -> {})
-                                )
-                                .subCommand(
-                                        Command.create(imperat, "beta")
-                                                .usage(CommandUsage.<JdaSource>builder()
-                                                        .parameters(CommandParameter.requiredText("betaArg"))
-                                                        .execute((source, ctx) -> {})
-                                                )
-                                                .subCommand(
-                                                        Command.create(imperat, "gamma")
-                                                                .usage(CommandUsage.<JdaSource>builder()
-                                                                        .parameters(CommandParameter.requiredText("gammaArg"))
-                                                                        .execute((source, ctx) -> {})
-                                                                )
-                                                                .build()
-                                                )
-                                                .build()
-                                )
-                                .build()
-                )
-                .build();
+                                             .subCommand(
+                                                     Command.create(imperat, "alpha")
+                                                             .usage(CommandUsage.<JdaSource>builder()
+                                                                            .parameters(CommandParameter.requiredText("alphaArg"))
+                                                                            .execute((source, ctx) -> {
+                                                                            })
+                                                             )
+                                                             .subCommand(
+                                                                     Command.create(imperat, "beta")
+                                                                             .usage(CommandUsage.<JdaSource>builder()
+                                                                                            .parameters(CommandParameter.requiredText("betaArg"))
+                                                                                            .execute((source, ctx) -> {
+                                                                                            })
+                                                                             )
+                                                                             .subCommand(
+                                                                                     Command.create(imperat, "gamma")
+                                                                                             .usage(CommandUsage.<JdaSource>builder()
+                                                                                                            .parameters(CommandParameter.requiredText(
+                                                                                                                    "gammaArg"))
+                                                                                                            .execute((source, ctx) -> {
+                                                                                                            })
+                                                                                             )
+                                                                                             .build()
+                                                                             )
+                                                                             .build()
+                                                             )
+                                                             .build()
+                                             )
+                                             .build();
 
         SlashCommandMapper.SlashMapping mapping = mapper.mapCommand(command);
         SlashCommandData data = mapping.commandData();
@@ -109,15 +114,17 @@ class SlashCommandMapperTest {
     @Test
     void combinesMultipleUsagesIntoOptionalOptions() {
         Command<JdaSource> command = Command.create(imperat, "variants")
-                .usage(CommandUsage.<JdaSource>builder()
-                        .parameters(CommandParameter.requiredText("first"))
-                        .execute((source, ctx) -> {})
-                )
-                .usage(CommandUsage.<JdaSource>builder()
-                        .parameters(CommandParameter.optionalText("second"))
-                        .execute((source, ctx) -> {})
-                )
-                .build();
+                                             .usage(CommandUsage.<JdaSource>builder()
+                                                            .parameters(CommandParameter.requiredText("first"))
+                                                            .execute((source, ctx) -> {
+                                                            })
+                                             )
+                                             .usage(CommandUsage.<JdaSource>builder()
+                                                            .parameters(CommandParameter.optionalText("second"))
+                                                            .execute((source, ctx) -> {
+                                                            })
+                                             )
+                                             .build();
 
         SlashCommandMapper.SlashMapping mapping = mapper.mapCommand(command);
         SlashCommandData data = mapping.commandData();

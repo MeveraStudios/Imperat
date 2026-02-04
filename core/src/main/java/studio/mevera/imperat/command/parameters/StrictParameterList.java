@@ -9,8 +9,9 @@ public final class StrictParameterList<S extends Source> extends LinkedList<Comm
 
     @Override
     public void addFirst(CommandParameter<S> parameter) {
-        if (containsSimilar(parameter))
+        if (containsSimilar(parameter)) {
             return;
+        }
 
         super.addFirst(parameter);
     }
@@ -18,8 +19,9 @@ public final class StrictParameterList<S extends Source> extends LinkedList<Comm
     @Override
     public boolean add(CommandParameter<S> parameter) {
 
-        if (containsSimilar(parameter))
+        if (containsSimilar(parameter)) {
             return false;
+        }
 
         return super.add(parameter);
     }
@@ -35,14 +37,17 @@ public final class StrictParameterList<S extends Source> extends LinkedList<Comm
 
     @Override
     public boolean contains(Object o) {
-        if (!(o instanceof CommandParameter<?> parameter)) return false;
+        if (!(o instanceof CommandParameter<?> parameter)) {
+            return false;
+        }
         return super.contains(parameter) || containsSimilar(parameter);
     }
 
     public boolean containsSimilar(CommandParameter<?> parameter) {
         for (var p : this) {
-            if (p.similarTo(parameter))
+            if (p.similarTo(parameter)) {
                 return true;
+            }
         }
         return false;
     }

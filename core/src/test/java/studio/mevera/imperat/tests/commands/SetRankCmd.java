@@ -11,7 +11,7 @@ import studio.mevera.imperat.tests.TestSource;
 
 @Command("setrank")
 public class SetRankCmd {
-    
+
     @Usage
     @Permission("voxy.grant")
     public void execute(
@@ -22,7 +22,7 @@ public class SetRankCmd {
             final @Optional @Named("reason") @Default("Undefined Reason") String reason,
             final @Switch({"extend", "e"}) boolean extend
     ) {
-        actor.reply("setting rank for target " + data + " rank=" +rank + " for " + duration + " , reason= " + reason);
+        actor.reply("setting rank for target " + data + " rank=" + rank + " for " + duration + " , reason= " + reason);
         actor.reply("EXTENDED? = " + extend);
     }
 

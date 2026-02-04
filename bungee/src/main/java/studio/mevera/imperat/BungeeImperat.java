@@ -97,7 +97,9 @@ public final class BungeeImperat extends BaseImperat<BungeeSource> {
     public void unregisterCommand(String name) {
         Command<BungeeSource> imperatCmd = getCommand(name);
         super.unregisterCommand(name);
-        if (imperatCmd == null) return;
+        if (imperatCmd == null) {
+            return;
+        }
 
         for (var entry : new HashSet<>(plugin.getProxy().getPluginManager().getCommands())) {
             var key = StringUtils.stripNamespace(entry.getKey());

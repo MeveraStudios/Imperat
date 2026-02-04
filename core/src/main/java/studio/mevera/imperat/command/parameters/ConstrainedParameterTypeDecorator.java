@@ -16,7 +16,7 @@ import studio.mevera.imperat.util.TypeWrap;
 import java.lang.reflect.Type;
 import java.util.Set;
 
-public final class ConstrainedParameterTypeDecorator<S extends Source, T> extends BaseParameterType<S,  T> {
+public final class ConstrainedParameterTypeDecorator<S extends Source, T> extends BaseParameterType<S, T> {
 
     private final ParameterType<S, T> original;
 
@@ -31,7 +31,8 @@ public final class ConstrainedParameterTypeDecorator<S extends Source, T> extend
         allowedValues.forEach(original::withSuggestions);
     }
 
-    public static <S extends Source, T> ConstrainedParameterTypeDecorator<S, T> of(ParameterType<S, T> original, Set<String> allowedValues, boolean caseSensitive) {
+    public static <S extends Source, T> ConstrainedParameterTypeDecorator<S, T> of(ParameterType<S, T> original, Set<String> allowedValues,
+            boolean caseSensitive) {
         return new ConstrainedParameterTypeDecorator<>(original, allowedValues, caseSensitive);
     }
 
@@ -39,26 +40,27 @@ public final class ConstrainedParameterTypeDecorator<S extends Source, T> extend
         return new ConstrainedParameterTypeDecorator<>(original, allowedValues, true);
     }
 
-    @Override
-    public @Nullable T resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
-            CommandException {
-        if(ConstrainedParameterTypeDecorator.contains(input, allowedValues, caseSensitive)) {
-            return original.resolve(context, commandInputStream, commandInputStream.readInput());
-        }else {
-            throw new ValueOutOfConstraintException(input, allowedValues);
-        }
-    }
-
     private static boolean contains(String input, Set<String> allowedValues, boolean caseSensitive) {
-        if(caseSensitive)
+        if (caseSensitive) {
             return allowedValues.contains(input);
+        }
 
-        for(String value : allowedValues) {
-            if(input.equalsIgnoreCase(value)) {
+        for (String value : allowedValues) {
+            if (input.equalsIgnoreCase(value)) {
                 return true;
             }
         }
         return false;
+    }
+
+    @Override
+    public @Nullable T resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+            CommandException {
+        if (ConstrainedParameterTypeDecorator.contains(input, allowedValues, caseSensitive)) {
+            return original.resolve(context, commandInputStream, commandInputStream.readInput());
+        } else {
+            throw new ValueOutOfConstraintException(input, allowedValues);
+        }
     }
 
     @Override

@@ -41,11 +41,15 @@ public final class RootCommandClass<S extends Source> {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
         var that = (RootCommandClass<?>) obj;
         return Objects.equals(this.proxyClass, that.proxyClass) &&
-            Objects.equals(this.proxyInstance, that.proxyInstance);
+                       Objects.equals(this.proxyInstance, that.proxyInstance);
     }
 
     @Override

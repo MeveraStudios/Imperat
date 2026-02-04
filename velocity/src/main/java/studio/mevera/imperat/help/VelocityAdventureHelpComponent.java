@@ -33,7 +33,7 @@ import java.util.function.BiConsumer;
  * @see AdventureHelpComponent
  */
 public class VelocityAdventureHelpComponent extends AdventureHelpComponent<VelocitySource> {
-    
+
     /**
      * Creates a new VelocityAdventureHelpComponent with the specified component and message sender.
      *
@@ -46,7 +46,7 @@ public class VelocityAdventureHelpComponent extends AdventureHelpComponent<Veloc
     ) {
         super(componentValue, sendMessageToSourceFunc);
     }
-    
+
     /**
      * Creates a new VelocityAdventureHelpComponent with the specified Adventure Component.
      * Uses the default VelocitySource reply method for sending messages.

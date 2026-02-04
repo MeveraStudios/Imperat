@@ -1,5 +1,8 @@
 package studio.mevera.imperat.tests.syntax;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.command.CommandUsage;
@@ -7,8 +10,6 @@ import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.TestSource;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for the accuracy of closest usage retrieval when InvalidSyntaxException is thrown.

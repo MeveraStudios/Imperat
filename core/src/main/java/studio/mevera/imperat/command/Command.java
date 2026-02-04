@@ -45,9 +45,9 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
     }
 
     static <S extends Source> Command.Builder<S> create(
-        @NotNull Imperat<S> imperat,
-        @Nullable Command<S> parent,
-        @NotNull String name
+            @NotNull Imperat<S> imperat,
+            @Nullable Command<S> parent,
+            @NotNull String name
     ) {
         return create(imperat, parent, -1, name);
     }
@@ -62,10 +62,10 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
     }
 
     static <S extends Source> Command.Builder<S> create(
-        @NotNull Imperat<S> imperat,
-        @Nullable Command<S> parent,
-        int position,
-        @NotNull String name
+            @NotNull Imperat<S> imperat,
+            @Nullable Command<S> parent,
+            int position,
+            @NotNull String name
     ) {
         return new Builder<>(imperat, parent, position, name);
     }
@@ -79,7 +79,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
     ) {
         return new Builder<>(imperat, parent, position, name, annotatedElement);
     }
-    
+
     @NotNull
     Imperat<S> imperat();
 
@@ -251,7 +251,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
      */
     @ApiStatus.AvailableSince("1.9.0")
     void setDefaultUsage(@NotNull CommandUsage<S> usage);
-    
+
 
     /**
      * Adds a usage to the command
@@ -267,13 +267,13 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
     default void addUsage(CommandUsage.Builder<S> builder) {
         addUsage(builder, false);
     }
-    
+
     /**
      * @return All {@link CommandUsage} that were registered
      * to this command by the user
      */
     Collection<? extends CommandUsage<S>> usages();
-    
+
     /**
      * @return the usage that doesn't include any subcommands, only
      * required parameters
@@ -305,19 +305,19 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
      * @param attachmentMode see {@link AttachmentMode}
      */
     void addSubCommandUsage(String subCommand,
-                            List<String> aliases,
-                            CommandUsage.Builder<S> usage,
-                            AttachmentMode attachmentMode);
+            List<String> aliases,
+            CommandUsage.Builder<S> usage,
+            AttachmentMode attachmentMode);
 
     default void addSubCommandUsage(String subCommand,
-                                    List<String> aliases,
-                                    CommandUsage.Builder<S> usage) {
+            List<String> aliases,
+            CommandUsage.Builder<S> usage) {
         addSubCommandUsage(subCommand, aliases, usage, imperat().config().getDefaultAttachmentMode());
     }
 
     default void addSubCommandUsage(String subCommand,
-                                    CommandUsage.Builder<S> usage,
-                                    AttachmentMode attachmentMode) {
+            CommandUsage.Builder<S> usage,
+            AttachmentMode attachmentMode) {
         addSubCommandUsage(subCommand, Collections.emptyList(), usage, attachmentMode);
     }
 
@@ -329,7 +329,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
      * @param usage      the usage
      */
     default void addSubCommandUsage(String subCommand, CommandUsage.Builder<S> usage) {
-        addSubCommandUsage(subCommand, usage,  imperat().config().getDefaultAttachmentMode());
+        addSubCommandUsage(subCommand, usage, imperat().config().getDefaultAttachmentMode());
     }
 
     /**
@@ -430,18 +430,27 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
      * @param ignore true if you want to ignore the permission checks on tab completion of args
      */
     void ignoreACPermissions(boolean ignore);
-    
+
     @ApiStatus.Internal
     @ApiStatus.AvailableSince("1.9.0")
     void registerSubCommand(Command<S> subCommand);
-    
+
     default @Nullable String getMainPermission() {
-        for(var str : getPermissions())
+        for (var str : getPermissions()) {
             return str;
-        
+        }
+
         return null;
     }
-    
+
+    CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors();
+
+    CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors();
+
+    void setPreProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain);
+
+    void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain);
+
     class Builder<S extends Source> {
 
         private final Imperat<S> imperat;
@@ -487,7 +496,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
 
         public Builder<S> defaultExecution(CommandExecution<S> defaultExec) {
             return usage(CommandUsage.<S>builder()
-                    .execute(defaultExec));
+                                 .execute(defaultExec));
         }
 
         public Builder<S> usage(CommandUsage.Builder<S> usage) {
@@ -506,10 +515,10 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
 
         public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage, AttachmentMode attachmentMode) {
             return subCommand(
-                Command.create(imperat, name)
-                    .usage(mainUsage)
-                    .build(),
-                attachmentMode
+                    Command.create(imperat, name)
+                            .usage(mainUsage)
+                            .build(),
+                    attachmentMode
             );
         }
 
@@ -540,35 +549,27 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
             cmd.addPostProcessor(postProcessor);
             return this;
         }
-        
+
         public Builder<S> parent(@Nullable Command<S> parentCmd) {
             cmd.parent(parentCmd);
             return this;
         }
-        
-        
+
+
         public Builder<S> setMetaPropertiesFromOtherCommand(Command<S> other) {
             cmd.setSinglePermission(other.getSinglePermission());
             cmd.setDefaultUsage(other.getDefaultUsage());
             cmd.setPreProcessingChain(other.getPreProcessors());
             cmd.setPostProcessingChain(other.getPostProcessors());
-            
+
             cmd.describe(other.description());
             cmd.ignoreACPermissions(other.isIgnoringACPerms());
-            
+
             return this;
         }
-        
+
         public Command<S> build() {
             return cmd;
         }
     }
-    
-    CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors();
-    
-    CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors();
-    
-    void setPreProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain);
-    
-    void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain);
 }

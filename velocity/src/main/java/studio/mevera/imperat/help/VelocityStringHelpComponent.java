@@ -30,7 +30,7 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * @see StringHelpComponent
  */
 public class VelocityStringHelpComponent extends StringHelpComponent<VelocitySource> {
-    
+
     /**
      * Creates a new VelocityStringHelpComponent with the specified string content.
      *
@@ -39,7 +39,7 @@ public class VelocityStringHelpComponent extends StringHelpComponent<VelocitySou
     protected VelocityStringHelpComponent(@NotNull String componentValue) {
         super(componentValue);
     }
-    
+
     /**
      * Creates a new VelocityStringHelpComponent with the specified string content.
      *

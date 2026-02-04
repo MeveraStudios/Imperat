@@ -48,7 +48,8 @@ public final class ParameterTypes {
             Function<Integer, Object[]> initializer,
             ParameterType<S, E> componentType
     ) {
-        return new ParameterArray<>(type, initializer, componentType) {};
+        return new ParameterArray<>(type, initializer, componentType) {
+        };
     }
 
     public static <S extends Source, E, C extends Collection<E>> ParameterCollection<S, E, C> collection(
@@ -79,7 +80,7 @@ public final class ParameterTypes {
     public static <S extends Source, T> ParameterOptional<S, T> optional(
             TypeWrap<Optional<T>> typeWrap,
             ParameterType<S, T> resolverType
-    )  {
+    ) {
         return new ParameterOptional<>(typeWrap, resolverType);
     }
 }

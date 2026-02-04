@@ -22,7 +22,7 @@ final class NativeAutoCompleter<S extends Source> extends AutoCompleter<S> {
      */
     @Override
     public CompletableFuture<List<String>> autoComplete(SuggestionContext<S> context) {
-        return CompletableFuture.supplyAsync(()-> command.tree().tabComplete(context));
+        return CompletableFuture.supplyAsync(() -> command.tree().tabComplete(context));
     }
 
 }

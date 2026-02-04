@@ -44,12 +44,22 @@ final class AnnotationRegistry {
 
     AnnotationRegistry() {
         this.registerAnnotationTypes(
-            Command.class, ExternalSubCommand.class, Usage.class, SubCommand.class,
-            Cooldown.class, Description.class, Permission.class, Format.class, Forward.class,
-            Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
-            Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, ContextResolved.class, Range.class, Async.class,
-            PostProcessor.class, PreProcessor.class, GlobalAttachmentMode.class, ExceptionHandler.class
+                Command.class, ExternalSubCommand.class, Usage.class, SubCommand.class,
+                Cooldown.class, Description.class, Permission.class, Format.class, Forward.class,
+                Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
+                Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, ContextResolved.class, Range.class, Async.class,
+                PostProcessor.class, PreProcessor.class, GlobalAttachmentMode.class, ExceptionHandler.class
         );
+    }
+
+    private static boolean isRegistered(Class<? extends Annotation> annotationClass,
+            Collection<Class<? extends Annotation>> annotations) {
+        for (Class<? extends Annotation> aC : annotations) {
+            if (aC.getName().equals(annotationClass.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer) {
@@ -65,22 +75,12 @@ final class AnnotationRegistry {
         return getAnnotationReplacer(clazz) != null;
     }
 
-    @SafeVarargs
-    final void registerAnnotationTypes(Class<? extends Annotation>... annotationClasses) {
+    @SafeVarargs final void registerAnnotationTypes(Class<? extends Annotation>... annotationClasses) {
         knownAnnotations.addAll(List.of(annotationClasses));
     }
 
     boolean isRegisteredAnnotation(Class<? extends Annotation> annotationClass) {
         return isRegistered(annotationClass, knownAnnotations);
-    }
-
-    private static boolean isRegistered(Class<? extends Annotation> annotationClass,
-                                        Collection<Class<? extends Annotation>> annotations) {
-        for (Class<? extends Annotation> aC : annotations) {
-            if (aC.getName().equals(annotationClass.getName()))
-                return true;
-        }
-        return false;
     }
 
 

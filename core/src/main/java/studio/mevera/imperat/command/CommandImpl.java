@@ -52,29 +52,24 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final AutoCompleter<S> autoCompleter;
     private final @Nullable CommandTree<S> tree;
     private final @NotNull CommandTreeVisualizer<S> visualizer;
+    private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
+    private final CommandUsage<S> emptyUsage;
+    private final @NotNull SuggestionResolver<S> suggestionResolver;
+    private final Imperat<S> imperat;
     private @Nullable String permission;
     private Description description = Description.EMPTY;
     private boolean suppressACPermissionChecks = false;
     private CommandUsage<S> mainUsage = null;
     private CommandUsage<S> defaultUsage;
-
     private ParseElement<?> annotatedElement = null;
-
-    private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
-
     private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> preProcessors =
             CommandProcessingChain.<S>preProcessors()
-            .build();
-
+                    .build();
     private @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> postProcessors =
             CommandProcessingChain.<S>postProcessors()
-            .build();
-
+                    .build();
     private @Nullable Command<S> parent;
-    private final CommandUsage<S> emptyUsage;
-    private final @NotNull SuggestionResolver<S> suggestionResolver;
-    private final Imperat<S> imperat;
-    
+
     CommandImpl(Imperat<S> imperat, String name) {
         this(imperat, name, null);
     }
@@ -114,7 +109,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public @NotNull Imperat<S> imperat() {
         return imperat;
     }
-    
+
     /**
      * @return the name of the command
      */
@@ -142,7 +137,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public @Unmodifiable Set<String> getPermissions() {
-        if(permission == null) {
+        if (permission == null) {
             return Collections.emptySet();
         }
         return Set.of(permission);
@@ -189,12 +184,12 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void position(int position) {
         throw new UnsupportedOperationException("You can't modify the position of a command");
     }
-    
+
     @Override
     public @Nullable String getSinglePermission() {
         return permission;
     }
-    
+
     @Override
     public @NotNull CommandPathSearch<S> contextMatch(Context<S> context) {
         if (tree != null) {
@@ -232,7 +227,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) throws ProcessorException {
-        for(var processor : preProcessors) {
+        for (var processor : preProcessors) {
             try {
                 processor.process(api, context, usage);
             } catch (CommandException e) {
@@ -260,7 +255,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) throws ProcessorException {
-        for(var processor : postProcessors) {
+        for (var processor : postProcessors) {
             try {
                 processor.process(api, context);
             } catch (CommandException e) {
@@ -275,7 +270,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      *
      * @return A usage with empty parameters.
      */
-    @Override 
+    @Override
     public @NotNull CommandUsage<S> getEmptyUsage() {
         return emptyUsage;
     }
@@ -305,12 +300,12 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public @NotNull SuggestionResolver<S> getSuggestionResolver() {
         return suggestionResolver;
     }
-    
+
     @Override
     public void setFormat(String format) {
         throw new UnsupportedOperationException("You cannot change the format of a command/literal parameter");
     }
-    
+
     @Override
     public boolean similarTo(CommandParameter<?> parameter) {
         return this.name.equalsIgnoreCase(parameter.name());
@@ -329,8 +324,9 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void addAliases(List<String> aliases) {
-        for (String alias : aliases)
+        for (String alias : aliases) {
             this.aliases.add(alias.toLowerCase());
+        }
     }
 
     /**
@@ -351,7 +347,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void setDefaultUsage(@NotNull CommandUsage<S> usage) {
         this.defaultUsage = Objects.requireNonNull(usage, "Default usage cannot be null");
     }
-    
+
 
     /**
      * Adds a usage to the command
@@ -360,10 +356,10 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void addUsage(CommandUsage<S> usage) {
-        if(tree != null) {
+        if (tree != null) {
             tree.parseUsage(usage);
         }
-        
+
         if (usage.isDefault()) {
             this.defaultUsage = usage;
         }
@@ -374,7 +370,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
             mainUsage = usage;
         }
     }
-    
+
     /**
      * @return all {@link CommandUsage} that were registered
      * to this command by the user
@@ -383,7 +379,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public Collection<? extends CommandUsage<S>> usages() {
         return usages.asSortedSet();
     }
-    
+
     /**
      * @return the usage that doesn't include any subcommands, only
      * required parameters
@@ -391,7 +387,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     @Override
     public @NotNull CommandUsage<S> getMainUsage() {
         return Optional.ofNullable(mainUsage)
-            .orElse(defaultUsage);
+                       .orElse(defaultUsage);
     }
 
     /**
@@ -425,27 +421,27 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void registerSubCommand(Command<S> command) {
         children.put(command.name(), command);
     }
-    
+
     @Override
     public @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors() {
         return preProcessors;
     }
-    
+
     @Override
     public @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors() {
         return postProcessors;
     }
-    
+
     @Override
     public void setPreProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain) {
         this.preProcessors = chain;
     }
-    
+
     @Override
     public void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain) {
         this.postProcessors = chain;
     }
-    
+
     /**
      * Injects a created-subcommand directly into the parent's command usages.
      *
@@ -470,23 +466,25 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.addUsage(combo);
 
         for (CommandUsage<S> subUsage : subcmd.usages()) {
-            if (subUsage.equals(subcmd.getMainUsage())) continue;
+            if (subUsage.equals(subcmd.getMainUsage())) {
+                continue;
+            }
             combo = prime.mergeWithCommand(subcmd, subUsage);
             //adding the merged command usage
 
             this.addUsage(
-                combo
+                    combo
             );
         }
 
     }
-    
+
     @Override
     public void addSubCommandUsage(
-        String subCommand,
-        List<String> aliases,
-        CommandUsage.Builder<S> usage,
-        AttachmentMode attachmentMode
+            String subCommand,
+            List<String> aliases,
+            CommandUsage.Builder<S> usage,
+            AttachmentMode attachmentMode
     ) {
         int position;
         if (attachmentMode == AttachmentMode.EMPTY) {
@@ -498,10 +496,10 @@ final class CommandImpl<S extends Source> implements Command<S> {
 
         //creating subcommand to modify
         Command<S> subCmd =
-            Command.create(imperat, this, position, subCommand.toLowerCase())
-                .aliases(aliases)
-                .usage(usage)
-                .build();
+                Command.create(imperat, this, position, subCommand.toLowerCase())
+                        .aliases(aliases)
+                        .usage(usage)
+                        .build();
         addSubCommand(subCmd, attachmentMode);
     }
 
@@ -514,13 +512,17 @@ final class CommandImpl<S extends Source> implements Command<S> {
     @Override
     public @Nullable Command<S> getSubCommand(String name) {
         Command<S> sub = children.get(name);
-        if (sub != null)
+        if (sub != null) {
             return sub;
+        }
 
         for (String subsNames : children.keySet()) {
             Command<S> other = children.get(subsNames);
-            if (other.hasName(name)) return other;
-            else if (subsNames.startsWith(name)) return other;
+            if (other.hasName(name)) {
+                return other;
+            } else if (subsNames.startsWith(name)) {
+                return other;
+            }
         }
         return null;
     }
@@ -559,15 +561,15 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.suppressACPermissionChecks = suppress;
     }
 
-    
+
     @Override
     public <T extends Throwable> void setThrowableResolver(Class<T> exception, ThrowableResolver<T, S> resolver) {
         errorHandlers.put(exception, resolver);
     }
-    
+
     @Override @SuppressWarnings("unchecked")
     public @Nullable <T extends Throwable> ThrowableResolver<T, S> getThrowableResolver(Class<T> exception) {
-        
+
         Class<?> current = exception;
         while (current != null && Throwable.class.isAssignableFrom(current)) {
             var resolver = errorHandlers.get(current);
@@ -576,14 +578,18 @@ final class CommandImpl<S extends Source> implements Command<S> {
             }
             current = current.getSuperclass();
         }
-        
+
         return null;
     }
-    
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CommandImpl<?> command)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof CommandImpl<?> command)) {
+            return false;
+        }
         return Objects.equals(name, command.name);
     }
 
@@ -591,7 +597,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public int hashCode() {
         return Objects.hash(name);
     }
-    
+
     /**
      * Creates a copy of this command with a different position.
      * Useful for commands that have multiple syntaxes.
@@ -602,29 +608,29 @@ final class CommandImpl<S extends Source> implements Command<S> {
     @Override
     public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
         CommandImpl<S> copy = new CommandImpl<>(this.imperat, this.parent, newPosition, this.name);
-        
+
         // Copy basic properties
         copy.permission = this.permission;
         copy.description = this.description;
         copy.suppressACPermissionChecks = this.suppressACPermissionChecks;
         copy.aliases.addAll(this.aliases);
-        
+
         // Copy usages
         for (CommandUsage<S> usage : this.usages()) {
             copy.addUsage(usage);
         }
-        
+
         // Copy sub-commands
         for (Command<S> subCommand : this.getSubCommands()) {
             copy.registerSubCommand(subCommand);
         }
-        
+
         // Copy flags
         //copy.freeFlags.addAll(this.freeFlags);
-        
+
         // Copy error handlers
         copy.errorHandlers.putAll(this.errorHandlers);
-        
+
         // Copy processors
         for (CommandPreProcessor<S> processor : this.preProcessors) {
             copy.addPreProcessor(processor);
@@ -632,10 +638,10 @@ final class CommandImpl<S extends Source> implements Command<S> {
         for (CommandPostProcessor<S> processor : this.postProcessors) {
             copy.addPostProcessor(processor);
         }
-        
+
         // Set default usage if it was customized
         copy.setDefaultUsage(this.defaultUsage);
-        
+
         return copy;
     }
 

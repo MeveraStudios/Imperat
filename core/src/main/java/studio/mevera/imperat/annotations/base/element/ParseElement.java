@@ -15,7 +15,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-public sealed abstract class ParseElement<E extends AnnotatedElement> implements AnnotatedElement, Iterable<Annotation> permits ClassElement, MethodElement, ParameterElement {
+public sealed abstract class ParseElement<E extends AnnotatedElement> implements AnnotatedElement, Iterable<Annotation>
+        permits ClassElement, MethodElement, ParameterElement {
 
     protected final AnnotationParser<?> parser;
     protected final @NotNull AnnotationMap annotations = new AnnotationMap();
@@ -23,9 +24,9 @@ public sealed abstract class ParseElement<E extends AnnotatedElement> implements
     protected final @NotNull E element;
 
     public <S extends Source> ParseElement(
-        @NotNull AnnotationParser<S> parser,
-        @Nullable ParseElement<?> parent,
-        @NotNull E element
+            @NotNull AnnotationParser<S> parser,
+            @Nullable ParseElement<?> parent,
+            @NotNull E element
     ) {
         this.parser = parser;
         this.parent = parent;
@@ -40,7 +41,7 @@ public sealed abstract class ParseElement<E extends AnnotatedElement> implements
             annotations.put(clazz, annotation);
             if (!registry.isKnownAnnotation(clazz) && registry.hasAnnotationReplacerFor(clazz)) {
                 //we add the custom annotation anyway
-                ImperatDebugger.debug("Found replacer for '@%s' on element '%s'",clazz.getSimpleName(), this.getName());
+                ImperatDebugger.debug("Found replacer for '@%s' on element '%s'", clazz.getSimpleName(), this.getName());
                 annotations.put(clazz, annotation);
 
                 //adding the replaced annotations
@@ -48,7 +49,7 @@ public sealed abstract class ParseElement<E extends AnnotatedElement> implements
                 assert replacer != null;
 
                 Collection<Annotation> replacementAnnotations = replacer.replace(this, (A) annotation);
-                for(Annotation replacement : replacementAnnotations) {
+                for (Annotation replacement : replacementAnnotations) {
                     annotations.put(replacement.annotationType(), replacement);
                 }
             }
@@ -132,10 +133,14 @@ public sealed abstract class ParseElement<E extends AnnotatedElement> implements
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ParseElement<?> that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ParseElement<?> that)) {
+            return false;
+        }
         return Objects.equals(parent, that.parent)
-            && Objects.equals(element, that.element);
+                       && Objects.equals(element, that.element);
     }
 
     @Override

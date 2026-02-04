@@ -28,26 +28,26 @@ import java.util.Set;
 @ApiStatus.Internal
 public abstract class InputParameter<S extends Source> implements CommandParameter<S> {
 
-    protected Command<S> parentCommand;
     protected final String name;
-    protected String format;
     protected final ParameterType<S, ?> type;
     protected final boolean optional, flag, greedy;
     protected final OptionalValueSupplier optionalValueSupplier;
     protected final SuggestionResolver<S> suggestionResolver;
+    private final PriorityList<ArgValidator<S>> validators = new PriorityList<>();
+    protected Command<S> parentCommand;
+    protected String format;
     protected String permission;
     protected Description description;
     protected int index;
-    private final PriorityList<ArgValidator<S>> validators = new PriorityList<>();
 
     protected InputParameter(
-        String name,
-        @NotNull ParameterType<S, ?> type,
-        @Nullable String permission,
-        Description description,
-        boolean optional, boolean flag, boolean greedy,
-        @NotNull OptionalValueSupplier optionalValueSupplier,
-        @Nullable SuggestionResolver<S> suggestionResolver
+            String name,
+            @NotNull ParameterType<S, ?> type,
+            @Nullable String permission,
+            Description description,
+            boolean optional, boolean flag, boolean greedy,
+            @NotNull OptionalValueSupplier optionalValueSupplier,
+            @Nullable SuggestionResolver<S> suggestionResolver
     ) {
         this.name = name;
         this.format = name;
@@ -69,17 +69,17 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     public String name() {
         return name;
     }
-    
+
     @Override
     public String format() {
         return format;
     }
-    
+
     @Override
     public final void setFormat(String format) {
         this.format = format;
     }
-    
+
     @Override
     public @Nullable Command<S> parent() {
         return parentCommand;
@@ -119,17 +119,17 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     public TypeWrap<?> wrappedType() {
         return type.wrappedType();
     }
-    
+
     @Override
     public @Nullable String getSinglePermission() {
         return permission;
     }
-    
+
     @Override
     public void setSinglePermission(String permission) {
         CommandParameter.super.setSinglePermission(permission);
     }
-    
+
     /**
      * The permission for this parameter
      *
@@ -137,7 +137,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
      */
     @Override
     public @Unmodifiable Set<String> getPermissions() {
-        if(permission == null) {
+        if (permission == null) {
             return Collections.emptySet();
         }
         return Set.of(permission);
@@ -195,20 +195,20 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
                 String.format("Usage parameter '%s' cannot be greedy while having value-valueType '%s'", name, valueType().getTypeName())
             );
         }*/
-        return greedy || (this.type instanceof ParameterCollection<?,?,?>)
-                || (this.type instanceof ParameterArray<?,?>)
-                || (this.type instanceof ParameterMap<?,?,?,?>);
+        return greedy || (this.type instanceof ParameterCollection<?, ?, ?>)
+                       || (this.type instanceof ParameterArray<?, ?>)
+                       || (this.type instanceof ParameterMap<?, ?, ?, ?>);
     }
 
     @Override
     public boolean isGreedyString() {
-        boolean isGreedyWrapper = ( TypeUtility.isAcceptableGreedyWrapper(this.type.type()) && TypeUtility.hasGenericType(type.type(), String.class));
-        return ( this.type.equalsExactly(String.class) || isGreedyWrapper) && greedy;
+        boolean isGreedyWrapper = (TypeUtility.isAcceptableGreedyWrapper(this.type.type()) && TypeUtility.hasGenericType(type.type(), String.class));
+        return (this.type.equalsExactly(String.class) || isGreedyWrapper) && greedy;
     }
 
     @Override
     public Command<S> asCommand() {
-        if(!(this.type instanceof ParameterCommand<?> asCommandType)) {
+        if (!(this.type instanceof ParameterCommand<?> asCommandType)) {
             throw new UnsupportedOperationException("Non-CommandProcessingChain Parameter cannot be converted into a command parameter");
         }
         return parentCommand.getSubCommand(asCommandType.getName());
@@ -256,16 +256,20 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     @Override
     public boolean similarTo(CommandParameter<?> parameter) {
         return this.name.equalsIgnoreCase(parameter.name())
-            && type.equalsExactly(parameter.wrappedType().getType());
+                       && type.equalsExactly(parameter.wrappedType().getType());
     }
-    
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof InputParameter<?> that)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof InputParameter<?> that)) {
+            return false;
+        }
         return Objects.equals(parentCommand, that.parentCommand)
-            && Objects.equals(name, that.name)
-            && Objects.equals(type, that.type);
+                       && Objects.equals(name, that.name)
+                       && Objects.equals(type, that.type);
     }
 
     @Override

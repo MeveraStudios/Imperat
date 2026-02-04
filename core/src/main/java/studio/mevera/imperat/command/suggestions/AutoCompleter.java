@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
  */
 @ApiStatus.AvailableSince("1.0.0")
 public abstract class AutoCompleter<S extends Source> {
-    
+
     protected final Command<S> command;
 
     protected AutoCompleter(Command<S> command) {
@@ -31,13 +31,15 @@ public abstract class AutoCompleter<S extends Source> {
     }
 
     public static @NotNull CompletionArg getLastArg(ArgumentInput argumentInput) {
-        if (argumentInput.isEmpty()) return CompletionArg.EMPTY;
+        if (argumentInput.isEmpty()) {
+            return CompletionArg.EMPTY;
+        }
         return new CompletionArg(
                 argumentInput.getLast(),
                 argumentInput.size() - 1
         );
     }
-    
+
     /**
      * Autocompletes an argument from the whole position of the
      * argument-raw input
@@ -48,30 +50,31 @@ public abstract class AutoCompleter<S extends Source> {
      * @return the auto-completed results
      */
     public final CompletableFuture<List<String>> autoComplete(
-        final Imperat<S> dispatcher,
-        final S sender,
-        final String label,
-        final String[] args
+            final Imperat<S> dispatcher,
+            final S sender,
+            final String label,
+            final String[] args
     ) {
-        return CompletableFuture.supplyAsync(()-> {
+        return CompletableFuture.supplyAsync(() -> {
             StringBuilder builder = new StringBuilder();
-            for(var a : args) {
+            for (var a : args) {
                 builder.append(a)
                         .append(" ");
             }
-            if(!builder.isEmpty()) {
+            if (!builder.isEmpty()) {
                 builder.deleteCharAt(builder.length() - 1);
             }
-            boolean endWithSpace = builder.charAt(builder.length()-1) == ' ';
+            boolean endWithSpace = builder.charAt(builder.length() - 1) == ' ';
             ArgumentInput queue = ArgumentInput.parseAutoCompletion(builder.toString(), endWithSpace);
-            
+
             return dispatcher.config().getContextFactory()
-                    .createSuggestionContext(dispatcher, sender, command, label, queue);
-        }).thenCompose((context)->
-                autoComplete(context).exceptionally((ex) -> {
-                    dispatcher.config().handleExecutionThrowable(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
-                    return Collections.emptyList();
-                })
+                           .createSuggestionContext(dispatcher, sender, command, label, queue);
+        }).thenCompose((context) ->
+                               autoComplete(context).exceptionally((ex) -> {
+                                   dispatcher.config()
+                                           .handleExecutionThrowable(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
+                                   return Collections.emptyList();
+                               })
         );
     }
 
@@ -83,6 +86,6 @@ public abstract class AutoCompleter<S extends Source> {
      * @return the auto-completed results
      */
     public abstract CompletableFuture<List<String>> autoComplete(
-        SuggestionContext<S> context
+            SuggestionContext<S> context
     );
 }

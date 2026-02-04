@@ -92,7 +92,7 @@ tasks.register('fastTest', Test) {
     include '**/flags/**'
     include '**/parameters/**'
     include '**/errors/**'
-    include '**/integration/**' 
+    include '**/integration/**'
     include '**/enhanced/**'
 
     testLogging {

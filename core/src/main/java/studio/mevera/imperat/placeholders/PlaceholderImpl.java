@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 final class PlaceholderImpl<S extends Source> implements Placeholder<S> {
+
     private final String id;
     private final PlaceholderResolver<S> resolver;
 
@@ -38,15 +39,19 @@ final class PlaceholderImpl<S extends Source> implements Placeholder<S> {
     public String replaceResolved(ImperatConfig<S> imperat, String id, String input) {
         assert isUsedIn(input);
         return pattern.matcher(input).replaceAll(
-            resolveInput(id, imperat)
+                resolveInput(id, imperat)
         );
     }
 
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
         var that = (PlaceholderImpl<?>) obj;
         return Objects.equals(this.id, that.id);
     }

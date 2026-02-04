@@ -24,9 +24,9 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
     private final List<CommandParameter<S>> fullParameters;
 
     private MethodCommandExecutor(
-        Imperat<S> dispatcher,
-        MethodElement method,
-        List<CommandParameter<S>> fullParameters
+            Imperat<S> dispatcher,
+            MethodElement method,
+            List<CommandParameter<S>> fullParameters
     ) {
 
         try {
@@ -44,9 +44,9 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
     }
 
     public static <S extends Source> MethodCommandExecutor<S> of(
-        Imperat<S> imperat,
-        MethodElement method,
-        List<CommandParameter<S>> fullParameters
+            Imperat<S> imperat,
+            MethodElement method,
+            List<CommandParameter<S>> fullParameters
     ) {
         return new MethodCommandExecutor<>(imperat, method, fullParameters);
     }
@@ -62,8 +62,8 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
     public void execute(S source, ExecutionContext<S> context) throws CommandException {
 
         var instances = AnnotationHelper.loadParameterInstances(
-            dispatcher, fullParameters,
-            source, context, method
+                dispatcher, fullParameters,
+                source, context, method
         );
 
         Object returned = boundMethodCaller.call(instances);

@@ -42,8 +42,8 @@ import java.util.concurrent.CompletableFuture;
 public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
     protected final ImperatConfig<S> config;
-    private @NotNull AnnotationParser<S> annotationParser;
     private final Map<String, Command<S>> commands = new HashMap<>();
+    private @NotNull AnnotationParser<S> annotationParser;
 
     protected BaseImperat(@NotNull ImperatConfig<S> config) {
         this.config = config;
@@ -82,12 +82,17 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         try {
             var verifier = config.getUsageVerifier();
             for (CommandUsage<S> usage : command.usages()) {
-                if (!verifier.verify(usage)) throw new UsageRegistrationException(command, usage);
+                if (!verifier.verify(usage)) {
+                    throw new UsageRegistrationException(command, usage);
+                }
 
                 for (CommandUsage<S> other : command.usages()) {
-                    if (other.equals(usage)) continue;
-                    if (verifier.areAmbiguous(usage, other))
+                    if (other.equals(usage)) {
+                        continue;
+                    }
+                    if (verifier.areAmbiguous(usage, other)) {
                         throw new AmbiguousUsageAdditionException(command, usage, other);
+                    }
                 }
             }
             this.registerCmd(command);
@@ -96,12 +101,13 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             shutdownPlatform();
         }
     }
+
     private void registerCmd(@NotNull Command<S> command) {
-        
+
         command.tree().computePermissions();
-        
+
         this.commands.put(command.name().trim().toLowerCase(), command);
-        for(var aliases : command.aliases()) {
+        for (var aliases : command.aliases()) {
             this.commands.put(aliases.trim().toLowerCase(), command);
         }
     }
@@ -120,20 +126,19 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                 Objects.requireNonNull(classInstance)
         );
     }
-    
+
     @Override
     public void registerCommand(Object commandInstance) {
-        if(commandInstance instanceof Command<?> command) {
+        if (commandInstance instanceof Command<?> command) {
             registerSimpleCommand((Command<S>) command);
-        }
-        else {
+        } else {
             // For non-Command, non-Class instances, parse as annotated instance
             annotationParser.parseCommandClass(
                     Objects.requireNonNull(commandInstance)
             );
         }
     }
-    
+
     /**
      * Unregisters a command from the internal registry
      *
@@ -143,8 +148,8 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     public void unregisterCommand(String name) {
         Preconditions.notNull(name, "commandToRemove");
         Command<S> removed = commands.remove(name.trim().toLowerCase());
-        if(removed != null) {
-            for(var aliases : removed.aliases()) {
+        if (removed != null) {
+            for (var aliases : removed.aliases()) {
                 commands.remove(aliases.trim().toLowerCase());
             }
         }
@@ -167,23 +172,15 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         final String cmdName = name.toLowerCase();
         final Command<S> result = commands.get(cmdName);
 
-        if (result != null) return result;
+        if (result != null) {
+            return result;
+        }
         for (Command<S> headCommands : commands.values()) {
-            if (headCommands.hasName(cmdName)) return headCommands;
+            if (headCommands.hasName(cmdName)) {
+                return headCommands;
+            }
         }
         return null;
-    }
-
-
-    /**
-     * Changes the instance of {@link AnnotationParser}
-     *
-     * @param parser the parser
-     */
-    @Override
-    public void setAnnotationParser(AnnotationParser<S> parser) {
-        Preconditions.notNull(parser, "Parser");
-        this.annotationParser = parser;
     }
 
     /**
@@ -211,7 +208,6 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         annotationParser.registerAnnotationReplacer(type, replacer);
     }
 
-
     /**
      * @param owningCommand the command owning this sub-command
      * @param name          the name of the subcommand you're looking for
@@ -220,16 +216,19 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     @Override
     public @Nullable Command<S> getSubCommand(String owningCommand, String name) {
         Command<S> owningCmd = getCommand(owningCommand);
-        if (owningCmd == null) return null;
+        if (owningCmd == null) {
+            return null;
+        }
 
         for (Command<S> subCommand : owningCmd.getSubCommands()) {
             Command<S> result = search(subCommand, name);
-            if (result != null) return result;
+            if (result != null) {
+                return result;
+            }
         }
 
         return null;
     }
-
 
     private Command<S> search(Command<S> sub, String name) {
         if (sub.hasName(name)) {
@@ -247,39 +246,37 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
         return null;
     }
+
     private ExecutionResult<S> handleExecution(Context<S> context) throws CommandException {
         Command<S> command = context.command();
         S source = context.source();
-        
-        if(!config.getPermissionChecker().hasPermission(source, command.getSinglePermission())) {
+
+        if (!config.getPermissionChecker().hasPermission(source, command.getSinglePermission())) {
             throw new PermissionDeniedException(
                     command.getDefaultUsage(),
                     Objects.requireNonNull(command.getSinglePermission()),
                     command
             );
         }
-        
+
         CommandPathSearch<S> searchResult = command.contextMatch(context);
         ImperatDebugger.debug("Search-result: '" + searchResult.getResult().name() + "'");
 
-        if(searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
+        if (searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
             throw new PermissionDeniedException(searchResult);
         }
-        
+
         CommandUsage<S> usage = searchResult.getFoundUsage();
         if (usage == null) {
             ImperatDebugger.debug("Usage not found !");
             throw new InvalidSyntaxException(searchResult);
             //TODO fix closest usage suggestion
-        }
-
-
-        else if(searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
+        } else if (searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
             throw new InvalidSyntaxException(searchResult);
         }
-        
+
         var usageAccessCheckResult = config.getPermissionChecker().hasUsagePermission(source, usage);
-        if(!usageAccessCheckResult.right()) {
+        if (!usageAccessCheckResult.right()) {
             ImperatDebugger.debug("Failed usage permission check !");
             throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null);
         }
@@ -287,7 +284,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
         return executeUsage(command, source, context, usage, searchResult);
     }
-    
+
     protected ExecutionResult<S> executeUsage(
             final Command<S> command,
             final S source,
@@ -295,29 +292,29 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             final CommandUsage<S> usage,
             final CommandPathSearch<S> dispatch
     ) throws CommandException {
-        
+
         //global preprocessing
         globalPreProcessing(context, usage);
-        
+
         //per-command preprocessor
         command.preProcess(this, context, usage);
-        
+
         ExecutionContext<S> resolvedContext = config.getContextFactory().createExecutionContext(context, dispatch);
-        
+
         resolvedContext.resolve();
         usage.execute(this, source, resolvedContext);
-        
+
         globalPostProcessing(resolvedContext);
         command.postProcess(this, resolvedContext, usage);
-        
+
         return ExecutionResult.of(resolvedContext, dispatch, context);
     }
-    
+
     private void globalPreProcessing(
             @NotNull Context<S> context,
             @NotNull CommandUsage<S> usage
     ) throws ProcessorException {
-        
+
         for (CommandPreProcessor<S> preProcessor : config.getPreProcessors()) {
             try {
                 preProcessor.process(this, context, usage);
@@ -325,28 +322,28 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                 throw new ProcessorException(ProcessorException.Type.PRE, null, ex);
             }
         }
-        
+
     }
-    
+
     private void globalPostProcessing(
             @NotNull ExecutionContext<S> context
     ) throws CommandException {
         for (CommandPostProcessor<S> postProcessor : config.getPostProcessors()) {
             try {
                 postProcessor.process(this, context);
-            }catch (Throwable ex) {
+            } catch (Throwable ex) {
                 throw new ProcessorException(ProcessorException.Type.POST, null, ex);
             }
         }
     }
-    
+
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull Context<S> context) {
-        
+
         try {
             context.command().visualizeTree();
             return handleExecution(context);
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             //handle here
             this.config().handleExecutionThrowable(ex, context, BaseImperat.class, "execute(Context<S> context)");
             return ExecutionResult.failure(ex, context);
@@ -354,16 +351,16 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
 
     @Override
-    public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput)  {
+    public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput) {
         ArgumentInput rawArguments = ArgumentInput.parse(rawInput);
         Context<S> plainContext = config.getContextFactory()
-            .createContext(this, source, command, commandName, rawArguments);
+                                          .createContext(this, source, command, commandName, rawArguments);
 
         return execute(plainContext);
     }
 
     @Override
-    public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull String commandName, String[] rawInput)  {
+    public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull String commandName, String[] rawInput) {
         Command<S> command = getCommand(commandName);
         if (command == null) {
             throw new UnknownCommandException(commandName);
@@ -378,7 +375,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String line) {
-        if(line.isBlank()) {
+        if (line.isBlank()) {
             throw new UnknownCommandException(line);
         }
         String[] lineArgs = line.split(" ");
@@ -386,7 +383,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         System.arraycopy(lineArgs, 1, argumentsOnly, 0, lineArgs.length - 1);
         return execute(sender, lineArgs[0], argumentsOnly);
     }
-    
+
     /**
      * @param source          the sender writing the command
      * @param fullCommandLine the full command line
@@ -395,33 +392,33 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     @Override
     public CompletableFuture<List<String>> autoComplete(@NotNull S source, @NotNull String fullCommandLine) {
         int firstSpace = fullCommandLine.indexOf(' ');
-        if(firstSpace == -1) {
+        if (firstSpace == -1) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
-        
+
         String cmdName = fullCommandLine.substring(0, firstSpace);
-        
+
         Command<S> command = getCommand(cmdName);
-        if(command == null ){
+        if (command == null) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
-        
+
         ArgumentInput argumentInput = ArgumentInput.parseAutoCompletion(
                 fullCommandLine.substring(firstSpace),
                 false
         );
-        
-        SuggestionContext<S> context =  this.config.getContextFactory()
-                .createSuggestionContext(
-                        this, source, command, cmdName, argumentInput
-                );
-        
+
+        SuggestionContext<S> context = this.config.getContextFactory()
+                                               .createSuggestionContext(
+                                                       this, source, command, cmdName, argumentInput
+                                               );
+
         return command.autoCompleter()
-                .autoComplete(context)
-                .exceptionally((ex) -> {
-                    this.config.handleExecutionThrowable(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
-                    return Collections.emptyList();
-                });
+                       .autoComplete(context)
+                       .exceptionally((ex) -> {
+                           this.config.handleExecutionThrowable(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
+                           return Collections.emptyList();
+                       });
     }
 
     /**
@@ -433,12 +430,23 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     public Collection<? extends Command<S>> getRegisteredCommands() {
         return commands.values();
     }
-    
+
     @Override
     public @NotNull AnnotationParser<S> getAnnotationParser() {
         return annotationParser;
     }
-    
+
+    /**
+     * Changes the instance of {@link AnnotationParser}
+     *
+     * @param parser the parser
+     */
+    @Override
+    public void setAnnotationParser(AnnotationParser<S> parser) {
+        Preconditions.notNull(parser, "Parser");
+        this.annotationParser = parser;
+    }
+
     @Override
     public void debug(boolean treeVisualizing) {
         for (var cmd : commands.values()) {

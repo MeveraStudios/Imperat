@@ -68,10 +68,10 @@ public final class Reflections {
     }
 
     private static <T> FieldAccessor<T> getField(
-        final Class<?> target,
-        final String name,
-        final Class<T> fieldType,
-        int index
+            final Class<?> target,
+            final String name,
+            final Class<T> fieldType,
+            int index
     ) {
         if (target == null) {
             throw new IllegalArgumentException("Target class is null");
@@ -112,8 +112,9 @@ public final class Reflections {
         }
 
         // Search in parent classes
-        if (target.getSuperclass() != null)
+        if (target.getSuperclass() != null) {
             return getField(target.getSuperclass(), name, fieldType, index);
+        }
 
         throw new IllegalArgumentException("Cannot find field with valueType " + fieldType);
     }
@@ -137,7 +138,9 @@ public final class Reflections {
      */
     public static boolean findClass(final String... paths) {
         for (final String path : paths) {
-            if (getClass(path) != null) return true;
+            if (getClass(path) != null) {
+                return true;
+            }
         }
         return false;
     }

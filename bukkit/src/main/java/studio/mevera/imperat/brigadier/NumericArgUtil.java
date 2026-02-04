@@ -30,16 +30,18 @@ class NumericArgUtil {
     }
 
     private static double getMin(@Nullable NumericRange range) {
-        if (range == null)
+        if (range == null) {
             return Double.MIN_VALUE;
-        else
+        } else {
             return range.getMin();
+        }
     }
 
     private static double getMax(@Nullable NumericRange range) {
-        if (range == null)
+        if (range == null) {
             return Double.MAX_VALUE;
-        else
+        } else {
             return range.getMax();
+        }
     }
 }

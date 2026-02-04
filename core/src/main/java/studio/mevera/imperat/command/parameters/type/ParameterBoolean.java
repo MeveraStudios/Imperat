@@ -16,11 +16,11 @@ import java.util.Map;
 public final class ParameterBoolean<S extends Source> extends BaseParameterType<S, Boolean> {
 
     private final static Map<String, Boolean> VARIANTS = Map.of(
-        "t", true, "f", false,
-        "yes", true, "no", false,
-        "y", true, "n", false,
-        "on", true, "off", false,
-        "enabled", true, "disabled", false
+            "t", true, "f", false,
+            "yes", true, "no", false,
+            "y", true, "n", false,
+            "on", true, "off", false,
+            "enabled", true, "disabled", false
     );
 
     private boolean allowVariants = false;
@@ -31,7 +31,8 @@ public final class ParameterBoolean<S extends Source> extends BaseParameterType<
     }
 
     @Override
-    public @Nullable Boolean resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input) throws
+    public @Nullable Boolean resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String input)
+            throws
             CommandException {
 
         var raw = commandInputStream.currentRaw().orElse(null);
@@ -51,13 +52,13 @@ public final class ParameterBoolean<S extends Source> extends BaseParameterType<
     @Override
     public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
         String currentInput = context.arguments().get(rawPosition);
-        if(currentInput == null) {
+        if (currentInput == null) {
             return false;
         }
-        
-        if (!allowVariants && (currentInput.equalsIgnoreCase("true") || currentInput.equalsIgnoreCase("false")))
+
+        if (!allowVariants && (currentInput.equalsIgnoreCase("true") || currentInput.equalsIgnoreCase("false"))) {
             return true;
-        else if (allowVariants) {
+        } else if (allowVariants) {
             return VARIANTS.get(currentInput.toLowerCase(Locale.ENGLISH)) != null;
         }
 

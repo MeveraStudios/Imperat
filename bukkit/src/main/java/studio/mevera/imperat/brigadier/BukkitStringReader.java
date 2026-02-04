@@ -15,7 +15,7 @@ public class BukkitStringReader extends StringReader {
     private static String loadString(ExecutionContext<BukkitSource> ctx, CommandInputStream<BukkitSource> inputStream) {
         StringBuilder builder = new StringBuilder();
         builder.append(ctx.label());
-        for(var arg : inputStream.getRawQueue()) {
+        for (var arg : inputStream.getRawQueue()) {
             builder.append(' ').append(arg);
         }
         return builder.toString();

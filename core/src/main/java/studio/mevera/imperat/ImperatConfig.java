@@ -49,8 +49,8 @@ import java.util.Optional;
  * @param <S> The type of the source object used by the configuration, which implements the {@link Source} interface.
  */
 public sealed interface ImperatConfig<S extends Source> extends
-    ProcessorRegistrar<S>, ResolverRegistrar<S>, BaseThrowableHandler<S>
-    permits ImperatConfigImpl {
+        ProcessorRegistrar<S>, ResolverRegistrar<S>, BaseThrowableHandler<S>
+        permits ImperatConfigImpl {
 
     /**
      * @return The command prefix
@@ -70,7 +70,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @param printer the throwable printer to use
      */
     void setThrowablePrinter(@NotNull ThrowablePrinter printer);
-    
+
     /**
      * Fetches {@link ParameterType} for a certain value
      *
@@ -83,7 +83,7 @@ public sealed interface ImperatConfig<S extends Source> extends
     default boolean hasParameterType(Type type) {
         return getParameterType(type) != null;
     }
-    
+
     /**
      * Registers annotation replacer
      * @param type the type of annotation to register
@@ -91,7 +91,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @param <A> the type of annotation to replace by the {@link AnnotationReplacer}
      */
     <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer);
-    
+
     /**
      * Apply annotation replacers.
      * @param imperat the imperat instance
@@ -99,27 +99,27 @@ public sealed interface ImperatConfig<S extends Source> extends
      */
     @ApiStatus.Internal
     <A extends Annotation> void applyAnnotationReplacers(Imperat<S> imperat);
-    
+
+    /**
+     * @return The permission loader for {@link CommandParameter} on every command.
+     */
+    @ApiStatus.Experimental
+    @NotNull PermissionLoader<S> getPermissionLoader();
+
     /**
      * Sets the permission assigner for every parameter
      * @param assigner the assigner.
      */
     @ApiStatus.Experimental
     void setPermissionLoader(PermissionLoader<S> assigner);
-    
-    /**
-     * @return The permission loader for {@link CommandParameter} on every command.
-     */
-    @ApiStatus.Experimental
-    @NotNull PermissionLoader<S> getPermissionLoader();
-    
+
     /**
      * Sets the permission assigner for {@link CommandParameter} on every command.
      * @param assigner the assigner.
      */
     @ApiStatus.Experimental
     void setNodePermissionAssigner(NodePermissionAssigner<S> assigner);
-    
+
     /**
      * The permission assigner for every {@link CommandParameter}
      * @return the {@link NodePermissionAssigner} which is responsible for assigning
@@ -127,7 +127,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      */
     @ApiStatus.Experimental
     @NotNull NodePermissionAssigner<S> getPermissionAssigner();
-    
+
     /**
      * Is the automatic permission assigning mode enabled? If so, the {@link CommandTree} will be using
      * {@link PermissionLoader} to deduce the permission per {@link CommandParameter}
@@ -137,14 +137,14 @@ public sealed interface ImperatConfig<S extends Source> extends
      */
     @ApiStatus.Experimental
     boolean isAutoPermissionAssignMode();
-    
+
     /**
      * Toggles the auto permission assign mode.
      * @param toggle whether to enable/disable the auto permission assign(APS) mode.
      */
     @ApiStatus.Experimental
     void setAutoPermissionAssignMode(boolean toggle);
-    
+
     /**
      * Determines whether multiple optional parameters can be suggested simultaneously
      * during tab completion at the same command depth level.
@@ -169,7 +169,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @see #setOptionalParameterSuggestionOverlap(boolean)
      */
     boolean isOptionalParameterSuggestionOverlappingEnabled();
-    
+
     /**
      * Sets whether multiple optional parameters can be suggested simultaneously
      * during tab completion at the same command depth level.
@@ -195,7 +195,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @see #isOptionalParameterSuggestionOverlappingEnabled()
      */
     void setOptionalParameterSuggestionOverlap(boolean enabled);
-    
+
     /**
      * <p>
      * Whether to handle the skipping of consecutive optional argument <b>during execution</b>
@@ -213,7 +213,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * <b>DURING EXECUTION</b>.
      */
     boolean handleExecutionMiddleOptionalSkipping();
-    
+
     /**
      * Refer to {@link #handleExecutionMiddleOptionalSkipping()} to know about this option.
      * @param toggle whether to toggle the handling of middle optional skipping
@@ -254,7 +254,8 @@ public sealed interface ImperatConfig<S extends Source> extends
      * Fetches the {@link ContextResolver} suitable for the {@link CommandParameter}
      *
      * @param commandParameter the parameter of a command's usage
-     * @param <T>              the valueType of value that will be resolved by {@link ParameterType#resolve(ExecutionContext, CommandInputStream, String)}
+     * @param <T>              the valueType of value that will be resolved by
+     * {@link ParameterType#resolve(ExecutionContext, CommandInputStream, String)}
      * @return the context resolver for this parameter's value valueType
      */
     default <T> ContextResolver<S, T> getContextResolver(CommandParameter<S> commandParameter) {
@@ -288,6 +289,13 @@ public sealed interface ImperatConfig<S extends Source> extends
     ContextFactory<S> getContextFactory();
 
     /**
+     * sets the context factory {@link ContextFactory} for the contexts
+     *
+     * @param contextFactory the context factory to set
+     */
+    void setContextFactory(ContextFactory<S> contextFactory);
+
+    /**
      * The id/format of this placeholder, must be unique and lowercase
      *
      * @param id the id for the placeholder
@@ -313,13 +321,6 @@ public sealed interface ImperatConfig<S extends Source> extends
      */
     @NotNull
     String[] replacePlaceholders(String[] array);
-
-    /**
-     * sets the context factory {@link ContextFactory} for the contexts
-     *
-     * @param contextFactory the context factory to set
-     */
-    void setContextFactory(ContextFactory<S> contextFactory);
 
     /**
      * Registers the dependency to the type
@@ -362,53 +363,53 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @param <T>       The valueType of the throwable.
      */
     <T extends Throwable> void setThrowableResolver(
-        final Class<T> exception,
-        final ThrowableResolver<T, S> handler
+            final Class<T> exception,
+            final ThrowableResolver<T, S> handler
     );
-    
+
     /**
      * @return The global/centralized default usage of EVERY command
      * its empty by default.
      */
     @NotNull CommandUsage.Builder<S> getGlobalDefaultUsage();
-    
+
     /**
      * Sets the usual default usage if the user doesn't set
      * the default-usage for a {@link Command}
      * @param globalDefaultUsage the global default usage BUILDER.
      */
     void setGlobalDefaultUsage(@NotNull CommandUsage.Builder<S> globalDefaultUsage);
-    
-    
+
+
     /**
      * @return the default attachment mode {@link AttachmentMode}
      */
     @NotNull AttachmentMode getDefaultAttachmentMode();
-    
+
     /**
      * Sets the default {@link AttachmentMode}
      * @param attachmentMode the attachment mode.
      */
     void setDefaultAttachmentMode(AttachmentMode attachmentMode);
-    
+
     /**
      * @return the help coordinator that coordinates
      * how a help is being shown and displayed to the source.
      */
     @NotNull HelpCoordinator<S> getHelpCoordinator();
-    
+
     /**
      * Sets the coordinator for displaying of a help.
      * @param coordinator the new coordinator to set.
      */
     void setHelpCoordinator(@NotNull HelpCoordinator<S> coordinator);
-    
+
     /**
      * The factory for creating instances of types to be dependency injected.
      * @return the instance factory
      */
     InstanceFactory<S> getInstanceFactory();
-    
+
     /**
      * Sets the instance factory for creating instances of types to be dependency injected.
      * @param factory the instance factory to set

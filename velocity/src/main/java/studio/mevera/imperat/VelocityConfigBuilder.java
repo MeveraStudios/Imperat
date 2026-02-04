@@ -58,8 +58,8 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
     VelocityConfigBuilder(@NotNull P plugin, @NotNull ProxyServer proxyServer) {
         this.plugin = plugin;
         this.proxyServer = proxyServer;
-        this.permissionChecker((src, perm)-> {
-            if(perm == null || src.isConsole()) {
+        this.permissionChecker((src, perm) -> {
+            if (perm == null || src.isConsole()) {
                 return true;
             }
             return src.asPlayer().hasPermission(perm);
@@ -68,23 +68,25 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         registerSourceResolvers();
         registerParameterTypes();
         registerContextResolvers();
-        
+
     }
-    
+
     /**
      * Registers context resolvers for automatic dependency injection in commands.
      * This allows command methods to receive Velocity-specific objects as parameters.
      */
     private void registerContextResolvers() {
         config.registerContextResolver(
-                new TypeWrap<ExecutionContext<VelocitySource>>() {}.getType(),
-                (ctx, paramElement)-> ctx
+                new TypeWrap<ExecutionContext<VelocitySource>>() {
+                }.getType(),
+                (ctx, paramElement) -> ctx
         );
         config.registerContextResolver(
-                new TypeWrap<CommandHelp<VelocitySource>>() {}.getType(),
-                (ctx, paramElement)-> CommandHelp.create(ctx)
+                new TypeWrap<CommandHelp<VelocitySource>>() {
+                }.getType(),
+                (ctx, paramElement) -> CommandHelp.create(ctx)
         );
-        
+
         config.registerContextResolver(ProxyConfig.class, (ctx, paramElement) -> proxyServer.getConfiguration());
         config.registerContextResolver(ProxyVersion.class, (ctx, paramElement) -> proxyServer.getVersion());
         config.registerContextResolver(ServerInfo.class, (ctx, paramElement) -> {
@@ -94,10 +96,11 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
             }
             Player player = source.asPlayer();
             return player.getCurrentServer()
-                    .map(serverConnection -> serverConnection.getServer().getServerInfo())
-                    .orElseThrow(()-> new IllegalStateException("Source is not connected to any server"));
+                           .map(serverConnection -> serverConnection.getServer().getServerInfo())
+                           .orElseThrow(() -> new IllegalStateException("Source is not connected to any server"));
         });
-        config.registerContextResolver(PluginContainer.class, (ctx, paramElement) -> proxyServer.getPluginManager().fromInstance(plugin).orElseThrow(()-> new IllegalStateException("Cannot get plugin container")));
+        config.registerContextResolver(PluginContainer.class, (ctx, paramElement) -> proxyServer.getPluginManager().fromInstance(plugin).orElseThrow(
+                () -> new IllegalStateException("Cannot get plugin container")));
     }
 
     /**
@@ -112,7 +115,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
             }
             return velocitySource.asConsole();
         });
-        
+
         config.registerSourceResolver(CommandSource.class, (velocitySource, ctx) -> velocitySource.origin());
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
@@ -128,19 +131,21 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      * This provides user-friendly error messages for various error conditions.
      */
     private void addThrowableHandlers() {
-        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context)-> {
+        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context) -> {
             context.source().error("Only players can do this!");
         });
-        
+
         config.setThrowableResolver(
-            UnknownPlayerException.class, (exception, context) ->
-                context.source().error("A player with the name '" + exception.getInput() + "' doesn't seem to be online")
+                UnknownPlayerException.class, (exception, context) ->
+                                                      context.source().error("A player with the name '" + exception.getInput()
+                                                                                     + "' doesn't seem to be online")
         );
-        
+
         //resolve for unknownserverexception
         config.setThrowableResolver(
-            UnknownServerException.class, (exception, context) ->
-                context.source().error("A server with the name '" + exception.getInput() + "' doesn't seem to exist")
+                UnknownServerException.class, (exception, context) ->
+                                                      context.source()
+                                                              .error("A server with the name '" + exception.getInput() + "' doesn't seem to exist")
         );
     }
 

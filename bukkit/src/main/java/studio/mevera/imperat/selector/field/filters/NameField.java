@@ -8,6 +8,7 @@ import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.util.TypeWrap;
 
 final class NameField extends PredicateField<String> {
+
     /**
      * Constructs an AbstractField instance with the specified name and type.
      *
@@ -18,7 +19,8 @@ final class NameField extends PredicateField<String> {
     }
 
     @Override
-    protected @NotNull EntityCondition getCondition(String value, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> context) {
+    protected @NotNull EntityCondition getCondition(String value, CommandInputStream<BukkitSource> commandInputStream,
+            Context<BukkitSource> context) {
         return (sender, entity) -> entity.getName().equalsIgnoreCase(value);
     }
 

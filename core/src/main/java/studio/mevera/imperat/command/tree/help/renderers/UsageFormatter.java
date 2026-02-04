@@ -16,7 +16,7 @@ import studio.mevera.imperat.context.Source;
  * @param <C> the component type
  */
 public interface UsageFormatter<S extends Source, C> {
-    
+
     /**
      * Formats a command usage pathway into a help component.
      *

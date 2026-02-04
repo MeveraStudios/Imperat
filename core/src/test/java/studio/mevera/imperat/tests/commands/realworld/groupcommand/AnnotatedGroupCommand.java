@@ -29,8 +29,8 @@ public final class AnnotatedGroupCommand {
     @Usage
     @Description("Shows sub-commands.")
     public void mainUsage(
-        TestSource source,
-        @Named("group") Group group
+            TestSource source,
+            @Named("group") Group group
     ) {
         //when he does "/group <group>"
         source.reply("entered group name= " + group.name());
@@ -39,19 +39,19 @@ public final class AnnotatedGroupCommand {
     @SubCommand("setperm")
     @Description("Sets permission for a group.")
     public void setGroupPermission(TestSource source,
-                              @Named("group") Group group,
-                              @Named("permission") String permission) {
+            @Named("group") Group group,
+            @Named("permission") String permission) {
         // /group <group> setperm <permission>
         source.reply("You have set permission '" + permission
-            + "' to group '" + group.name() + "'");
+                             + "' to group '" + group.name() + "'");
     }
 
     @SubCommand("setprefix")
     @Description("Sets prefix for a group.")
     public void setPrefix(
-        TestSource source,
-        @Named("group") Group group,
-        @Named("prefix") String prefix
+            TestSource source,
+            @Named("group") Group group,
+            @Named("prefix") String prefix
     ) {
         // /group <group> setprefix <prefix>
         source.reply("You have set prefix '" + prefix + "' to group '" + group.name() + "'");

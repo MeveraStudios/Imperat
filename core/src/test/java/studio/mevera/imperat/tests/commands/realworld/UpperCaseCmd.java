@@ -6,10 +6,10 @@ import studio.mevera.imperat.tests.TestSource;
 
 @Command("upper_case")
 public class UpperCaseCmd {
-    
+
     @Usage
     public void t(TestSource source) {
         source.reply("WORKED !");
     }
-    
+
 }

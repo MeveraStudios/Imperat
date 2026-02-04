@@ -22,8 +22,8 @@ import java.util.List;
  * @param <S> The type of the source from which the command originates.
  * @param <T> The type of the parameter being handled.
  */
-public abstract class BaseParameterType<S extends Source, T> 
-    extends TypeCapturer implements ParameterType<S, T> {
+public abstract class BaseParameterType<S extends Source, T>
+        extends TypeCapturer implements ParameterType<S, T> {
 
     /**
      * Encapsulates type information for the parameter being handled.
@@ -79,7 +79,7 @@ public abstract class BaseParameterType<S extends Source, T>
      */
     @Override
     public SuggestionResolver<S> getSuggestionResolver() {
-        return suggestions.isEmpty() ?  null : SuggestionResolver.staticSuggestions(suggestions);
+        return suggestions.isEmpty() ? null : SuggestionResolver.staticSuggestions(suggestions);
     }
 
     /**

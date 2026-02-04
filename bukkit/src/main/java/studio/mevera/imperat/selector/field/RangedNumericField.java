@@ -41,10 +41,10 @@ public final class RangedNumericField<N extends Number> extends AbstractField<Ra
      */
     @Override
     public Range<N> parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
-        if(!value.contains(RANGE_CHARACTER_WITHOUT_ESCAPE)) {
+        if (!value.contains(RANGE_CHARACTER_WITHOUT_ESCAPE)) {
             N numericValue = numericField.parseNumber(value, context);
             return Range.atLeast(numericValue);
-        }else  {
+        } else {
             if (value.startsWith(RANGE_CHARACTER_WITHOUT_ESCAPE)) {
                 //less than or equal to value
                 N rangeValue = numericField.parseNumber(value.replace(RANGE_CHARACTER_WITHOUT_ESCAPE, ""), context);
@@ -52,7 +52,7 @@ public final class RangedNumericField<N extends Number> extends AbstractField<Ra
             } else if (value.endsWith(RANGE_CHARACTER_WITHOUT_ESCAPE)) {
                 N rangeValue = numericField.parseNumber(value.replace(RANGE_CHARACTER_WITHOUT_ESCAPE, ""), context);
                 return Range.atMost(rangeValue);
-            } else  {
+            } else {
                 String[] minMaxSplit = value.split(RANGE_CHARACTER);
                 if (minMaxSplit.length > 2) {
                     throw new SourceException("Invalid distance range format '%s'", value);

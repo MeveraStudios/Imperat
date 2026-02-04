@@ -4,9 +4,10 @@ public class SourceException extends CommandException {
 
     private final String message;
     private final ErrorLevel type;
+
     public SourceException(
-        final String msg,
-        final Object... args
+            final String msg,
+            final Object... args
     ) {
         super();
         this.type = ErrorLevel.SEVERE;
@@ -14,9 +15,9 @@ public class SourceException extends CommandException {
     }
 
     public SourceException(
-        final ErrorLevel type,
-        final String msg,
-        final Object... args
+            final ErrorLevel type,
+            final String msg,
+            final Object... args
     ) {
         super();
         this.type = type;

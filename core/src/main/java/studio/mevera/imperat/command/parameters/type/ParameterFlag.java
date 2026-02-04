@@ -20,20 +20,24 @@ import java.util.Set;
 public class ParameterFlag<S extends Source> extends BaseParameterType<S, ExtractedFlagArgument> {
 
     private final FlagData<S> flagData;
+
     protected ParameterFlag(FlagData<S> flagData) {
         super();
         this.flagData = flagData;
         suggestions.add("-" + flagData.name());
-        for(var alias : flagData.aliases())
+        for (var alias : flagData.aliases()) {
             suggestions.add("-" + alias);
+        }
     }
 
     @Override
-    public @Nullable ExtractedFlagArgument resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream, @NotNull String rawFlag) throws
+    public @Nullable ExtractedFlagArgument resolve(@NotNull ExecutionContext<S> context, @NotNull CommandInputStream<S> commandInputStream,
+            @NotNull String rawFlag) throws
             CommandException {
         var currentParameter = commandInputStream.currentParameterIfPresent();
-        if (currentParameter == null)
+        if (currentParameter == null) {
             return null;
+        }
 
         if (!currentParameter.isFlag()) {
             throw new IllegalArgumentException();
@@ -50,13 +54,13 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
             if (rawInput != null) {
                 assert inputType != null;
                 objInput = inputType.resolve(context, commandInputStream, rawInput);
-                if(objInput == null && !flagParameter.getDefaultValueSupplier().isEmpty()) {
+                if (objInput == null && !flagParameter.getDefaultValueSupplier().isEmpty()) {
                     String defValue = flagParameter.getDefaultValueSupplier().supply(context, flagParameter);
-                    if(defValue != null) {
+                    if (defValue != null) {
                         objInput = inputType.resolve(context, commandInputStream, defValue);
                     }
                 }
-            }else {
+            } else {
                 //"Please enter the value for flag '%s'"
                 throw new MissingFlagInputException(Set.of(flagParameter.name()), rawFlag);
             }
@@ -65,15 +69,15 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
         }
         return new ExtractedFlagArgument(flagParameter.flagData(), rawFlag, rawInput, objInput);
     }
-    
+
     @Override
     public boolean matchesInput(int rawPosition, Context<S> context, CommandParameter<S> parameter) {
         String input = context.arguments().getOr(rawPosition, null);
         if (input == null) {
             return false;
         }
-        
-        if(!parameter.isFlag()) {
+
+        if (!parameter.isFlag()) {
             throw new IllegalArgumentException(
                     String.format(
                             "Parameter '%s' isn't a flag while having parameter type of '%s'",
@@ -81,50 +85,51 @@ public class ParameterFlag<S extends Source> extends BaseParameterType<S, Extrac
                     )
             );
         }
-        
+
         FlagParameter<S> flagParameter = parameter.asFlagParameter();
         ParameterType<S, ?> inputType = flagParameter.flagData().inputType();
         boolean matchesForFlagInput = true;
         int nextPos = rawPosition + 1;
-        
+
         if (inputType != null && !flagParameter.isSwitch() && nextPos < context.arguments().size()) {
             String nextInput = context.arguments().getOr(nextPos, null);
             if (nextInput == null) {
                 matchesForFlagInput = false;
-            }else {
+            } else {
                 matchesForFlagInput = inputType.matchesInput(nextPos, context, parameter);
             }
         }
         return parameter.asFlagParameter().flagData()
-            .acceptsInput(input) && matchesForFlagInput;
+                       .acceptsInput(input) && matchesForFlagInput;
     }
-    
+
     @Override
     public SuggestionResolver<S> getSuggestionResolver() {
-        return (ctx, param)-> {
-            if(!param.isFlag())
+        return (ctx, param) -> {
+            if (!param.isFlag()) {
                 return Collections.emptyList();
+            }
 
             FlagParameter<S> flagParameter = param.asFlagParameter();
             var argToComplete = ctx.getArgToComplete();
-            if(flagParameter.isSwitch() ||
-                    argToComplete.index() == 0 ||
-                    !flagParameter.flagData().acceptsInput(ctx.arguments().get(argToComplete.index()-1))) {
+            if (flagParameter.isSwitch() ||
+                        argToComplete.index() == 0 ||
+                        !flagParameter.flagData().acceptsInput(ctx.arguments().get(argToComplete.index() - 1))) {
                 return this.suggestions;
             }
             //flag is a true flag AND the next position is its value
             var specificParamType = flagParameter.inputSuggestionResolver();
-            if(specificParamType != null) {
+            if (specificParamType != null) {
                 return specificParamType.autoComplete(ctx, param);
             }
             ParameterType<S, ?> flagInputValueType = ctx.imperatConfig().getParameterType(flagParameter.inputValueType());
-            if(flagInputValueType != null) {
+            if (flagInputValueType != null) {
                 return flagInputValueType.getSuggestionResolver().autoComplete(ctx, param);
             }
             return Collections.emptyList();
         };
     }
-    
+
     @Override
     public int getNumberOfParametersToConsume() {
         return flagData.isSwitch() ? 1 : 2;

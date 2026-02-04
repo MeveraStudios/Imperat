@@ -17,27 +17,29 @@ import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Error Handling Tests")
 public class ErrorHandlingTest extends BaseImperatTest {
+
     static {
         System.out.println("Running ErrorHandlingTest...");
     }
+
     @Test
     @DisplayName("Should fail for incomplete required arguments")
     void testIncompleteRequiredArguments() {
         ExecutionResult<TestSource> result = execute("test hello"); // Missing second required argument
         assertFailure(result);
     }
-    
+
     @Test
     @DisplayName("Should fail for completely unknown commands")
     void testCompletelyUnknownCommands() {
-        try{
+        try {
             execute("completely_unknown_command with args");
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             ThrowablePrinter.simple().print(ex);
             Assertions.assertInstanceOf(UnknownCommandException.class, ex);
         }
     }
-    
+
     @Test
     @DisplayName("Should handle malformed flag syntax")
     void testMalformedFlagSyntax() {
@@ -46,53 +48,54 @@ public class ErrorHandlingTest extends BaseImperatTest {
         // Just ensure it doesn't crash
         assertNotNull(result);
     }
-    
+
     @ParameterizedTest
     @ValueSource(strings = {"", " ", "   "})
     @DisplayName("Should handle empty or whitespace-only inputs")
     void testEmptyInputs(String input) {
         try {
             execute(input.trim());
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             assertInstanceOf(UnknownCommandException.class, ex);
         }
     }
-    
+
     @Test
     @DisplayName("Should provide meaningful error information")
     void testErrorInformation() {
         try {
             execute("nonexistent command args");
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             assertInstanceOf(UnknownCommandException.class, ex);
         }
     }
 
-    
+
     @Test
     @DisplayName("Should handle context resolution failures")
     void testContextResolutionFailures() {
         ExecutionResult<TestSource> result = execute("ctx sub"); // Should fail due to missing Group context
         assertFailure(result);
     }
-    
+
     @Test
     @DisplayName("Should detect thrown exception handler from annotated class")
     void testExceptionHandlerAnnotation() {
         var res = execute("fail");
         assertFailure(res);
-        
+
         assertNotNull(res.getError());
         ImperatTestGlobals.IMPERAT.config()
                 .handleExecutionThrowable(res.getError(), res.getContext(), BaseImperatTest.class, "testFail");
-        
+
         // Should fail due to missing Group context
     }
     
    /*@Test
     @DisplayName("Should handle permissions overlap 1")
     void testPermissions1() {
-        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"),"testperm hi bye"); // Should fail due to missing Group context
+        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"),"testperm hi bye"); // Should fail due to missing Group
+        context
         assertNotNull(result.getError());
         ThrowablePrinter.simple().print(result.getError());
     }*/
@@ -100,7 +103,8 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle permissions overlap 2")
     void testPermissions2() {
-        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"), "testperm a b"); // Should fail due to missing Group context
+        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"), "testperm a b"); // Should fail due to missing Group
+        context
         assertFailure(result, PermissionDeniedException.class);
         assertNotNull(result.getError());
         ThrowablePrinter.simple().print(result.getError());
@@ -109,7 +113,8 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle permissions overlap 3")
     void testPermissions3() {
-        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use").withPerm("testperm.use.arg1.arg2").withPerm("testperm.main"), "testperm a b"); // Should fail due to missing Group context
+        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use").withPerm("testperm.use.arg1.arg2").withPerm("testperm
+        .main"), "testperm a b"); // Should fail due to missing Group context
         assertSuccess(result);
     }
     

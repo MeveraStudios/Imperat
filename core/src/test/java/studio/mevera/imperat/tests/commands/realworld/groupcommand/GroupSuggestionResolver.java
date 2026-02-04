@@ -12,12 +12,12 @@ public class GroupSuggestionResolver implements SuggestionResolver<TestSource> {
 
     @Override
     public List<String> autoComplete(
-        SuggestionContext<TestSource> context,
-        CommandParameter<TestSource> parameter
+            SuggestionContext<TestSource> context,
+            CommandParameter<TestSource> parameter
     ) {
         return GroupRegistry.getInstance().getAll()
-            .stream().map(Group::name)
-            .toList();
+                       .stream().map(Group::name)
+                       .toList();
     }
 
 }

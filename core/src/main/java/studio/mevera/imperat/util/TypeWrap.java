@@ -42,18 +42,18 @@ public abstract class TypeWrap<T> {
     private static Bounds any(Type[] bounds) {
         return new Bounds(bounds, true);
     }
-    
-    public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, List<ParameterType<S,?>> genericParamTypes) {
-        if(!(rawClass instanceof Class<?> clazz)) {
+
+    public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, List<ParameterType<S, ?>> genericParamTypes) {
+        if (!(rawClass instanceof Class<?> clazz)) {
             throw new IllegalArgumentException("Raw class must be a class.");
         }
 
-        if(genericParamTypes.isEmpty()) {
+        if (genericParamTypes.isEmpty()) {
             return of(rawClass);
         }
 
         Type[] typeArgs = new Type[genericParamTypes.size()];
-        for(int i = 0; i < genericParamTypes.size(); i++) {
+        for (int i = 0; i < genericParamTypes.size(); i++) {
             typeArgs[i] = genericParamTypes.get(i).type();
         }
 
@@ -76,12 +76,12 @@ public abstract class TypeWrap<T> {
 
         return of(parameterizedType);
     }
-    
+
     public static TypeWrap<?> ofArray(Type type) {
         Type arrayType = Array.newInstance(of(type).getRawType(), 0).getClass();
         return of(arrayType);
     }
-    
+
     private Type extractType() {
         final Type superclass = getClass().getGenericSuperclass();
         if (superclass instanceof ParameterizedType parameterizedType) {
@@ -94,29 +94,33 @@ public abstract class TypeWrap<T> {
     }
 
     private Class<?> extractRawType(Type type) {
-        if (type == null)
+        if (type == null) {
             return null;
+        }
 
-        if (type instanceof Class<?> cls)
+        if (type instanceof Class<?> cls) {
             return cls;
+        }
 
-        if (type instanceof ParameterizedType parameterizedType)
+        if (type instanceof ParameterizedType parameterizedType) {
             return (Class<?>) parameterizedType.getRawType();
+        }
 
-        if (type instanceof GenericArrayType genericArrayType)
+        if (type instanceof GenericArrayType genericArrayType) {
             return Array.newInstance(extractRawType(genericArrayType.getGenericComponentType()), 0).getClass();
+        }
 
         return null;
     }
 
     public Type[] getParameterizedTypes() {
-        if(type == null) {
+        if (type == null) {
             return null;
         }
 
-        if(type instanceof ParameterizedType parameterizedType) {
+        if (type instanceof ParameterizedType parameterizedType) {
             return parameterizedType.getActualTypeArguments();
-        }else {
+        } else {
             return null;
         }
     }
@@ -211,7 +215,9 @@ public abstract class TypeWrap<T> {
 
     @SuppressWarnings("rawtypes")
     public final boolean isSubtypeOf(final Type supertype) {
-        if (supertype == null) return false;
+        if (supertype == null) {
+            return false;
+        }
 
         if (supertype instanceof WildcardType) {
             return any(((WildcardType) supertype).getLowerBounds()).isSupertypeOf(type);
@@ -229,10 +235,15 @@ public abstract class TypeWrap<T> {
             return of(supertype).isSupertypeOfArray((GenericArrayType) type);
         }
 
-        if (supertype instanceof Class clazz) return this.someRawTypeIsSubclassOf(clazz);
-        if (supertype instanceof ParameterizedType parameterizedType)
+        if (supertype instanceof Class clazz) {
+            return this.someRawTypeIsSubclassOf(clazz);
+        }
+        if (supertype instanceof ParameterizedType parameterizedType) {
             return this.isSubtypeOfParameterizedType(parameterizedType); // TODO: Check if this checks actually work lol
-        if (supertype instanceof GenericArrayType genericArrayType) return this.isSubtypeOfArrayType(genericArrayType);
+        }
+        if (supertype instanceof GenericArrayType genericArrayType) {
+            return this.isSubtypeOfArrayType(genericArrayType);
+        }
 
         return false;
     }
@@ -245,7 +256,7 @@ public abstract class TypeWrap<T> {
             return of(subtype.getGenericComponentType()).isSubtypeOf(thisClass.getComponentType());
         } else if (type instanceof GenericArrayType) {
             return of(subtype.getGenericComponentType())
-                .isSubtypeOf(((GenericArrayType) type).getGenericComponentType());
+                           .isSubtypeOf(((GenericArrayType) type).getGenericComponentType());
         } else {
             return false;
         }
@@ -292,7 +303,7 @@ public abstract class TypeWrap<T> {
             return of(fromClass.getComponentType()).isSubtypeOf(supertype.getGenericComponentType());
         } else if (type instanceof GenericArrayType fromArrayType) {
             return of(fromArrayType.getGenericComponentType())
-                .isSubtypeOf(supertype.getGenericComponentType());
+                           .isSubtypeOf(supertype.getGenericComponentType());
         } else {
             return false;
         }
@@ -320,7 +331,7 @@ public abstract class TypeWrap<T> {
         Type superOwner = supertype.getOwnerType();
         Type subOwner = subtype.getOwnerType();
         return superOwner == null ||
-            (subOwner != null && of(subOwner).isSubtypeOf(superOwner));
+                       (subOwner != null && of(subOwner).isSubtypeOf(superOwner));
     }
 
     private boolean isWithinBounds(Type type, Type[] lowerBounds, Type[] upperBounds) {

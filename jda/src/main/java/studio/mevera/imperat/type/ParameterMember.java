@@ -15,7 +15,8 @@ import studio.mevera.imperat.exception.UnknownMemberException;
 public final class ParameterMember extends BaseParameterType<JdaSource, Member> {
 
     @Override
-    public @NotNull Member resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream, @NotNull String input) throws
+    public @NotNull Member resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull CommandInputStream<JdaSource> inputStream,
+            @NotNull String input) throws
             CommandException {
         var guild = context.source().origin().getGuild();
         if (guild == null) {

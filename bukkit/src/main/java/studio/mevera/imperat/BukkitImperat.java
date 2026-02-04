@@ -70,19 +70,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
     private BukkitBrigadierManager brigadierManager;
     private Map<String, org.bukkit.command.Command> bukkitCommands = new HashMap<>();
 
-    /**
-     * Creates a new configuration builder for BukkitImperat.
-     * This is the recommended way to create and configure a BukkitImperat instance.
-     *
-     * @param plugin the plugin instance that will own this Imperat instance
-     * @return a new BukkitConfigBuilder for further configuration
-     */
-    public static BukkitConfigBuilder builder(Plugin plugin) {
-        return new BukkitConfigBuilder(plugin);
-    }
-
-    @SuppressWarnings("unchecked")
-    BukkitImperat(
+    @SuppressWarnings("unchecked") BukkitImperat(
             Plugin plugin,
             AdventureProvider<CommandSender> adventureProvider,
             boolean supportBrigadier,
@@ -97,7 +85,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
         try {
             if (BukkitUtil.KNOWN_COMMANDS != null) {
                 this.bukkitCommands = (Map<String, org.bukkit.command.Command>)
-                    BukkitUtil.KNOWN_COMMANDS.get(BukkitUtil.COMMAND_MAP);
+                                              BukkitUtil.KNOWN_COMMANDS.get(BukkitUtil.COMMAND_MAP);
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
@@ -105,10 +93,20 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
 
         if (supportBrigadier) {
             applyBrigadier();
-        }
-        else {
+        } else {
             applyAsyncTabListener();
         }
+    }
+
+    /**
+     * Creates a new configuration builder for BukkitImperat.
+     * This is the recommended way to create and configure a BukkitImperat instance.
+     *
+     * @param plugin the plugin instance that will own this Imperat instance
+     * @return a new BukkitConfigBuilder for further configuration
+     */
+    public static BukkitConfigBuilder builder(Plugin plugin) {
+        return new BukkitConfigBuilder(plugin);
     }
 
     /**
@@ -172,7 +170,9 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
         Command<BukkitSource> imperatCmd = getCommand(name);
         super.unregisterCommand(name);
 
-        if (imperatCmd == null) return;
+        if (imperatCmd == null) {
+            return;
+        }
         for (var entry : new HashSet<>(bukkitCommands.entrySet())) {
             var originalKey = entry.getKey();
             var key = StringUtils.stripNamespace(originalKey);
@@ -206,22 +206,22 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
         }
         //BukkitUtil.COMMAND_MAP.clearCommands();
     }
-    
+
 
     private void applyBrigadier() {
         if (Version.isOrOver(1, 13, 0)) {
             brigadierManager = BukkitBrigadierManager.load(this);
         }
     }
-    
+
     private void applyAsyncTabListener() {
-        if(Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
+        if (Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
             plugin.getServer().getPluginManager().registerEvents(new AsyncTabListener(this), plugin);
         }
     }
 
     private boolean isPaperPlugin(Plugin plugin) {
-        if (!Version.IS_PAPER || Version.isOrBelow(1, 13, 0)){
+        if (!Version.IS_PAPER || Version.isOrBelow(1, 13, 0)) {
             return false;
         }
 

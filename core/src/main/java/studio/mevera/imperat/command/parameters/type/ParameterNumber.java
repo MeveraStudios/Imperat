@@ -3,13 +3,13 @@ package studio.mevera.imperat.command.parameters.type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.parse.InvalidNumberFormatException;
+import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeUtility;
 
 public abstract class ParameterNumber<S extends Source, N extends Number> extends BaseParameterType<S, N> {
@@ -39,7 +39,7 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
         try {
             return parse(input);
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberFormatException(input,ex, display(), this.wrappedType());
+            throw new InvalidNumberFormatException(input, ex, display(), this.wrappedType());
         }
     }
 
@@ -49,7 +49,7 @@ public abstract class ParameterNumber<S extends Source, N extends Number> extend
         if (input == null) {
             return false;
         }
-        
+
         try {
             parse(input);
             return true;

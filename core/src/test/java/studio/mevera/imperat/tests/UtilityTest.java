@@ -17,13 +17,13 @@ public class UtilityTest {
         priorityList.add(Priority.NORMAL, "Thor");
 
         String[] expectedOrder = {
-            "Captain America",
-            "Thor",
-            "Iron Man"
+                "Captain America",
+                "Thor",
+                "Iron Man"
         };
         String[] realOrder = new String[priorityList.size()];
         int i = 0;
-        for(var e : priorityList) {
+        for (var e : priorityList) {
             realOrder[i] = e;
             i++;
         }

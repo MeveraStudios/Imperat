@@ -26,7 +26,8 @@ final class ModernPaperCommodore extends AbstractCommodore {
 
     private final Plugin plugin;
     private final LifecycleEventManager<Plugin> manager;
-    private final LifecycleEventType.Prioritizable lifecycleEventTypeField = Reflections.getField(LifecycleEvents.class, LifecycleEventType.Prioritizable.class).get(null);
+    private final LifecycleEventType.Prioritizable lifecycleEventTypeField =
+            Reflections.getField(LifecycleEvents.class, LifecycleEventType.Prioritizable.class).get(null);
     private final Method registrarEventRegistar;
 
     {

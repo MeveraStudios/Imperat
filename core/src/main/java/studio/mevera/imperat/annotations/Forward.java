@@ -16,6 +16,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @ApiStatus.Experimental
 public @interface Forward {
-    
+
     String value();
 }

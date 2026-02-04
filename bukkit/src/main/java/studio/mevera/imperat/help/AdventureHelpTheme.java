@@ -6,6 +6,7 @@ import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.command.tree.help.theme.BaseHelpTheme;
 
 public abstract class AdventureHelpTheme extends BaseHelpTheme<BukkitSource, Component> {
+
     protected AdventureHelpTheme(
             @NotNull PresentationStyle style,
             int indentMultiplier

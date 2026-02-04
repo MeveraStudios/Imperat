@@ -57,7 +57,7 @@ public interface FlagData<S extends Source> {
         String display = this.name();
         String valueFormat = this.inputType() == null ? "" : " <value>";
         return StringUtils.normalizedParameterFormatting("-" + display
-            + valueFormat, true);
+                                                                 + valueFormat, true);
     }
 
     default boolean acceptsInput(String input) {
@@ -65,13 +65,12 @@ public interface FlagData<S extends Source> {
         return this.name().equalsIgnoreCase(input) || hasAlias(input);
     }
 
+    default boolean isSwitch() {
+        return inputType() == null;
+    }
 
     record FlagDataImpl<S extends Source>(String name, List<String> aliases, ParameterType<S, ?> inputType) implements FlagData<S> {
 
-    }
-
-    default boolean isSwitch() {
-        return inputType() == null;
     }
 
 }

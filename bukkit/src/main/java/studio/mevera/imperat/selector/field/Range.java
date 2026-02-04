@@ -21,6 +21,10 @@ public final class Range<N extends Number> extends Number {
         return of(null, numericValue);
     }
 
+    public static <N extends Number> Range<N> of(@Nullable N min, @Nullable N max) {
+        return new Range<>(min, max);
+    }
+
     public @Nullable N getMax() {
         return max;
     }
@@ -29,23 +33,19 @@ public final class Range<N extends Number> extends Number {
         return min;
     }
 
-    public static <N extends Number> Range<N> of(@Nullable N min, @Nullable N max) {
-        return new Range<>(min, max);
-    }
-
     public boolean isInRange(N value) {
         if (value instanceof Range<?> other) {
             return this.equals(other);
         }
 
-        if(min == null) {
-            if(max == null) return true;
+        if (min == null) {
+            if (max == null) {
+                return true;
+            }
             return value.doubleValue() <= max.doubleValue();
-        }
-        else if(max == null) {
+        } else if (max == null) {
             return value.doubleValue() >= min.doubleValue();
-        }
-        else {
+        } else {
             return value.doubleValue() >= min.doubleValue() && value.doubleValue() <= max.doubleValue();
         }
     }
@@ -120,10 +120,14 @@ public final class Range<N extends Number> extends Number {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Range<?> range)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Range<?> range)) {
+            return false;
+        }
         return Objects.equals(min, range.min)
-            && Objects.equals(max, range.max);
+                       && Objects.equals(max, range.max);
     }
 
     @Override

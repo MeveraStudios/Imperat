@@ -7,5 +7,5 @@ public final class DefaultProcessors {
     public static <S extends Source> UsageCooldownProcessor<S> preUsageCooldown() {
         return new UsageCooldownProcessor<>();
     }
-    
+
 }

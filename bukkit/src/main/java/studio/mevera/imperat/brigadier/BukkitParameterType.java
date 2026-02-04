@@ -14,6 +14,7 @@ public class BukkitParameterType<T> extends BaseParameterType<BukkitSource, T> {
 
     private final MinecraftArgumentType minecraftArgumentType;
     private final ArgumentType<T> argumentType;
+
     public BukkitParameterType(Class<T> type, @NotNull MinecraftArgumentType minecraftArgumentType) {
         super(type);
         this.minecraftArgumentType = minecraftArgumentType;
@@ -41,7 +42,7 @@ public class BukkitParameterType<T> extends BaseParameterType<BukkitSource, T> {
                 inputStream.skipRaw();
             }
             return value;
-        }catch (CommandSyntaxException ex) {
+        } catch (CommandSyntaxException ex) {
             throw new CommandException(ex.getMessage(), ex);
         }
     }

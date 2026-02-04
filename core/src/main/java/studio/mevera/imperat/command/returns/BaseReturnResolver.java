@@ -25,8 +25,8 @@ public abstract class BaseReturnResolver<S extends Source, T> implements ReturnR
     @Override
     public String toString() {
         return "BaseReturnResolver{" +
-            "type=" + type +
-            '}';
+                       "type=" + type +
+                       '}';
     }
 
 }

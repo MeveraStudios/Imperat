@@ -47,17 +47,6 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
     private final ServerProcess serverProcess;
 
     /**
-     * Creates a new configuration builder for MinestomImperat.
-     * This is the recommended way to create and configure a MinestomImperat instance.
-     *
-     * @param serverProcess the Minestom ServerProcess instance
-     * @return a new MinestomConfigBuilder for further configuration
-     */
-    public static MinestomConfigBuilder builder(@NotNull ServerProcess serverProcess) {
-        return new MinestomConfigBuilder(serverProcess);
-    }
-
-    /**
      * Package-private constructor used by MinestomConfigBuilder.
      * Use {@link #builder(ServerProcess)} to create instances.
      *
@@ -67,6 +56,17 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
     MinestomImperat(@NotNull ServerProcess serverProcess, @NotNull ImperatConfig<MinestomSource> config) {
         super(config);
         this.serverProcess = serverProcess;
+    }
+
+    /**
+     * Creates a new configuration builder for MinestomImperat.
+     * This is the recommended way to create and configure a MinestomImperat instance.
+     *
+     * @param serverProcess the Minestom ServerProcess instance
+     * @return a new MinestomConfigBuilder for further configuration
+     */
+    public static MinestomConfigBuilder builder(@NotNull ServerProcess serverProcess) {
+        return new MinestomConfigBuilder(serverProcess);
     }
 
     /**
@@ -122,7 +122,7 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
     public void unregisterCommand(String name) {
         super.unregisterCommand(name);
         MinecraftServer.getCommandManager().getCommands().stream()
-            .filter(cmd -> cmd.getName().equalsIgnoreCase(name) || List.of(cmd.getAliases()).contains(name.toLowerCase()))
-            .forEach(MinecraftServer.getCommandManager()::unregister);
+                .filter(cmd -> cmd.getName().equalsIgnoreCase(name) || List.of(cmd.getAliases()).contains(name.toLowerCase()))
+                .forEach(MinecraftServer.getCommandManager()::unregister);
     }
 }
