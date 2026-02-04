@@ -17,14 +17,12 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.util.PriorityList;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Objects;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 
 @ApiStatus.Internal
@@ -40,7 +38,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     protected String permission;
     protected Description description;
     protected int index;
-    private final Queue<ArgValidator<S>> validators = new PriorityQueue<>(Comparator.reverseOrder());
+    private final PriorityList<ArgValidator<S>> validators = new PriorityList<>();
 
     protected InputParameter(
         String name,
@@ -238,10 +236,14 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
         this.description = description;
     }
 
+    @Override
+    public void addValidator(@NotNull ArgValidator<S> validator) {
+        validators.add(validator);
+    }
 
     @Override
-    public @NotNull Queue<ArgValidator<S>> getValidatorsQueue() {
-        return validators;
+    public @NotNull PriorityList<ArgValidator<S>> getValidatorsQueue() {
+        return validators.asUnmodifiable();
     }
 
     @Override

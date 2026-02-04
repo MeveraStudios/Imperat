@@ -2,9 +2,10 @@ package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.Priority;
+import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.ImperatDebugger;
+import studio.mevera.imperat.util.PriorityList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -430,7 +431,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         builder.append(nodeText).append("\n");
         
         // Draw children
-        List<ParameterNode<S, ?>> children = node.getChildren();
+        PriorityList<ParameterNode<S, ?>> children = node.getChildren();
         List<Boolean> newLastFlags = new ArrayList<>(lastFlags);
         if (depth > 0) {
             newLastFlags.add(isLast);

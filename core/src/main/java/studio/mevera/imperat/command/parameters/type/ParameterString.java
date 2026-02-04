@@ -5,7 +5,7 @@ import static studio.mevera.imperat.util.StringUtils.isQuoteChar;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.FlagParameter;
-import studio.mevera.imperat.command.parameters.Priority;
+import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.CommandInputStream;

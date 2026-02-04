@@ -27,6 +27,8 @@ import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
+import studio.mevera.imperat.util.PriorityList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 
 @ApiStatus.Internal
@@ -639,7 +640,12 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public @NotNull Queue<ArgValidator<S>> getValidatorsQueue() {
+    public @NotNull PriorityList<ArgValidator<S>> getValidatorsQueue() {
+        throw new UnsupportedOperationException("A command does not have argument validators !");
+    }
+
+    @Override
+    public void addValidator(@NotNull ArgValidator<S> validator) {
         throw new UnsupportedOperationException("A command does not have argument validators !");
     }
 

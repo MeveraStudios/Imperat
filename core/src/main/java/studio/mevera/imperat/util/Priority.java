@@ -1,4 +1,8 @@
-package studio.mevera.imperat.command.parameters;
+package studio.mevera.imperat.util;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 /**
  * Represents the relative priority used when resolving command parameters.
@@ -33,7 +37,7 @@ package studio.mevera.imperat.command.parameters;
  * ordering remains clear and predictable.
  * </p>
  */
-public final class Priority {
+public final class Priority implements Comparable<Priority> {
     public static final Priority MINIMUM = new Priority(Integer.MIN_VALUE);
     public static final Priority LOW = new Priority(0);
     public static final Priority NORMAL = new Priority(20);
@@ -56,5 +60,23 @@ public final class Priority {
 
     public Priority plus(int n) {
         return new Priority(this.level + n);
+    }
+
+    @Override
+    public int compareTo(@NotNull Priority o) {
+        return Integer.compare(o.level, this.level);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Priority priority)) {
+            return false;
+        }
+        return level == priority.level;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(level);
     }
 }

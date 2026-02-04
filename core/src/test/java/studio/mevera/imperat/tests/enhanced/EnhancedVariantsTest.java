@@ -23,5 +23,4 @@ public class EnhancedVariantsTest extends EnhancedBaseImperatTest{
 
     }
 
-
 }

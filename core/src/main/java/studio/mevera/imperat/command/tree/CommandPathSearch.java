@@ -136,7 +136,9 @@ public final class CommandPathSearch<S extends Source> {
                 break;
             }
 
-            nodes.addAll(curr.getChildren());
+            for(ParameterNode<S, ?> child : curr.getChildren()) {
+                nodes.add(child);
+            }
         }
         
         if(closestUsage == null) {

@@ -17,11 +17,11 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Preconditions;
+import studio.mevera.imperat.util.PriorityList;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Queue;
 
 /**
  * Represents the command parameter required
@@ -330,12 +330,9 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
      */
     CommandParameter<S> copyWithDifferentPosition(int newPosition);
 
-    @NotNull Queue<ArgValidator<S>> getValidatorsQueue();
+    @NotNull PriorityList<ArgValidator<S>> getValidatorsQueue();
 
-    default void addValidator(@NotNull ArgValidator<S> validator) {
-        Preconditions.notNull(validator, "validator");
-        getValidatorsQueue().add(validator);
-    }
+    void addValidator(@NotNull ArgValidator<S> validator);
 
     void validate(Context<S> context, Argument<S> argument) throws InvalidArgumentException;
 }

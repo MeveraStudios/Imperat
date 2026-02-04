@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.parameters.type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.Priority;
+import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;

@@ -5,14 +5,12 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.Priority;
+import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.util.PriorityList;
 
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -22,7 +20,7 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
 
     protected @Nullable CommandUsage<S> executableUsage;
 
-    private final List<ParameterNode<S, ?>> children = new LinkedList<>();
+    private final PriorityList<ParameterNode<S, ?>> children = new PriorityList<>();
 
     private final int depth;
     
@@ -86,11 +84,10 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     
     public void addChild(ParameterNode<S, ?> node) {
         if (children.contains(node)) return;
-        children.add(node);
-        children.sort(Comparator.reverseOrder());
+        children.add(node.priority(), node);
     }
 
-    public List<ParameterNode<S,?>> getChildren() {
+    public PriorityList<ParameterNode<S, ?>> getChildren() {
         return children;
     }
     
@@ -187,12 +184,6 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
         return parent;
     }
     
-    
-    public @Nullable ParameterNode<S,?> getTopChild() {
-        if(children.isEmpty())return null;
-        return children.get(0);
-    }
-    
     public boolean isRoot() {
         return parent == null;
     }
@@ -218,6 +209,6 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     @Override
     public int compareTo(@NotNull ParameterNode<S, ?> o) {
         //the highest priority comes first
-        return Integer.compare(this.priority().getLevel(), o.priority().getLevel());
+        return this.priority().compareTo(o.priority());
     }
 }
