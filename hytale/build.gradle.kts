@@ -2,23 +2,23 @@ repositories {
     mavenCentral()
     maven {
         name = "hytale-release"
-        url = "https://maven.hytale.com/release"
+        url = uri("https://maven.hytale.com/release")
     }
 }
 
 dependencies {
-    compileOnly project(":core")
-    compileOnly "com.hypixel.hytale:Server:2026.01.24-6e2d4fc36"
+    compileOnly(project(":core"))
+    compileOnly("com.hypixel.hytale:Server:2026.01.24-6e2d4fc36")
     compileOnly("org.jetbrains:annotations:26.0.2-1")
     annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 }
 
-def targetJavaVersion = 25
+val targetJavaVersion = 25
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    val javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
     if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+        toolchain.languageVersion.set(JavaLanguageVersion.of(targetJavaVersion))
     }
 }

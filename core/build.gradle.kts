@@ -5,8 +5,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly "org.jetbrains:annotations:24.1.0"
-    annotationProcessor "org.jetbrains:annotations:24.1.0"
+    compileOnly("org.jetbrains:annotations:24.1.0")
+    annotationProcessor("org.jetbrains:annotations:24.1.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.10.1")
@@ -19,11 +19,11 @@ dependencies {
     testAnnotationProcessor("org.jetbrains:annotations:24.1.0")
 }
 
-javadoc {
+tasks.javadoc {
     options.encoding = "UTF-8"
 }
 
-test {
+tasks.test {
     useJUnitPlatform()
 
     // Test execution configuration
@@ -51,73 +51,65 @@ test {
         excludeTestsMatching("*PerformanceTest*")
         excludeTestsMatching("*SlowTest*")
     }
-
 }
 
-compileJava {
-    options.compilerArgs << "-parameters"
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add("-parameters")
 }
 
-compileTestJava {
-    options.compilerArgs << "-parameters"
-}
-
-def targetJavaVersion = 17
+val targetJavaVersion = 17
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    val javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
     if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+        toolchain.languageVersion.set(JavaLanguageVersion.of(targetJavaVersion))
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
+tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        options.release = targetJavaVersion
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
+        options.release.set(targetJavaVersion)
     }
 }
 
 // Task for running only fast tests during development
-// Task for running only fast tests during development
-tasks.register('fastTest', Test) {
+tasks.register<Test>("fastTest") {
     useJUnitPlatform()
 
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
 
-    include '**/basics/**'
-    include '**/arguments/**'
-    include '**/flags/**'
-    include '**/parameters/**'
-    include '**/errors/**'
-    include '**/integration/**'
-    include '**/enhanced/**'
+    include("**/basics/**")
+    include("**/arguments/**")
+    include("**/flags/**")
+    include("**/parameters/**")
+    include("**/errors/**")
+    include("**/integration/**")
+    include("**/enhanced/**")
 
     testLogging {
-        events 'passed', 'skipped', 'failed'
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
+        events("passed", "skipped", "failed")
+        exceptionFormat = TestExceptionFormat.SHORT
     }
 
     description = "Runs fast unit tests for development"
     group = "verification"
 }
 
-
-
 // Task for running integration tests
-tasks.register('integrationTest', Test) {
+tasks.register<Test>("integrationTest") {
     useJUnitPlatform()
 
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
 
-    include '**/integration/**'
+    include("**/integration/**")
 
     testLogging {
-        events 'passed', 'skipped', 'failed'
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events("passed", "skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
         showStandardStreams = true
     }
 
@@ -126,17 +118,17 @@ tasks.register('integrationTest', Test) {
 }
 
 // Task for running all functional tests (no performance)
-tasks.register('functionalTest', Test) {
+tasks.register<Test>("functionalTest") {
     useJUnitPlatform()
 
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
 
-    exclude '**/performance/**'
+    exclude("**/performance/**")
 
     testLogging {
-        events 'passed', 'skipped', 'failed'
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events("passed", "skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
     }
 
     description = "Runs all functional tests (excludes performance tests)"
