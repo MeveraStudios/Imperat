@@ -174,15 +174,13 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         }
         //comboParams.addAll(usage.getParameters());
 
-        var comboUsage = CommandUsage.<S>builder()
+        return CommandUsage.<S>builder()
             .coordinator(usage.getCoordinator())
             .description(subCommand.description().getValue())
             .cooldown(usage.getCooldown())
             .parameters(comboParams)
             .execute(usage.getExecution())
             .build(subCommand, usage.isHelp());
-
-        return comboUsage;
     }
 
     /**
