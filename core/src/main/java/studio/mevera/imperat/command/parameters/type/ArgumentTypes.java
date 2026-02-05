@@ -1,6 +1,7 @@
 package studio.mevera.imperat.command.parameters.type;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.parameters.Either;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.TypeWrap;
@@ -82,5 +83,13 @@ public final class ArgumentTypes {
             ArgumentType<S, T> resolverType
     ) {
         return new OptionalArgument<>(typeWrap, resolverType);
+    }
+
+    public static <S extends Source, A, B> EitherArgument<S, A, B> either(
+        TypeWrap<Either<A, B>> typeWrap,
+        TypeWrap<A> typeA,
+        TypeWrap<B> typeB
+    ) {
+        return new EitherArgument<>(typeWrap, typeA, typeB);
     }
 }

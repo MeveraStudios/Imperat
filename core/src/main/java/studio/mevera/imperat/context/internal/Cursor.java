@@ -618,4 +618,6 @@ public interface Cursor<S extends Source> {
     default boolean hasFinished() {
         return !hasNextRaw();
     }
+
+    void setAt(Cursor<S> cursorCopy);
 }

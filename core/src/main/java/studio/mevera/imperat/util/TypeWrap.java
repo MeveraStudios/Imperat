@@ -44,7 +44,7 @@ public abstract class TypeWrap<T> {
     }
 
     public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, List<ArgumentType<S, ?>> genericParamTypes) {
-        if (!(rawClass instanceof Class<?> clazz)) {
+        if (!(rawClass instanceof Class<?>)) {
             throw new IllegalArgumentException("Raw class must be a class.");
         }
 
@@ -57,14 +57,23 @@ public abstract class TypeWrap<T> {
             typeArgs[i] = genericParamTypes.get(i).type();
         }
 
+        return ofParameterized(rawClass, typeArgs);
+
+    }
+
+    public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, Type... genericTypes) {
+        if (!(rawClass instanceof Class<?> clazz)) {
+            throw new IllegalArgumentException("Raw class must be a class.");
+        }
+
         ParameterizedType parameterizedType = new ParameterizedType() {
             @Override
             public Type @NotNull [] getActualTypeArguments() {
-                return typeArgs;
+                return genericTypes;
             }
 
             @Override
-            public Type getRawType() {
+            public @NotNull Type getRawType() {
                 return clazz;
             }
 

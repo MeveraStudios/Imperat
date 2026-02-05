@@ -20,11 +20,11 @@ final class CursorImpl<S extends Source> implements Cursor<S> {
     // Cache to store the starting position of each raw argument in the input line
     private final int[] rawStartPositions;
 
-    private Argument<S> cachedCurrentParameter = null;
-    private String cachedCurrentRaw = null;
-    private int lastParameterPosition = -1;
-    private int lastRawPosition = -1;
-    private boolean cacheValid = false;
+    Argument<S> cachedCurrentParameter = null;
+    String cachedCurrentRaw = null;
+    int lastParameterPosition = -1;
+    int lastRawPosition = -1;
+    boolean cacheValid = false;
 
     CursorImpl(ArgumentInput queue, CommandUsage<S> usage) {
         this(queue, usage.getParameters());
@@ -327,5 +327,12 @@ final class CursorImpl<S extends Source> implements Cursor<S> {
     @Override
     public void exemptParameter(Argument<S> matchingFlagParameter) {
         parametersList.remove(matchingFlagParameter);
+    }
+
+    @Override
+    public void setAt(Cursor<S> cursorCopy) {
+        this.streamPosition.raw = cursorCopy.position().getRaw();
+        this.streamPosition.parameter = cursorCopy.position().getParameter();
+        updateCache();
     }
 }
