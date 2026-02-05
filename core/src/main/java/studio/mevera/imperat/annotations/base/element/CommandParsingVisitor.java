@@ -497,6 +497,14 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         Shortcut shortcutAnn = method.getAnnotation(Shortcut.class);
         if(shortcutAnn != null) {
+            if(shortcutAnn.value().isEmpty() ) {
+                throw new IllegalStateException("Shortcut value cannot be empty for method '" + method.getName() + "'");
+            }
+
+            if(shortcutAnn.value().contains(" ")) {
+                throw new IllegalStateException("Shortcut value cannot contain spaces for method '" + method.getName() + "'");
+            }
+
             var shortcut = loadUsageShortcut(method, usageData, loadedCmd, usage, shortcutAnn);
             loadedCmd.addShortcut(shortcut);
         }
