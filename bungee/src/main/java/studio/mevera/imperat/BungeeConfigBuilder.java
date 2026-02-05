@@ -18,8 +18,8 @@ import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.exception.UnknownServerException;
 import studio.mevera.imperat.resolvers.BungeePermissionChecker;
-import studio.mevera.imperat.type.ParameterProxiedPlayer;
-import studio.mevera.imperat.type.ParameterServerInfo;
+import studio.mevera.imperat.type.ProxiedPlayerArgument;
+import studio.mevera.imperat.type.ServerInfoArgument;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.reflection.Reflections;
 
@@ -139,9 +139,9 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void registerValueResolvers() {
-        config.registerParamType(ProxiedPlayer.class, new ParameterProxiedPlayer());
+        config.registerArgType(ProxiedPlayer.class, new ProxiedPlayerArgument());
         // Enhanced parameter types similar to Velocity
-        config.registerParamType(ServerInfo.class, new ParameterServerInfo());
+        config.registerArgType(ServerInfo.class, new ServerInfoArgument());
     }
 
     @Override

@@ -14,7 +14,7 @@ import studio.mevera.imperat.command.ContextResolverRegistry;
 import studio.mevera.imperat.command.ReturnResolverRegistry;
 import studio.mevera.imperat.command.SourceResolverRegistry;
 import studio.mevera.imperat.command.parameters.NumericRange;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -24,7 +24,7 @@ import studio.mevera.imperat.command.suggestions.SuggestionResolverRegistry;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.ParamTypeRegistry;
+import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.exception.CooldownException;
@@ -75,7 +75,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
     private final ContextResolverRegistry<S> contextResolverRegistry;
-    private final ParamTypeRegistry<S> paramTypeRegistry;
+    private final ArgumentTypeRegistry<S> argumentTypeRegistry;
     private final SuggestionResolverRegistry<S> suggestionResolverRegistry;
     private final PlaceholderRegistry<S> placeholderRegistry;
     private final SourceResolverRegistry<S> sourceResolverRegistry;
@@ -106,7 +106,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault();
-        paramTypeRegistry = ParamTypeRegistry.createDefault();
+        argumentTypeRegistry = ArgumentTypeRegistry.createDefault();
         suggestionResolverRegistry = SuggestionResolverRegistry.createDefault(this);
         sourceResolverRegistry = SourceResolverRegistry.createDefault();
         returnResolverRegistry = ReturnResolverRegistry.createDefault();
@@ -434,20 +434,19 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     /**
-     * Registers {@link ParameterType}
+     * Registers {@link ArgumentType}
      *
      * @param type     the class-valueType of value being resolved from context
      * @param resolver the resolver for this value
      */
-    @Override
     @SuppressWarnings("unchecked")
-    public <T> void registerParamType(Type type, @NotNull ParameterType<S, T> resolver) {
+    public <T> void registerArgType(Type type, @NotNull ArgumentType<S, T> resolver) {
         Preconditions.notNull(type, "type");
         Preconditions.notNull(resolver, "resolver");
-        paramTypeRegistry.registerResolver(type, () -> resolver);
+        argumentTypeRegistry.registerResolver(type, () -> resolver);
 
         Class<T> rawType = (Class<T>) TypeWrap.of(type).getRawType();
-        paramTypeRegistry.registerArrayInitializer(rawType, (length) -> (Object[]) Array.newInstance(rawType, length));
+        argumentTypeRegistry.registerArrayInitializer(rawType, (length) -> (Object[]) Array.newInstance(rawType, length));
     }
 
     /**
@@ -463,7 +462,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public <C extends Collection<?>> void registerCollectionInitializer(Class<C> collectionType, Supplier<C> newInstanceSupplier) {
         Preconditions.notNull(collectionType, "collectionType");
         Preconditions.notNull(newInstanceSupplier, "newInstanceSupplier");
-        paramTypeRegistry.registerCollectionInitializer(collectionType, newInstanceSupplier);
+        argumentTypeRegistry.registerCollectionInitializer(collectionType, newInstanceSupplier);
     }
 
     /**
@@ -479,7 +478,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public <M extends Map<?, ?>> void registerMapInitializer(Class<M> mapType, Supplier<M> newInstanceSupplier) {
         Preconditions.notNull(mapType, "mapType");
         Preconditions.notNull(newInstanceSupplier, "newInstanceSupplier");
-        paramTypeRegistry.registerMapInitializer(mapType, newInstanceSupplier);
+        argumentTypeRegistry.registerMapInitializer(mapType, newInstanceSupplier);
     }
 
     /**
@@ -506,14 +505,14 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
 
     /**
-     * Fetches {@link ParameterType} for a certain value
+     * Fetches {@link ArgumentType} for a certain value
      *
      * @param resolvingValueType the value that the resolver ends providing it from the context
      * @return the context resolver of a certain valueType
      */
     @Override
-    public @Nullable ParameterType<S, ?> getParameterType(Type resolvingValueType) {
-        return paramTypeRegistry.getResolver(resolvingValueType).orElse(null);
+    public @Nullable ArgumentType<S, ?> getArgumentType(Type resolvingValueType) {
+        return argumentTypeRegistry.getResolver(resolvingValueType).orElse(null);
     }
 
     @Override
@@ -608,8 +607,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      */
     @Override
     public @Nullable SuggestionResolver<S> getSuggestionResolverByType(Type type) {
-        return paramTypeRegistry.getResolver(type)
-                       .map(ParameterType::getSuggestionResolver)
+        return argumentTypeRegistry.getResolver(type)
+                       .map(ArgumentType::getSuggestionResolver)
                        .orElse(null);
     }
 

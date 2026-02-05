@@ -32,7 +32,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
 
     @Test
     @DisplayName("Should parse custom parameter types")
-    void testCustomParameterTypes() {
+    void testCustomArgumentTypes() {
         ExecutionResult<TestSource> result = execute("give apple mqzen 5");
         assertSuccess(result);
         assertArgument(result, "item", "apple");

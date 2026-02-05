@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.Source;
  * Represents a behavior that deals with numeric
  * inputs if they are ranged from min to max using {@link NumericRange}
  */
-public interface NumericParameter<S extends Source> extends CommandParameter<S> {
+public interface NumericParameter<S extends Source> extends Argument<S> {
 
     /**
      * @return The actual range of the numeric parameter

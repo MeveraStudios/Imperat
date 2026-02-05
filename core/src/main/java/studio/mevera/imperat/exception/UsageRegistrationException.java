@@ -4,7 +4,7 @@ import studio.mevera.imperat.ConfigBuilder;
 import studio.mevera.imperat.annotations.Greedy;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.verification.UsageVerifier;
 
@@ -16,8 +16,8 @@ import studio.mevera.imperat.verification.UsageVerifier;
  *
  * <p>
  * The default {@link UsageVerifier} has the following rules:
- * Rule 1: At-MOST, only one greedy {@link CommandParameter} is allowed in a {@link CommandUsage}
- * Rule 2: The position of a greedy {@link CommandParameter} MUST be the LAST.
+ * Rule 1: At-MOST, only one greedy {@link Argument} is allowed in a {@link CommandUsage}
+ * Rule 2: The position of a greedy {@link Argument} MUST be the LAST.
  * </p>
  *
  * <p>

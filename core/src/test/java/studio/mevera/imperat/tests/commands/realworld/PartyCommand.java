@@ -5,7 +5,7 @@ import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.Description;
 import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.tests.TestSource;
 
@@ -13,7 +13,7 @@ import studio.mevera.imperat.tests.TestSource;
 //@Permission("voxy.party")
 public class PartyCommand {
 
-    @Usage
+    @Execute
     @SubCommand(value = "help", attachment = AttachmentMode.EMPTY)
     @Description("Sends a help message")
     public void help(

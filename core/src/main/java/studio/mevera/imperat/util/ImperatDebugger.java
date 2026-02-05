@@ -1,7 +1,7 @@
 package studio.mevera.imperat.util;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
 import java.util.List;
@@ -85,11 +85,11 @@ public final class ImperatDebugger {
         LOGGER.log(Level.SEVERE, ex, () -> String.format("Error in class '%s', in method '%s' due to '%s'", owningClass.getName(), method, message));
     }
 
-    public static <S extends Source> void debugParameters(String msg, List<CommandParameter<S>> parameters) {
+    public static <S extends Source> void debugParameters(String msg, List<Argument<S>> parameters) {
         if (!enabled) {
             return;
         }
-        LOGGER.log(Level.INFO, () -> String.format(msg, parameters.stream().map(CommandParameter::format)
+        LOGGER.log(Level.INFO, () -> String.format(msg, parameters.stream().map(Argument::format)
                                                                 .collect(Collectors.joining(","))));
     }
 

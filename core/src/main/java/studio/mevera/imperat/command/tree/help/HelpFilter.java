@@ -1,6 +1,6 @@
 package studio.mevera.imperat.command.tree.help;
 
-import studio.mevera.imperat.command.tree.ParameterNode;
+import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.context.Source;
 
 /**
@@ -24,7 +24,7 @@ public interface HelpFilter<S extends Source> {
      * @return {@code true} if the node passes the filter and should be included,
      *         {@code false} if it should be excluded
      */
-    boolean filter(ParameterNode<S, ?> node);
+    boolean filter(CommandNode<S, ?> node);
 
     /**
      * Creates a composite filter that requires both this and another filter to pass.

@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.suggestions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
@@ -64,7 +64,7 @@ public final class SuggestionResolverRegistry<S extends Source> {
         }
 
         @Override
-        public List<String> autoComplete(SuggestionContext<S> context, CommandParameter<S> parameter) {
+        public List<String> autoComplete(SuggestionContext<S> context, Argument<S> parameter) {
             Type type = parameter.valueType();
             return getResults(type)
                            .orElseGet(() -> {

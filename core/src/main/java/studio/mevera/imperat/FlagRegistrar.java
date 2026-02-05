@@ -1,6 +1,6 @@
 package studio.mevera.imperat;
 
-import studio.mevera.imperat.command.parameters.FlagParameter;
+import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 
@@ -21,7 +21,7 @@ public interface FlagRegistrar<S extends Source> {
      *
      * @return a {@link Set} containing all {@link FlagData} objects that have been registered.
      */
-    Set<FlagParameter<S>> getRegisteredFlags();
+    Set<FlagArgument<S>> getRegisteredFlags();
 
     default boolean isFlagRegistered(String flagName) {
         return getRegisteredFlags().stream()

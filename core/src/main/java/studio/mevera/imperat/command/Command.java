@@ -1,4 +1,5 @@
 package studio.mevera.imperat.command;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -7,10 +8,9 @@ import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.BaseThrowableHandler;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
-import studio.mevera.imperat.command.parameters.type.ParameterTypes;
+import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -35,7 +35,7 @@ import java.util.function.Predicate;
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface Command<S extends Source> extends CommandParameter<S>, BaseThrowableHandler<S> {
+public interface Command<S extends Source> extends Argument<S>, BaseThrowableHandler<S> {
 
     static <S extends Source> Command.Builder<S> create(@NotNull Imperat<S> imperat, String name) {
         return create(imperat, null, name);
@@ -167,12 +167,12 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
      * Retrieves the parameter type associated with the current command,
      * including its name and any aliases.
      *
-     * @return a ParameterType instance representing the command's parameter type,
+     * @return a ArgumentType instance representing the command's parameter type,
      *         encapsulating its name and aliases
      */
     @Override
-    default @NotNull ParameterType<S, ?> type() {
-        return ParameterTypes.command(name(), aliases());
+    default @NotNull ArgumentType<S, ?> type() {
+        return ArgumentTypes.command(name(), aliases());
     }
 
     /**

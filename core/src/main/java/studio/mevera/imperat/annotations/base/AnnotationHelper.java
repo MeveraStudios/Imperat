@@ -13,7 +13,7 @@ import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -27,7 +27,7 @@ public final class AnnotationHelper {
 
     public static <S extends Source> Object[] loadParameterInstances(
             Imperat<S> dispatcher,
-            List<CommandParameter<S>> fullParameters,
+            List<Argument<S>> fullParameters,
             S source,
             ExecutionContext<S> context,
             MethodElement method
@@ -72,7 +72,7 @@ public final class AnnotationHelper {
                 }
             }
 
-            CommandParameter<S> parameter = getUsageParam(fullParameters, p);
+            Argument<S> parameter = getUsageParam(fullParameters, p);
             if (parameter == null) {
                 if (actualParameter.isAnnotationPresent(Flag.class)) {
                     Flag flag = actualParameter.getAnnotation(Flag.class);
@@ -101,7 +101,7 @@ public final class AnnotationHelper {
         return paramsInstances;
     }
 
-    private static <S extends Source> @Nullable CommandParameter<S> getUsageParam(List<? extends CommandParameter<S>> params, int index) {
+    private static <S extends Source> @Nullable Argument<S> getUsageParam(List<? extends Argument<S>> params, int index) {
         if (index < 0 || index >= params.size()) {
             return null;
         }

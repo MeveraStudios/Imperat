@@ -3,7 +3,7 @@ package studio.mevera.imperat.tests.commands;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
@@ -16,7 +16,7 @@ public final class TestCommands {
                                                                     source.reply("/group <group>");
                                                                 })
                                                                 .usage(CommandUsage.<TestSource>builder()
-                                                                               .parameters(CommandParameter.requiredText("group"))
+                                                                               .parameters(Argument.requiredText("group"))
                                                                                .execute((source, context) -> {
                                                                                    source.reply("Executing /group " + context.getArgument("group")
                                                                                                         + " without any other args");
@@ -27,8 +27,8 @@ public final class TestCommands {
                                                                         Command.create(ImperatTestGlobals.IMPERAT, "setperm")
                                                                                 .usage(CommandUsage.<TestSource>builder()
                                                                                                .parameters(
-                                                                                                       CommandParameter.requiredText("permission"),
-                                                                                                       CommandParameter.<TestSource>optionalBoolean(
+                                                                                                       Argument.requiredText("permission"),
+                                                                                                       Argument.<TestSource>optionalBoolean(
                                                                                                                "value").defaultValue(false)
                                                                                                )
                                                                                                .execute((source, ctx) -> {
@@ -47,7 +47,7 @@ public final class TestCommands {
                                                                                     .usage(
                                                                                             CommandUsage.<TestSource>builder()
                                                                                                     .parameters(
-                                                                                                            CommandParameter.requiredText("prefix")
+                                                                                                            Argument.requiredText("prefix")
                                                                                                     )
                                                                                                     .execute((source, ctx) -> {
                                                                                                         String group = ctx.getArgument("group");
@@ -63,7 +63,7 @@ public final class TestCommands {
                                                                                     .usage(
                                                                                             CommandUsage.<TestSource>builder()
                                                                                                     .parameters(
-                                                                                                            CommandParameter.<TestSource>optionalInt(
+                                                                                                            Argument.<TestSource>optionalInt(
                                                                                                                     "page").defaultValue(1)
                                                                                                     )
                                                                                                     .execute((source, context) -> {
@@ -90,7 +90,7 @@ public final class TestCommands {
                                         source.reply("FIRST, DEF EXEC");
                                     })
                                     .usage(CommandUsage.<TestSource>builder()
-                                                   .parameters(CommandParameter.requiredText("arg1"))
+                                                   .parameters(Argument.requiredText("arg1"))
                                                    .execute((source, context) -> source.reply("Arg1= " + context.getArgument("arg1")))
 
                                     )
@@ -98,7 +98,7 @@ public final class TestCommands {
                                             Command.create(ImperatTestGlobals.IMPERAT, "second")
                                                     .defaultExecution((source, context) -> source.reply("SECOND, DEF EXEC"))
                                                     .usage(CommandUsage.<TestSource>builder()
-                                                                   .parameters(CommandParameter.requiredText("arg2"))
+                                                                   .parameters(Argument.requiredText("arg2"))
                                                                    .execute((source, ctx) -> source.reply(
                                                                            "Arg1= " + ctx.getArgument("arg1") + ", Arg2= " + ctx.getArgument("arg2")))
                                                     )
@@ -106,7 +106,7 @@ public final class TestCommands {
                                                             Command.create(ImperatTestGlobals.IMPERAT, "third")
                                                                     .defaultExecution((source, context) -> source.reply("THIRD, DEF EXEC"))
                                                                     .usage(CommandUsage.<TestSource>builder()
-                                                                                   .parameters(CommandParameter.requiredText("arg3"))
+                                                                                   .parameters(Argument.requiredText("arg3"))
                                                                                    .execute((source, ctx) -> source.reply(
                                                                                            "Arg1= " + ctx.getArgument("arg1") + ", " +
                                                                                                    "Arg2= " + ctx.getArgument("arg2") + ", Arg3= "
@@ -126,10 +126,10 @@ public final class TestCommands {
                     .usage(
                             CommandUsage.<TestSource>builder()
                                     .parameters(
-                                            CommandParameter.requiredText("r1"),
-                                            CommandParameter.optionalText("o1"),
-                                            CommandParameter.requiredText("r2"),
-                                            CommandParameter.optionalText("o2")
+                                            Argument.requiredText("r1"),
+                                            Argument.optionalText("o1"),
+                                            Argument.requiredText("r2"),
+                                            Argument.optionalText("o2")
                                     )
 
                     )
@@ -144,11 +144,11 @@ public final class TestCommands {
                                                                   .usage(
                                                                           CommandUsage.<TestSource>builder()
                                                                                   .parameters(
-                                                                                          CommandParameter.requiredText("player"),
-                                                                                          CommandParameter.<TestSource>flagSwitch("silent")
+                                                                                          Argument.requiredText("player"),
+                                                                                          Argument.<TestSource>flagSwitch("silent")
                                                                                                   .aliases("s"),
-                                                                                          CommandParameter.optionalText("duration"),
-                                                                                          CommandParameter.<TestSource>optionalGreedy("reason")
+                                                                                          Argument.optionalText("duration"),
+                                                                                          Argument.<TestSource>optionalGreedy("reason")
                                                                                                   .defaultValue("Breaking server laws")
                                                                                   )
                                                                                   .execute((source, context) -> {

@@ -1,7 +1,7 @@
 package studio.mevera.imperat.util;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.Source;
 
 import java.lang.reflect.Array;
@@ -43,7 +43,7 @@ public abstract class TypeWrap<T> {
         return new Bounds(bounds, true);
     }
 
-    public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, List<ParameterType<S, ?>> genericParamTypes) {
+    public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, List<ArgumentType<S, ?>> genericParamTypes) {
         if (!(rawClass instanceof Class<?> clazz)) {
             throw new IllegalArgumentException("Raw class must be a class.");
         }

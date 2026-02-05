@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.tree.ParameterNode;
+import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionChecker;
@@ -22,14 +22,14 @@ public final class HelpFilters {
      * Creates a filter that only includes executable nodes.
      */
     public static <S extends Source> HelpFilter<S> executable() {
-        return ParameterNode::isExecutable;
+        return CommandNode::isExecutable;
     }
 
     /**
      * Creates a filter that only includes command nodes.
      */
     public static <S extends Source> HelpFilter<S> commands() {
-        return ParameterNode::isCommand;
+        return CommandNode::isCommand;
     }
 
     /**
@@ -122,14 +122,14 @@ public final class HelpFilters {
      * Creates a filter for optional parameters only.
      */
     public static <S extends Source> HelpFilter<S> optional() {
-        return ParameterNode::isOptional;
+        return CommandNode::isOptional;
     }
 
     /**
      * Creates a filter for required parameters only.
      */
     public static <S extends Source> HelpFilter<S> required() {
-        return ParameterNode::isRequired;
+        return CommandNode::isRequired;
     }
 
     /**

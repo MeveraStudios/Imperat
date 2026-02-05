@@ -7,7 +7,7 @@ import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -368,8 +368,8 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return The current instance of {@code ConfigBuilder}, allowing method chaining.
      */
     // Parameter Type
-    public <T> B parameterType(Type type, ParameterType<S, T> resolver) {
-        config.registerParamType(type, resolver);
+    public <T> B ArgumentType(Type type, ArgumentType<S, T> resolver) {
+        config.registerArgType(type, resolver);
         return (B) this;
     }
 

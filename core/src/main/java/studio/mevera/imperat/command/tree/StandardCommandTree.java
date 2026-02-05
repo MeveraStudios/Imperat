@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.tree.help.HelpEntryFactory;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpFilter;
@@ -33,15 +33,15 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     // Pre-computed immutable collections to eliminate allocations
     private final static int INITIAL_SUGGESTIONS_CAPACITY = 20;
-    final CommandNode<S> root;
-    final CommandNode<S> uniqueRoot;
+    final LiteralCommandNode<S> root;
+    final LiteralCommandNode<S> uniqueRoot;
     private final Command<S> rootCommand;
     // Pre-sized collections for common operations
-    private final ThreadLocal<ArrayList<ParameterNode<S, ?>>> pathBuffer =
+    private final ThreadLocal<ArrayList<CommandNode<S, ?>>> pathBuffer =
             ThreadLocal.withInitial(() -> new ArrayList<>(16));
 
     // Optimized flag cache with better hashing
-    private final ThreadLocal<ArrayList<CommandParameter<S>>> paramBuffer =
+    private final ThreadLocal<ArrayList<Argument<S>>> paramBuffer =
             ThreadLocal.withInitial(() -> new ArrayList<>(8));
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
@@ -51,7 +51,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
         this.rootCommand = command;
-        this.root = ParameterNode.createCommandNode(null, command, -1, command.getDefaultUsage());
+        this.root = CommandNode.createCommandNode(null, command, -1, command.getDefaultUsage());
         this.imperatConfig = imperatConfig;
         this.permissionChecker = imperatConfig.getPermissionChecker();
         this.uniqueRoot = root.copy();
@@ -95,12 +95,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     @Override
-    public @NotNull CommandNode<S> rootNode() {
+    public @NotNull LiteralCommandNode<S> rootNode() {
         return root;
     }
 
     @Override
-    public @NotNull CommandNode<S> uniqueVersionedTree() {
+    public @NotNull LiteralCommandNode<S> uniqueVersionedTree() {
         return uniqueRoot;
     }
 
@@ -140,11 +140,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     private void addParametersToTree(
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             CommandUsage<S> usage,
-            List<CommandParameter<S>> parameters,
+            List<Argument<S>> parameters,
             int index,
-            List<ParameterNode<S, ?>> path
+            List<CommandNode<S, ?>> path
     ) {
         final int paramSize = parameters.size();
         if (index >= paramSize) {
@@ -196,9 +196,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     private void addParametersWithoutOptionalBranchingToTree(
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             CommandUsage<S> usage,
-            List<CommandParameter<S>> parameters,
+            List<Argument<S>> parameters,
             int index
     ) {
         final int paramSize = parameters.size();
@@ -227,7 +227,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     /**
      * Optimized flag sequence detection in single pass
      */
-    private int findFlagSequenceEnd(List<CommandParameter<S>> parameters, int startIndex) {
+    private int findFlagSequenceEnd(List<Argument<S>> parameters, int startIndex) {
         if (startIndex >= parameters.size()) {
             return startIndex;
         }
@@ -255,12 +255,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Now generates all possible combinations (subsets) of flags, not just full permutations
      */
     private void handleFlagSequenceOptimized(
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             CommandUsage<S> usage,
-            List<CommandParameter<S>> allParameters,
+            List<Argument<S>> allParameters,
             int flagStart,
             int flagEnd,
-            List<ParameterNode<S, ?>> path
+            List<CommandNode<S, ?>> path
     ) {
         final var flagParams = paramBuffer.get();
         flagParams.clear();
@@ -282,12 +282,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * NEW METHOD: Generates all possible combinations (subsets) of optional flags
      */
     private void generateAllFlagCombinations(
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             CommandUsage<S> usage,
-            List<CommandParameter<S>> allParameters,
-            List<CommandParameter<S>> flagParams,
+            List<Argument<S>> allParameters,
+            List<Argument<S>> flagParams,
             int nextIndex,
-            List<ParameterNode<S, ?>> basePath
+            List<CommandNode<S, ?>> basePath
     ) {
         final int flagCount = flagParams.size();
 
@@ -297,7 +297,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
         for (int mask = 0; mask < totalCombinations; mask++) {
             // Create subset based on bitmask
-            final var subset = new ArrayList<CommandParameter<S>>();
+            final var subset = new ArrayList<Argument<S>>();
             for (int i = 0; i < flagCount; i++) {
                 if ((mask & (1 << i)) != 0) {
                     subset.add(flagParams.get(i));
@@ -322,12 +322,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * NEW METHOD: Generates all permutations for a specific subset of flags
      */
     private void generatePermutationsForSubset(
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             CommandUsage<S> usage,
-            List<CommandParameter<S>> allParameters,
-            List<CommandParameter<S>> subset,
+            List<Argument<S>> allParameters,
+            List<Argument<S>> subset,
             int nextIndex,
-            List<ParameterNode<S, ?>> basePath
+            List<CommandNode<S, ?>> basePath
     ) {
         if (subset.size() <= 3) {
             generateSmallPermutationsForSubset(currentNode, usage, allParameters, subset, nextIndex, basePath);
@@ -340,12 +340,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * MODIFIED METHOD: Handle small permutations for subsets
      */
     private void generateSmallPermutationsForSubset(
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             CommandUsage<S> usage,
-            List<CommandParameter<S>> allParameters,
-            List<CommandParameter<S>> subset,
+            List<Argument<S>> allParameters,
+            List<Argument<S>> subset,
             int nextIndex,
-            List<ParameterNode<S, ?>> basePath
+            List<CommandNode<S, ?>> basePath
     ) {
         final int size = subset.size();
         if (size == 1) {
@@ -375,12 +375,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * MODIFIED METHOD: Handle large permutations for subsets
      */
     private void generateLargePermutationsForSubset(
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             CommandUsage<S> usage,
-            List<CommandParameter<S>> allParameters,
-            List<CommandParameter<S>> subset,
+            List<Argument<S>> allParameters,
+            List<Argument<S>> subset,
             int nextIndex,
-            List<ParameterNode<S, ?>> basePath
+            List<CommandNode<S, ?>> basePath
     ) {
         // Create a working copy for Heap's algorithm
         final var workingSubset = new ArrayList<>(subset);
@@ -416,12 +416,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * MODIFIED METHOD: Enhanced to mark intermediate nodes as executable when appropriate
      */
     private void processPermutationPath(
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             CommandUsage<S> usage,
-            List<CommandParameter<S>> allParameters,
-            List<CommandParameter<S>> permutation,
+            List<Argument<S>> allParameters,
+            List<Argument<S>> permutation,
             int nextIndex,
-            List<ParameterNode<S, ?>> basePath
+            List<CommandNode<S, ?>> basePath
     ) {
         var nodePointer = currentNode;
         final var updatedPath = new ArrayList<>(basePath);
@@ -452,7 +452,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     /**
      * NEW HELPER METHOD: Check if all remaining parameters in the full parameter list are optional
      */
-    private boolean areAllRemainingParametersOptional(List<CommandParameter<S>> allParameters, int startIndex) {
+    private boolean areAllRemainingParametersOptional(List<Argument<S>> allParameters, int startIndex) {
         for (int i = startIndex; i < allParameters.size(); i++) {
             if (!allParameters.get(i).isOptional()) {
                 return false;
@@ -464,7 +464,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     /**
      * NEW HELPER METHOD: Check if all remaining flags in the current permutation are optional
      */
-    private boolean areAllRemainingFlagsInPermutationOptional(List<CommandParameter<S>> permutation, int startIndex) {
+    private boolean areAllRemainingFlagsInPermutationOptional(List<Argument<S>> permutation, int startIndex) {
         for (int i = startIndex; i < permutation.size(); i++) {
             if (!permutation.get(i).isOptional()) {
                 return false;
@@ -473,7 +473,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         return true;
     }
 
-    private ParameterNode<S, ?> getOrCreateChildNode(ParameterNode<S, ?> parent, CommandParameter<S> param, boolean onlyUnique) {
+    private CommandNode<S, ?> getOrCreateChildNode(CommandNode<S, ?> parent, Argument<S> param, boolean onlyUnique) {
         // Optimized child lookup with early termination
         final var children = parent.getChildren();
         final String paramName = param.name();
@@ -487,9 +487,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
 
         // Create new node
-        final ParameterNode<S, ?> newNode = param.isCommand()
-                                                    ? ParameterNode.createCommandNode(parent, param.asCommand(), parent.getDepth() + 1, null)
-                                                    : ParameterNode.createArgumentNode(parent, param, parent.getDepth() + 1, null);
+        final CommandNode<S, ?> newNode = param.isCommand()
+                                                    ? CommandNode.createCommandNode(parent, param.asCommand(), parent.getDepth() + 1, null)
+                                                    : CommandNode.createArgumentNode(parent, param, parent.getDepth() + 1, null);
 
         parent.addChild(newNode);
         if (onlyUnique) {
@@ -555,7 +555,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             CommandPathSearch<S> commandPathSearch,
             Context<S> context,
             ArgumentInput input,
-            @NotNull ParameterNode<S, ?> currentNode,
+            @NotNull CommandNode<S, ?> currentNode,
             int depth
     ) {
         final int inputSize = input.size();
@@ -624,7 +624,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private CommandPathSearch<S> handleLastDepth(
             CommandPathSearch<S> search,
             Context<S> context,
-            ParameterNode<S, ?> node,
+            CommandNode<S, ?> node,
             int depth
     ) {
         if (!node.matchesInput(depth, context)) {
@@ -659,7 +659,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             CommandPathSearch<S> commandPathSearch,
             Context<S> context,
             ArgumentInput input,
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> currentNode,
             int depth
     ) {
         // If node is required and doesn't match, fail immediately
@@ -709,7 +709,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Collects help entries in deep hierarchical mode - full tree traversal with structure
      */
     private void collectHelpEntries(
-            ParameterNode<S, ?> node,
+            CommandNode<S, ?> node,
             HelpQuery<S> query,
             HelpEntryList<S> results
     ) {
@@ -744,7 +744,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Applies all filters to a node
      * Short-circuits on first failed filter for efficiency
      */
-    private boolean passesFilters(ParameterNode<S, ?> node, Queue<HelpFilter<S>> filters) {
+    private boolean passesFilters(CommandNode<S, ?> node, Queue<HelpFilter<S>> filters) {
         for (HelpFilter<S> filter : filters) {
             if (!filter.filter(node)) {
                 return false;
@@ -783,7 +783,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     private void tabCompleteNode(
-            final ParameterNode<S, ?> node,
+            final CommandNode<S, ?> node,
             final SuggestionContext<S> context,
             int inputDepth,
             final List<String> results
@@ -828,8 +828,8 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Stops at required parameters (inclusive)
      */
     private void collectOverlappingSuggestions(
-            ParameterNode<S, ?> origin,
-            ParameterNode<S, ?> currentNode,
+            CommandNode<S, ?> origin,
+            CommandNode<S, ?> currentNode,
             SuggestionContext<S> context,
             List<String> results
     ) {
@@ -867,11 +867,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
     }
 
-    private boolean hasPermission(S source, ParameterNode<S, ?> node) {
+    private boolean hasPermission(S source, CommandNode<S, ?> node) {
         return permissionChecker.hasPermission(source, node.data);
     }
 
-    private boolean hasAutoCompletionPermission(S src, ParameterNode<S, ?> node) {
+    private boolean hasAutoCompletionPermission(S src, CommandNode<S, ?> node) {
         if (node.isCommand() && node.getData().asCommand().isIgnoringACPerms()) {
             return true;
         }
@@ -881,7 +881,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     /**
      * CACHED resolver lookup - Eliminates config lookups
      */
-    private SuggestionResolver<S> getResolverCached(CommandParameter<S> param) {
+    private SuggestionResolver<S> getResolverCached(Argument<S> param) {
         return imperatConfig.getParameterSuggestionResolver(param);
     }
 
@@ -906,7 +906,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                        : getClosestUsagesRecursively(new LinkedHashSet<>(), startingNode, context);
     }
 
-    private ParameterNode<S, ?> findStartingNode(Context<S> context, ParameterNode<S, ?> root) {
+    private CommandNode<S, ?> findStartingNode(Context<S> context, CommandNode<S, ?> root) {
         for (var child : root.getChildren()) {
             if (child.matchesInput(child.getDepth(), context)) {
                 return child;
@@ -917,7 +917,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     private Set<CommandUsage<S>> getClosestUsagesRecursively(
             Set<CommandUsage<S>> currentUsages,
-            ParameterNode<S, ?> node,
+            CommandNode<S, ?> node,
             Context<S> context
     ) {
         if (node.isExecutable()) {
@@ -947,7 +947,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     private void addPermittedUsages(
             Set<CommandUsage<S>> currentUsages,
-            ParameterNode<S, ?> child,
+            CommandNode<S, ?> child,
             Context<S> context
     ) {
         final var childUsages = getClosestUsagesRecursively(new LinkedHashSet<>(), child, context);

@@ -6,9 +6,9 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
 import studio.mevera.imperat.command.flags.FlagExtractor;
-import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.FlagParameter;
-import studio.mevera.imperat.command.parameters.ParameterBuilder;
+import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.FlagArgument;
+import studio.mevera.imperat.command.parameters.ArgumentBuilder;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
@@ -32,7 +32,7 @@ import java.util.function.Predicate;
  *
  * @see Command
  */
-public sealed interface CommandUsage<S extends Source> extends Iterable<CommandParameter<S>>, PermissionHolder, DescriptionHolder, CooldownHolder
+public sealed interface CommandUsage<S extends Source> extends Iterable<Argument<S>>, PermissionHolder, DescriptionHolder, CooldownHolder
         permits CommandUsageImpl {
 
 
@@ -40,9 +40,9 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         Preconditions.notNull(usage, "usage");
         StringBuilder builder = new StringBuilder(command.name()).append(' ');
 
-        List<CommandParameter<S>> params = usage.loadCombinedParameters();
+        List<Argument<S>> params = usage.loadCombinedParameters();
         int i = 0;
-        for (CommandParameter<S> parameter : params) {
+        for (Argument<S> parameter : params) {
             builder.append(parameter.format()).append(":").append(parameter.type().getClass().getSimpleName());
             if (i != params.size() - 1) {
                 builder.append(' ');
@@ -59,9 +59,9 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             builder.append(' ');
         }
 
-        List<CommandParameter<S>> params = usage.loadCombinedParameters();
+        List<Argument<S>> params = usage.loadCombinedParameters();
         int i = 0;
-        for (CommandParameter<S> parameter : params) {
+        for (Argument<S> parameter : params) {
             builder.append(parameter.format());
             if (i != params.size() - 1) {
                 builder.append(' ');
@@ -112,7 +112,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @return a non-null flag extractor configured for this command's flag definitions
      * @throws IllegalStateException if the command usage has not been properly initialized
      *                               or if no flag definitions are available
-     * @see FlagParameter
+     * @see FlagArgument
      * @since 1.9.6
      */
     @NotNull FlagExtractor<S> getFlagExtractor();
@@ -135,35 +135,35 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
     @Nullable
     FlagData<S> getFlagParameterFromRaw(String rawInput);
 
-    default void addFlag(CommandParameter<S> flagParam) {
+    default void addFlag(Argument<S> flagParam) {
         addFlag(flagParam.asFlagParameter());
     }
 
     /**
      * Adds a free flag to the usage
-     * @param flagData adds a free flag to the usage
+     * @param flagArgumentData adds a free flag to the usage
      */
-    void addFlag(FlagParameter<S> flagData);
+    void addFlag(FlagArgument<S> flagArgumentData);
 
     /**
      * Adds parameters to the usage
      *
      * @param params the parameters to add
      */
-    void addParameters(CommandParameter<S>... params);
+    void addParameters(Argument<S>... params);
 
     /**
      * Adds parameters to the usage
      *
      * @param params the parameters to add
      */
-    void addParameters(List<CommandParameter<S>> params);
+    void addParameters(List<Argument<S>> params);
 
     /**
      * @return the parameters for this usage
-     * @see CommandParameter
+     * @see Argument
      */
-    List<CommandParameter<S>> getParameters();
+    List<Argument<S>> getParameters();
 
     /**
      * The pre-defined syntax examples for this usage.
@@ -188,7 +188,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @return the parameter at specified index/position
      */
     @Nullable
-    CommandParameter<S> getParameter(int index);
+    Argument<S> getParameter(int index);
 
     /**
      * @return the execution for this usage
@@ -211,9 +211,9 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @return the merged command usage!
      */
     default CommandUsage<S> mergeWithCommand(Command<S> subCommand, CommandUsage<S> usage) {
-        List<CommandParameter<S>> comboParams = new ArrayList<>(this.getParameters());
+        List<Argument<S>> comboParams = new ArrayList<>(this.getParameters());
         comboParams.add(subCommand);
-        for (CommandParameter<S> param : usage.loadCombinedParameters()) {
+        for (Argument<S> param : usage.loadCombinedParameters()) {
             if (this.hasParameters((p) -> p.equals(param))) {
                 continue;
             }
@@ -254,17 +254,17 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * Searches for a parameter with specific valueType
      *
      * @param parameterPredicate the parameter condition
-     * @return whether this usage has atLeast on {@link CommandParameter} with specific condition
+     * @return whether this usage has atLeast on {@link Argument} with specific condition
      * or not
      */
-    boolean hasParameters(Predicate<CommandParameter<S>> parameterPredicate);
+    boolean hasParameters(Predicate<Argument<S>> parameterPredicate);
 
     /**
      * @param parameterPredicate the condition
      * @return the parameter to get using a condition
      */
     @Nullable
-    CommandParameter<S> getParameter(Predicate<CommandParameter<S>> parameterPredicate);
+    Argument<S> getParameter(Predicate<Argument<S>> parameterPredicate);
 
     /**
      * @return the cool down handler {@link CooldownHandler}
@@ -280,7 +280,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
     void setCooldownHandler(CooldownHandler<S> cooldownHandler);
 
     default boolean isDefault() {
-        return getParameters().isEmpty() || getParameters().stream().noneMatch(CommandParameter::isRequired);
+        return getParameters().isEmpty() || getParameters().stream().noneMatch(Argument::isRequired);
     }
 
     /**
@@ -314,7 +314,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
      * @param parameters the parameters
      * @return whether this usage has this sequence of parameters
      */
-    boolean hasParameters(List<CommandParameter<S>> parameters);
+    boolean hasParameters(List<Argument<S>> parameters);
 
     default int size() {
         return getParameters().size();
@@ -324,16 +324,16 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         return format((String) null, this);
     }
 
-    default CommandParameter<S> getLastParam() {
+    default Argument<S> getLastParam() {
         return getParameter(getParameters().size() - 1);
     }
 
-    List<CommandParameter<S>> loadCombinedParameters();
+    List<Argument<S>> loadCombinedParameters();
 
     class Builder<S extends Source> {
 
-        private final List<CommandParameter<S>> parameters = new ArrayList<>();
-        private final Set<FlagParameter<S>> flags = new HashSet<>();
+        private final List<Argument<S>> parameters = new ArrayList<>();
+        private final Set<FlagArgument<S>> flagArguments = new HashSet<>();
         private final List<String> examples = new ArrayList<>(3);
         private CommandExecution<S> execution = CommandExecution.empty();
         private String description = "N/A";
@@ -388,26 +388,26 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         }
 
         @SafeVarargs
-        public final Builder<S> parameters(ParameterBuilder<S, ?>... builders) {
+        public final Builder<S> parameters(ArgumentBuilder<S, ?>... builders) {
             return parameters(
-                    Arrays.stream(builders).map(ParameterBuilder::build).toList()
+                    Arrays.stream(builders).map(ArgumentBuilder::build).toList()
             );
         }
 
-        public final Builder<S> parameterBuilders(List<? extends ParameterBuilder<S, ?>> builders) {
+        public final Builder<S> parameterBuilders(List<? extends ArgumentBuilder<S, ?>> builders) {
             return parameters(
-                    builders.stream().map(ParameterBuilder::build).toList()
+                    builders.stream().map(ArgumentBuilder::build).toList()
             );
         }
 
         @SafeVarargs
-        public final Builder<S> parameters(CommandParameter<S>... params) {
+        public final Builder<S> parameters(Argument<S>... params) {
             return parameters(List.of(params));
         }
 
-        public Builder<S> parameters(List<CommandParameter<S>> params) {
+        public Builder<S> parameters(List<Argument<S>> params) {
             for (int i = 0; i < params.size(); i++) {
-                CommandParameter<S> parameter = params.get(i);
+                Argument<S> parameter = params.get(i);
                 if (!parameter.isCommand() && !parameter.isFlag()) {
                     parameter.position(i);
                 }
@@ -417,8 +417,8 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             return this;
         }
 
-        public Builder<S> registerFlags(Set<FlagParameter<S>> flags) {
-            this.flags.addAll(flags);
+        public Builder<S> registerFlags(Set<FlagArgument<S>> flagArguments) {
+            this.flagArguments.addAll(flagArguments);
             return this;
         }
 
@@ -446,7 +446,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             impl.addParameters(
                     parameters.stream().peek((p) -> p.parent(command)).toList()
             );
-            flags.forEach(impl::addFlag);
+            flagArguments.forEach(impl::addFlag);
             impl.addExamples(this.examples);
             return impl;
         }

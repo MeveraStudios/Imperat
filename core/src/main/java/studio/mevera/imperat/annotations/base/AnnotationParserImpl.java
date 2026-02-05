@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.base.element.MethodThrowableResolver;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
 import java.lang.annotation.Annotation;
@@ -55,7 +55,7 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
      * Registers a valueType of annotations so that it can be
      * detected by {@link AnnotationReader} , it's useful as it allows that valueType of annotation
      * to be recognized as a true Imperat-related annotation to be used in something like checking if a
-     * {@link CommandParameter} is annotated and checks for the annotations it has.
+     * {@link Argument} is annotated and checks for the annotations it has.
      *
      * @param type the valueType of annotation
      */

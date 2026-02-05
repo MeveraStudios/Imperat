@@ -45,13 +45,13 @@ public interface CommandTree<S extends Source> {
      *
      * @return the root command node, never null
      */
-    @NotNull CommandNode<S> rootNode();
+    @NotNull LiteralCommandNode<S> rootNode();
 
     /**
      * Gets the unique versioned tree.
      * @return the unique versioned tree.
      */
-    @NotNull CommandNode<S> uniqueVersionedTree();
+    @NotNull LiteralCommandNode<S> uniqueVersionedTree();
 
     /**
      * The number of nodes cached in this {@link CommandTree}.

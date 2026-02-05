@@ -5,14 +5,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
+import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.context.internal.sur.ParameterValueAssigner;
+import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -33,9 +34,9 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     private final CommandUsage<S> usage;
     private final Registry<String, ExtractedFlagArgument> flagRegistry = new Registry<>();
     //per command/subcommand because the class 'CommandProcessingChain' can be also treated as a sub command
-    private final Registry<Command<S>, Registry<String, Argument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
+    private final Registry<Command<S>, Registry<String, ParsedArgument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
     //all resolved arguments EXCEPT for subcommands and flags.
-    private final Registry<String, Argument<S>> allResolvedArgs = new Registry<>(LinkedHashMap::new);
+    private final Registry<String, ParsedArgument<S>> allResolvedArgs = new Registry<>(LinkedHashMap::new);
 
     //last command used
     private final Command<S> lastCommand;
@@ -62,7 +63,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return the argument resolved from raw into a value
      */
     @Override
-    public @Nullable Argument<S> getResolvedArgument(Command<S> command, String name) {
+    public @Nullable ParsedArgument<S> getResolvedArgument(Command<S> command, String name) {
         return resolvedArgumentsPerCommand.getData(command)
                        .flatMap((resolvedArgs) -> resolvedArgs.getData(name))
                        .orElse(null);
@@ -73,9 +74,9 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return the command/subcommand's resolved args in as a new array-list
      */
     @Override
-    public List<Argument<S>> getResolvedArguments(Command<S> command) {
+    public List<ParsedArgument<S>> getResolvedArguments(Command<S> command) {
         return resolvedArgumentsPerCommand.getData(command)
-                       .map((argMap) -> (List<Argument<S>>) new ArrayList<Argument<S>>(argMap.getAll()))
+                       .map((argMap) -> (List<ParsedArgument<S>>) new ArrayList<ParsedArgument<S>>(argMap.getAll()))
                        .orElse(Collections.emptyList());
     }
 
@@ -88,11 +89,11 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     }
 
     /**
-     * @return an ordered collection of {@link Argument} just like how they were entered
+     * @return an ordered collection of {@link ParsedArgument} just like how they were entered
      * NOTE: the flags are NOT included as a resolved argument, it's treated differently
      */
     @Override
-    public Collection<? extends Argument<S>> getResolvedArguments() {
+    public Collection<? extends ParsedArgument<S>> getResolvedArguments() {
         return allResolvedArgs.getAll();
     }
 
@@ -101,12 +102,12 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      *
      * @param name the name of the command
      * @return the value of the resolved argument
-     * @see Argument
+     * @see ParsedArgument
      */
     @Override
     @SuppressWarnings("unchecked")
     public <T> @Nullable T getArgument(String name) {
-        return (T) allResolvedArgs.getData(name).map(Argument::value)
+        return (T) allResolvedArgs.getData(name).map(ParsedArgument::value)
                            .orElse(null);
     }
 
@@ -184,18 +185,18 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
             Command<S> command,
             @Nullable String raw,
             int index,
-            CommandParameter<S> parameter,
+            Argument<S> parameter,
             @Nullable T value
     ) throws InvalidArgumentException {
-        final Argument<S> argument = new Argument<>(raw, parameter, index, value);
-        parameter.validate(this, argument);
+        final ParsedArgument<S> parsedArgument = new ParsedArgument<>(raw, parameter, index, value);
+        parameter.validate(this, parsedArgument);
         resolvedArgumentsPerCommand.update(command, (existingResolvedArgs) -> {
             if (existingResolvedArgs != null) {
-                return existingResolvedArgs.setData(parameter.name(), argument);
+                return existingResolvedArgs.setData(parameter.name(), parsedArgument);
             }
-            return new Registry<>(parameter.name(), argument, LinkedHashMap::new);
+            return new Registry<>(parameter.name(), parsedArgument, LinkedHashMap::new);
         });
-        allResolvedArgs.setData(parameter.name(), argument);
+        allResolvedArgs.setData(parameter.name(), parsedArgument);
     }
 
     @Override

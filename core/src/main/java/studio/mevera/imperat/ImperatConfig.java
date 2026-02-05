@@ -11,15 +11,15 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
-import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.context.internal.CommandInputStream;
+import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ContextFactory;
-import studio.mevera.imperat.context.internal.sur.ParameterValueAssigner;
+import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
@@ -70,16 +70,16 @@ public sealed interface ImperatConfig<S extends Source> extends
     void setThrowablePrinter(@NotNull ThrowablePrinter printer);
 
     /**
-     * Fetches {@link ParameterType} for a certain value
+     * Fetches {@link ArgumentType} for a certain value
      *
      * @param resolvingValueType the value that the resolver ends providing it from the context
      * @return the value resolver of a certain valueType
      */
     @Nullable
-    ParameterType<S, ?> getParameterType(Type resolvingValueType);
+    ArgumentType<S, ?> getArgumentType(Type resolvingValueType);
 
-    default boolean hasParameterType(Type type) {
-        return getParameterType(type) != null;
+    default boolean hasArgumentType(Type type) {
+        return getArgumentType(type) != null;
     }
 
     /**
@@ -204,15 +204,15 @@ public sealed interface ImperatConfig<S extends Source> extends
     <T> ContextResolver<S, T> getMethodParamContextResolver(@NotNull ParameterElement element);
 
     /**
-     * Fetches the {@link ContextResolver} suitable for the {@link CommandParameter}
+     * Fetches the {@link ContextResolver} suitable for the {@link Argument}
      *
-     * @param commandParameter the parameter of a command's usage
+     * @param Argument the parameter of a command's usage
      * @param <T>              the valueType of value that will be resolved by
-     * {@link ParameterType#resolve(ExecutionContext, CommandInputStream, String)}
+     * {@link ArgumentType#resolve(ExecutionContext, Cursor, String)}
      * @return the context resolver for this parameter's value valueType
      */
-    default <T> ContextResolver<S, T> getContextResolver(CommandParameter<S> commandParameter) {
-        return getContextResolver(commandParameter.valueType());
+    default <T> ContextResolver<S, T> getContextResolver(Argument<S> Argument) {
+        return getContextResolver(Argument.valueType());
     }
 
     /**

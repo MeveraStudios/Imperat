@@ -9,19 +9,19 @@ import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.Optional;
 import studio.mevera.imperat.annotations.Range;
 import studio.mevera.imperat.annotations.Switch;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("ban")
 @Description("Main command for banning players")
 public final class BanCommand {
 
-    @Usage
+    @Execute
     public void showUsage(TestSource source) {
         source.reply("/ban <player> [-silent] [duration] [reason...]");
     }
 
-    @Usage
+    @Execute
     public void ban(
             TestSource source,
             @Named("target") String player,

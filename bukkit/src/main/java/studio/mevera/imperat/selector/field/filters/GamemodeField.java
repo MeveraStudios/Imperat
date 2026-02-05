@@ -5,7 +5,7 @@ import org.bukkit.entity.HumanEntity;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.context.internal.CommandInputStream;
+import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.selector.EntityCondition;
@@ -24,7 +24,7 @@ final class GamemodeField extends PredicateField<GameMode> {
     }
 
     @Override
-    protected @NotNull EntityCondition getCondition(GameMode value, CommandInputStream<BukkitSource> commandInputStream,
+    protected @NotNull EntityCondition getCondition(GameMode value, Cursor<BukkitSource> cursor,
             Context<BukkitSource> context) {
         return ((sender, entity) -> {
             if (!(entity instanceof HumanEntity humanEntity)) {

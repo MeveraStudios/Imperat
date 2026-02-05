@@ -46,12 +46,12 @@ import studio.mevera.imperat.tests.commands.realworld.economy.CurrencyParamType;
 import studio.mevera.imperat.tests.commands.realworld.economy.EconomyCommand;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.AnnotatedGroupCommand;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
-import studio.mevera.imperat.tests.commands.realworld.groupcommand.ParameterGroup;
+import studio.mevera.imperat.tests.commands.realworld.groupcommand.GroupArgument;
 import studio.mevera.imperat.tests.contextresolver.PlayerData;
 import studio.mevera.imperat.tests.contextresolver.PlayerDataContextResolver;
 import studio.mevera.imperat.tests.parameters.CustomDuration;
-import studio.mevera.imperat.tests.parameters.CustomDurationParameterType;
-import studio.mevera.imperat.tests.parameters.JavaDurationParameterType;
+import studio.mevera.imperat.tests.parameters.CustomDurationArgumentType;
+import studio.mevera.imperat.tests.parameters.JavaDurationArgumentType;
 import studio.mevera.imperat.tests.parameters.TestPlayerParamType;
 import studio.mevera.imperat.tests.syntax.commands.UsageTestCommand;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -72,12 +72,12 @@ public class ImperatTestGlobals {
                                                       .usageVerifier(UsageVerifier.typeTolerantVerifier())
                                                       .permissionChecker((src, perm) -> perm == null || src.hasPermission(perm))
                                                       .contextResolver(PlayerData.class, new PlayerDataContextResolver())
-                                                      .parameterType(Group.class, new ParameterGroup())
-                                                      .parameterType(Duration.class, new JavaDurationParameterType())
-                                                      .parameterType(TestPlayer.class, new TestPlayerParamType())
-                                                      .parameterType(CustomDuration.class, new CustomDurationParameterType<>())
-                                                      .parameterType(BigDecimal.class, new BigDecimalParamType())
-                                                      .parameterType(Currency.class, new CurrencyParamType())
+                                                      .ArgumentType(Group.class, new GroupArgument())
+                                                      .ArgumentType(Duration.class, new JavaDurationArgumentType())
+                                                      .ArgumentType(TestPlayer.class, new TestPlayerParamType())
+                                                      .ArgumentType(CustomDuration.class, new CustomDurationArgumentType<>())
+                                                      .ArgumentType(BigDecimal.class, new BigDecimalParamType())
+                                                      .ArgumentType(Currency.class, new CurrencyParamType())
                                                       .handleMiddleOptionalArgSkipping(true)
                                                       .contextResolver(new TypeWrap<CommandHelp<TestSource>>() {
                                                       }.getType(), (ctx, pe) -> CommandHelp.create(ctx))

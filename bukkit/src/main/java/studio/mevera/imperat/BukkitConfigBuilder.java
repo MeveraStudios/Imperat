@@ -28,10 +28,10 @@ import studio.mevera.imperat.exception.selector.InvalidSelectorFieldCriteriaForm
 import studio.mevera.imperat.exception.selector.UnknownEntitySelectionTypeException;
 import studio.mevera.imperat.exception.selector.UnknownSelectorFieldException;
 import studio.mevera.imperat.selector.TargetSelector;
-import studio.mevera.imperat.type.ParameterLocation;
-import studio.mevera.imperat.type.ParameterOfflinePlayer;
-import studio.mevera.imperat.type.ParameterPlayer;
-import studio.mevera.imperat.type.ParameterTargetSelector;
+import studio.mevera.imperat.type.LocationArgument;
+import studio.mevera.imperat.type.OfflinePlayerArgument;
+import studio.mevera.imperat.type.PlayerArgument;
+import studio.mevera.imperat.type.TargetSelectorArgument;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.reflection.Reflections;
 
@@ -176,10 +176,10 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
 
     private void registerValueResolvers() {
-        config.registerParamType(Player.class, new ParameterPlayer());
-        config.registerParamType(OfflinePlayer.class, new ParameterOfflinePlayer());
-        config.registerParamType(Location.class, new ParameterLocation());
-        config.registerParamType(TargetSelector.class, new ParameterTargetSelector());
+        config.registerArgType(Player.class, new PlayerArgument());
+        config.registerArgType(OfflinePlayer.class, new OfflinePlayerArgument());
+        config.registerArgType(Location.class, new LocationArgument());
+        config.registerArgType(TargetSelector.class, new TargetSelectorArgument());
     }
 
     public void setAdventureProvider(AdventureProvider<CommandSender> adventureProvider) {

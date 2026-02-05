@@ -7,10 +7,9 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.ContextResolved;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
-import studio.mevera.imperat.context.internal.Argument;
-import studio.mevera.imperat.context.internal.CommandInputStream;
+import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.ContextResolver;
@@ -41,7 +40,7 @@ import java.util.Optional;
  *
  * @see Command
  * @see CommandUsage
- * @see Argument
+ * @see ParsedArgument
  * @see ExtractedFlagArgument
  * @since 1.0.0
  */
@@ -85,7 +84,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param <T> the type of the argument value
      * @param name the parameter name defined in the {@link CommandUsage}
      * @return the resolved argument value, or {@code null} if not provided or couldn't be resolved
-     * @see Argument
+     * @see ParsedArgument
      */
     <T> @Nullable T getArgument(String name);
 
@@ -162,7 +161,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
             Command<S> command,
             @Nullable String raw,
             int index,
-            CommandParameter<S> parameter,
+            Argument<S> parameter,
             @Nullable T value
     ) throws CommandException;
 
@@ -175,7 +174,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @throws CommandException if resolution fails.
      */
     default <T> void resolveArgument(
-            CommandInputStream<S> stream,
+            Cursor<S> stream,
             @Nullable T value
     ) throws CommandException {
         resolveArgument(
@@ -243,7 +242,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return the resolved argument, or {@code null} if not present
      */
     @Nullable
-    Argument<S> getResolvedArgument(Command<S> command, String name);
+    ParsedArgument<S> getResolvedArgument(Command<S> command, String name);
 
     /**
      * Gets all resolved arguments for a specific command.
@@ -251,7 +250,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param command the owning command
      * @return a list of resolved arguments in declaration order
      */
-    List<Argument<S>> getResolvedArguments(Command<S> command);
+    List<ParsedArgument<S>> getResolvedArguments(Command<S> command);
 
     /**
      * Gets all commands in the resolution path.
@@ -267,7 +266,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return a collection of arguments in the order they appeared in the input
      * @note Flags are not included in this collection
      */
-    Collection<? extends Argument<S>> getResolvedArguments();
+    Collection<? extends ParsedArgument<S>> getResolvedArguments();
 
     /**
      * Checks if a flag parameter was resolved in this context.
@@ -275,7 +274,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param currentParameter the flag parameter to check
      * @return {@code true} if the flag was provided and resolved
      */
-    default boolean hasResolvedFlag(CommandParameter<S> currentParameter) {
+    default boolean hasResolvedFlag(Argument<S> currentParameter) {
         if (!currentParameter.isFlag()) {
             return false;
         }

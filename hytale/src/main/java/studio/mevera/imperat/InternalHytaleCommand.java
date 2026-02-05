@@ -9,9 +9,9 @@ import studio.mevera.imperat.annotations.RequireConfirmation;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.type.ParameterEnum;
-import studio.mevera.imperat.type.HytaleParameterType;
+import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.type.EnumArgument;
+import studio.mevera.imperat.type.HytaleArgumentType;
 import studio.mevera.imperat.util.TypeUtility;
 
 import java.lang.reflect.Type;
@@ -24,7 +24,7 @@ final class InternalHytaleCommand extends CommandBase {
 
     private final HytaleImperat imperat;
 
-    InternalHytaleCommand(HytaleImperat imperat, List<CommandParameter<HytaleSource>> variant) {
+    InternalHytaleCommand(HytaleImperat imperat, List<Argument<HytaleSource>> variant) {
         super("");
         this.imperat = imperat;
         for (var p : variant) {
@@ -39,7 +39,7 @@ final class InternalHytaleCommand extends CommandBase {
         addAliases(imperatCmd.aliases().toArray(String[]::new));
 
         String cmdPerm;
-        if ((cmdPerm = imperatCmd.getMainPermission()) != null) {
+        if ((cmdPerm = imperatCmd.getPrimaryPermission()) != null) {
             this.requirePermission(cmdPerm);
         }
 
@@ -72,12 +72,12 @@ final class InternalHytaleCommand extends CommandBase {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static ArgumentType<?> loadArgType(CommandParameter<HytaleSource> parameter) {
+    private static ArgumentType<?> loadArgType(Argument<HytaleSource> parameter) {
         final Type type = parameter.valueType();
-        if (parameter.type() instanceof ParameterEnum parameterEnum) {
+        if (parameter.type() instanceof EnumArgument EnumArgument) {
             var typeStr = type.getTypeName();
             var enumTypeName = typeStr.substring(typeStr.lastIndexOf('.') + 1);
-            return ArgTypes.forEnum(enumTypeName, parameterEnum.wrappedType().getRawType());
+            return ArgTypes.forEnum(enumTypeName, EnumArgument.wrappedType().getRawType());
         }
 
         if (parameter.isNumeric()) {
@@ -89,8 +89,8 @@ final class InternalHytaleCommand extends CommandBase {
                 return ArgTypes.INTEGER;
             }
         } else {
-            if (parameter.type() instanceof HytaleParameterType<?> hytaleParameterType) {
-                return hytaleParameterType.getHytaleArgType();
+            if (parameter.type() instanceof HytaleArgumentType<?> hytaleArgumentType) {
+                return hytaleArgumentType.getHytaleArgType();
             }
         }
         return ArgTypes.STRING;
@@ -100,7 +100,7 @@ final class InternalHytaleCommand extends CommandBase {
     //the main usage will be split into multiple usages
     private void deduceVariants(Command<HytaleSource> imperatCmd) {
         CommandUsage<HytaleSource> mainUsage = imperatCmd.getMainUsage();
-        Map<Integer, CommandParameter<HytaleSource>> optionals = new HashMap<>();
+        Map<Integer, Argument<HytaleSource>> optionals = new HashMap<>();
         for (int i = 0; i < mainUsage.size(); i++) {
             var parameter = mainUsage.getParameter(i);
             assert parameter != null;
@@ -114,13 +114,13 @@ final class InternalHytaleCommand extends CommandBase {
             withRequiredArg(parameter.name(), parameter.description().getValueOrElse(""), loadArgType(parameter));
         }
 
-        List<List<CommandParameter<HytaleSource>>> parameterVariants = new ArrayList<>();
+        List<List<Argument<HytaleSource>>> parameterVariants = new ArrayList<>();
         for (int i = 0; i < mainUsage.size(); i++) {
             var parameter = mainUsage.getParameter(i);
             assert parameter != null;
             if (optionals.get(i) != null) {
                 //add to a new variant , then remove and skip
-                List<CommandParameter<HytaleSource>> variant = new ArrayList<>();
+                List<Argument<HytaleSource>> variant = new ArrayList<>();
                 for (int j = 0; j < mainUsage.size(); j++) {
                     var p = mainUsage.getParameter(j);
                     if (j != i) {

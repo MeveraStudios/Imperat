@@ -2,7 +2,7 @@ package studio.mevera.imperat.resolvers;
 
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 
@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
  * for an argument/parameter
  *
  * @param <S> the command-sender valueType
- * @see CommandParameter
+ * @see Argument
  */
 @ApiStatus.AvailableSince("1.0.0")
 public interface SuggestionResolver<S extends Source> {
@@ -42,9 +42,9 @@ public interface SuggestionResolver<S extends Source> {
      * @param parameter the parameter of the value to complete
      * @return the auto-completed suggestions of the current argument
      */
-    List<String> autoComplete(SuggestionContext<S> context, CommandParameter<S> parameter);
+    List<String> autoComplete(SuggestionContext<S> context, Argument<S> parameter);
 
-    default CompletableFuture<List<String>> asyncAutoComplete(SuggestionContext<S> context, CommandParameter<S> parameter) {
+    default CompletableFuture<List<String>> asyncAutoComplete(SuggestionContext<S> context, Argument<S> parameter) {
         return CompletableFuture.supplyAsync(() -> autoComplete(context, parameter));
     }
 }

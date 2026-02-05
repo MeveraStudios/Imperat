@@ -10,8 +10,8 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
 import studio.mevera.imperat.command.flags.FlagExtractor;
-import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.FlagParameter;
+import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
@@ -31,7 +31,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
 
     private final static int EXPECTED_PARAMETERS_CAPACITY = 8;
 
-    private final List<CommandParameter<S>> parameters = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
+    private final List<Argument<S>> parameters = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
     private final @NotNull CommandExecution<S> execution;
     private final boolean help;
     private final FlagExtractor<S> flagExtractor;
@@ -121,8 +121,8 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     }
 
     @Override
-    public void addFlag(FlagParameter<S> flagData) {
-        flagExtractor.insertFlag(flagData);
+    public void addFlag(FlagArgument<S> flagArgumentData) {
+        flagExtractor.insertFlag(flagArgumentData);
     }
 
 
@@ -133,7 +133,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      */
     @SafeVarargs
     @Override
-    public final void addParameters(CommandParameter<S>... params) {
+    public final void addParameters(Argument<S>... params) {
         addParameters(Arrays.asList(params));
     }
 
@@ -143,7 +143,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      * @param params the parameters to add
      */
     @Override
-    public void addParameters(List<CommandParameter<S>> params) {
+    public void addParameters(List<Argument<S>> params) {
         for (var param : params) {
             if (param.isFlag()) {
                 addFlag(param.asFlagParameter());
@@ -158,10 +158,10 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
 
     /**
      * @return the parameters for this usage
-     * @see CommandParameter
+     * @see Argument
      */
     @Override
-    public List<CommandParameter<S>> getParameters() {
+    public List<Argument<S>> getParameters() {
         return parameters;
     }
 
@@ -179,7 +179,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     }
 
     @Override
-    public @Nullable CommandParameter<S> getParameter(int index) {
+    public @Nullable Argument<S> getParameter(int index) {
         if (index < 0 || index >= parameters.size()) {
             return null;
         }
@@ -232,12 +232,12 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      * Searches for a parameter with specific valueType
      *
      * @param parameterPredicate the parameter condition
-     * @return whether this usage has atLeast on {@link CommandParameter} with specific condition
+     * @return whether this usage has atLeast on {@link Argument} with specific condition
      * or not
      */
     @Override
-    public boolean hasParameters(Predicate<CommandParameter<S>> parameterPredicate) {
-        for (CommandParameter<S> parameter : getParameters()) {
+    public boolean hasParameters(Predicate<Argument<S>> parameterPredicate) {
+        for (Argument<S> parameter : getParameters()) {
             if (parameterPredicate.test(parameter)) {
                 return true;
             }
@@ -251,8 +251,8 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      * @return the parameter to get using a condition
      */
     @Override
-    public @Nullable CommandParameter<S> getParameter(Predicate<CommandParameter<S>> parameterPredicate) {
-        for (CommandParameter<S> parameter : getParameters()) {
+    public @Nullable Argument<S> getParameter(Predicate<Argument<S>> parameterPredicate) {
+        for (Argument<S> parameter : getParameters()) {
             if (parameterPredicate.test(parameter)) {
                 return parameter;
             }
@@ -338,15 +338,15 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     }
 
     @Override
-    public boolean hasParameters(List<CommandParameter<S>> parameters) {
+    public boolean hasParameters(List<Argument<S>> parameters) {
 
         if (this.parameters.size() != parameters.size()) {
             return false;
         }
 
         for (int i = 0; i < parameters.size(); i++) {
-            CommandParameter<S> thisParam = this.parameters.get(i);
-            CommandParameter<S> otherParam = parameters.get(i);
+            Argument<S> thisParam = this.parameters.get(i);
+            Argument<S> otherParam = parameters.get(i);
             if (!thisParam.similarTo(otherParam)) {
                 return false;
             }
@@ -355,7 +355,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     }
 
     @Override
-    public @NotNull List<CommandParameter<S>> loadCombinedParameters() {
+    public @NotNull List<Argument<S>> loadCombinedParameters() {
 
         var combinedParameters = new ArrayList<>(parameters);
         int start = parameters.size();
@@ -383,7 +383,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     }
 
     @Override
-    public @NotNull Iterator<CommandParameter<S>> iterator() {
+    public @NotNull Iterator<Argument<S>> iterator() {
         return parameters.iterator();
     }
 

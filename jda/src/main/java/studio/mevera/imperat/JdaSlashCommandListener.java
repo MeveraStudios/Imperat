@@ -37,9 +37,7 @@ final class JdaSlashCommandListener implements EventListener {
         JdaSource source = imperat.wrapSender(event);
         if (!imperat.config().getPermissionChecker().hasPermission(
                 source,
-                imperat.config().isAutoPermissionAssignMode()
-                        ? imperat.config().getPermissionLoader().load(command)
-                        : command.getMainPermission()
+                command.getPrimaryPermission()
         )) {
             source.error("You don't have permission to use this command.");
             return;

@@ -5,8 +5,8 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.annotations.Usage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ThrowableResolver;
 
@@ -56,7 +56,7 @@ public abstract class AnnotationParser<S extends Source> {
      * Registers a valueType of annotations so that it can be
      * detected by {@link AnnotationReader} , it's useful as it allows that valueType of annotation
      * to be recognized as a true Imperat-related annotation to be used in something like checking if a
-     * {@link CommandParameter} is annotated and checks for the annotations it has.
+     * {@link Argument} is annotated and checks for the annotations it has.
      *
      * @param types the valueType of annotation
      */
@@ -97,7 +97,7 @@ public abstract class AnnotationParser<S extends Source> {
     public abstract <A extends Annotation> @Nullable AnnotationReplacer<A> getAnnotationReplacer(Class<A> type);
 
     public final boolean isEntryPointAnnotation(Class<? extends Annotation> annotation) {
-        return annotation == Command.class || annotation == Usage.class || annotation == SubCommand.class;
+        return annotation == Command.class || annotation == Execute.class || annotation == SubCommand.class;
     }
 
     public Imperat<S> getImperat() {

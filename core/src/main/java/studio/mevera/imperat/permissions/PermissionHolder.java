@@ -11,4 +11,8 @@ public interface PermissionHolder {
     @NotNull PermissionsData getPermissionsData();
 
     void setPermissionData(@NotNull PermissionsData permission);
+
+    default String getPrimaryPermission() {
+        return getPermissionsData().getPermissions().get(0);
+    }
 }

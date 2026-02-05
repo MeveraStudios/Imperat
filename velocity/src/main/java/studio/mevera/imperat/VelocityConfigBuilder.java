@@ -16,8 +16,8 @@ import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
 import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.exception.UnknownServerException;
-import studio.mevera.imperat.type.ParameterPlayer;
-import studio.mevera.imperat.type.ParameterServerInfo;
+import studio.mevera.imperat.type.PlayerArgument;
+import studio.mevera.imperat.type.ServerInfoArgument;
 import studio.mevera.imperat.util.TypeWrap;
 
 /**
@@ -66,7 +66,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         });
         addThrowableHandlers();
         registerSourceResolvers();
-        registerParameterTypes();
+        registerArgumentTypes();
         registerContextResolvers();
 
     }
@@ -153,9 +153,9 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      * Registers parameter types for Velocity-specific objects.
      * This enables commands to accept Players, ServerInfo, etc. as parameters.
      */
-    private void registerParameterTypes() {
-        config.registerParamType(Player.class, new ParameterPlayer(proxyServer));
-        config.registerParamType(ServerInfo.class, new ParameterServerInfo(proxyServer));
+    private void registerArgumentTypes() {
+        config.registerArgType(Player.class, new PlayerArgument(proxyServer));
+        config.registerArgType(ServerInfo.class, new ServerInfoArgument(proxyServer));
     }
 
     /**

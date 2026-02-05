@@ -2,10 +2,10 @@ package studio.mevera.imperat;
 
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagBuilder;
-import studio.mevera.imperat.command.parameters.ParameterBuilder;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.ArgumentBuilder;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -83,7 +83,7 @@ public final class TextSyntaxParser<S extends Source> {
 
         CommandUsage.Builder<S> commandUsage = CommandUsage.builder();
 
-        List<ParameterBuilder<S, ?>> parameters = new ArrayList<>();
+        List<ArgumentBuilder<S, ?>> parameters = new ArrayList<>();
 
         for (int i = 1; i < parts.length; i++) {
             String part = parts[i];
@@ -91,10 +91,10 @@ public final class TextSyntaxParser<S extends Source> {
             String paramNameFormat = partArr[0];
             String paramType = partArr.length > 1 ? partArr[1] : "String";
 
-            ParameterBuilder<S, ?> parameter;
+            ArgumentBuilder<S, ?> parameter;
             if (isLiteral(paramNameFormat)) {
                 // Literal part
-                parameter = ParameterBuilder.literalBuilder(paramNameFormat);
+                parameter = ArgumentBuilder.literalBuilder(paramNameFormat);
                 parameters.add(parameter);
                 continue;
             }
@@ -112,8 +112,8 @@ public final class TextSyntaxParser<S extends Source> {
 
             boolean optional = paramNameFormat.startsWith("[") && paramNameFormat.endsWith("]");
             String paramName = extractArgName(paramNameFormat);
-            parameter = optional ? CommandParameter.optional(paramName, deduceParamTypeFromString(paramType))
-                                : CommandParameter.required(paramName, deduceParamTypeFromString(paramType));
+            parameter = optional ? Argument.optional(paramName, deduceParamTypeFromString(paramType))
+                                : Argument.required(paramName, deduceParamTypeFromString(paramType));
             parameters.add(parameter);
         }
 
@@ -186,10 +186,10 @@ public final class TextSyntaxParser<S extends Source> {
         // FOR EACH PART, search for the parameter that suits it, whether literal, or any other type of argument.
         //the search is by name NOT necessarily by the position of the parameter.
 
-        Map<String, CommandParameter<S>> params = new HashMap<>();
+        Map<String, Argument<S>> params = new HashMap<>();
 
         for (CommandUsage<S> usage : shortcutOwner.usages()) {
-            for (CommandParameter<S> param : usage.getParameters()) {
+            for (Argument<S> param : usage.getParameters()) {
                 if (params.containsKey(param.format())) {
                     //if already exists, skip
                     //check position
@@ -205,14 +205,14 @@ public final class TextSyntaxParser<S extends Source> {
             }
         }
 
-        List<CommandParameter<S>> orderedParameters = new ArrayList<>();
+        List<Argument<S>> orderedParameters = new ArrayList<>();
         for (int i = 1; i < parts.length; i++) {
             String part = parts[i];
-            CommandParameter<S> parameter = params.get(part);
+            Argument<S> parameter = params.get(part);
             if (parameter == null) {
                 //check if it's a literal
                 if (isLiteral(part)) {
-                    parameter = CommandParameter.literal(part);
+                    parameter = Argument.literal(part);
                 } else {
                     throw new IllegalArgumentException("No parameter found for part: " + part);
                 }
@@ -257,68 +257,68 @@ public final class TextSyntaxParser<S extends Source> {
         return part.substring(1, part.length() - 1);
     }
 
-    private ParameterType<S, ?> deduceParamTypeFromString(String typeName) {
+    private ArgumentType<S, ?> deduceParamTypeFromString(String typeName) {
 
         var cfg = imperat.config();
         if (typeName.isBlank()) {
-            return cfg.getParameterType(String.class);
+            return cfg.getArgumentType(String.class);
         }
 
         //check if its array
         if (typeName.endsWith("[]")) {
             String elementTypeName = typeName.substring(0, typeName.length() - 2).trim();
-            ParameterType<S, ?> elementType = deduceParamTypeFromString(elementTypeName);
+            ArgumentType<S, ?> elementType = deduceParamTypeFromString(elementTypeName);
             if (elementType == null) {
                 throw new IllegalArgumentException("No parameter type registered for array element-type: " + elementTypeName);
             }
             TypeWrap<?> arrayType = TypeWrap.ofArray(elementType.type());
-            return cfg.getParameterType(arrayType.getType());
+            return cfg.getArgumentType(arrayType.getType());
         }
 
         if (typeName.equalsIgnoreCase("int") || typeName.equalsIgnoreCase("integer")) {
-            return cfg.getParameterType(Integer.class);
+            return cfg.getArgumentType(Integer.class);
         } else if (typeName.equalsIgnoreCase("long")) {
-            return cfg.getParameterType(Long.class);
+            return cfg.getArgumentType(Long.class);
         } else if (typeName.equalsIgnoreCase("double")) {
-            return cfg.getParameterType(Double.class);
+            return cfg.getArgumentType(Double.class);
         } else if (typeName.equalsIgnoreCase("float")) {
-            return cfg.getParameterType(Float.class);
+            return cfg.getArgumentType(Float.class);
         } else if (typeName.equalsIgnoreCase("boolean") || typeName.equalsIgnoreCase("bool")) {
-            return cfg.getParameterType(Boolean.class);
+            return cfg.getArgumentType(Boolean.class);
         } else if (typeName.equalsIgnoreCase("string") || typeName.equalsIgnoreCase("str")) {
-            return cfg.getParameterType(String.class);
+            return cfg.getArgumentType(String.class);
         } else {
             //try to find a custom parameter type by name
             if (isGenericType(typeName)) {
                 String rawType = extractRawTypeName(typeName);
                 try {
                     Type rawClass = Class.forName(rawType);
-                    ParameterType<S, ?> rawParamType = cfg.getParameterType(rawClass);
+                    ArgumentType<S, ?> rawParamType = cfg.getArgumentType(rawClass);
                     if (rawParamType == null) {
                         throw new IllegalArgumentException("No parameter type registered for raw-type: " + rawType);
                     }
 
                     String[] genericTypesNames = extractGenericTypesNames(typeName);
-                    ParameterType<S, ?>[] genericParamTypes = new ParameterType[genericTypesNames.length];
+                    ArgumentType<S, ?>[] genericParamTypes = new ArgumentType[genericTypesNames.length];
 
                     for (int i = 0; i < genericTypesNames.length; i++) {
                         String genericTypeName = genericTypesNames[i];
 
-                        ParameterType<S, ?> genericParamType = deduceParamTypeFromString(genericTypeName.trim());
+                        ArgumentType<S, ?> genericParamType = deduceParamTypeFromString(genericTypeName.trim());
                         if (genericParamType == null) {
                             throw new IllegalArgumentException("No parameter type registered for generic-type: " + genericTypeName);
                         }
                         genericParamTypes[i] = genericParamType;
                     }
                     TypeWrap<?> wrappedType = TypeWrap.ofParameterized(rawClass, List.of(genericParamTypes));
-                    return cfg.getParameterType(wrappedType.getType());
+                    return cfg.getArgumentType(wrappedType.getType());
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                ParameterType<S, ?> customType;
+                ArgumentType<S, ?> customType;
                 try {
-                    customType = cfg.getParameterType(Class.forName(typeName));
+                    customType = cfg.getArgumentType(Class.forName(typeName));
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException("Unknown type from syntax: '" + typeName + "'", e);
                 }

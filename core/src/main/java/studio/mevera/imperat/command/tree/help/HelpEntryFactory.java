@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.tree.ParameterNode;
+import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.context.Source;
 
 /**
@@ -24,5 +24,5 @@ public interface HelpEntryFactory<S extends Source> {
      * @return a new help entry representing the node
      * @throws IllegalArgumentException if the node cannot be converted to a help entry
      */
-    HelpEntry<S> createEntry(@NotNull ParameterNode<S, ?> node);
+    HelpEntry<S> createEntry(@NotNull CommandNode<S, ?> node);
 }

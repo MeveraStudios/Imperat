@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.context.internal.CommandInputStream;
+import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.selector.field.NumericField;
@@ -24,7 +24,7 @@ final class LevelField extends PredicateField<Range<Integer>> {
 
 
     @Override
-    protected @NotNull EntityCondition getCondition(Range<Integer> value, CommandInputStream<BukkitSource> commandInputStream,
+    protected @NotNull EntityCondition getCondition(Range<Integer> value, Cursor<BukkitSource> cursor,
             Context<BukkitSource> context) {
         return ((sender, entity) -> {
             if (!(entity instanceof Player humanEntity)) {

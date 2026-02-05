@@ -11,7 +11,7 @@ import studio.mevera.imperat.BaseBrigadierManager;
 import studio.mevera.imperat.BukkitImperat;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.commodore.Commodore;
 import studio.mevera.imperat.commodore.CommodoreProvider;
 import studio.mevera.imperat.permissions.PermissionChecker;
@@ -30,13 +30,13 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSou
 
             for (MinecraftArgumentType type : MinecraftArgumentType.values()) {
                 if (type.isSupported() && !type.requiresParameters()) {
-                    registerAsParameterType(type.getParsedType(), type);
+                    registerAsArgumentType(type.getParsedType(), type);
                 }
             }
             //we manually register the entity selector types as they require parameters
-            registerAsParameterType(Player.class, MinecraftArgumentType.ENTITY_SELECTOR, true, true);
-            registerAsParameterType(OfflinePlayer.class, MinecraftArgumentType.ENTITY_SELECTOR, true, true);
-            registerAsParameterType(TargetSelector.class, MinecraftArgumentType.ENTITY_SELECTOR, false, false);
+            registerAsArgumentType(Player.class, MinecraftArgumentType.ENTITY_SELECTOR, true, true);
+            registerAsArgumentType(OfflinePlayer.class, MinecraftArgumentType.ENTITY_SELECTOR, true, true);
+            registerAsArgumentType(TargetSelector.class, MinecraftArgumentType.ENTITY_SELECTOR, false, false);
         }
 
     }
@@ -48,13 +48,13 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSou
         return new BukkitBrigadierManager(bukkitCommandDispatcher);
     }
 
-    private void registerAsParameterType(Type type, MinecraftArgumentType argumentType) {
-        dispatcher.config().registerParamType(type, new BukkitParameterType<>(argumentType.getParsedType(), argumentType));
+    private void registerAsArgumentType(Type type, MinecraftArgumentType argumentType) {
+        dispatcher.config().registerArgType(type, new BukkitArgumentType<>(argumentType.getParsedType(), argumentType));
     }
 
-    private void registerAsParameterType(Type type, MinecraftArgumentType argumentType, Object... params) {
+    private void registerAsArgumentType(Type type, MinecraftArgumentType argumentType, Object... params) {
         dispatcher.config()
-                .registerParamType(type, new BukkitParameterType<>(argumentType.getParsedType(), argumentType, argumentType.create(params)));
+                .registerArgType(type, new BukkitArgumentType<>(argumentType.getParsedType(), argumentType, argumentType.create(params)));
     }
 
     @Override
@@ -63,9 +63,9 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSou
     }
 
     @Override
-    public @NotNull ArgumentType<?> getArgumentType(CommandParameter<BukkitSource> parameter) {
+    public @NotNull ArgumentType<?> getArgumentType(Argument<BukkitSource> parameter) {
         var paramType = parameter.type();
-        if (paramType instanceof BukkitParameterType<?> bukkitParamType) {
+        if (paramType instanceof BukkitArgumentType<?> bukkitParamType) {
             if (bukkitParamType.isSupported()) {
                 return bukkitParamType.getArgType();
             } else {

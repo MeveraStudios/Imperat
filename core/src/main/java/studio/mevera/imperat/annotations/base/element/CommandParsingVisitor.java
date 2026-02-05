@@ -22,7 +22,7 @@ import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Suggest;
 import studio.mevera.imperat.annotations.SuggestionProvider;
 import studio.mevera.imperat.annotations.Switch;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Validators;
 import studio.mevera.imperat.annotations.Values;
 import studio.mevera.imperat.annotations.base.AnnotationHelper;
@@ -35,11 +35,11 @@ import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.Description;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.NumericRange;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.command.parameters.StrictParameterList;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
 import studio.mevera.imperat.command.parameters.validator.ConstrainedValueValidator;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
@@ -95,7 +95,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                     requiresParameterInheritance = (attachment == AttachmentMode.MAIN || attachment == AttachmentMode.UNSET);
                 }
             }
-        } else if (method.isAnnotationPresent(Usage.class)) {
+        } else if (method.isAnnotationPresent(Execute.class)) {
             var ann = method.getParent().getAnnotation(SubCommand.class);
             if (ann != null) {
                 requiresParameterInheritance = ann.attachment().requiresParameterInheritance();
@@ -352,7 +352,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                     }
 
                     // Process @Usage methods first (skip @SubCommand for now)
-                    if (method.isAnnotationPresent(Usage.class) && !method.isAnnotationPresent(SubCommand.class)) {
+                    if (method.isAnnotationPresent(Execute.class) && !method.isAnnotationPresent(SubCommand.class)) {
                         var usage = loadUsage(parentCmd, cmd, method);
                         if (usage != null) {
                             cmd.addUsage(usage);
@@ -453,10 +453,10 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                               .parameters(usageData.personalParameters())
                               .execute(execution);
 
-        Usage usageAnn = method.getAnnotation(Usage.class);
+        Execute executeAnn = method.getAnnotation(Execute.class);
 
-        if (usageAnn != null) {
-            String[] examples = Arrays.stream(usageAnn.examples())
+        if (executeAnn != null) {
+            String[] examples = Arrays.stream(executeAnn.examples())
                                         .map(config::replacePlaceholders)
                                         .toArray(String[]::new);
             builder.examples(examples);
@@ -502,7 +502,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     ) {
 
         ImperatDebugger.debugForTesting("Loading for method '%s'", method.getName());
-        LinkedList<CommandParameter<S>> personalMethodInputParameters = new LinkedList<>();
+        LinkedList<Argument<S>> personalMethodInputParameters = new LinkedList<>();
 
         final StrictParameterList<S> mainUsageParameters = new StrictParameterList<>();
 
@@ -525,7 +525,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         var inheritedParamsFormatted = getMainUsageParametersCollected(mainUsageParameters);
         ImperatDebugger.debugForTesting("Main usage params collected '%s'", inheritedParamsFormatted.toString());
 
-        LinkedList<CommandParameter<S>> totalMethodParameters = new LinkedList<>(mainUsageParameters);
+        LinkedList<Argument<S>> totalMethodParameters = new LinkedList<>(mainUsageParameters);
         LinkedList<ParameterElement> originalMethodParameters = new LinkedList<>(method.getParameters());
         ImperatDebugger.debugForTesting("Method parameters collected '%s'", getMethodParamsCollected(originalMethodParameters));
 
@@ -549,29 +549,22 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 continue;
             }
 
-            CommandParameter<S> commandParameter = loadParameter(parameterElement);
-            if (commandParameter == null) {
+            Argument<S> Argument = loadParameter(parameterElement);
+            if (Argument == null) {
                 originalMethodParameters.remove();
                 continue;
             }
 
-            CommandParameter<S> mainParameter = mainUsageParameters.peek();
-            if (mainParameter != null) {
-                ImperatDebugger.debugForTesting("Comparing main-usage parameter '%s' with loaded parameter '%s'", mainParameter.format(),
-                        commandParameter.format());
-            }
+            Argument<S> mainParameter = mainUsageParameters.peek();
 
             if (mainParameter == null) {
-                ImperatDebugger.debugForTesting("Adding command parameter '%s' that has no corresponding main parameter", commandParameter.format());
-                personalMethodInputParameters.add(commandParameter);
-                totalMethodParameters.add(commandParameter);
+                personalMethodInputParameters.add(Argument);
+                totalMethodParameters.add(Argument);
                 originalMethodParameters.remove();
                 continue;
             }
 
-            if (mainParameter.similarTo(commandParameter)) {
-                ImperatDebugger.debugForTesting("Main parameter '%s' is exactly similar to loaded parameter '%s'", mainParameter.format(),
-                        commandParameter.format());
+            if (mainParameter.similarTo(Argument)) {
                 var methodParam = originalMethodParameters.remove();
                 ImperatDebugger.debugForTesting("Removing '%s' from method params", methodParam.getName());
                 var mainUsageParam = mainUsageParameters.remove();
@@ -579,8 +572,8 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 continue;
             }
 
-            personalMethodInputParameters.add(commandParameter);
-            totalMethodParameters.add(commandParameter);
+            personalMethodInputParameters.add(Argument);
+            totalMethodParameters.add(Argument);
 
             mainUsageParameters.remove();
             originalMethodParameters.remove();
@@ -603,7 +596,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     }
 
     @SuppressWarnings("unchecked")
-    private <T> @Nullable CommandParameter<S> loadParameter(
+    private <T> @Nullable Argument<S> loadParameter(
             @NotNull ParameterElement parameter
     ) {
 
@@ -620,10 +613,10 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             throw new IllegalStateException("both @Flag and @Switch at the same time !");
         }
 
-        TypeWrap<T> parameterTypeWrap = (TypeWrap<T>) TypeWrap.of(parameter.getElement().getParameterizedType());
-        var type = (ParameterType<S, T>) config.getParameterType(parameterTypeWrap.getType());
+        TypeWrap<T> ArgumentTypeWrap = (TypeWrap<T>) TypeWrap.of(parameter.getElement().getParameterizedType());
+        var type = (ArgumentType<S, T>) config.getArgumentType(ArgumentTypeWrap.getType());
         if (type == null) {
-            throw new IllegalArgumentException("Unknown type detected '" + parameterTypeWrap.getType().getTypeName() + "'");
+            throw new IllegalArgumentException("Unknown type detected '" + ArgumentTypeWrap.getType().getTypeName() + "'");
         }
 
         String name = parameter.getName();
@@ -699,7 +692,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             }
 
             return AnnotationParameterDecorator.decorate(
-                    CommandParameter.flag(name, type)
+                    Argument.flag(name, type)
                             .suggestForInputValue(suggestionResolver)
                             .aliases(getAllExceptFirst(flagAliases))
                             .flagDefaultInputValue(optionalValueSupplier)
@@ -711,7 +704,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         } else if (switchAnnotation != null) {
             String[] switchAliases = switchAnnotation.value();
             return AnnotationParameterDecorator.decorate(
-                    CommandParameter.<S>flagSwitch(name)
+                    Argument.<S>flagSwitch(name)
                             .aliases(getAllExceptFirst(switchAliases))
                             .description(desc)
                             .permission(permissionsData)
@@ -750,7 +743,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             validators.add(new ConstrainedValueValidator<>(values, valuesAnnotation.caseSensitive()));
         }
 
-        CommandParameter<S> delegate = CommandParameter.of(
+        Argument<S> delegate = Argument.of(
                 name, type, permissionsData, desc,
                 optional, greedy, optionalValueSupplier, suggestionResolver,
                 validators
@@ -762,7 +755,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             delegate.setFormat(config.replacePlaceholders(formatAnnotation.value()));
         }
 
-        CommandParameter<S> param = AnnotationParameterDecorator.decorate(delegate, parameter);
+        Argument<S> param = AnnotationParameterDecorator.decorate(delegate, parameter);
 
         if (TypeUtility.isNumericType(TypeWrap.of(param.valueType()))
                     && parameter.isAnnotationPresent(Range.class)) {
@@ -784,8 +777,8 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     }
 
     private record MethodUsageData<S extends Source>(
-            List<CommandParameter<S>> personalParameters,
-            List<CommandParameter<S>> inheritedTotalParameters
+            List<Argument<S>> personalParameters,
+            List<Argument<S>> inheritedTotalParameters
     ) {
 
     }

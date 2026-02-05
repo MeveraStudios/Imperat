@@ -2,7 +2,7 @@ package studio.mevera.imperat.selector;
 
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.context.internal.CommandInputStream;
+import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.selector.InvalidSelectorFieldCriteriaFormat;
 import studio.mevera.imperat.exception.selector.UnknownSelectorFieldException;
@@ -27,22 +27,22 @@ public final class SelectionParameterInput<V> {
         return new SelectionParameterInput<>(field, input, ctx);
     }
 
-    public static SelectionParameterInput<?> parse(String str, CommandInputStream<BukkitSource> commandInputStream, Context<BukkitSource> ctx) throws
+    public static SelectionParameterInput<?> parse(String str, Cursor<BukkitSource> cursor, Context<BukkitSource> ctx) throws
             CommandException {
         String[] split = str.split(String.valueOf(SelectionField.VALUE_EQUALS));
         if (split.length != 2) {
-            throw new InvalidSelectorFieldCriteriaFormat(str, commandInputStream.readInput());
+            throw new InvalidSelectorFieldCriteriaFormat(str, cursor.readInput());
         }
         String field = split[0], value = split[1];
-        SelectionField<?> selectionField = FieldProvider.INSTANCE.provideField(field, commandInputStream);
+        SelectionField<?> selectionField = FieldProvider.INSTANCE.provideField(field, cursor);
         if (selectionField == null) {
-            throw new UnknownSelectorFieldException(field, commandInputStream.currentRaw().orElseThrow());
+            throw new UnknownSelectorFieldException(field, cursor.currentRaw().orElseThrow());
         }
 
         return new SelectionParameterInput<>(selectionField, value, ctx);
     }
 
-    public static List<SelectionParameterInput<?>> parseAll(String paramsString, CommandInputStream<BukkitSource> inputStream,
+    public static List<SelectionParameterInput<?>> parseAll(String paramsString, Cursor<BukkitSource> inputStream,
             Context<BukkitSource> ctx) throws
             CommandException {
         String[] params = paramsString.split(String.valueOf(SelectionField.SEPARATOR));

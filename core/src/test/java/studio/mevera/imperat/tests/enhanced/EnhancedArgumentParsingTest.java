@@ -57,7 +57,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     @DisplayName("Should handle optional args suggestion overlapping ONLY when enabled")
     void testOptionalArgsSuggestionsOverlapping() {
         var results = tabComplete(GiveCmd.class, (cfg) -> {
-            cfg.registerParamType(TestPlayer.class, new TestPlayerParamType());
+            cfg.registerArgType(TestPlayer.class, new TestPlayerParamType());
             cfg.setOptionalParameterSuggestionOverlap(true);
         }, "give apple ");
 
@@ -69,7 +69,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     @DisplayName("Should handle optional args suggestion overlapping ONLY when enabled #2")
     void testOptionalArgsSuggestionsOverlapping2() {
         var results = tabComplete(GiveCmd.class, (cfg) -> {
-            cfg.registerParamType(TestPlayer.class, new TestPlayerParamType());
+            cfg.registerArgType(TestPlayer.class, new TestPlayerParamType());
             cfg.setOptionalParameterSuggestionOverlap(false);
         }, "give apple ");
 

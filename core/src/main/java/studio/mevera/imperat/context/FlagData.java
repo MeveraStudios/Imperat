@@ -3,7 +3,7 @@ package studio.mevera.imperat.context;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.StringUtils;
 
@@ -20,7 +20,7 @@ import java.util.List;
 @ApiStatus.AvailableSince("1.0.0")
 public interface FlagData<S extends Source> {
 
-    static <S extends Source, T> FlagData<S> create(String name, List<String> alias, ParameterType<S, T> inputType) {
+    static <S extends Source, T> FlagData<S> create(String name, List<String> alias, ArgumentType<S, T> inputType) {
         return new FlagDataImpl<>(name, alias, inputType);
     }
 
@@ -46,7 +46,7 @@ public interface FlagData<S extends Source> {
      * @return the valueType of input
      * from the flag
      */
-    @Nullable <T> ParameterType<S, T> inputType();
+    @Nullable <T> ArgumentType<S, T> inputType();
 
     default boolean hasAlias(String alias) {
         return aliases().contains(alias.toLowerCase());
@@ -69,7 +69,7 @@ public interface FlagData<S extends Source> {
         return inputType() == null;
     }
 
-    record FlagDataImpl<S extends Source>(String name, List<String> aliases, ParameterType<S, ?> inputType) implements FlagData<S> {
+    record FlagDataImpl<S extends Source>(String name, List<String> aliases, ArgumentType<S, ?> inputType) implements FlagData<S> {
 
     }
 

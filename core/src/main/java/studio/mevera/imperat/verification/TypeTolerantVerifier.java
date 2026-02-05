@@ -2,7 +2,7 @@ package studio.mevera.imperat.verification;
 
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.TypeUtility;
 
@@ -49,7 +49,7 @@ final class TypeTolerantVerifier<S extends Source> extends SimpleVerifier<S> {
         return noDiff;
     }
 
-    private boolean areSimilarParameters(CommandParameter<S> param1, CommandParameter<S> param2) {
+    private boolean areSimilarParameters(Argument<S> param1, Argument<S> param2) {
         if (!param1.isCommand() && !param2.isCommand()) {
             return TypeUtility.matches(param1.valueType(), param2.valueType());
         } else if (param1.isCommand() && param2.isCommand()) {

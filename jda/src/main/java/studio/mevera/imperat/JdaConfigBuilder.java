@@ -11,9 +11,9 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.NoDMSException;
 import studio.mevera.imperat.exception.UnknownMemberException;
 import studio.mevera.imperat.exception.UnknownUserException;
-import studio.mevera.imperat.type.ParameterMember;
-import studio.mevera.imperat.type.ParameterRole;
-import studio.mevera.imperat.type.ParameterUser;
+import studio.mevera.imperat.type.MemberArgument;
+import studio.mevera.imperat.type.RoleArgument;
+import studio.mevera.imperat.type.UserArgument;
 import studio.mevera.imperat.util.TypeWrap;
 
 /**
@@ -27,7 +27,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
         this.jda = jda;
         registerContextResolvers();
         registerSourceResolvers();
-        registerParameterTypes();
+        registerArgumentTypes();
         registerThrowableResolvers();
         config.registerDependencyResolver(JDA.class, () -> jda);
     }
@@ -53,10 +53,10 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
         config.registerSourceResolver(User.class, (source, ctx) -> source.user());
     }
 
-    private void registerParameterTypes() {
-        config.registerParamType(Member.class, new ParameterRole());
-        config.registerParamType(User.class, new ParameterUser(jda));
-        config.registerParamType(Member.class, new ParameterMember());
+    private void registerArgumentTypes() {
+        config.registerArgType(Member.class, new RoleArgument());
+        config.registerArgType(User.class, new UserArgument(jda));
+        config.registerArgType(Member.class, new MemberArgument());
     }
 
     private void registerThrowableResolvers() {

@@ -8,8 +8,7 @@ import studio.mevera.imperat.annotations.Flag;
 import studio.mevera.imperat.annotations.Greedy;
 import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.Optional;
-import studio.mevera.imperat.annotations.Permission;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("ban2")
@@ -17,12 +16,12 @@ import studio.mevera.imperat.tests.TestSource;
 @Description("Main command for banning players")
 public final class Ban2Command {
 
-    @Usage
+    @Execute
     public void showUsage(TestSource source) {
         source.reply("/ban <player> [-silent] [duration] [reason...]");
     }
 
-    @Usage
+    @Execute
     public void ban(
             TestSource source,
             @Named("target") String player,

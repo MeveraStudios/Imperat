@@ -3,8 +3,8 @@ package studio.mevera.imperat.annotations.parameters;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
-import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.FlagParameter;
+import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.InputParameter;
 import studio.mevera.imperat.context.Source;
 
@@ -14,10 +14,10 @@ import java.util.List;
 
 public final class AnnotationParameterDecorator<S extends Source> extends InputParameter<S> implements AnnotatedParameter<S> {
 
-    private final CommandParameter<S> parameter;
+    private final Argument<S> parameter;
     private final ParameterElement element;
 
-    AnnotationParameterDecorator(CommandParameter<S> parameter, ParameterElement element) {
+    AnnotationParameterDecorator(Argument<S> parameter, ParameterElement element) {
         super(
                 parameter.name(), parameter.type(), parameter.getPermissionsData(),
                 parameter.description(), parameter.isOptional(),
@@ -29,7 +29,7 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
     }
 
     public static <S extends Source> AnnotationParameterDecorator<S> decorate(
-            CommandParameter<S> parameter,
+            Argument<S> parameter,
             ParameterElement element
     ) {
         return new AnnotationParameterDecorator<>(parameter, element);
@@ -71,7 +71,7 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
      * @return the parameter as a flag
      */
     @Override
-    public FlagParameter<S> asFlagParameter() {
+    public FlagArgument<S> asFlagParameter() {
         return parameter.asFlagParameter();
     }
 
@@ -91,8 +91,8 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
      * @return a copy of this parameter with the new position
      */
     @Override
-    public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
-        CommandParameter<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
+    public Argument<S> copyWithDifferentPosition(int newPosition) {
+        Argument<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
         AnnotationParameterDecorator<S> copy = new AnnotationParameterDecorator<>(
                 copiedParameter,
                 this.element

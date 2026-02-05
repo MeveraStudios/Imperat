@@ -5,17 +5,17 @@ import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.arguments.Argument;
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import org.jspecify.annotations.NonNull;
 
 final class ArgumentDecorator<T> extends Argument<T> {
 
-    private final CommandParameter<MinestomSource> parameter;
+    private final studio.mevera.imperat.command.parameters.Argument<MinestomSource> imperatArg;
     private final Argument<T> argument;
 
-    ArgumentDecorator(CommandParameter<MinestomSource> parameter, Argument<T> argument) {
-        super(argument.getId(), argument.allowSpace(), argument.useRemaining());
-        this.parameter = parameter;
-        this.argument = argument;
+    ArgumentDecorator(studio.mevera.imperat.command.parameters.Argument<MinestomSource> imperatArg, Argument<T> minestomArg) {
+        super(minestomArg.getId(), minestomArg.allowSpace(), minestomArg.useRemaining());
+        this.imperatArg = imperatArg;
+        this.argument = minestomArg;
     }
 
     @Override
@@ -24,13 +24,13 @@ final class ArgumentDecorator<T> extends Argument<T> {
     }
 
     @Override
-    public ArgumentParserType parser() {
+    public @NonNull ArgumentParserType parser() {
         return argument.parser();
     }
 
     @Override
     public boolean isOptional() {
-        return parameter.isOptional() && super.isOptional();
+        return imperatArg.isOptional() && super.isOptional();
     }
 
 }

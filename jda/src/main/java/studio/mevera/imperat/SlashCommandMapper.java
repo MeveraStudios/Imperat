@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -103,12 +103,12 @@ final class SlashCommandMapper {
     private List<UsagePath> collectUsagePaths(
             Command<JdaSource> command,
             List<String> path,
-            List<CommandParameter<JdaSource>> inherited
+            List<Argument<JdaSource>> inherited
     ) {
         List<UsagePath> paths = new ArrayList<>();
-        List<CommandParameter<JdaSource>> inheritedForChildren = new ArrayList<>(inherited);
+        List<Argument<JdaSource>> inheritedForChildren = new ArrayList<>(inherited);
 
-        for (CommandParameter<JdaSource> parameter : command.getMainUsage().getParameters()) {
+        for (Argument<JdaSource> parameter : command.getMainUsage().getParameters()) {
             if (!parameter.isCommand()) {
                 inheritedForChildren.add(parameter);
             }
@@ -116,8 +116,8 @@ final class SlashCommandMapper {
 
         if (command.getSubCommands().isEmpty()) {
             for (CommandUsage<JdaSource> usage : command.usages()) {
-                List<CommandParameter<JdaSource>> parameters = new ArrayList<>(inherited);
-                for (CommandParameter<JdaSource> parameter : usage.getParameters()) {
+                List<Argument<JdaSource>> parameters = new ArrayList<>(inherited);
+                for (Argument<JdaSource> parameter : usage.getParameters()) {
                     if (!parameter.isCommand()) {
                         parameters.add(parameter);
                     }
@@ -135,7 +135,7 @@ final class SlashCommandMapper {
         return paths;
     }
 
-    private OptionType mapOptionType(CommandParameter<JdaSource> parameter) {
+    private OptionType mapOptionType(Argument<JdaSource> parameter) {
         Class<?> raw = parameter.wrappedType().getRawType();
         if (raw == null) {
             return OptionType.STRING;
@@ -160,7 +160,7 @@ final class SlashCommandMapper {
         return OptionType.STRING;
     }
 
-    private record UsagePath(List<String> path, List<CommandParameter<JdaSource>> parameters, String description) {
+    private record UsagePath(List<String> path, List<Argument<JdaSource>> parameters, String description) {
 
     }
 
@@ -178,11 +178,11 @@ final class SlashCommandMapper {
             this.required = required;
         }
 
-        static OptionSpec from(String name, CommandParameter<JdaSource> parameter, OptionType type) {
+        static OptionSpec from(String name, Argument<JdaSource> parameter, OptionType type) {
             return new OptionSpec(name, type, parameter.description().getValue(), !parameter.isOptional());
         }
 
-        void merge(CommandParameter<JdaSource> parameter, OptionType resolvedType) {
+        void merge(Argument<JdaSource> parameter, OptionType resolvedType) {
             type = compatibleType(type, resolvedType);
             description = description == null || description.isEmpty()
                                   ? parameter.description().getValue()
@@ -248,9 +248,9 @@ final class SlashCommandMapper {
             }
         }
 
-        void includeUsage(List<CommandParameter<JdaSource>> parameters) {
+        void includeUsage(List<Argument<JdaSource>> parameters) {
             Set<String> seen = new LinkedHashSet<>();
-            for (CommandParameter<JdaSource> parameter : parameters) {
+            for (Argument<JdaSource> parameter : parameters) {
                 String optionName = parameter.name().toLowerCase();
                 options.compute(optionName, (key, existing) -> {
                     if (existing == null) {

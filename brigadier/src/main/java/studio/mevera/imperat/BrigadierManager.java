@@ -1,11 +1,10 @@
 package studio.mevera.imperat;
 
-import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
 /**
@@ -29,10 +28,10 @@ public sealed interface BrigadierManager<S extends Source> permits BaseBrigadier
      * Fetches the argument valueType from the parameter
      *
      * @param parameter the parameter
-     * @return the {@link ArgumentType} for the {@link CommandParameter}
+     * @return the {@link com.mojang.brigadier.arguments.ArgumentType} for the {@link Argument}
      */
     @NotNull
-    ArgumentType<?> getArgumentType(CommandParameter<S> parameter);
+    com.mojang.brigadier.arguments.ArgumentType<?> getArgumentType(Argument<S> parameter);
 
     /**
      * Parses the registered {@link Command} to brigadier node

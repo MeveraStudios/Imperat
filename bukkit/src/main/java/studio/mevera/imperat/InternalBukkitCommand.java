@@ -38,23 +38,14 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
         return dispatcher.getPlatform();
     }
 
+
     @Nullable
     @Override
     public String getPermission() {
-        return imperatCommand.tree().rootNode().getPermission();
+        return imperatCommand.getPrimaryPermission();
     }
 
-    @NotNull
-    @Override
-    public String getDescription() {
-        return super.getDescription();
-    }
 
-    @NotNull
-    @Override
-    public String getUsage() {
-        return super.getUsage();
-    }
 
     @Override
     public boolean execute(@NotNull CommandSender sender,

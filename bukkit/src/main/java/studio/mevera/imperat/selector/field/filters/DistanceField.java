@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.context.internal.CommandInputStream;
+import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.selector.EntityCondition;
@@ -35,12 +35,12 @@ final class DistanceField extends PredicateField<Range<Double>> {
      * falls within the given range.
      *
      * @param value              the range of acceptable distances
-     * @param commandInputStream the input stream associated with the command
+     * @param cursor the input stream associated with the command
      * @param context the context of the execution
      * @return an EntityCondition that checks if the entity meets the distance condition
      */
     @Override
-    protected @NotNull EntityCondition getCondition(Range<Double> value, CommandInputStream<BukkitSource> commandInputStream,
+    protected @NotNull EntityCondition getCondition(Range<Double> value, Cursor<BukkitSource> cursor,
             Context<BukkitSource> context) {
         return ((sender, entity) -> {
             if (sender.isConsole()) {

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.ContextResolved;
 import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.contextresolver.PlayerData;
@@ -12,7 +12,7 @@ import studio.mevera.imperat.tests.contextresolver.PlayerData;
 @Command("ctx")
 public final class ContextResolvingCmd {
 
-    @Usage
+    @Execute
     public void def(TestSource source, @ContextResolved PlayerData data) {
         Assertions.assertEquals(source.name(), data.name());
     }

@@ -5,16 +5,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
-import studio.mevera.imperat.command.parameters.type.ParameterArray;
-import studio.mevera.imperat.command.parameters.type.ParameterCollection;
-import studio.mevera.imperat.command.parameters.type.ParameterCommand;
-import studio.mevera.imperat.command.parameters.type.ParameterMap;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.parameters.type.ArrayArgument;
+import studio.mevera.imperat.command.parameters.type.CollectionArgument;
+import studio.mevera.imperat.command.parameters.type.CommandArgument;
+import studio.mevera.imperat.command.parameters.type.MapArgument;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
 import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.context.internal.Argument;
+import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.PriorityList;
@@ -24,10 +24,10 @@ import studio.mevera.imperat.util.TypeWrap;
 import java.util.Objects;
 
 @ApiStatus.Internal
-public abstract class InputParameter<S extends Source> implements CommandParameter<S> {
+public abstract class InputParameter<S extends Source> implements Argument<S> {
 
     protected final String name;
-    protected final ParameterType<S, ?> type;
+    protected final ArgumentType<S, ?> type;
     protected final boolean optional, flag, greedy;
     protected final OptionalValueSupplier optionalValueSupplier;
     protected final SuggestionResolver<S> suggestionResolver;
@@ -40,7 +40,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
 
     protected InputParameter(
             String name,
-            @NotNull ParameterType<S, ?> type,
+            @NotNull ArgumentType<S, ?> type,
             @NotNull PermissionsData permissionsData,
             Description description,
             boolean optional, boolean flag, boolean greedy,
@@ -109,7 +109,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     }
 
     @Override
-    public @NotNull ParameterType<S, ?> type() {
+    public @NotNull ArgumentType<S, ?> type() {
         return type;
     }
 
@@ -150,7 +150,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
      */
     @Override
     public boolean isFlag() {
-        return flag || this instanceof FlagParameter<?>;
+        return flag || this instanceof FlagArgument<?>;
     }
 
     /**
@@ -160,8 +160,8 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
      */
     @Override
     @SuppressWarnings("unchecked")
-    public FlagParameter<S> asFlagParameter() {
-        return (FlagParameter<S>) this;
+    public FlagArgument<S> asFlagParameter() {
+        return (FlagArgument<S>) this;
     }
 
     /**
@@ -175,9 +175,9 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
                 String.format("Usage parameter '%s' cannot be greedy while having value-valueType '%s'", name, valueType().getTypeName())
             );
         }*/
-        return greedy || (this.type instanceof ParameterCollection<?, ?, ?>)
-                       || (this.type instanceof ParameterArray<?, ?>)
-                       || (this.type instanceof ParameterMap<?, ?, ?, ?>);
+        return greedy || (this.type instanceof CollectionArgument<?, ?, ?>)
+                       || (this.type instanceof ArrayArgument<?, ?>)
+                       || (this.type instanceof MapArgument<?, ?, ?, ?>);
     }
 
     @Override
@@ -188,7 +188,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
 
     @Override
     public Command<S> asCommand() {
-        if (!(this.type instanceof ParameterCommand<?> asCommandType)) {
+        if (!(this.type instanceof CommandArgument<?> asCommandType)) {
             throw new UnsupportedOperationException("Non-CommandProcessingChain Parameter cannot be converted into a command parameter");
         }
         return parentCommand.getSubCommand(asCommandType.getName());
@@ -227,14 +227,14 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     }
 
     @Override
-    public void validate(Context<S> context, Argument<S> argument) throws InvalidArgumentException {
+    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
         for (ArgValidator<S> validator : validators) {
-            validator.validate(context, argument);
+            validator.validate(context, parsedArgument);
         }
     }
 
     @Override
-    public boolean similarTo(CommandParameter<?> parameter) {
+    public boolean similarTo(Argument<?> parameter) {
         return this.name.equalsIgnoreCase(parameter.name())
                        && type.equalsExactly(parameter.wrappedType().getType());
     }

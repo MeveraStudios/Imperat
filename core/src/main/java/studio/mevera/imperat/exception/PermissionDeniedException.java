@@ -3,7 +3,7 @@ package studio.mevera.imperat.exception;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.Source;
 
@@ -11,11 +11,11 @@ import studio.mevera.imperat.context.Source;
 public final class PermissionDeniedException extends CommandException {
 
     private final CommandUsage<?> usage;
-    private final @Nullable CommandParameter<?> targetParameter;
+    private final @Nullable Argument<?> targetParameter;
 
     public <S extends Source> PermissionDeniedException(
             @NotNull CommandUsage<S> usage,
-            @Nullable CommandParameter<S> targetParameter
+            @Nullable Argument<S> targetParameter
     ) {
         super("Insufficient permissions to execute this command" + (targetParameter != null ? " due to parameter: " + targetParameter.name() : ""));
         this.usage = usage;
@@ -39,7 +39,7 @@ public final class PermissionDeniedException extends CommandException {
      * @see studio.mevera.imperat.permissions.PermissionsData
      * @return the parameter that caused the permission denial, if any
      */
-    public <S extends Source> @Nullable CommandParameter<S> getInAccessibleParameter() {
-        return (CommandParameter<S>) targetParameter;
+    public <S extends Source> @Nullable Argument<S> getInAccessibleParameter() {
+        return (Argument<S>) targetParameter;
     }
 }

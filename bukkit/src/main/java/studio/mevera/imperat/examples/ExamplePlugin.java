@@ -3,7 +3,7 @@ package studio.mevera.imperat.examples;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import studio.mevera.imperat.BukkitImperat;
-import studio.mevera.imperat.type.ParameterPlayer;
+import studio.mevera.imperat.type.PlayerArgument;
 
 class ExamplePlugin extends JavaPlugin {
 
@@ -13,7 +13,7 @@ class ExamplePlugin extends JavaPlugin {
     public void onEnable() {
         // Setting up our imperat
         imperat = BukkitImperat.builder(this)
-                          .parameterType(Player.class, new ParameterPlayer())
+                          .ArgumentType(Player.class, new PlayerArgument())
                           .build();
 
         // Registering rank command.

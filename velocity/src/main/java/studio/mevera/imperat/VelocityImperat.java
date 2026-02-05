@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
-import studio.mevera.imperat.type.ParameterPlayer;
+import studio.mevera.imperat.type.PlayerArgument;
 
 import java.util.concurrent.ExecutorService;
 
@@ -88,7 +88,7 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
 
     private void registerDefaultResolvers() {
         // Register Player and other source/value resolvers
-        config.registerParamType(Player.class, new ParameterPlayer(proxyServer));
+        config.registerArgType(Player.class, new PlayerArgument(proxyServer));
 
         // Define custom exception handling for unknown players
         config.setThrowableResolver(

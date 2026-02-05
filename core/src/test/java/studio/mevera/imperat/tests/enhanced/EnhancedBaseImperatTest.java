@@ -5,7 +5,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.context.internal.Argument;
+import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestImperatConfig;
@@ -100,15 +100,15 @@ public abstract class EnhancedBaseImperatTest {
 
         public ExecutionResultAssert hasArgument(String paramName, Object expectedValue) {
             isSuccessful();
-            Argument<?> argument = null;
+            ParsedArgument<?> parsedArgument = null;
             for (var arg : actual.getExecutionContext().getResolvedArguments()) {
                 if (arg.parameter().name().equals(paramName)) {
-                    argument = arg;
+                    parsedArgument = arg;
                     break;
                 }
             }
 
-            if (argument == null) {
+            if (parsedArgument == null) {
                 failWithMessage("No argument found with name '%s'", paramName);
             } else {
 

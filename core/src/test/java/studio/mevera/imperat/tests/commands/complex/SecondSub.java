@@ -2,13 +2,13 @@ package studio.mevera.imperat.tests.commands.complex;
 
 import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.tests.TestSource;
 
 @SubCommand("second")
 public class SecondSub {
 
-    @Usage
+    @Execute
     public void defaultUsage(TestSource source,
             @Named("otherText") String otherText,
             @Named("otherText2") String otherText2,
@@ -17,7 +17,7 @@ public class SecondSub {
         source.reply("Default execution of second sub-command");
     }
 
-    @Usage
+    @Execute
     public void cmdUsage(TestSource source,
             @Named("otherText") String otherText,
             @Named("otherText2") String otherText2,

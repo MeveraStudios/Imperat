@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help.theme;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
 public abstract class HelpComponent<S extends Source, C> {
@@ -30,8 +30,8 @@ public abstract class HelpComponent<S extends Source, C> {
         return this.appendText(other.componentValue);
     }
 
-    //one for CommandParameter
-    public @NotNull HelpComponent<S, C> appendParameterFormat(CommandParameter<S> parameter) {
+    //one for Argument
+    public @NotNull HelpComponent<S, C> appendParameterFormat(Argument<S> parameter) {
         return this.appendText(parameter.format());
     }
 

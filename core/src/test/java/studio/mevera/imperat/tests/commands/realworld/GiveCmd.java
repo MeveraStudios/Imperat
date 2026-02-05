@@ -6,14 +6,14 @@ import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.Optional;
 import studio.mevera.imperat.annotations.Suggest;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 
 @Command("give")
 public class GiveCmd {
 
-    @Usage
+    @Execute
     public void sword(
             TestSource sender,
             @NotNull @Named("item") @Suggest("lightning") String item,

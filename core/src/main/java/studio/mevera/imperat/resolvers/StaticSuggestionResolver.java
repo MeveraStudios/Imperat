@@ -1,6 +1,6 @@
 package studio.mevera.imperat.resolvers;
 
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 
@@ -18,7 +18,7 @@ final class StaticSuggestionResolver<S extends Source> implements SuggestionReso
     @Override
     public List<String> autoComplete(
             SuggestionContext<S> context,
-            CommandParameter<S> parameter
+            Argument<S> parameter
     ) {
         return suggestions;
     }

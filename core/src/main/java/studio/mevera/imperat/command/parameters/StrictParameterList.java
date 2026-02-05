@@ -5,10 +5,10 @@ import studio.mevera.imperat.context.Source;
 import java.util.Collection;
 import java.util.LinkedList;
 
-public final class StrictParameterList<S extends Source> extends LinkedList<CommandParameter<S>> {
+public final class StrictParameterList<S extends Source> extends LinkedList<Argument<S>> {
 
     @Override
-    public void addFirst(CommandParameter<S> parameter) {
+    public void addFirst(Argument<S> parameter) {
         if (containsSimilar(parameter)) {
             return;
         }
@@ -17,7 +17,7 @@ public final class StrictParameterList<S extends Source> extends LinkedList<Comm
     }
 
     @Override
-    public boolean add(CommandParameter<S> parameter) {
+    public boolean add(Argument<S> parameter) {
 
         if (containsSimilar(parameter)) {
             return false;
@@ -27,7 +27,7 @@ public final class StrictParameterList<S extends Source> extends LinkedList<Comm
     }
 
     @Override
-    public boolean addAll(Collection<? extends CommandParameter<S>> c) {
+    public boolean addAll(Collection<? extends Argument<S>> c) {
         for (var e : c) {
             add(e);
         }
@@ -37,13 +37,13 @@ public final class StrictParameterList<S extends Source> extends LinkedList<Comm
 
     @Override
     public boolean contains(Object o) {
-        if (!(o instanceof CommandParameter<?> parameter)) {
+        if (!(o instanceof Argument<?> parameter)) {
             return false;
         }
         return super.contains(parameter) || containsSimilar(parameter);
     }
 
-    public boolean containsSimilar(CommandParameter<?> parameter) {
+    public boolean containsSimilar(Argument<?> parameter) {
         for (var p : this) {
             if (p.similarTo(parameter)) {
                 return true;

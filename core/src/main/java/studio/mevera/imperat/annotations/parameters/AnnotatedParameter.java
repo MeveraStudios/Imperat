@@ -2,7 +2,7 @@ package studio.mevera.imperat.annotations.parameters;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
 import java.lang.annotation.Annotation;
@@ -13,7 +13,7 @@ import java.util.Collection;
  * from using annotation parser
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface AnnotatedParameter<S extends Source> extends CommandParameter<S> {
+public interface AnnotatedParameter<S extends Source> extends Argument<S> {
 
     /**
      * Get the instance of specific annotation

@@ -5,7 +5,7 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.CommandExecution;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -21,12 +21,12 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
     private final Imperat<S> dispatcher;
     private final MethodElement method;
     private final MethodCaller.BoundMethodCaller boundMethodCaller;
-    private final List<CommandParameter<S>> fullParameters;
+    private final List<Argument<S>> fullParameters;
 
     private MethodCommandExecutor(
             Imperat<S> dispatcher,
             MethodElement method,
-            List<CommandParameter<S>> fullParameters
+            List<Argument<S>> fullParameters
     ) {
 
         try {
@@ -46,7 +46,7 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
     public static <S extends Source> MethodCommandExecutor<S> of(
             Imperat<S> imperat,
             MethodElement method,
-            List<CommandParameter<S>> fullParameters
+            List<Argument<S>> fullParameters
     ) {
         return new MethodCommandExecutor<>(imperat, method, fullParameters);
     }

@@ -11,23 +11,23 @@ import java.util.Queue;
 
 public final class CommandPathSearch<S extends Source> {
 
-    private final CommandNode<S> root;
+    private final LiteralCommandNode<S> root;
 
-    private @NotNull ParameterNode<S, ?> lastNode;
-    private @NotNull ParameterNode<S, ?> lastCommandNode;
+    private @NotNull CommandNode<S, ?> lastNode;
+    private @NotNull CommandNode<S, ?> lastCommandNode;
 
     private CommandUsage<S> directUsage, closestUsage;
 
     private Result result;
 
-    private CommandPathSearch(@NotNull CommandNode<S> root, Result result) {
+    private CommandPathSearch(@NotNull LiteralCommandNode<S> root, Result result) {
         this.root = root;
         this.lastCommandNode = root;
         this.lastNode = lastCommandNode;
         this.result = result;
     }
 
-    private CommandPathSearch(Result result, @NotNull CommandNode<S> root, @NotNull ParameterNode<S, ?> lastNode, CommandUsage<S> directUsage) {
+    private CommandPathSearch(Result result, @NotNull LiteralCommandNode<S> root, @NotNull CommandNode<S, ?> lastNode, CommandUsage<S> directUsage) {
         this.root = root;
         this.result = result;
         this.lastNode = lastNode;
@@ -35,11 +35,11 @@ public final class CommandPathSearch<S extends Source> {
         this.lastCommandNode = root;
     }
 
-    public static <S extends Source> CommandPathSearch<S> of(CommandNode<S> root, final Result result) {
+    public static <S extends Source> CommandPathSearch<S> of(LiteralCommandNode<S> root, final Result result) {
         return new CommandPathSearch<>(root, result);
     }
 
-    public static <S extends Source> CommandPathSearch<S> unknown(CommandNode<S> root) {
+    public static <S extends Source> CommandPathSearch<S> unknown(LiteralCommandNode<S> root) {
         return of(root, Result.UNKNOWN);
     }
 
@@ -76,7 +76,7 @@ public final class CommandPathSearch<S extends Source> {
         return dispatch;
     }
 
-    public void append(ParameterNode<S, ?> node) {
+    public void append(CommandNode<S, ?> node) {
         if (node == null) {
             return;
         }
@@ -86,7 +86,7 @@ public final class CommandPathSearch<S extends Source> {
         this.lastNode = node;
     }
 
-    public @NotNull ParameterNode<S, ?> getLastNode() {
+    public @NotNull CommandNode<S, ?> getLastNode() {
         return lastNode;
     }
 
@@ -126,10 +126,10 @@ public final class CommandPathSearch<S extends Source> {
     private CommandUsage<S> closestUsageLookup() {
         CommandUsage<S> closestUsage = null;
 
-        Queue<ParameterNode<S, ?>> nodes = new LinkedList<>();
+        Queue<CommandNode<S, ?>> nodes = new LinkedList<>();
         nodes.add(lastNode);
 
-        ParameterNode<S, ?> curr;
+        CommandNode<S, ?> curr;
         while (!nodes.isEmpty()) {
             curr = nodes.poll();
             if (!curr.isCommand() && curr.isExecutable()) {
@@ -138,7 +138,7 @@ public final class CommandPathSearch<S extends Source> {
                 break;
             }
 
-            for (ParameterNode<S, ?> child : curr.getChildren()) {
+            for (CommandNode<S, ?> child : curr.getChildren()) {
                 nodes.add(child);
             }
         }
@@ -148,7 +148,7 @@ public final class CommandPathSearch<S extends Source> {
             if (lastCommandNode.isExecutable()) {
                 closestUsage = lastCommandNode.getExecutableUsage();
             } else {
-                closestUsage = ((CommandNode<S>) lastCommandNode).getData().getDefaultUsage();
+                closestUsage = ((LiteralCommandNode<S>) lastCommandNode).getData().getDefaultUsage();
             }
         }
 
@@ -159,8 +159,8 @@ public final class CommandPathSearch<S extends Source> {
         return new CommandPathSearch<>(result, root, lastNode, directUsage);
     }
 
-    public @NotNull CommandNode<S> getLastCommandNode() {
-        return (CommandNode<S>) lastCommandNode;
+    public @NotNull LiteralCommandNode<S> getLastCommandNode() {
+        return (LiteralCommandNode<S>) lastCommandNode;
     }
 
     /**
@@ -171,7 +171,7 @@ public final class CommandPathSearch<S extends Source> {
         /**
          * The tree stopped midway for some reason,
          * most probably would be that the source doesn't have access
-         * to a {@link ParameterNode} that matches his corresponding input.
+         * to a {@link CommandNode} that matches his corresponding input.
          */
         PAUSE,
 

@@ -76,7 +76,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         ImperatDebugger.debug(visualization);
     }
 
-    private TreeNode buildTreeStructure(ParameterNode<S, ?> node, TreeNode parent) {
+    private TreeNode buildTreeStructure(CommandNode<S, ?> node, TreeNode parent) {
         if (node == null) {
             return null;
         }
@@ -84,7 +84,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         NodeType type = parent == null ? NodeType.ROOT : determineNodeType(node);
         TreeNode treeNode = new TreeNode(node, type);
 
-        for (ParameterNode<S, ?> child : node.getChildren()) {
+        for (CommandNode<S, ?> child : node.getChildren()) {
             TreeNode childTreeNode = buildTreeStructure(child, treeNode);
             if (childTreeNode != null) {
                 treeNode.children.add(childTreeNode);
@@ -336,7 +336,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         return max;
     }
 
-    private NodeType determineNodeType(ParameterNode<S, ?> node) {
+    private NodeType determineNodeType(CommandNode<S, ?> node) {
         // Adjust based on your actual node structure
         String format = node.format().toLowerCase();
         if (format.startsWith("-") || format.startsWith("--")) {
@@ -382,7 +382,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         ImperatDebugger.debug(builder.toString());
     }
 
-    private void visualizeSimpleNode(ParameterNode<S, ?> node,
+    private void visualizeSimpleNode(CommandNode<S, ?> node,
             StringBuilder builder,
             int depth,
             List<Boolean> lastFlags,
@@ -404,7 +404,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         builder.append(nodeText).append("\n");
 
         // Draw children
-        PriorityList<ParameterNode<S, ?>> children = node.getChildren();
+        PriorityList<CommandNode<S, ?>> children = node.getChildren();
         List<Boolean> newLastFlags = new ArrayList<>(lastFlags);
         if (depth > 0) {
             newLastFlags.add(isLast);
@@ -429,13 +429,13 @@ public final class CommandTreeVisualizer<S extends Source> {
 
     private class TreeNode {
 
-        ParameterNode<S, ?> node;
+        CommandNode<S, ?> node;
         NodeType type;
         List<TreeNode> children = new ArrayList<>();
         int x, y;  // Position in the canvas
         int width; // Width needed for this subtree
 
-        TreeNode(ParameterNode<S, ?> node, NodeType type) {
+        TreeNode(CommandNode<S, ?> node, NodeType type) {
             this.node = node;
             this.type = type;
         }

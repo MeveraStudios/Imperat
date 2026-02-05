@@ -3,15 +3,10 @@ package studio.mevera.imperat;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.SimpleCommandMap;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.reflection.FieldAccessor;
 import studio.mevera.imperat.util.reflection.Reflections;
-
 import java.lang.reflect.Field;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -61,24 +56,6 @@ public final class BukkitUtil {
         merged.addAll(set1);
         merged.addAll(set2);
         return merged;
-    }
-
-    @ApiStatus.Experimental
-    public static Command<BukkitSource> convertBukkitCmdToImperatCmd(Imperat<BukkitSource> imperat, org.bukkit.command.Command bukkitCmd) {
-        return Command.create(imperat, bukkitCmd.getName())
-                       .aliases(bukkitCmd.getAliases())
-                       .description(bukkitCmd.getDescription())
-                       .permission(bukkitCmd.getPermission())
-                       //TODO add forced syntax format
-                       .usage(CommandUsage.<BukkitSource>builder()
-                                      .parameters(CommandParameter.requiredGreedy("args"))
-                                      .execute((source, context) -> {
-                                          String argsOneLine = context.getArgument("args");
-                                          String[] args = SPLIT_LINE.split(argsOneLine);
-                                          bukkitCmd.execute(source.origin(), context.label(), args);
-                                      })
-                       )
-                       .build();
     }
 
     public static final class ClassesRefUtil {

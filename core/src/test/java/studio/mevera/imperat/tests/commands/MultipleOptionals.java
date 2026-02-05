@@ -3,13 +3,13 @@ package studio.mevera.imperat.tests.commands;
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Optional;
 import studio.mevera.imperat.annotations.Suggest;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("multopts")
 public class MultipleOptionals {
 
-    @Usage
+    @Execute
     public void t(TestSource source,
             @Optional @Suggest("hi") String opt1,
             @Optional @Suggest("7.5") Double opt2,

@@ -45,70 +45,70 @@ import studio.mevera.imperat.exception.InvalidLocationFormatException;
 import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
 import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
-import studio.mevera.imperat.type.HytaleParameterType;
-import studio.mevera.imperat.type.ParameterLocation;
-import studio.mevera.imperat.type.ParameterPlayer;
-import studio.mevera.imperat.type.ParameterWorld;
+import studio.mevera.imperat.type.HytaleArgumentType;
+import studio.mevera.imperat.type.LocationArgument;
+import studio.mevera.imperat.type.PlayerArgument;
+import studio.mevera.imperat.type.WorldArgument;
 import studio.mevera.imperat.util.TypeWrap;
 
 public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, HytaleImperat, HytaleConfigBuilder> {
 
-    private static final HytaleParameterType.Data<?>[] HYTALE_ARGUMENT_TYPES = {
+    private static final HytaleArgumentType.Data<?>[] HYTALE_ARGUMENT_TYPES = {
             //TODO we should add exceptions(and their providers) for each type of data eventually.
 
-            /* new HytaleParameterType.Data<>(Boolean.class, ArgTypes.BOOLEAN, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(Integer.class, ArgTypes.INTEGER, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(String.class, ArgTypes.STRING, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(Float.class, ArgTypes.FLOAT, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(Double.class, ArgTypes.DOUBLE, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(UUID.class, ArgTypes.UUID, HytaleParameterType.ExceptionProvider.DEFAULT), */
+            /* new HytaleArgumentType.Data<>(Boolean.class, ArgTypes.BOOLEAN, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Integer.class, ArgTypes.INTEGER, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(String.class, ArgTypes.STRING, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Float.class, ArgTypes.FLOAT, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Double.class, ArgTypes.DOUBLE, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(UUID.class, ArgTypes.UUID, HytaleArgumentType.ExceptionProvider.DEFAULT), */
 
-            // new HytaleParameterType.Data<>(PlayerRef.class, ArgTypes.PLAYER_REF, HytaleParameterType.ExceptionProvider.DEFAULT),
-            // new HytaleParameterType.Data<>(World.class, ArgTypes.WORLD, HytaleParameterType.ExceptionProvider.DEFAULT),
+            // new HytaleArgumentType.Data<>(PlayerRef.class, ArgTypes.PLAYER_REF, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            // new HytaleArgumentType.Data<>(World.class, ArgTypes.WORLD, HytaleArgumentType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(Coord.class, ArgTypes.RELATIVE_DOUBLE_COORD, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(IntCoord.class, ArgTypes.RELATIVE_INT_COORD, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(RelativeInteger.class, ArgTypes.RELATIVE_INTEGER, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(RelativeFloat.class, ArgTypes.RELATIVE_FLOAT, HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Coord.class, ArgTypes.RELATIVE_DOUBLE_COORD, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(IntCoord.class, ArgTypes.RELATIVE_INT_COORD, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(RelativeInteger.class, ArgTypes.RELATIVE_INTEGER, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(RelativeFloat.class, ArgTypes.RELATIVE_FLOAT, HytaleArgumentType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(Vector2i.class, ArgTypes.VECTOR2I, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(Vector3i.class, ArgTypes.VECTOR3I, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(RelativeVector3i.class, ArgTypes.RELATIVE_VECTOR3I, HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Vector2i.class, ArgTypes.VECTOR2I, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Vector3i.class, ArgTypes.VECTOR3I, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(RelativeVector3i.class, ArgTypes.RELATIVE_VECTOR3I, HytaleArgumentType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(RelativeIntPosition.class, ArgTypes.RELATIVE_BLOCK_POSITION,
-                    HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(RelativeDoublePosition.class, ArgTypes.RELATIVE_POSITION, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(RelativeChunkPosition.class, ArgTypes.RELATIVE_CHUNK_POSITION,
-                    HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(RelativeIntPosition.class, ArgTypes.RELATIVE_BLOCK_POSITION,
+                    HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(RelativeDoublePosition.class, ArgTypes.RELATIVE_POSITION, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(RelativeChunkPosition.class, ArgTypes.RELATIVE_CHUNK_POSITION,
+                    HytaleArgumentType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(Vector3f.class, ArgTypes.ROTATION, HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Vector3f.class, ArgTypes.ROTATION, HytaleArgumentType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(ModelAsset.class, ArgTypes.MODEL_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(Weather.class, ArgTypes.WEATHER_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(Interaction.class, ArgTypes.INTERACTION_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(RootInteraction.class, ArgTypes.ROOT_INTERACTION_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(EntityEffect.class, ArgTypes.EFFECT_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(Environment.class, ArgTypes.ENVIRONMENT_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(Item.class, ArgTypes.ITEM_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(BlockType.class, ArgTypes.BLOCK_TYPE_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(ParticleSystem.class, ArgTypes.PARTICLE_SYSTEM, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(HitboxCollisionConfig.class, ArgTypes.HITBOX_COLLISION_CONFIG,
-                    HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(RepulsionConfig.class, ArgTypes.REPULSION_CONFIG, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(SoundEvent.class, ArgTypes.SOUND_EVENT_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(AmbienceFX.class, ArgTypes.AMBIENCE_FX_ASSET, HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(ModelAsset.class, ArgTypes.MODEL_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Weather.class, ArgTypes.WEATHER_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Interaction.class, ArgTypes.INTERACTION_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(RootInteraction.class, ArgTypes.ROOT_INTERACTION_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(EntityEffect.class, ArgTypes.EFFECT_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Environment.class, ArgTypes.ENVIRONMENT_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Item.class, ArgTypes.ITEM_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(BlockType.class, ArgTypes.BLOCK_TYPE_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(ParticleSystem.class, ArgTypes.PARTICLE_SYSTEM, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(HitboxCollisionConfig.class, ArgTypes.HITBOX_COLLISION_CONFIG,
+                    HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(RepulsionConfig.class, ArgTypes.REPULSION_CONFIG, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(SoundEvent.class, ArgTypes.SOUND_EVENT_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(AmbienceFX.class, ArgTypes.AMBIENCE_FX_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(SoundCategory.class, ArgTypes.SOUND_CATEGORY, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(GameMode.class, ArgTypes.GAME_MODE, HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(SoundCategory.class, ArgTypes.SOUND_CATEGORY, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(GameMode.class, ArgTypes.GAME_MODE, HytaleArgumentType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(BlockMask.class, ArgTypes.BLOCK_MASK, HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(BlockPattern.class, ArgTypes.BLOCK_PATTERN, HytaleParameterType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(BlockMask.class, ArgTypes.BLOCK_MASK, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(BlockPattern.class, ArgTypes.BLOCK_PATTERN, HytaleArgumentType.ExceptionProvider.DEFAULT),
 
-            new HytaleParameterType.Data<>(ArgTypes.IntegerComparisonOperator.class, ArgTypes.INTEGER_COMPARISON_OPERATOR,
-                    HytaleParameterType.ExceptionProvider.DEFAULT),
-            new HytaleParameterType.Data<>(ArgTypes.IntegerOperation.class, ArgTypes.INTEGER_OPERATION, InvalidIntegerOperator::new)
+            new HytaleArgumentType.Data<>(ArgTypes.IntegerComparisonOperator.class, ArgTypes.INTEGER_COMPARISON_OPERATOR,
+                    HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(ArgTypes.IntegerOperation.class, ArgTypes.INTEGER_OPERATION, InvalidIntegerOperator::new)
 
-            // new HytaleParameterType.Data<>(Pair.class, ArgTypes.INT_RANGE, HytaleParameterType.ExceptionProvider.DEFAULT) // shared Pair<Integer,
+            // new HytaleArgumentType.Data<>(Pair.class, ArgTypes.INT_RANGE, HytaleArgumentType.ExceptionProvider.DEFAULT) // shared Pair<Integer,
             // Integer>
     };
 
@@ -177,13 +177,13 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
     }
 
     private void registerDefaultParamTypes() {
-        config.registerParamType(Location.class, new ParameterLocation());
-        config.registerParamType(PlayerRef.class, new ParameterPlayer());
-        config.registerParamType(World.class, new ParameterWorld());
+        config.registerArgType(Location.class, new LocationArgument());
+        config.registerArgType(PlayerRef.class, new PlayerArgument());
+        config.registerArgType(World.class, new WorldArgument());
 
         // Registerall other types
-        for (HytaleParameterType.Data<?> data : HYTALE_ARGUMENT_TYPES) {
-            config.registerParamType(data.type(), new HytaleParameterType<>(data));
+        for (HytaleArgumentType.Data<?> data : HYTALE_ARGUMENT_TYPES) {
+            config.registerArgType(data.type(), new HytaleArgumentType<>(data));
         }
 
     }

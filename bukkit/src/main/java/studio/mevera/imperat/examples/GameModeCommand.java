@@ -7,13 +7,13 @@ import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.Permission;
-import studio.mevera.imperat.annotations.Usage;
+import studio.mevera.imperat.annotations.Execute;
 
 @Command({"gamemode", "gm"})
 @Permission("lobby.gamemode")
 class GameModeCommand {
 
-    @Usage
+    @Execute
     public void defUsage(
             Player source,
             @NotNull @Named("gamemode") GameMode gameMode,

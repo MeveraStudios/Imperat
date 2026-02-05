@@ -3,8 +3,8 @@ package studio.mevera.imperat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.ContextResolverFactory;
-import studio.mevera.imperat.command.parameters.CommandParameter;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
+import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.placeholders.Placeholder;
@@ -49,13 +49,13 @@ public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfi
 
 
     /**
-     * Registers {@link ParameterType}
+     * Registers {@link ArgumentType}
      *
      * @param type     the class-valueType of value being resolved from context
      * @param resolver the resolver for this value
      * @param <T>      the valueType of value being resolved from context
      */
-    <T> void registerParamType(Type type, @NotNull ParameterType<S, T> resolver);
+    <T> void registerArgType(Type type, @NotNull ArgumentType<S, T> resolver);
 
     /**
      * Registers a supplier function that provides new instances of a specific Collection type.
@@ -105,7 +105,7 @@ public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfi
      * @return the {@link SuggestionResolver} instance for that valueType
      */
     @SuppressWarnings("uncecked")
-    default @NotNull SuggestionResolver<S> getParameterSuggestionResolver(CommandParameter<S> parameter) {
+    default @NotNull SuggestionResolver<S> getParameterSuggestionResolver(Argument<S> parameter) {
         SuggestionResolver<S> parameterSpecificResolver = parameter.getSuggestionResolver();
         //ImperatDebugger.debug("Getting the suggestion resolver for param '%s'", parameter.format());
         if (parameterSpecificResolver == null) {

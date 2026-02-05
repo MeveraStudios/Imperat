@@ -1,8 +1,8 @@
 package studio.mevera.imperat.command.parameters;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.type.ParameterType;
-import studio.mevera.imperat.command.parameters.type.ParameterTypes;
+import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
@@ -11,15 +11,15 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class FlagBuilder<S extends Source, T> extends ParameterBuilder<S, ExtractedFlagArgument> {
+public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, ExtractedFlagArgument> {
 
-    private final ParameterType<S, T> inputType;
+    private final ArgumentType<S, T> inputType;
     private final List<String> aliases = new ArrayList<>();
     private OptionalValueSupplier defaultValueSupplier;
     private SuggestionResolver<S> suggestionResolver;
 
-    private FlagBuilder(String name, @Nullable ParameterType<S, T> inputType) {
-        super(name, ParameterTypes.flag(FlagData.create(name, List.of(), inputType)), true, false);
+    private FlagBuilder(String name, @Nullable ArgumentType<S, T> inputType) {
+        super(name, ArgumentTypes.flag(FlagData.create(name, List.of(), inputType)), true, false);
         this.inputType = inputType;
         this.defaultValueSupplier = inputType == null ? OptionalValueSupplier.of("false") : inputType.supplyDefaultValue();
     }
@@ -29,7 +29,7 @@ public final class FlagBuilder<S extends Source, T> extends ParameterBuilder<S, 
         this(name, null);
     }
 
-    public static <S extends Source, T> FlagBuilder<S, T> ofFlag(String name, ParameterType<S, T> inputType) {
+    public static <S extends Source, T> FlagBuilder<S, T> ofFlag(String name, ArgumentType<S, T> inputType) {
         return new FlagBuilder<>(name, inputType);
     }
 
@@ -65,12 +65,12 @@ public final class FlagBuilder<S extends Source, T> extends ParameterBuilder<S, 
 
 
     @Override
-    public FlagParameter<S> build() {
+    public FlagArgument<S> build() {
         FlagData<S> flag = FlagData.create(name, aliases, inputType);
         if (inputType == null) {
             defaultValueSupplier = OptionalValueSupplier.of("false");
         }
-        return new FlagCommandParameter<>(flag, permission, description, defaultValueSupplier, suggestionResolver);
+        return new FlagArgumentImpl<>(flag, permission, description, defaultValueSupplier, suggestionResolver);
     }
 
 }

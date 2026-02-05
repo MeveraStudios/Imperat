@@ -2,7 +2,7 @@ package studio.mevera.imperat;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
 import java.util.Collection;
@@ -92,7 +92,7 @@ public sealed interface CommandRegistrar<S extends Source> permits Imperat {
      * @param parameter the parameter
      * @return the command from the parameter's name
      */
-    default @Nullable Command<S> getCommand(final CommandParameter<S> parameter) {
+    default @Nullable Command<S> getCommand(final Argument<S> parameter) {
         return getCommand(parameter.name());
     }
 

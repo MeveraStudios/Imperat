@@ -3,7 +3,7 @@ package studio.mevera.imperat.verification;
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
 
         int greedyCount = 0;
         for (int i = 0; i < usage.getMaxLength(); i++) {
-            CommandParameter<S> param = usage.loadCombinedParameters().get(i);
+            Argument<S> param = usage.loadCombinedParameters().get(i);
             if (param.isGreedy()) {
                 greedyCount++;
             }
@@ -33,7 +33,7 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
             return false;
         }
 
-        CommandParameter<S> greedyParam = usage.getParameter(CommandParameter::isGreedy);
+        Argument<S> greedyParam = usage.getParameter(Argument::isGreedy);
         if (greedyParam == null) {
             return true;
         }
@@ -50,10 +50,10 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
                                          && secondUsage.hasParamType(Command.class);
 
         if (sameLength && hasSubCommands) {
-            List<CommandParameter<S>> parameterList1 = new ArrayList<>(firstUsage.getParameters());
+            List<Argument<S>> parameterList1 = new ArrayList<>(firstUsage.getParameters());
             parameterList1.removeIf((param) -> !param.isCommand());
 
-            List<CommandParameter<S>> parameterList2 = new ArrayList<>(secondUsage.getParameters());
+            List<Argument<S>> parameterList2 = new ArrayList<>(secondUsage.getParameters());
             parameterList2.removeIf((param) -> !param.isCommand());
 
             return parameterList1.equals(parameterList2);
@@ -62,8 +62,8 @@ class SimpleVerifier<S extends Source> implements UsageVerifier<S> {
         if (sameLength) {
             final int capacity = firstUsage.getMinLength();
             for (int i = 0; i < capacity; i++) {
-                CommandParameter<S> firstUsageParameter = firstUsage.getParameter(i);
-                CommandParameter<S> secondUsageParameter = secondUsage.getParameter(i);
+                Argument<S> firstUsageParameter = firstUsage.getParameter(i);
+                Argument<S> secondUsageParameter = secondUsage.getParameter(i);
                 if (firstUsageParameter == null || secondUsageParameter == null) {
                     break;
                 }

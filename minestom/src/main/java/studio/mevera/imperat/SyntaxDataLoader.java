@@ -1,11 +1,9 @@
 package studio.mevera.imperat;
 
-
 import net.kyori.adventure.text.Component;
 import net.minestom.server.color.Color;
 import net.minestom.server.command.builder.CommandExecutor;
 import net.minestom.server.command.builder.arguments.Argument;
-import net.minestom.server.command.builder.arguments.ArgumentType;
 import net.minestom.server.command.builder.condition.CommandCondition;
 import net.minestom.server.command.builder.suggestion.SuggestionEntry;
 import net.minestom.server.instance.block.Block;
@@ -14,7 +12,6 @@ import net.minestom.server.particle.Particle;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.TypeUtility;
 
@@ -51,7 +48,7 @@ final class SyntaxDataLoader {
     }
 
     static @NotNull CommandCondition loadCondition(MinestomImperat imperat, CommandUsage<MinestomSource> usage) {
-        return (sender, commandString) -> imperat.config().getPermissionChecker().hasUsagePermission(imperat.wrapSender(sender), usage).right();
+        return (sender, commandString) -> imperat.config().getPermissionChecker().hasPermission(imperat.wrapSender(sender), usage);
     }
 
     static <T> Argument<?>[] loadArguments(
@@ -60,9 +57,9 @@ final class SyntaxDataLoader {
             CommandUsage<MinestomSource> usage
     ) {
         Argument<?>[] args = new Argument[usage.size()];
-        List<CommandParameter<MinestomSource>> parameters = usage.getParameters();
+        List<studio.mevera.imperat.command.parameters.Argument<MinestomSource>> parameters = usage.getParameters();
         for (int i = 0; i < parameters.size(); i++) {
-            CommandParameter<MinestomSource> parameter = parameters.get(i);
+            studio.mevera.imperat.command.parameters.Argument<MinestomSource> parameter = parameters.get(i);
             Argument<T> arg = (Argument<T>) argFromParameter(parameter);
             arg.setSuggestionCallback((sender, context, suggestion) -> {
                 String in = context.getInput();
@@ -80,25 +77,25 @@ final class SyntaxDataLoader {
         return args;
     }
 
-    private static Argument<?> argFromParameter(CommandParameter<MinestomSource> parameter) {
+    private static Argument<?> argFromParameter(studio.mevera.imperat.command.parameters.Argument<MinestomSource> parameter) {
         var type = parameter.valueType();
         var id = parameter.name();
 
         if (parameter.isCommand()) {
-            return ArgumentType.Literal(id);
+            return net.minestom.server.command.builder.arguments.ArgumentType.Literal(id);
         }
 
         if (parameter.isGreedy()) {
-            return ArgumentType.StringArray(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.StringArray(id);
         }
 
         if (parameter.isFlag()) {
             if (parameter.asFlagParameter().isSwitch()) {
-                return ArgumentType.Word(id).filter(Patterns::isInputFlag);
+                return  net.minestom.server.command.builder.arguments.ArgumentType.Word(id).filter(Patterns::isInputFlag);
             }
 
-            return ArgumentType.Group(
-                    id, ArgumentType.Word(id).filter(Patterns::isInputFlag),
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Group(
+                    id,  net.minestom.server.command.builder.arguments.ArgumentType.Word(id).filter(Patterns::isInputFlag),
                     from("value", parameter.asFlagParameter().inputValueType())
             );
         }
@@ -109,54 +106,54 @@ final class SyntaxDataLoader {
     private static Argument<?> from(String id, Type type) {
 
         if (TypeUtility.matches(type, String.class)) {
-            return ArgumentType.String(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.String(id);
         }
 
         if (TypeUtility.matches(type, Integer.class)) {
-            return ArgumentType.Integer(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Integer(id);
         }
 
         if (TypeUtility.matches(type, boolean.class)) {
-            return ArgumentType.Boolean(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Boolean(id);
         }
 
         if (TypeUtility.matches(type, double.class)) {
-            return ArgumentType.Double(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Double(id);
         }
 
         if (TypeUtility.matches(type, float.class)) {
-            return ArgumentType.Float(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Float(id);
         }
 
 
         if (TypeUtility.matches(type, Enum.class)) {
-            return ArgumentType.Enum(id, (Class<? extends Enum<?>>) type);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Enum(id, (Class<? extends Enum<?>>) type);
         }
 
         // Minestom specific types
         //TODO add value resolvers and suggestion resolvers for these extra types
         if (TypeUtility.matches(type, Color.class)) {
-            return ArgumentType.Color(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Color(id);
         }
 
         if (TypeUtility.matches(type, Particle.class)) {
-            return ArgumentType.Particle(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Particle(id);
         }
 
         if (TypeUtility.matches(type, Block.class)) {
-            return ArgumentType.BlockState(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.BlockState(id);
         }
 
         if (TypeUtility.matches(type, UUID.class)) {
-            return ArgumentType.UUID(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.UUID(id);
         }
 
         if (TypeUtility.matches(type, ItemStack.class)) {
-            return ArgumentType.ItemStack(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.ItemStack(id);
         }
 
         if (TypeUtility.matches(type, Component.class)) {
-            return ArgumentType.Component(id);
+            return  net.minestom.server.command.builder.arguments.ArgumentType.Component(id);
         }
         
         /*if (TypeUtility.matches(valueType, RelativeVec.class))
@@ -166,7 +163,7 @@ final class SyntaxDataLoader {
             return ArgumentType.RelativeVec2(id);
         */
 
-        return ArgumentType.Word(id);
+        return  net.minestom.server.command.builder.arguments.ArgumentType.Word(id);
     }
 
 }
