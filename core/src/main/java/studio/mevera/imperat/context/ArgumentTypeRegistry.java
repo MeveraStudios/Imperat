@@ -1,10 +1,12 @@
 package studio.mevera.imperat.context;
+import studio.mevera.imperat.command.parameters.Either;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.command.parameters.type.ArrayArgument;
 import studio.mevera.imperat.command.parameters.type.CollectionArgument;
 import studio.mevera.imperat.command.parameters.type.CompletableFutureArgument;
+import studio.mevera.imperat.command.parameters.type.EitherArgument;
 import studio.mevera.imperat.command.parameters.type.EnumArgument;
 import studio.mevera.imperat.command.parameters.type.MapArgument;
 import studio.mevera.imperat.command.parameters.type.OptionalArgument;
@@ -242,14 +244,20 @@ public final class ArgumentTypeRegistry<S extends Source> extends Registry<Type,
         }
         TypeWrap<T> optionalType = (TypeWrap<T>) TypeWrap.of(parameterizedTypes[0]);
         ArgumentType<S, T> optionalTypeResolver =
-                (ArgumentType<S, T>) getResolver(optionalType.getType()).orElseThrow(() -> new IllegalArgumentException("Unknown "
-                                                                                                                                 + "component-type "
-                                                                                                                                 + "detected '"
-                                                                                                                                 + optionalType.getType()
-                                                                                                                                           .getTypeName()
+                (ArgumentType<S, T>) getResolver(optionalType.getType()).orElseThrow(() ->
+                      new IllegalArgumentException("Unknown " + "component-type "
+                                                           + "detected '" + optionalType.getType().getTypeName()
                                                                                                                                  + "'"));
-
         return ArgumentTypes.optional((TypeWrap<Optional<T>>) type, optionalTypeResolver);
+    }
+    private <A, B> EitherArgument<S, A, B> getEitherResolver(TypeWrap<?> type) {
+        var parameterizedTypes = type.getParameterizedTypes();
+        if (parameterizedTypes == null || parameterizedTypes.length == 0) {
+            throw new IllegalArgumentException("Raw types are not allowed as parameters !");
+        }
+        TypeWrap<A> aType = (TypeWrap<A>) TypeWrap.of(parameterizedTypes[0]);
+        TypeWrap<B> bType = (TypeWrap<B>) TypeWrap.of(parameterizedTypes[1]);
+        return ArgumentTypes.either((TypeWrap<Either<A,B>>) type, aType, bType);
     }
 
     public <C extends Collection<?>> void registerCollectionInitializer(Class<C> type, Supplier<C> initializerFunction) {
@@ -274,7 +282,7 @@ public final class ArgumentTypeRegistry<S extends Source> extends Registry<Type,
                 Optional.ofNullable(getData(TypeUtility.primitiveToBoxed(type))
                                             .map(Supplier::get)
                                             .orElseGet(() -> {
-
+                                                //TODO add handler architechture instead of this ugly if else
                                                 var wrap = TypeWrap.of(type);
                                                 if (wrap.isArray()) {
                                                     //array type
@@ -290,6 +298,8 @@ public final class ArgumentTypeRegistry<S extends Source> extends Registry<Type,
                                                     return this.getFutureResolver(wrap);
                                                 } else if (wrap.getRawType().equals(Optional.class)) {
                                                     return this.getOptionalResolver(wrap);
+                                                }else if(wrap.getRawType().equals(Either.class)) {
+                                                    return this.getEitherResolver(wrap);
                                                 } else if (TypeUtility.isNumericType(wrap)) {
                                                     return ArgumentTypes.numeric((Class<? extends Number>) type);
                                                 } else if (TypeUtility.areRelatedTypes(type, Enum.class)) {
@@ -304,5 +314,7 @@ public final class ArgumentTypeRegistry<S extends Source> extends Registry<Type,
                                                 return null;
                                             }));
     }
+
+
 
 }
