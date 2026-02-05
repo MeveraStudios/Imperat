@@ -13,7 +13,7 @@ import studio.mevera.imperat.annotations.Usage;
 import studio.mevera.imperat.tests.TestSource;
 
 @Command("ban2")
-@Permission("command.ban")
+//@Permission("command.ban")
 @Description("Main command for banning players")
 public final class Ban2Command {
 

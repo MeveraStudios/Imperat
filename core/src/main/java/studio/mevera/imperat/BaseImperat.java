@@ -411,6 +411,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                                                        this, source, command, cmdName, argumentInput
                                                );
 
+        command.visualizeTree();
         return command.autoCompleter()
                        .autoComplete(context)
                        .exceptionally((ex) -> {

@@ -86,6 +86,7 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     }
 
     public boolean matchesInput(int depth, Context<S> ctx, boolean strict) {
+        System.out.println("Node= " + this.data.name() + ", strict= " + strict);
         var primaryType = data.type();
         boolean primaryMatches = matchesInput(primaryType, depth, ctx);
 

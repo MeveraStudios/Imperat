@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.permissions.CommandPermissionCondition;
+import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestImperat;
@@ -15,7 +16,8 @@ import studio.mevera.imperat.tests.TestSource;
 public class CommandPermissionConditionTest extends BaseImperatTest {
 
     private final static TestImperat IMPERAT = ImperatTestGlobals.IMPERAT;
-
+    private final static PermissionChecker<TestSource> CHECKER = IMPERAT.config().getPermissionChecker();
+    
     private static TestSource user(String... perms) {
         TestSource src = new TestSource(System.out);
         for (String perm : perms) {
@@ -28,17 +30,17 @@ public class CommandPermissionConditionTest extends BaseImperatTest {
     void testFluentAPI() {
 
         CommandPermissionCondition cond = CommandPermissionCondition
-                                                  .has("A")
-                                                  .or("B")
-                                                  .and("C");  // (A OR B) AND C
+                        .has("A")
+                        .or("B")
+                        .and("C");  // (A OR B) AND C
 
         var user1 = user("A", "C");
         var user2 = user("B", "C");
         var user3 = user("A");
 
-        assertTrue(cond.has(user1, IMPERAT.config().getPermissionChecker()));
-        assertTrue(cond.has(user2, IMPERAT.config().getPermissionChecker()));
-        assertFalse(cond.has(user3, IMPERAT.config().getPermissionChecker()));
+        assertTrue(cond.has(user1, CHECKER));
+        assertTrue(cond.has(user2, CHECKER));
+        assertFalse(cond.has(user3, CHECKER));
     }
 
 
@@ -50,9 +52,9 @@ public class CommandPermissionConditionTest extends BaseImperatTest {
         var user2 = user("X", "Y");
         var user3 = user("Z", "Y", "X");
 
-        assertTrue(cond.has(user1, IMPERAT.config().getPermissionChecker()));
-        assertFalse(cond.has(user2, IMPERAT.config().getPermissionChecker()));
-        assertTrue(cond.has(user3, IMPERAT.config().getPermissionChecker()));
+        assertTrue(cond.has(user1, CHECKER));
+        assertFalse(cond.has(user2, CHECKER));
+        assertTrue(cond.has(user3, CHECKER));
     }
 
     @Test
@@ -63,9 +65,9 @@ public class CommandPermissionConditionTest extends BaseImperatTest {
         var user2 = user("B");
         var user3 = user("B", "C");
 
-        assertTrue(cond.has(user1, IMPERAT.config().getPermissionChecker()));
-        assertTrue(cond.has(user2, IMPERAT.config().getPermissionChecker()));
-        assertFalse(cond.has(user3, IMPERAT.config().getPermissionChecker()));
+        assertTrue(cond.has(user1, CHECKER));
+        assertTrue(cond.has(user2, CHECKER));
+        assertFalse(cond.has(user3, CHECKER));
     }
 
     @Test
@@ -76,8 +78,8 @@ public class CommandPermissionConditionTest extends BaseImperatTest {
         var user2 = user("B", "D");
         var user3 = user("B", "C");
 
-        assertTrue(cond.has(user1, IMPERAT.config().getPermissionChecker()));
-        assertTrue(cond.has(user2, IMPERAT.config().getPermissionChecker()));
-        assertFalse(cond.has(user3, IMPERAT.config().getPermissionChecker()));
+        assertTrue(cond.has(user1, CHECKER));
+        assertTrue(cond.has(user2, CHECKER));
+        assertFalse(cond.has(user3, CHECKER));
     }
 }

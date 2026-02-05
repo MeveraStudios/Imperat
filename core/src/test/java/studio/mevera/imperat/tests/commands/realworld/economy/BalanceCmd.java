@@ -3,13 +3,12 @@ package studio.mevera.imperat.tests.commands.realworld.economy;
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.Flag;
-import studio.mevera.imperat.annotations.Permission;
 import studio.mevera.imperat.annotations.Usage;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 
 @Command("bal")
-@Permission("bal.see")
+//@Permission("bal.see")
 public class BalanceCmd {
 
     @Usage
