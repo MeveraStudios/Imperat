@@ -13,7 +13,7 @@ import java.util.Collection;
  * from using annotation parser
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface AnnotatedParameter<S extends Source> extends Argument<S> {
+public interface AnnotatedArgument<S extends Source> extends Argument<S> {
 
     /**
      * Get the instance of specific annotation

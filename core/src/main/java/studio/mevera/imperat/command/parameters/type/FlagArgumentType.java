@@ -31,7 +31,7 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, Extracte
     }
 
     @Override
-    public @Nullable ExtractedFlagArgument resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor,
+    public @Nullable ExtractedFlagArgument parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         var currentParameter = cursor.currentParameterIfPresent();
@@ -53,11 +53,11 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, Extracte
             rawInput = cursor.popRaw().orElse(null);
             if (rawInput != null) {
                 assert inputType != null;
-                objInput = inputType.resolve(context, cursor, rawInput);
+                objInput = inputType.parse(context, cursor, rawInput);
                 if (objInput == null && !FlagArgument.getDefaultValueSupplier().isEmpty()) {
                     String defValue = FlagArgument.getDefaultValueSupplier().supply(context, FlagArgument);
                     if (defValue != null) {
-                        objInput = inputType.resolve(context, cursor, defValue);
+                        objInput = inputType.parse(context, cursor, defValue);
                     }
                 }
             } else {

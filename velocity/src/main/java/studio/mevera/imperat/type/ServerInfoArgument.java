@@ -19,7 +19,7 @@ public final class ServerInfoArgument extends ArgumentType<VelocitySource, Serve
     }
 
     @Override
-    public @NotNull ServerInfo resolve(
+    public @NotNull ServerInfo parse(
             @NotNull ExecutionContext<VelocitySource> context,
             @NotNull Cursor<VelocitySource> cursor,
             @NotNull String correspondingInput

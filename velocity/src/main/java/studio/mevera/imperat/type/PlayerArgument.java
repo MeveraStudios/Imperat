@@ -28,7 +28,7 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
     }
 
     @Override
-    public @NotNull Player resolve(
+    public @NotNull Player parse(
             @NotNull ExecutionContext<VelocitySource> context,
             @NotNull Cursor<VelocitySource> cursor,
             @NotNull String correspondingInput

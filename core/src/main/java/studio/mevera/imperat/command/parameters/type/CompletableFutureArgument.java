@@ -24,7 +24,7 @@ public final class CompletableFutureArgument<S extends Source, T> extends Argume
     }
 
     @Override
-    public @NotNull CompletableFuture<@Nullable T> resolve(
+    public @NotNull CompletableFuture<@Nullable T> parse(
             @NotNull ExecutionContext<S> context,
             @NotNull Cursor<S> cursor,
             @NotNull String correspondingInput) throws CommandException {
@@ -38,7 +38,7 @@ public final class CompletableFutureArgument<S extends Source, T> extends Argume
         //CommandInputStream<S> singleStream = CommandInputStream.ofSingleString(inputStream.currentParameter().orElseThrow(), input);
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return typeResolver.resolve(context, copyStream, correspondingInput);
+                return typeResolver.parse(context, copyStream, correspondingInput);
             } catch (CommandException e) {
                 context.imperatConfig()
                         .handleExecutionThrowable(e, context, CompletableFutureArgument.class, "resolve");

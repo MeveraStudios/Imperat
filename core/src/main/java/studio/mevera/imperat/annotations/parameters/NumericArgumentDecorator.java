@@ -10,12 +10,12 @@ import studio.mevera.imperat.command.parameters.validator.RangeValidator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
-public final class NumericParameterDecorator<S extends Source> extends InputParameter<S> implements NumericParameter<S> {
+public final class NumericArgumentDecorator<S extends Source> extends InputParameter<S> implements NumericParameter<S> {
 
     private final Argument<S> parameter;
     private final NumericRange range;
 
-    NumericParameterDecorator(Argument<S> parameter, NumericRange range) {
+    NumericArgumentDecorator(Argument<S> parameter, NumericRange range) {
         super(
                 parameter.name(), parameter.type(), parameter.getPermissionsData(),
                 parameter.description(), parameter.isOptional(), parameter.isFlag(),
@@ -31,8 +31,8 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
     }
 
 
-    public static <S extends Source> NumericParameterDecorator<S> decorate(@NotNull Argument<S> parameter, @NotNull NumericRange range) {
-        return new NumericParameterDecorator<>(parameter, range);
+    public static <S extends Source> NumericArgumentDecorator<S> decorate(@NotNull Argument<S> parameter, @NotNull NumericRange range) {
+        return new NumericArgumentDecorator<>(parameter, range);
     }
 
     private static <S extends Source> SuggestionResolver<S> loadSuggestionResolver(Argument<S> parameter, NumericRange range) {
@@ -82,7 +82,7 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
     @Override
     public Argument<S> copyWithDifferentPosition(int newPosition) {
         Argument<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
-        return new NumericParameterDecorator<>(
+        return new NumericArgumentDecorator<>(
                 copiedParameter,
                 this.range
         );

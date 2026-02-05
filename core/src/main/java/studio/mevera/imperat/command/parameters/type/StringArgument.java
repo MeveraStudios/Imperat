@@ -22,7 +22,7 @@ public final class StringArgument<S extends Source> extends ArgumentType<S, Stri
     }
 
     @Override
-    public @NotNull String resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
+    public @NotNull String parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
             CommandException {
         final Argument<S> parameter = cursor.currentParameter().orElse(null);
 

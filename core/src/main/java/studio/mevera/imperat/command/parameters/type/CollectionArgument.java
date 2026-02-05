@@ -24,7 +24,7 @@ public class CollectionArgument<S extends Source, E, C extends Collection<E>> ex
     }
 
     @Override
-    public @Nullable C resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
+    public @Nullable C parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
             CommandException {
         C newCollection = collectionSupplier.get();
 
@@ -35,7 +35,7 @@ public class CollectionArgument<S extends Source, E, C extends Collection<E>> ex
                 break;
             }
 
-            E element = componentResolver.resolve(context, Cursor.subStream(cursor, raw), raw);
+            E element = componentResolver.parse(context, Cursor.subStream(cursor, raw), raw);
             newCollection.add(element);
 
             cursor.skipRaw();

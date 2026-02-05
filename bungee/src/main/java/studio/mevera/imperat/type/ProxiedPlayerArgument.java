@@ -25,7 +25,7 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
     }
 
     @Override
-    public @NotNull ProxiedPlayer resolve(
+    public @NotNull ProxiedPlayer parse(
             @NotNull ExecutionContext<BungeeSource> context,
             @NotNull Cursor<BungeeSource> cursor,
             @NotNull String correspondingInput) throws CommandException {

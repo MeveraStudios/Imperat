@@ -77,7 +77,7 @@ public class ParameterChain<S extends Source> {
                                 extractedFlagData,
                                 raw,
                                 inputRaw,
-                                extractedFlagData.isSwitch() ? true : Objects.requireNonNull(extractedFlagData.inputType()).resolve(context,
+                                extractedFlagData.isSwitch() ? true : Objects.requireNonNull(extractedFlagData.inputType()).parse(context,
                                         Cursor.ofSingleString(flagParam, inputRaw), inputRaw)
                         )
                 );
@@ -128,7 +128,7 @@ public class ParameterChain<S extends Source> {
         String defValue = FlagArgument.getDefaultValueSupplier().supply(context, FlagArgument);
         if (defValue != null) {
             Object flagValueResolved = FlagArgument.getDefaultValueSupplier().isEmpty() ? null :
-                                               Objects.requireNonNull(flagDataFromRaw.inputType()).resolve(
+                                               Objects.requireNonNull(flagDataFromRaw.inputType()).parse(
                                                        context,
                                                        Cursor.ofSingleString(FlagArgument, defValue),
                                                        defValue

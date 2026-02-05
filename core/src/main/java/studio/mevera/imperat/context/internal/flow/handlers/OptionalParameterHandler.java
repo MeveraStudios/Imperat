@@ -174,7 +174,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             ExecutionContext<S> context,
             Cursor<S> stream
     ) throws CommandException {
-        Object value = currentParameter.type().resolve(context, stream, currentRaw);
+        Object value = currentParameter.type().parse(context, stream, currentRaw);
         context.resolveArgument(stream, value);
         stream.skip();
     }
@@ -191,7 +191,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
         String value = optionalSupplier.supply(context, parameter);
 
         if (value != null) {
-            return (T) parameter.type().resolve(context, stream, value);
+            return (T) parameter.type().parse(context, stream, value);
         }
 
         return null;

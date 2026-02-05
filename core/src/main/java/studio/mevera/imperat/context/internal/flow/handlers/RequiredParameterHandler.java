@@ -30,7 +30,7 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
 
 
         try {
-            var value = currentParameter.type().resolve(context, stream, stream.readInput());
+            var value = currentParameter.type().parse(context, stream, stream.readInput());
 
             if (value instanceof ExtractedFlagArgument extractedFlagArgument) {
                 context.resolveFlag(extractedFlagArgument);

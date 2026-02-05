@@ -21,7 +21,7 @@ public final class UserArgument extends ArgumentType<JdaSource, User> {
     }
 
     @Override
-    public @NotNull User resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull Cursor<JdaSource> cursor,
+    public @NotNull User parse(@NotNull ExecutionContext<JdaSource> context, @NotNull Cursor<JdaSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         String userId = correspondingInput.replaceAll("\\D", "");

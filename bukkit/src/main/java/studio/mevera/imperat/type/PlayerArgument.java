@@ -29,7 +29,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
     }
 
     @Override
-    public @Nullable Player resolve(
+    public @Nullable Player parse(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull Cursor<BukkitSource> cursor,
             @NotNull String correspondingInput

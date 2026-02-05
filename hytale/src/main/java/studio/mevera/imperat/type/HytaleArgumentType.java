@@ -36,7 +36,7 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
 
 
     @Override
-    public @Nullable T resolve(
+    public @Nullable T parse(
             @NotNull ExecutionContext<HytaleSource> context,
             @NotNull Cursor<HytaleSource> cursor,
             @NotNull String correspondingInput

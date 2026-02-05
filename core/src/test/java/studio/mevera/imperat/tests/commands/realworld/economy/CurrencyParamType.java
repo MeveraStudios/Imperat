@@ -14,7 +14,7 @@ public final class CurrencyParamType extends ArgumentType<TestSource, Currency> 
 
 
     @Override
-    public Currency resolve(
+    public Currency parse(
             @NotNull ExecutionContext<TestSource> context,
             @NotNull Cursor<TestSource> cursor,
             @NotNull String correspondingInput

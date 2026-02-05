@@ -27,7 +27,7 @@ public class OfflinePlayerArgument extends ArgumentType<BukkitSource, OfflinePla
     }
 
     @Override
-    public @Nullable OfflinePlayer resolve(
+    public @Nullable OfflinePlayer parse(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull Cursor<BukkitSource> cursor,
             @NotNull String correspondingInput) throws CommandException {

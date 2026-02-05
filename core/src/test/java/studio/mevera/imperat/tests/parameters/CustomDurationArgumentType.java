@@ -21,7 +21,7 @@ public class CustomDurationArgumentType<S extends Source> extends ArgumentType<S
     }
 
     @Override
-    public @Nullable CustomDuration resolve(
+    public @Nullable CustomDuration parse(
             @NotNull ExecutionContext<S> context,
             @NotNull Cursor<S> cursor,
             @NotNull String correspondingInput

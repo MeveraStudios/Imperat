@@ -208,7 +208,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      *
      * @param Argument the parameter of a command's usage
      * @param <T>              the valueType of value that will be resolved by
-     * {@link ArgumentType#resolve(ExecutionContext, Cursor, String)}
+     * {@link ArgumentType#parse(ExecutionContext, Cursor, String)}
      * @return the context resolver for this parameter's value valueType
      */
     default <T> ContextResolver<S, T> getContextResolver(Argument<S> Argument) {

@@ -23,7 +23,7 @@ public abstract class ArrayArgument<S extends Source, E> extends ArgumentType<S,
     }
 
     @Override @SuppressWarnings("unchecked")
-    public E @Nullable [] resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
+    public E @Nullable [] parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
             CommandException {
 
         String currentRaw = cursor.currentRaw().orElse(null);
@@ -43,7 +43,7 @@ public abstract class ArrayArgument<S extends Source, E> extends ArgumentType<S,
                 break;
             }
 
-            array[i] = componentType.resolve(context, Cursor.subStream(cursor, raw), raw);
+            array[i] = componentType.parse(context, Cursor.subStream(cursor, raw), raw);
 
             cursor.skipRaw();
             i++;

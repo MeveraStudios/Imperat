@@ -23,13 +23,13 @@ public final class OptionalArgument<S extends Source, T> extends ArgumentType<S,
     }
 
     @Override
-    public @NotNull Optional<T> resolve(
+    public @NotNull Optional<T> parse(
             @NotNull ExecutionContext<S> context,
             @NotNull Cursor<S> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
         return Optional.ofNullable(
-                typeResolver.resolve(context, cursor, correspondingInput)
+                typeResolver.parse(context, cursor, correspondingInput)
         );
     }
 

@@ -12,12 +12,12 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 
-public final class AnnotationParameterDecorator<S extends Source> extends InputParameter<S> implements AnnotatedParameter<S> {
+public final class AnnotationArgumentDecorator<S extends Source> extends InputParameter<S> implements AnnotatedArgument<S> {
 
     private final Argument<S> parameter;
     private final ParameterElement element;
 
-    AnnotationParameterDecorator(Argument<S> parameter, ParameterElement element) {
+    AnnotationArgumentDecorator(Argument<S> parameter, ParameterElement element) {
         super(
                 parameter.name(), parameter.type(), parameter.getPermissionsData(),
                 parameter.description(), parameter.isOptional(),
@@ -28,11 +28,11 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
         this.element = element;
     }
 
-    public static <S extends Source> AnnotationParameterDecorator<S> decorate(
+    public static <S extends Source> AnnotationArgumentDecorator<S> decorate(
             Argument<S> parameter,
             ParameterElement element
     ) {
-        return new AnnotationParameterDecorator<>(parameter, element);
+        return new AnnotationArgumentDecorator<>(parameter, element);
     }
 
     /**
@@ -93,7 +93,7 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
     @Override
     public Argument<S> copyWithDifferentPosition(int newPosition) {
         Argument<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
-        AnnotationParameterDecorator<S> copy = new AnnotationParameterDecorator<>(
+        AnnotationArgumentDecorator<S> copy = new AnnotationArgumentDecorator<>(
                 copiedParameter,
                 this.element
         );

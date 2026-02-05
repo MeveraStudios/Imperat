@@ -24,7 +24,7 @@ public final class CommandArgument<S extends Source> extends ArgumentType<S, Com
     }
 
     @Override
-    public @Nullable Command<S> resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor,
+    public @Nullable Command<S> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         return cursor.currentParameter()

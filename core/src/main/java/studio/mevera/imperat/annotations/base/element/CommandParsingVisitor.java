@@ -29,8 +29,8 @@ import studio.mevera.imperat.annotations.base.AnnotationHelper;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.MethodCommandExecutor;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
-import studio.mevera.imperat.annotations.parameters.AnnotationParameterDecorator;
-import studio.mevera.imperat.annotations.parameters.NumericParameterDecorator;
+import studio.mevera.imperat.annotations.parameters.AnnotationArgumentDecorator;
+import studio.mevera.imperat.annotations.parameters.NumericArgumentDecorator;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
@@ -691,7 +691,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 suggestionResolver = SuggestionResolver.staticSuggestions(config.replacePlaceholders(suggestAnnotation.value()));
             }
 
-            return AnnotationParameterDecorator.decorate(
+            return AnnotationArgumentDecorator.decorate(
                     Argument.flag(name, type)
                             .suggestForInputValue(suggestionResolver)
                             .aliases(getAllExceptFirst(flagAliases))
@@ -703,7 +703,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             );
         } else if (switchAnnotation != null) {
             String[] switchAliases = switchAnnotation.value();
-            return AnnotationParameterDecorator.decorate(
+            return AnnotationArgumentDecorator.decorate(
                     Argument.<S>flagSwitch(name)
                             .aliases(getAllExceptFirst(switchAliases))
                             .description(desc)
@@ -755,13 +755,13 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             delegate.setFormat(config.replacePlaceholders(formatAnnotation.value()));
         }
 
-        Argument<S> param = AnnotationParameterDecorator.decorate(delegate, parameter);
+        Argument<S> param = AnnotationArgumentDecorator.decorate(delegate, parameter);
 
         if (TypeUtility.isNumericType(TypeWrap.of(param.valueType()))
                     && parameter.isAnnotationPresent(Range.class)) {
             Range range = parameter.getAnnotation(Range.class);
             assert range != null;
-            param = NumericParameterDecorator.decorate(
+            param = NumericArgumentDecorator.decorate(
                     param, NumericRange.of(range.min(), range.max())
             );
         }

@@ -29,7 +29,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
     }
 
     @Override
-    public @Nullable PlayerRef resolve(
+    public @Nullable PlayerRef parse(
             @NotNull ExecutionContext<HytaleSource> context,
             @NotNull Cursor<HytaleSource> cursor,
             @NotNull String correspondingInput) throws CommandException {

@@ -19,7 +19,7 @@ public final class JavaDurationArgumentType extends ArgumentType<TestSource, Dur
     }
 
     @Override
-    public @Nullable Duration resolve(
+    public @Nullable Duration parse(
             @NotNull ExecutionContext<TestSource> context,
             @NotNull Cursor<TestSource> cursor,
             @NotNull String correspondingInput

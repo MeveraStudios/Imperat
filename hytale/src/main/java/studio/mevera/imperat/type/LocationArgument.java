@@ -42,7 +42,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public @Nullable Location resolve(@NotNull ExecutionContext<HytaleSource> context, @NotNull Cursor<HytaleSource> cursor,
+    public @Nullable Location parse(@NotNull ExecutionContext<HytaleSource> context, @NotNull Cursor<HytaleSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         try {
@@ -85,7 +85,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
                 }
                 x = playerLocation.getPosition().getX();
             } else {
-                x = doubleParser.resolve(context, cursor, inputX);
+                x = doubleParser.parse(context, cursor, inputX);
                 if (x == null) {
                     throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_X_COORDINATE, inputX, null, null,
                             null, null);
@@ -102,7 +102,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
                 }
                 y = playerLocation.getPosition().getY();
             } else {
-                y = doubleParser.resolve(context, cursor, inputY);
+                y = doubleParser.parse(context, cursor, inputY);
                 if (y == null) {
                     throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_Y_COORDINATE, null, inputY, null,
                             null, null);
@@ -119,7 +119,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
                 }
                 z = playerLocation.getPosition().getZ();
             } else {
-                z = doubleParser.resolve(context, cursor, inputZ);
+                z = doubleParser.parse(context, cursor, inputZ);
                 if (z == null) {
                     throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_Z_COORDINATE, null, null, inputZ,
                             null, null);
@@ -143,7 +143,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
                     }
                     yaw = playerLocation.getRotation().getYaw();
                 } else {
-                    Double yawDouble = doubleParser.resolve(context, cursor, inputYaw);
+                    Double yawDouble = doubleParser.parse(context, cursor, inputYaw);
                     if (yawDouble == null) {
                         throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_YAW_COORDINATE, null, null,
                                 null, null, inputYaw);
@@ -161,7 +161,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
                         }
                         pitch = playerLocation.getRotation().getPitch();
                     } else {
-                        Double pitchDouble = doubleParser.resolve(context, cursor, inputPitch);
+                        Double pitchDouble = doubleParser.parse(context, cursor, inputPitch);
                         if (pitchDouble == null) {
                             throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_PITCH_COORDINATE, null,
                                     null, null, inputPitch, null);
@@ -200,7 +200,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
             }
             x = playerLocation.getPosition().getX();
         } else {
-            x = Objects.requireNonNull(doubleParser.resolve(context, stream, split[1]));
+            x = Objects.requireNonNull(doubleParser.parse(context, stream, split[1]));
         }
 
         double y;
@@ -211,7 +211,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
             }
             y = playerLocation.getPosition().getY();
         } else {
-            y = Objects.requireNonNull(doubleParser.resolve(context, stream, split[2]));
+            y = Objects.requireNonNull(doubleParser.parse(context, stream, split[2]));
         }
 
         double z;
@@ -222,7 +222,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
             }
             z = playerLocation.getPosition().getZ();
         } else {
-            z = Objects.requireNonNull(doubleParser.resolve(context, stream, split[3]));
+            z = Objects.requireNonNull(doubleParser.parse(context, stream, split[3]));
         }
 
         float yaw = 0.0f;
@@ -236,7 +236,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
                 }
                 yaw = playerLocation.getRotation().getYaw();
             } else {
-                yaw = (float) Objects.requireNonNull(doubleParser.resolve(context, stream, split[4])).doubleValue();
+                yaw = (float) Objects.requireNonNull(doubleParser.parse(context, stream, split[4])).doubleValue();
             }
         }
 
@@ -248,7 +248,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
                 }
                 pitch = playerLocation.getRotation().getPitch();
             } else {
-                pitch = (float) Objects.requireNonNull(doubleParser.resolve(context, stream, split[5])).doubleValue();
+                pitch = (float) Objects.requireNonNull(doubleParser.parse(context, stream, split[5])).doubleValue();
             }
         }
 

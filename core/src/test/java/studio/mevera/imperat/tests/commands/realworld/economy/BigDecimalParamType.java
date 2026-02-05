@@ -16,7 +16,7 @@ public class BigDecimalParamType extends ArgumentType<TestSource, BigDecimal> {
 
 
     @Override
-    public @Nullable BigDecimal resolve(@NotNull ExecutionContext<TestSource> context, @NotNull Cursor<TestSource> cursor,
+    public @Nullable BigDecimal parse(@NotNull ExecutionContext<TestSource> context, @NotNull Cursor<TestSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         try {

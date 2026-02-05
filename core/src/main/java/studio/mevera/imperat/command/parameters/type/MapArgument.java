@@ -35,7 +35,7 @@ public class MapArgument<S extends Source, K, V, M extends Map<K, V>> extends Ar
     }
 
     @Override
-    public @Nullable M resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
+    public @Nullable M parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
             CommandException {
         M newMap = mapInitializer.get();
 
@@ -63,8 +63,8 @@ public class MapArgument<S extends Source, K, V, M extends Map<K, V>> extends Ar
             Cursor<S> keySubStream = Cursor.subStream(cursor, keyRaw);
             Cursor<S> valueSubStream = Cursor.subStream(cursor, keyRaw);
 
-            K key = keyResolver.resolve(context, keySubStream, keyRaw);
-            V value = valueResolver.resolve(context, valueSubStream, valueRaw);
+            K key = keyResolver.parse(context, keySubStream, keyRaw);
+            V value = valueResolver.parse(context, valueSubStream, valueRaw);
 
             newMap.put(key, value);
 

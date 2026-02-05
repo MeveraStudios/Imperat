@@ -69,7 +69,7 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
     }
 
     @Override
-    public @NotNull TargetSelector resolve(
+    public @NotNull TargetSelector parse(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull Cursor<BukkitSource> cursor,
             @NotNull String correspondingInput) throws CommandException {

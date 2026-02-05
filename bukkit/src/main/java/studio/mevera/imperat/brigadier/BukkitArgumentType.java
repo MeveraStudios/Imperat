@@ -28,7 +28,7 @@ public class BukkitArgumentType<T> extends ArgumentType<BukkitSource, T> {
     }
 
     @Override
-    public @Nullable T resolve(
+    public @Nullable T parse(
             @NotNull ExecutionContext<BukkitSource> context,
             @NotNull Cursor<BukkitSource> cursor,
             @NotNull String correspondingInput

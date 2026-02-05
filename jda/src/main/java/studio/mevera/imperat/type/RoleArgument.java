@@ -15,7 +15,7 @@ import studio.mevera.imperat.exception.UnknownRoleException;
 public final class RoleArgument extends ArgumentType<JdaSource, Role> {
 
     @Override
-    public @NotNull Role resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull Cursor<JdaSource> cursor,
+    public @NotNull Role parse(@NotNull ExecutionContext<JdaSource> context, @NotNull Cursor<JdaSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         var guild = context.source().origin().getGuild();

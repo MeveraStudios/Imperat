@@ -15,7 +15,7 @@ import java.util.List;
 public final class TestPlayerParamType extends ArgumentType<TestSource, TestPlayer> {
 
     @Override
-    public TestPlayer resolve(
+    public TestPlayer parse(
             @NotNull ExecutionContext<TestSource> context,
             @NotNull Cursor<TestSource> cursor,
             @NotNull String correspondingInput

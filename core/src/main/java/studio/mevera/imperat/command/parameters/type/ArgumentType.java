@@ -80,8 +80,10 @@ public abstract class ArgumentType<S extends Source, T>
 
 
     /**
-     * Resolves the parameter value from the given input string, using the provided
-     * execution context and input stream.
+     * Parses the argument value from the given input string, using the provided
+     * execution context and {@link Cursor} into an object of type {@code T}.
+     * This method is responsible for converting the raw input into the appropriate type,
+     * handling any necessary validation or error handling during the parsing process.
      *
      * @param context the execution context.
      * @param cursor the command input stream.
@@ -89,7 +91,7 @@ public abstract class ArgumentType<S extends Source, T>
      * @return the resolved value, or {@code null} if resolution fails.
      * @throws CommandException if resolution fails due to an error.
      */
-    public abstract @Nullable T resolve(
+    public abstract @Nullable T parse(
             @NotNull ExecutionContext<S> context,
             @NotNull Cursor<S> cursor,
             @NotNull String correspondingInput

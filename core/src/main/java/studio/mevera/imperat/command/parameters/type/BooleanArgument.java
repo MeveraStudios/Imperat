@@ -31,7 +31,7 @@ public final class BooleanArgument<S extends Source> extends ArgumentType<S, Boo
     }
 
     @Override
-    public @Nullable Boolean resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput)
+    public @Nullable Boolean parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput)
             throws
             CommandException {
 

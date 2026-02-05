@@ -22,7 +22,7 @@ public final class ServerInfoArgument extends ArgumentType<BungeeSource, ServerI
     }
 
     @Override
-    public @NotNull ServerInfo resolve(
+    public @NotNull ServerInfo parse(
             @NotNull ExecutionContext<BungeeSource> context,
             @NotNull Cursor<BungeeSource> cursor,
             @NotNull String correspondingInput

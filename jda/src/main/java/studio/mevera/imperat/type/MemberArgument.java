@@ -15,7 +15,7 @@ import studio.mevera.imperat.exception.UnknownMemberException;
 public final class MemberArgument extends ArgumentType<JdaSource, Member> {
 
     @Override
-    public @NotNull Member resolve(@NotNull ExecutionContext<JdaSource> context, @NotNull Cursor<JdaSource> cursor,
+    public @NotNull Member parse(@NotNull ExecutionContext<JdaSource> context, @NotNull Cursor<JdaSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         var guild = context.source().origin().getGuild();

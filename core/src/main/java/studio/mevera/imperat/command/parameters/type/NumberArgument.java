@@ -21,20 +21,20 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
     @SuppressWarnings("unchecked")
     static <S extends Source, N extends Number> NumberArgument<S, N> from(Class<N> numType) {
         if (TypeUtility.matches(numType, Integer.class)) {
-            return (NumberArgument<S, N>) new ParameterInt<>();
+            return (NumberArgument<S, N>) new IntArgument<>();
         } else if (TypeUtility.matches(numType, Long.class)) {
-            return (NumberArgument<S, N>) new ParameterLong<>();
+            return (NumberArgument<S, N>) new LongArgument<>();
         } else if (TypeUtility.matches(numType, Float.class)) {
-            return (NumberArgument<S, N>) new ParameterFloat<>();
+            return (NumberArgument<S, N>) new FloatArgument<>();
         } else if (TypeUtility.matches(numType, Double.class)) {
-            return (NumberArgument<S, N>) new ParameterDouble<>();
+            return (NumberArgument<S, N>) new DoubleArgument<>();
         } else {
             throw new IllegalArgumentException("Unsupported number type: " + numType.getTypeName());
         }
     }
 
     @Override
-    public @Nullable N resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
+    public @Nullable N parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
             CommandException {
         try {
             return parse(correspondingInput);
@@ -62,9 +62,9 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
 
     public abstract N parse(String input) throws NumberFormatException;
 
-    static class ParameterInt<S extends Source> extends NumberArgument<S, Integer> {
+    static class IntArgument<S extends Source> extends NumberArgument<S, Integer> {
 
-        protected ParameterInt() {
+        protected IntArgument() {
             super();
         }
 
@@ -84,9 +84,9 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class ParameterFloat<S extends Source> extends NumberArgument<S, Float> {
+    static class FloatArgument<S extends Source> extends NumberArgument<S, Float> {
 
-        protected ParameterFloat() {
+        protected FloatArgument() {
             super();
         }
 
@@ -105,9 +105,9 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class ParameterLong<S extends Source> extends NumberArgument<S, Long> {
+    static class LongArgument<S extends Source> extends NumberArgument<S, Long> {
 
-        protected ParameterLong() {
+        protected LongArgument() {
             super();
         }
 
@@ -126,9 +126,9 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class ParameterDouble<S extends Source> extends NumberArgument<S, Double> {
+    static class DoubleArgument<S extends Source> extends NumberArgument<S, Double> {
 
-        protected ParameterDouble() {
+        protected DoubleArgument() {
             super();
         }
 

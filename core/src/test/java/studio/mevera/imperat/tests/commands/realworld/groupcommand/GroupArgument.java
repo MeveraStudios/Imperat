@@ -22,7 +22,7 @@ public final class GroupArgument extends ArgumentType<TestSource, Group> {
     }
 
     @Override
-    public @Nullable Group resolve(
+    public @Nullable Group parse(
             @NotNull ExecutionContext<TestSource> context,
             @NotNull Cursor<TestSource> cursor,
             @NotNull String correspondingInput) throws CommandException {

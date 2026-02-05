@@ -25,7 +25,7 @@ public final class EnumArgument<S extends Source> extends ArgumentType<S, Enum<?
     }
 
     @Override
-    public @NotNull Enum<?> resolve(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput)
+    public @NotNull Enum<?> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput)
             throws
             CommandException {
 

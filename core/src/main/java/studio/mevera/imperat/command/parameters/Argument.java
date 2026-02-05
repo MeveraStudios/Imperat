@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.parameters;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.annotations.parameters.AnnotatedParameter;
+import studio.mevera.imperat.annotations.parameters.AnnotatedArgument;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.DescriptionHolder;
@@ -258,17 +258,17 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
      * using the annotations through methods or not
      */
     default boolean isAnnotated() {
-        return this instanceof AnnotatedParameter;
+        return this instanceof AnnotatedArgument;
     }
 
     /**
      * Casts the parameter to a parameter with annotations
      *
      * @return the parameter as annotated one
-     * @see AnnotatedParameter
+     * @see AnnotatedArgument
      */
-    default AnnotatedParameter<S> asAnnotated() {
-        return (AnnotatedParameter<S>) this;
+    default AnnotatedArgument<S> asAnnotated() {
+        return (AnnotatedArgument<S>) this;
     }
 
     /**

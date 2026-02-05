@@ -18,7 +18,7 @@ public final class UUIDArgument<S extends Source> extends ArgumentType<S, UUID> 
     }
 
     @Override
-    public @NotNull UUID resolve(
+    public @NotNull UUID parse(
             @NotNull ExecutionContext<S> context,
             @NotNull Cursor<S> cursor,
             @NotNull String correspondingInput) throws CommandException {
