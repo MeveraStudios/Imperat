@@ -7,42 +7,38 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.Source;
 
-import java.util.Objects;
-
 @SuppressWarnings("unchecked")
 public final class PermissionDeniedException extends CommandException {
 
-    private final String lackingPermission;
     private final CommandUsage<?> usage;
     private final @Nullable CommandParameter<?> targetParameter;
 
     public <S extends Source> PermissionDeniedException(
             @NotNull CommandUsage<S> usage,
-            @NotNull String lackingPermission,
             @Nullable CommandParameter<S> targetParameter
     ) {
-        super("Lacking permission '" + lackingPermission + "'");
+        super("Insufficient permissions to execute this command" + (targetParameter != null ? " due to parameter: " + targetParameter.name() : ""));
         this.usage = usage;
-        this.lackingPermission = lackingPermission;
         this.targetParameter = targetParameter;
     }
 
     public <S extends Source> PermissionDeniedException(CommandPathSearch<S> pathSearch) {
         this(
                 pathSearch.getFoundUsage() != null ? pathSearch.getFoundUsage() : pathSearch.getLastCommandNode().getData().getDefaultUsage(),
-                Objects.requireNonNull(pathSearch.getLastNode()).getPermission(),
                 pathSearch.getLastNode().getData()
         );
-    }
-
-    public @NotNull String getLackingPermission() {
-        return lackingPermission;
     }
 
     public <S extends Source> @NotNull CommandUsage<S> getUsage() {
         return (CommandUsage<S>) usage;
     }
 
+    /**
+     * if the permission denial is caused by a parameter/root-command, this will return the parameter that caused it, otherwise its caused by the
+     * usage's personal permission condition and this will return null.
+     * @see studio.mevera.imperat.permissions.PermissionsData
+     * @return the parameter that caused the permission denial, if any
+     */
     public <S extends Source> @Nullable CommandParameter<S> getInAccessibleParameter() {
         return (CommandParameter<S>) targetParameter;
     }

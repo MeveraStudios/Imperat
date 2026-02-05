@@ -44,13 +44,15 @@ allprojects {
             return "net.kyori:adventure-$module:$kyoriPlatformVersion"
         })
 
-        set("KyoriModule", mapOf(
-            "API" to "api",
-            "MINI_MESSAGE" to "text-minimessage",
-            "BUKKIT" to "platform-bukkit",
-            "BUNGEE" to "platform-bungeecord",
-            "SPONGE" to "platform-spongeapi"
-        ))
+        set(
+            "KyoriModule", mapOf(
+                "API" to "api",
+                "MINI_MESSAGE" to "text-minimessage",
+                "BUKKIT" to "platform-bukkit",
+                "BUNGEE" to "platform-bungeecord",
+                "SPONGE" to "platform-spongeapi"
+            )
+        )
     }
 }
 

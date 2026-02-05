@@ -21,6 +21,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Collection;
@@ -435,13 +436,6 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
     @ApiStatus.AvailableSince("1.9.0")
     void registerSubCommand(Command<S> subCommand);
 
-    default @Nullable String getMainPermission() {
-        for (var str : getPermissions()) {
-            return str;
-        }
-
-        return null;
-    }
 
     CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors();
 
@@ -489,8 +483,8 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
             return description(description.getValue());
         }
 
-        public Builder<S> permission(String permission) {
-            this.cmd.addPermission(permission);
+        public Builder<S> permission(PermissionsData permission) {
+            this.cmd.setPermissionData(permission);
             return this;
         }
 
@@ -557,7 +551,7 @@ public interface Command<S extends Source> extends CommandParameter<S>, BaseThro
 
 
         public Builder<S> setMetaPropertiesFromOtherCommand(Command<S> other) {
-            cmd.setSinglePermission(other.getSinglePermission());
+            cmd.setPermissionData(other.getPermissionsData());
             cmd.setDefaultUsage(other.getDefaultUsage());
             cmd.setPreProcessingChain(other.getPreProcessors());
             cmd.setPostProcessingChain(other.getPostProcessors());

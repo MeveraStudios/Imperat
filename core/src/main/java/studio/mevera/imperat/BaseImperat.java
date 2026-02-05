@@ -104,7 +104,6 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
     private void registerCmd(@NotNull Command<S> command) {
 
-        command.tree().computePermissions();
 
         this.commands.put(command.name().trim().toLowerCase(), command);
         for (var aliases : command.aliases()) {
@@ -251,10 +250,9 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         Command<S> command = context.command();
         S source = context.source();
 
-        if (!config.getPermissionChecker().hasPermission(source, command.getSinglePermission())) {
+        if (!config.getPermissionChecker().hasPermission(source, command)) {
             throw new PermissionDeniedException(
                     command.getDefaultUsage(),
-                    Objects.requireNonNull(command.getSinglePermission()),
                     command
             );
         }
@@ -275,10 +273,10 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             throw new InvalidSyntaxException(searchResult);
         }
 
-        var usageAccessCheckResult = config.getPermissionChecker().hasUsagePermission(source, usage);
-        if (!usageAccessCheckResult.right()) {
+        var usageAccessCheckResult = config.getPermissionChecker().hasPermission(source, usage);
+        if (!usageAccessCheckResult) {
             ImperatDebugger.debug("Failed usage permission check !");
-            throw new PermissionDeniedException(usage, usageAccessCheckResult.left(), null);
+            throw new PermissionDeniedException(usage, null);
         }
         ImperatDebugger.debug("Usage Found Format: '" + CommandUsage.formatWithTypes(command, usage) + "'");
 

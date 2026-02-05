@@ -70,7 +70,7 @@ public class ImperatTestGlobals {
     /** Global test infrastructure instances */
     public static final TestImperat IMPERAT = TestImperatConfig.builder()
                                                       .usageVerifier(UsageVerifier.typeTolerantVerifier())
-                                                      //.permissionChecker((src, perm)-> perm == null || src.hasPermission(perm))
+                                                      .permissionChecker((src, perm) -> perm == null || src.hasPermission(perm))
                                                       .contextResolver(PlayerData.class, new PlayerDataContextResolver())
                                                       .parameterType(Group.class, new ParameterGroup())
                                                       .parameterType(Duration.class, new JavaDurationParameterType())

@@ -22,11 +22,11 @@ public final class RangeValidator<S extends Source> implements ArgValidator<S> {
             var param = argument.parameter().asNumeric();
             var range = param.getRange();
 
-            if(range != null && !range.matches(doubleValue)) {
+            if (range != null && !range.matches(doubleValue)) {
                 throw new NumberOutOfRangeException(argument.raw(), argument.parameter().asNumeric(), number, range);
             }
 
-        }else {
+        } else {
             throw new InvalidArgumentException("Argument '" + argument.name() + "' is not a number.");
         }
     }

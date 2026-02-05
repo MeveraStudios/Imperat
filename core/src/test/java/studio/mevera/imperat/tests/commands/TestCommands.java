@@ -4,6 +4,7 @@ import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.CommandParameter;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
 
@@ -136,7 +137,9 @@ public final class TestCommands {
 
 
     public final static Command<TestSource> BAN_COMMAND = Command.create(ImperatTestGlobals.IMPERAT, "ban")
-                                                                  .permission("command.ban")
+                                                                  .permission(
+                                                                          PermissionsData.of("command.ban")
+                                                                  )
                                                                   .description("Main command for banning players")
                                                                   .usage(
                                                                           CommandUsage.<TestSource>builder()

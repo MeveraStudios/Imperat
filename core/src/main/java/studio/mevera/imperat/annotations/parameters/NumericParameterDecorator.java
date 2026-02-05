@@ -17,14 +17,14 @@ public final class NumericParameterDecorator<S extends Source> extends InputPara
 
     NumericParameterDecorator(CommandParameter<S> parameter, NumericRange range) {
         super(
-                parameter.name(), parameter.type(), parameter.getSinglePermission(),
+                parameter.name(), parameter.type(), parameter.getPermissionsData(),
                 parameter.description(), parameter.isOptional(), parameter.isFlag(),
                 parameter.isFlag(), parameter.getDefaultValueSupplier(),
                 loadSuggestionResolver(parameter, range)
         );
         this.parameter = parameter;
         this.range = range;
-        for(var validator : parameter.getValidators()) {
+        for (var validator : parameter.getValidators()) {
             this.addValidator(validator);
         }
         this.addValidator(new RangeValidator<>());

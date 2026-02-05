@@ -1,6 +1,5 @@
 package studio.mevera.imperat;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
@@ -8,21 +7,19 @@ import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
-import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.returns.ReturnResolver;
-import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.exception.ThrowableResolver;
+import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.DependencySupplier;
-import studio.mevera.imperat.resolvers.PermissionChecker;
 import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.verification.UsageVerifier;
@@ -88,110 +85,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         return (B) this;
     }
 
-    /**
-     * Toggles the APA (Auto Permission Assign) mode,
-     * When enabled, it will automatically compute, set permissions automatically for every {@link CommandParameter}
-     * in every {@link CommandUsage} you make without the need to explicitly set the permissions , the same goes
-     * on ROOT commands and even subcommands (since they are also treated as {@link CommandParameter})
-     *
-     * @param modeToggle toggles the auto permission assign mode
-     * @return the current {@link ConfigBuilder} instance for method chaining and further configuration
-     */
-    public B autoPermissionAssignMode(boolean modeToggle) {
-        config.setAutoPermissionAssignMode(modeToggle);
-        return (B) this;
-    }
-
-    /**
-     * Sets the permission loader for automatic permission assignment.
-     * <p>
-     * This method configures the {@link PermissionLoader} that will be used to load
-     * and resolve permissions for command parameters when Auto Permission Assign (APA)
-     * mode is active. The permission loader is responsible for determining what
-     * permissions should be applied to individual command nodes based on the
-     * command structure and configuration.
-     * </p>
-     *
-     * <p>
-     * <strong>Prerequisite:</strong> This method can only be called when APA mode is enabled
-     * via the configuration. APA mode must be activated before setting up permission
-     * loading components to ensure proper initialization order and prevent
-     * configuration conflicts.
-     * </p>
-     *
-     * <p>
-     * The permission loader works in conjunction with the {@link NodePermissionAssigner}
-     * to provide a complete automatic permission assignment system. The loader determines
-     * which permissions to assign, while the assigner handles how those permissions
-     * are applied to the parameter nodes.
-     * </p>
-     *
-     * @param permissionLoader the permission loader to use for loading permissions,
-     *                        must not be null
-     * @return this builder instance for method chaining, never null
-     * @throws IllegalStateException if Auto Permission Assign (APA) mode is not enabled
-     * @throws NullPointerException if {@code permissionLoader} is null
-     * @see PermissionLoader
-     * @see NodePermissionAssigner
-     * @see #permissionAssigner(NodePermissionAssigner)
-     * @since 1.0
-     */
-    @ApiStatus.Experimental
-    public B permissionLoader(PermissionLoader<S> permissionLoader) {
-        if (!config.isAutoPermissionAssignMode()) {
-            throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
-        }
-        config.setPermissionLoader(permissionLoader);
-        return (B) this;
-    }
-
-    /**
-     * Sets the permission assigner for automatic permission assignment.
-     * <p>
-     * This method configures the {@link NodePermissionAssigner} that will be used to
-     * assign permissions to command parameter nodes when Auto Permission Assign (APA)
-     * mode is active. The permission assigner defines the strategy for how permissions
-     * loaded by the {@link PermissionLoader} are actually applied to individual
-     * {@link ParameterNode} instances.
-     * </p>
-     *
-     * <p>
-     * <strong>Prerequisite:</strong> This method can only be called when APA mode is enabled
-     * via the configuration. APA mode must be activated before setting up permission
-     * assignment components to ensure proper initialization order and prevent
-     * configuration conflicts.
-     * </p>
-     *
-     * <p>
-     * The permission assigner works in conjunction with the {@link PermissionLoader}
-     * to provide a complete automatic permission assignment system. The loader determines
-     * which permissions to assign, while the assigner handles how those permissions
-     * are applied to the parameter nodes.
-     * </p>
-     *
-     * <p>
-     * If no custom assigner is provided, the system will use the default assigner
-     * available via {@link NodePermissionAssigner#defaultAssigner()}.
-     * </p>
-     *
-     * @param permissionAssigner the permission assigner to use for assigning permissions
-     *                          to parameter nodes, must not be null
-     * @return this builder instance for method chaining, never null
-     * @throws IllegalStateException if Auto Permission Assign (APA) mode is not enabled
-     * @throws NullPointerException if {@code permissionAssigner} is null
-     * @see NodePermissionAssigner
-     * @see PermissionLoader
-     * @see #permissionLoader(PermissionLoader)
-     * @see NodePermissionAssigner#defaultAssigner()
-     */
-    @ApiStatus.Experimental
-    public B permissionAssigner(NodePermissionAssigner<S> permissionAssigner) {
-        if (!config.isAutoPermissionAssignMode()) {
-            throw new IllegalStateException("Please enable APA(Auto Permission Assign) Mode before doing this");
-        }
-        config.setNodePermissionAssigner(permissionAssigner);
-        return (B) this;
-    }
 
     /**
      * Sets the {@link HelpCoordinator} that coordinates all the core-components of the

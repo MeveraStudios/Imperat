@@ -3,6 +3,7 @@ package studio.mevera.imperat.resolvers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BungeeSource;
+import studio.mevera.imperat.permissions.PermissionChecker;
 
 public class BungeePermissionChecker implements PermissionChecker<BungeeSource> {
 

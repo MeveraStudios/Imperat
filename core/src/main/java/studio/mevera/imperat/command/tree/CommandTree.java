@@ -1,11 +1,9 @@
 package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
@@ -75,22 +73,6 @@ public interface CommandTree<S extends Source> {
      * @param usage the command usage to parse, must not be null
      */
     void parseUsage(@NotNull CommandUsage<S> usage);
-
-    /**
-     * Compute Permissions in APA(AutoPermissionAssign) mode
-     * This is a method that shall take some considerable amount of resources whenever
-     * an instance of {@link Command} is created using its {@link Command.Builder}.
-     */
-    void computePermissions();
-
-    /**
-     * This should fetch the command parameter's assigned permission.
-     * Use this method when necessary only.
-     * @throws IllegalStateException when the APA(AutoPermissionAssign) mode is NOT enabled.
-     * @param commandParameter the parameter
-     * @return the permission that was auto assigned for it.
-     */
-    @Nullable String getAutoAssignedPermission(@NotNull CommandParameter<S> commandParameter);
 
     /**
      * Matches the given input against this command tree and returns a dispatch context.

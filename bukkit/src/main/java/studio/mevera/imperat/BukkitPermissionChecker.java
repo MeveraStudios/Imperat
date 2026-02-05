@@ -2,7 +2,7 @@ package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.resolvers.PermissionChecker;
+import studio.mevera.imperat.permissions.PermissionChecker;
 
 public final class BukkitPermissionChecker implements PermissionChecker<BukkitSource> {
 

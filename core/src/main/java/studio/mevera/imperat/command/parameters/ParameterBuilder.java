@@ -8,6 +8,7 @@ import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Preconditions;
 
@@ -17,15 +18,14 @@ import java.util.List;
 public sealed class ParameterBuilder<S extends Source, T> permits FlagBuilder {
 
     protected final String name;
+    protected final List<ArgValidator<S>> validators = new ArrayList<>();
     private final ParameterType<S, T> type;
     private final boolean optional;
     private final boolean greedy;
-
-    protected String permission = null;
+    protected PermissionsData permission = PermissionsData.empty();
     protected Description description = Description.EMPTY;
     private @NotNull OptionalValueSupplier valueSupplier;
     private SuggestionResolver<S> suggestionResolver = null;
-    protected final List<ArgValidator<S>> validators = new ArrayList<>();
 
     ParameterBuilder(String name, ParameterType<S, T> type, boolean optional, boolean greedy) {
         this.name = name;
@@ -43,7 +43,7 @@ public sealed class ParameterBuilder<S extends Source, T> permits FlagBuilder {
         return new ParameterBuilder<>(name, ParameterTypes.command(name, new ArrayList<>()), false, false);
     }
 
-    public ParameterBuilder<S, T> permission(@Nullable String permission) {
+    public ParameterBuilder<S, T> permission(@Nullable PermissionsData permission) {
         this.permission = permission;
         return this;
     }

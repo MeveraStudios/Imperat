@@ -1,7 +1,6 @@
 package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
@@ -14,17 +13,15 @@ import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.resolvers.PermissionChecker;
+import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeUtility;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -49,7 +46,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
     private final HelpEntryFactory<S> helpEntryFactory = HelpEntryFactory.defaultFactory();
-    private final Map<CommandParameter<S>, String> assignedPermissions = new HashMap<>();
     private int size, uniqueSize;
 
 
@@ -141,91 +137,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
         //adding unique versioned tree
         addParametersWithoutOptionalBranchingToTree(uniqueRoot, usage, parameters, 0);
-    }
-
-    @Override
-    public void computePermissions() {
-        root.setPermission(rootCommand.getSinglePermission());
-        uniqueRoot.setPermission(rootCommand.getSinglePermission());
-
-        if (!imperatConfig.isAutoPermissionAssignMode()) {
-            return;
-        }
-        var rootPerm = imperatConfig.getPermissionLoader().load(rootCommand);
-        root.setPermission(rootPerm);
-
-        for (var child : root.getChildren()) {
-            computePermissionsRecursive(child, new ArrayList<>(), rootPerm);
-        }
-    }
-
-    @Override
-    public @Nullable String getAutoAssignedPermission(@NotNull CommandParameter<S> commandParameter) {
-        if (!imperatConfig.isAutoPermissionAssignMode()) {
-            throw new IllegalStateException("APA mode must be enabled!");
-        }
-
-        return assignedPermissions.get(commandParameter);
-    }
-
-    private void computePermissionsRecursive(ParameterNode<S, ?> node, List<ParameterNode<S, ?>> pathNodes, String rootPermission) {
-        // Add current node to the path
-        List<ParameterNode<S, ?>> currentPath = new ArrayList<>(pathNodes);
-        currentPath.add(node);
-
-        // If this node is executable, assign it a permission
-        if (node.getPermission() == null) {
-            if (node.isExecutable() || node.isCommand()) {
-                String permission = buildHierarchicalPermission(rootPermission, currentPath);
-                imperatConfig.getPermissionAssigner().assign(node, permission);
-                assignedPermissions.put(node.data, permission);
-            } else {
-                ParameterNode<S, ?> firstParentCmd = node;
-                while (firstParentCmd != null) {
-                    if (firstParentCmd.isCommand()) {
-                        break;
-                    }
-                    firstParentCmd = firstParentCmd.getParent();
-                }
-                if (firstParentCmd == null) {
-                    firstParentCmd = root;
-                }
-                imperatConfig.getPermissionAssigner().assign(node, firstParentCmd.getPermission());
-                assignedPermissions.put(node.data, firstParentCmd.getPermission());
-            }
-        }
-
-        // Continue recursion for children
-        if (!node.getChildren().isEmpty()) {
-            for (var child : node.getChildren()) {
-                computePermissionsRecursive(child, currentPath, rootPermission);
-            }
-        }
-    }
-
-    private String buildHierarchicalPermission(String root, List<ParameterNode<S, ?>> pathNodes) {
-        // Find the base permission level (required parameters only)
-        StringBuilder basePermission = new StringBuilder(root);
-
-        // Add only required parameters to build the base permission
-        for (ParameterNode<S, ?> node : pathNodes) {
-            if (!node.isOptional()) {
-                String component = imperatConfig.getPermissionLoader().load(node.data);
-                basePermission.append(imperatConfig.getPermissionAssigner().getPermissionDelimiter())
-                        .append(component);
-            }
-        }
-
-        // For the current node, if it's optional, add it at the same depth level
-        ParameterNode<S, ?> currentNode = pathNodes.get(pathNodes.size() - 1);
-        if (currentNode.isOptional()) {
-            String component = imperatConfig.getPermissionLoader().load(currentNode.data);
-            return basePermission + imperatConfig.getPermissionAssigner()
-                                            .getPermissionDelimiter() + component;
-        }
-
-        // If current node is required, it's already included in base permission
-        return basePermission.toString();
     }
 
     private void addParametersToTree(
@@ -957,7 +868,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     private boolean hasPermission(S source, ParameterNode<S, ?> node) {
-        return permissionChecker.hasPermission(source, node.getPermission());
+        return permissionChecker.hasPermission(source, node.data);
     }
 
     private boolean hasAutoCompletionPermission(S src, ParameterNode<S, ?> node) {

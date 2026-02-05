@@ -6,7 +6,6 @@ import static studio.mevera.imperat.util.Patterns.SINGLE_FLAG;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
@@ -17,16 +16,14 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.Patterns;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Predicate;
 
 @ApiStatus.Internal
@@ -37,9 +34,9 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     private final List<CommandParameter<S>> parameters = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
     private final @NotNull CommandExecution<S> execution;
     private final boolean help;
-    private final Set<String> permissions = new HashSet<>(CommandImpl.INITIAL_PERMISSIONS_CAPACITY);
     private final FlagExtractor<S> flagExtractor;
     private final List<String> examples = new ArrayList<>(2);
+    private PermissionsData permissionsData = PermissionsData.empty();
     private Description description = Description.of("N/A");
     private @NotNull CooldownHandler<S> cooldownHandler;
     private @Nullable UsageCooldown cooldown = null;
@@ -57,23 +54,6 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
         this.flagExtractor = FlagExtractor.createNative(this);
     }
 
-    /**
-     * @return the permission for this usage
-     */
-    @Override
-    public @Unmodifiable Set<String> getPermissions() {
-        return Collections.unmodifiableSet(permissions);
-    }
-
-    /**
-     * The permission for this usage
-     *
-     * @param permission permission to set
-     */
-    @Override
-    public void addPermission(String permission) {
-        this.permissions.add(permission);
-    }
 
     /**
      * @return the description for the
@@ -169,6 +149,9 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
                 addFlag(param.asFlagParameter());
             } else {
                 parameters.add(param);
+                if (param.isRequired()) {
+                    this.permissionsData.append(param.getPermissionsData());
+                }
             }
         }
     }
@@ -390,6 +373,16 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     }
 
     @Override
+    public @NotNull PermissionsData getPermissionsData() {
+        return permissionsData;
+    }
+
+    @Override
+    public void setPermissionData(@NotNull PermissionsData permission) {
+        this.permissionsData = permission;
+    }
+
+    @Override
     public @NotNull Iterator<CommandParameter<S>> iterator() {
         return parameters.iterator();
     }
@@ -421,6 +414,5 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     public int hashCode() {
         return Objects.hash(parameters);
     }
-
 
 }

@@ -3,14 +3,14 @@ package studio.mevera.imperat.tests;
 import studio.mevera.imperat.context.Source;
 
 import java.io.PrintStream;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 public final class TestSource implements Source {
 
     private final PrintStream origin;
-    private final Set<String> permissions = new HashSet<>();
+    private final List<String> permissions = new ArrayList<>();
 
     public TestSource(PrintStream origin) {
         this.origin = origin;
@@ -19,7 +19,9 @@ public final class TestSource implements Source {
     }
 
     public TestSource withPerm(String perm) {
-        permissions.add(perm);
+        if (!permissions.contains(perm)) {
+            permissions.add(perm);
+        }
         return this;
     }
 

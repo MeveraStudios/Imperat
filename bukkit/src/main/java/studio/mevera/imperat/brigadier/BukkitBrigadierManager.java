@@ -14,7 +14,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.commodore.Commodore;
 import studio.mevera.imperat.commodore.CommodoreProvider;
-import studio.mevera.imperat.resolvers.PermissionChecker;
+import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.selector.TargetSelector;
 
 import java.lang.reflect.Type;

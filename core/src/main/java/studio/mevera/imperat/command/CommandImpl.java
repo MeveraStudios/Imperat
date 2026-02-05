@@ -3,7 +3,6 @@ package studio.mevera.imperat.command;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
@@ -25,25 +24,25 @@ import studio.mevera.imperat.context.internal.Argument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.ThrowableResolver;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.PriorityList;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 
 @ApiStatus.Internal
 final class CommandImpl<S extends Source> implements Command<S> {
 
-    final static int INITIAL_PERMISSIONS_CAPACITY = 3;
+    private final Imperat<S> imperat;
+
     private final String name;
     private final int position;
     private final List<String> aliases = new ArrayList<>();
@@ -53,18 +52,20 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final @Nullable CommandTree<S> tree;
     private final @NotNull CommandTreeVisualizer<S> visualizer;
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
-    private final CommandUsage<S> emptyUsage;
     private final @NotNull SuggestionResolver<S> suggestionResolver;
-    private final Imperat<S> imperat;
-    private @Nullable String permission;
+    private final CommandUsage<S> emptyUsage;
+    private PermissionsData permissions = PermissionsData.empty();
     private Description description = Description.EMPTY;
     private boolean suppressACPermissionChecks = false;
     private CommandUsage<S> mainUsage = null;
     private CommandUsage<S> defaultUsage;
+
     private ParseElement<?> annotatedElement = null;
+
     private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> preProcessors =
             CommandProcessingChain.<S>preProcessors()
                     .build();
+
     private @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> postProcessors =
             CommandProcessingChain.<S>postProcessors()
                     .build();
@@ -132,26 +133,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
         return aliases;
     }
 
-    /**
-     * @return The permission of the command
-     */
-    @Override
-    public @Unmodifiable Set<String> getPermissions() {
-        if (permission == null) {
-            return Collections.emptySet();
-        }
-        return Set.of(permission);
-    }
-
-    /**
-     * Sets the permission of a command
-     *
-     * @param permission the permission of a command
-     */
-    @Override
-    public void addPermission(@Nullable String permission) {
-        this.permission = permission;
-    }
 
     /**
      * @return The description of a command
@@ -183,11 +164,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
     @Override
     public void position(int position) {
         throw new UnsupportedOperationException("You can't modify the position of a command");
-    }
-
-    @Override
-    public @Nullable String getSinglePermission() {
-        return permission;
     }
 
     @Override
@@ -610,7 +586,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
         CommandImpl<S> copy = new CommandImpl<>(this.imperat, this.parent, newPosition, this.name);
 
         // Copy basic properties
-        copy.permission = this.permission;
+        copy.permissions = this.permissions;
         copy.description = this.description;
         copy.suppressACPermissionChecks = this.suppressACPermissionChecks;
         copy.aliases.addAll(this.aliases);
@@ -660,4 +636,13 @@ final class CommandImpl<S extends Source> implements Command<S> {
         throw new UnsupportedOperationException("A command does not have argument validators !");
     }
 
+    @Override
+    public @NotNull PermissionsData getPermissionsData() {
+        return permissions;
+    }
+
+    @Override
+    public void setPermissionData(@NotNull PermissionsData permissions) {
+        this.permissions = permissions;
+    }
 }

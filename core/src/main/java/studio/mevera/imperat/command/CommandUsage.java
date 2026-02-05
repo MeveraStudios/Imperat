@@ -14,6 +14,8 @@ import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownFlagException;
+import studio.mevera.imperat.permissions.PermissionHolder;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.Preconditions;
 
 import java.util.ArrayList;
@@ -335,7 +337,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         private final List<String> examples = new ArrayList<>(3);
         private CommandExecution<S> execution = CommandExecution.empty();
         private String description = "N/A";
-        private String permission = null;
+        private PermissionsData permission = PermissionsData.empty();
         private UsageCooldown cooldown = null;
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
 
@@ -359,7 +361,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
             return this;
         }
 
-        public Builder<S> permission(String permission) {
+        public Builder<S> permission(PermissionsData permission) {
             this.permission = permission;
             return this;
         }
@@ -425,8 +427,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
 
             //copy only meta properties
             this.description = mainUsage.description().getValue();
-            this.permission = mainUsage.getPermissions().stream()
-                                      .findAny().orElse(null);
+            this.permission = mainUsage.getPermissionsData();
 
             this.execution = mainUsage.getExecution();
             this.cooldown = mainUsage.getCooldown();
@@ -439,7 +440,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<CommandP
         public CommandUsage<S> build(@NotNull Command<S> command, boolean help) {
             CommandUsageImpl<S> impl = new CommandUsageImpl<>(execution, help);
             impl.setCoordinator(commandCoordinator);
-            impl.addPermission(permission);
+            impl.setPermissionData(permission);
             impl.describe(description);
             impl.setCooldown(cooldown);
             impl.addParameters(

@@ -1,6 +1,5 @@
 package studio.mevera.imperat;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
@@ -49,12 +48,12 @@ import studio.mevera.imperat.exception.parse.InvalidNumberFormatException;
 import studio.mevera.imperat.exception.parse.UnknownSubCommandException;
 import studio.mevera.imperat.exception.parse.ValueOutOfConstraintException;
 import studio.mevera.imperat.exception.parse.WordOutOfRestrictionsException;
+import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.DependencySupplier;
-import studio.mevera.imperat.resolvers.PermissionChecker;
 import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Preconditions;
@@ -99,10 +98,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     private AttachmentMode defaultAttachmentMode = AttachmentMode.UNSET;
 
-    private boolean isAPA;
-
-    private PermissionLoader<S> permissionLoader = PermissionLoader.defaultLoader();
-    private NodePermissionAssigner<S> permissionAssigner = NodePermissionAssigner.defaultAssigner();
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
 
     private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
@@ -534,37 +529,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             AnnotationReplacer<A> annReplacer = (AnnotationReplacer<A>) replacer;
             imperat.registerAnnotationReplacer(annType, annReplacer);
         });
-    }
-
-    @Override
-    public @NotNull PermissionLoader<S> getPermissionLoader() {
-        return permissionLoader;
-    }
-
-    @Override
-    public void setPermissionLoader(PermissionLoader<S> assigner) {
-        this.permissionLoader = assigner;
-    }
-
-    @Override
-    public void setNodePermissionAssigner(NodePermissionAssigner<S> assigner) {
-        this.permissionAssigner = assigner;
-    }
-
-    @Override
-    public @NotNull NodePermissionAssigner<S> getPermissionAssigner() {
-        return permissionAssigner;
-    }
-
-    @Override
-    public boolean isAutoPermissionAssignMode() {
-        return isAPA;
-    }
-
-    @Override
-    @ApiStatus.Experimental
-    public void setAutoPermissionAssignMode(boolean toggle) {
-        this.isAPA = toggle;
     }
 
     /**

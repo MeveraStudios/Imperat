@@ -46,6 +46,7 @@ import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeUtility;
@@ -191,7 +192,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         PreProcessor preProcessor = element.getAnnotation(PreProcessor.class);
         PostProcessor postProcessor = element.getAnnotation(PostProcessor.class);
 
-        Permission permission = element.getAnnotation(Permission.class);
+        Permission[] permissions = element.getAnnotationsByType(Permission.class);
         studio.mevera.imperat.annotations.Description description = element.getAnnotation(studio.mevera.imperat.annotations.Description.class);
 
         //help provider for this command
@@ -207,11 +208,18 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                               .ignoreACPermissions(ignoreAC)
                               .aliases(aliases);
 
-            if (permission != null) {
-                builder.permission(
-                        config.replacePlaceholders(permission.value())
+            PermissionsData permissionsData = PermissionsData.empty();
+            for (Permission pe : permissions) {
+                String permLine = config.replacePlaceholders(pe.value());
+
+                permissionsData.append(
+                        PermissionsData.fromText(permLine)
                 );
+
             }
+            builder.permission(
+                    permissionsData
+            );
 
             if (description != null) {
                 builder.description(
@@ -230,10 +238,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                     builder.postProcessor(loadPostProcessorInstance(processor));
                 }
             }
-
-            /*if(help != null) {
-                builder.helpProvider(loadHelpProviderInstance(help.value()));
-            }*/
 
 
         } else if (cmdAnnotation instanceof SubCommand subCommand) {
@@ -247,11 +251,17 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                               .ignoreACPermissions(ignoreAC)
                               .aliases(aliases);
 
-            if (permission != null) {
-                builder.permission(
-                        config.replacePlaceholders(permission.value())
+            PermissionsData permissionsData = PermissionsData.empty();
+            for (Permission pe : permissions) {
+                String permLine = config.replacePlaceholders(pe.value());
+                permissionsData.append(
+                        PermissionsData.fromText(permLine)
                 );
             }
+
+            builder.permission(
+                    permissionsData
+            );
 
             if (description != null) {
                 builder.description(
@@ -272,9 +282,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 }
             }
 
-            /*if(help != null) {
-                builder.helpProvider(loadHelpProviderInstance(help.value()));
-            }*/
 
         } else {
             return null;
@@ -408,21 +415,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return cmd;
     }
 
-    /*@SuppressWarnings("unchecked")
-    private TreeHelpVisitor<S> loadHelpProviderInstance(Class<? extends TreeHelpVisitor<?>> clazz) {
-        var constructor = Reflections.getConstructor(clazz);
-        if (constructor == null)
-            throw new UnsupportedOperationException("Couldn't find constructor in class `" + clazz.getSimpleName() + "`");
-
-        try {
-            return (TreeHelpVisitor<S>) constructor.newInstance();
-        } catch (InstantiationException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-     */
-
     private AttachmentMode extractAttachmentMode(ClassElement commandClass, SubCommand subCommandAnn) {
         AttachmentMode attachmentMode =
                 config.getDefaultAttachmentMode() == AttachmentMode.UNSET ? subCommandAnn.attachment() : config.getDefaultAttachmentMode();
@@ -453,7 +445,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         var execution = MethodCommandExecutor.of(imperat, method, usageData.inheritedTotalParameters());
 
         studio.mevera.imperat.annotations.Description description = method.getAnnotation(studio.mevera.imperat.annotations.Description.class);
-        Permission permission = method.getAnnotation(Permission.class);
+        Permission[] permissions = method.getAnnotationsByType(Permission.class);
         Cooldown cooldown = method.getAnnotation(Cooldown.class);
         Async async = method.getAnnotation(Async.class);
 
@@ -476,11 +468,17 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             );
         }
 
-        if (permission != null) {
-            builder.permission(
-                    config.replacePlaceholders(permission.value())
+        PermissionsData permissionsData = PermissionsData.empty();
+        for (Permission pe : permissions) {
+            String permLine = config.replacePlaceholders(pe.value());
+            permissionsData.append(
+                    PermissionsData.fromText(permLine)
             );
         }
+
+        builder.permission(
+                permissionsData
+        );
 
         if (cooldown != null) {
             ImperatDebugger.debug("Method '%s' has cooldown", method.getName());
@@ -556,13 +554,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                 originalMethodParameters.remove();
                 continue;
             }
-
-            /*
-            if (commandParameter.isFlag() && commandParameter.asFlagParameter().flagData().isFree()) {
-                freeFlags.add(commandParameter.asFlagParameter().flagData());
-                originalMethodParameters.remove();
-                continue;
-            }*/
 
             CommandParameter<S> mainParameter = mainUsageParameters.peek();
             if (mainParameter != null) {
@@ -681,11 +672,13 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             );
         }
 
-        String permission = null;
-        if (parameter.isAnnotationPresent(Permission.class)) {
-            var permAnn = parameter.getAnnotation(Permission.class);
-            assert permAnn != null;
-            permission = config.replacePlaceholders(permAnn.value());
+        Permission[] perms = parameter.getAnnotationsByType(Permission.class);
+        PermissionsData permissionsData = PermissionsData.empty();
+        for (Permission peAnn : perms) {
+            String txt = config.replacePlaceholders(peAnn.value());
+            permissionsData.append(
+                    PermissionsData.fromText(txt)
+            );
         }
 
         OptionalValueSupplier optionalValueSupplier = OptionalValueSupplier.empty();
@@ -711,7 +704,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                             .aliases(getAllExceptFirst(flagAliases))
                             .flagDefaultInputValue(optionalValueSupplier)
                             .description(desc)
-                            .permission(permission)
+                            .permission(permissionsData)
                             .build(),
                     parameter
             );
@@ -721,7 +714,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
                     CommandParameter.<S>flagSwitch(name)
                             .aliases(getAllExceptFirst(switchAliases))
                             .description(desc)
-                            .permission(permission)
+                            .permission(permissionsData)
                             .build(),
                     parameter
             );
@@ -729,7 +722,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         List<ArgValidator<S>> validators = new ArrayList<>();
 
-        if(parameter.isAnnotationPresent(Validators.class)) {
+        if (parameter.isAnnotationPresent(Validators.class)) {
             Validators validatorsAnn = parameter.getAnnotation(Validators.class);
             assert validatorsAnn != null;
             for (Class<? extends ArgValidator<?>> validatorClass : validatorsAnn.value()) {
@@ -758,7 +751,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         }
 
         CommandParameter<S> delegate = CommandParameter.of(
-                name, type, permission, desc,
+                name, type, permissionsData, desc,
                 optional, greedy, optionalValueSupplier, suggestionResolver,
                 validators
         );

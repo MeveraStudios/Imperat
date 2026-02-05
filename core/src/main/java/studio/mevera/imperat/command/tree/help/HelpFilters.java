@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.ParameterNode;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.resolvers.PermissionChecker;
+import studio.mevera.imperat.permissions.PermissionChecker;
 
 import java.util.regex.Pattern;
 
@@ -59,10 +59,7 @@ public final class HelpFilters {
      * @param checker the permission checker
      */
     public static <S extends Source> HelpFilter<S> hasPermission(S source, PermissionChecker<S> checker) {
-        return node -> {
-            String permission = node.getPermission();
-            return permission == null || checker.hasPermission(source, permission);
-        };
+        return node -> checker.hasPermission(source, node.getData());
     }
 
     /**
@@ -91,14 +88,14 @@ public final class HelpFilters {
      * @param permission the required permission
      */
     public static <S extends Source> HelpFilter<S> withPermission(String permission) {
-        return node -> permission.equals(node.getPermission());
+        return node -> node.getPermissionsData().getPermissions().contains(permission);
     }
 
     /**
      * Creates a filter that only includes nodes without any permission requirement.
      */
     public static <S extends Source> HelpFilter<S> noPermission() {
-        return node -> node.getPermission() == null;
+        return node -> node.getPermissionsData().isEmpty();
     }
 
     /**

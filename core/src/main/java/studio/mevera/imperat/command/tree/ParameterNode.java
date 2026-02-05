@@ -8,6 +8,7 @@ import studio.mevera.imperat.command.parameters.CommandParameter;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.PriorityList;
 
@@ -21,14 +22,12 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
     private final int depth;
     private final @Nullable ParameterNode<S, ?> parent;
     protected @Nullable CommandUsage<S> executableUsage;
-    private String permission;
 
     protected ParameterNode(@Nullable ParameterNode<S, ?> parent, @NotNull T data, int depth, @Nullable CommandUsage<S> executableUsage) {
         this.parent = parent;
         this.data = data;
         this.depth = depth;
         this.executableUsage = executableUsage;
-        this.permission = data.getSinglePermission();
     }
 
     public static <S extends Source> CommandNode<S> createCommandNode(
@@ -47,14 +46,6 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
             @Nullable CommandUsage<S> executableUsage
     ) {
         return new ArgumentNode<>(parent, data, depth, executableUsage);
-    }
-
-    public String getPermission() {
-        return permission;
-    }
-
-    public void setPermission(String permission) {
-        this.permission = permission;
     }
 
     public int getDepth() {
@@ -194,6 +185,10 @@ public abstract class ParameterNode<S extends Source, T extends CommandParameter
             incrementation = 1;
         }
         return incrementation;
+    }
+
+    public PermissionsData getPermissionsData() {
+        return data.getPermissionsData();
     }
 
     @Override

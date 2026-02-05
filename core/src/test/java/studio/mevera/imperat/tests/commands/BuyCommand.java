@@ -9,7 +9,7 @@ import studio.mevera.imperat.tests.TestSource;
 public class BuyCommand {
 
     @Usage
-    public void buyItem(TestSource source, String item, @Range(min = 1, max= 50) int quantity) {
+    public void buyItem(TestSource source, String item, @Range(min = 1, max = 50) int quantity) {
         source.reply("You have bought " + quantity + " of " + item + "!");
     }
 }

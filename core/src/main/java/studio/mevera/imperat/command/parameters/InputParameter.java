@@ -3,7 +3,6 @@ package studio.mevera.imperat.command.parameters;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.type.ParameterArray;
@@ -16,14 +15,13 @@ import studio.mevera.imperat.command.parameters.validator.InvalidArgumentExcepti
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Argument;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.PriorityList;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 
-import java.util.Collections;
 import java.util.Objects;
-import java.util.Set;
 
 @ApiStatus.Internal
 public abstract class InputParameter<S extends Source> implements CommandParameter<S> {
@@ -36,14 +34,14 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     private final PriorityList<ArgValidator<S>> validators = new PriorityList<>();
     protected Command<S> parentCommand;
     protected String format;
-    protected String permission;
+    protected PermissionsData permissionsData;
     protected Description description;
     protected int index;
 
     protected InputParameter(
             String name,
             @NotNull ParameterType<S, ?> type,
-            @Nullable String permission,
+            @NotNull PermissionsData permissionsData,
             Description description,
             boolean optional, boolean flag, boolean greedy,
             @NotNull OptionalValueSupplier optionalValueSupplier,
@@ -52,7 +50,7 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
         this.name = name;
         this.format = name;
         this.type = type;
-        this.permission = permission;
+        this.permissionsData = permissionsData;
         this.description = description;
         this.optional = optional;
         this.flag = flag;
@@ -121,31 +119,13 @@ public abstract class InputParameter<S extends Source> implements CommandParamet
     }
 
     @Override
-    public @Nullable String getSinglePermission() {
-        return permission;
+    public @NotNull PermissionsData getPermissionsData() {
+        return permissionsData;
     }
 
     @Override
-    public void setSinglePermission(String permission) {
-        CommandParameter.super.setSinglePermission(permission);
-    }
-
-    /**
-     * The permission for this parameter
-     *
-     * @return the parameter permission
-     */
-    @Override
-    public @Unmodifiable Set<String> getPermissions() {
-        if (permission == null) {
-            return Collections.emptySet();
-        }
-        return Set.of(permission);
-    }
-
-    @Override
-    public void addPermission(String permission) {
-        this.permission = permission;
+    public void setPermissionData(@NotNull PermissionsData permission) {
+        this.permissionsData = permission;
     }
 
     /**

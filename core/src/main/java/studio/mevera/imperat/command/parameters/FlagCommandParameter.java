@@ -7,6 +7,7 @@ import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
 import java.util.Objects;
@@ -20,7 +21,7 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
 
     FlagCommandParameter(
             FlagData<S> flag,
-            String permission,
+            PermissionsData permission,
             Description description,
             OptionalValueSupplier inputValueSupplier,
             SuggestionResolver<S> inputValueSuggestionResolver
@@ -82,7 +83,7 @@ public final class FlagCommandParameter<S extends Source> extends InputParameter
     public CommandParameter<S> copyWithDifferentPosition(int newPosition) {
         FlagCommandParameter<S> copy = new FlagCommandParameter<>(
                 this.flag,
-                this.permission,
+                this.permissionsData,
                 this.description,
                 this.inputValueSupplier,
                 this.inputValueSuggestionResolver

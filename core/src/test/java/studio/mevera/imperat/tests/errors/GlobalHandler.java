@@ -12,8 +12,7 @@ public final class GlobalHandler {
     @ExceptionHandler(PermissionDeniedException.class)
     public void globalHandler(PermissionDeniedException ex, Context<TestSource> ctx) {
         var src = ctx.source();
-        String lackingPermission = ex.getLackingPermission();
-        src.reply("You lack the permission '" + lackingPermission + "' to do this!");
+        src.reply("You lack the permission to do this!");
     }
 
     @ExceptionHandler(NumberOutOfRangeException.class)

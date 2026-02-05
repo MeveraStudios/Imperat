@@ -8,6 +8,7 @@ public class ValueOutOfConstraintException extends InvalidArgumentException {
 
     private final Set<String> allowedValues;
     private final String input;
+
     public ValueOutOfConstraintException(String input, Set<String> allowedValues) {
         super("Value '" + input + "' is not within the allowed values: " + allowedValues);
         this.input = input;

@@ -19,7 +19,7 @@ public final class AnnotationParameterDecorator<S extends Source> extends InputP
 
     AnnotationParameterDecorator(CommandParameter<S> parameter, ParameterElement element) {
         super(
-                parameter.name(), parameter.type(), parameter.getSinglePermission(),
+                parameter.name(), parameter.type(), parameter.getPermissionsData(),
                 parameter.description(), parameter.isOptional(),
                 parameter.isFlag(), parameter.isGreedy(),
                 parameter.getDefaultValueSupplier(), parameter.getSuggestionResolver()

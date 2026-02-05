@@ -7,7 +7,6 @@ import studio.mevera.imperat.annotations.parameters.AnnotatedParameter;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.DescriptionHolder;
-import studio.mevera.imperat.command.PermissionHolder;
 import studio.mevera.imperat.command.parameters.type.ParameterType;
 import studio.mevera.imperat.command.parameters.type.ParameterTypes;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
@@ -15,6 +14,8 @@ import studio.mevera.imperat.command.parameters.validator.InvalidArgumentExcepti
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Argument;
+import studio.mevera.imperat.permissions.PermissionHolder;
+import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.PriorityList;
@@ -35,7 +36,7 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
     static <S extends Source, T> CommandParameter<S> of(
             String name,
             ParameterType<S, T> type,
-            @Nullable String permission,
+            @NotNull PermissionsData permission,
             Description description,
             boolean optional,
             boolean greedy,
@@ -51,7 +52,7 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
                 name, type, permission, description, optional,
                 greedy, valueSupplier, suggestionResolver
         );
-        for(ArgValidator<S> validator : validators) {
+        for (ArgValidator<S> validator : validators) {
             param.addValidator(validator);
         }
         return param;
@@ -144,7 +145,7 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
         return of(
                 part,
                 ParameterTypes.command(part, new ArrayList<>()),
-                null,
+                PermissionsData.empty(),
                 Description.EMPTY,
                 false,
                 false,
@@ -186,16 +187,6 @@ public interface CommandParameter<S extends Source> extends PermissionHolder, De
      */
     @ApiStatus.Internal
     void position(int position);
-
-    /**
-     * For parameters, ONLY one permission is allowed for each parameter.
-     * @return the single permission for this parameter.
-     */
-    @Nullable String getSinglePermission();
-
-    default void setSinglePermission(String permission) {
-        addPermission(getSinglePermission());
-    }
 
     /**
      * @return the value valueType-token of this parameter
