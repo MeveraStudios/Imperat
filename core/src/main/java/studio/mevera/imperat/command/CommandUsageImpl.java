@@ -60,7 +60,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
      * command usage
      */
     @Override
-    public Description description() {
+    public Description getDescription() {
         return description;
     }
 

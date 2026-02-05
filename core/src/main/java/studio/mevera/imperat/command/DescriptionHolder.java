@@ -11,7 +11,7 @@ public interface DescriptionHolder {
      *
      * @return the current {@link Description}.
      */
-    Description description();
+    Description getDescription();
 
     /**
      * Sets the description for this entity.

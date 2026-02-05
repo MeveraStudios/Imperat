@@ -119,7 +119,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
         return (context, builder) -> {
             S source = this.wrapCommandSource(context.getSource());
             String paramFormat = parameter.format();
-            Description desc = parameter.description();
+            Description desc = parameter.getDescription();
             Message tooltip = new LiteralMessage(paramFormat + (desc.isEmpty() ? "" : " - " + desc.getValue()));
 
             String input = context.getInput();

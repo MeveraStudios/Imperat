@@ -109,6 +109,10 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         for (var aliases : command.aliases()) {
             this.commands.put(aliases.trim().toLowerCase(), command);
         }
+
+        for(var shortcut : command.getAllShortcuts()) {
+            this.commands.put(shortcut.name(), shortcut);
+        }
     }
 
     /**

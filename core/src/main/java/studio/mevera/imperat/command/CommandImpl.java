@@ -31,6 +31,7 @@ import studio.mevera.imperat.util.PriorityList;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,6 +60,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private boolean suppressACPermissionChecks = false;
     private CommandUsage<S> mainUsage = null;
     private CommandUsage<S> defaultUsage;
+    private final Map<String, Command<S>> shortcuts = new HashMap<>();
 
     private ParseElement<?> annotatedElement = null;
 
@@ -71,28 +73,14 @@ final class CommandImpl<S extends Source> implements Command<S> {
                     .build();
     private @Nullable Command<S> parent;
 
-    CommandImpl(Imperat<S> imperat, String name) {
-        this(imperat, name, null);
-    }
 
-    CommandImpl(Imperat<S> imperat, String name, ParseElement<?> annotatedElement) {
-        this(imperat, null, name, annotatedElement);
-    }
-
-    //sub-command constructor
-    CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, String name) {
-        this(imperat, parent, name, null);
-    }
-
-    CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, String name, ParseElement<?> annotatedElement) {
-        this(imperat, parent, -1, name, annotatedElement);
-    }
-
-    CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, int position, String name) {
-        this(imperat, parent, position, name, null);
-    }
-
-    CommandImpl(Imperat<S> imperat, @Nullable Command<S> parent, int position, String name, @Nullable ParseElement<?> annotatedElement) {
+    CommandImpl(
+            Imperat<S> imperat,
+            @Nullable Command<S> parent,
+            int position,
+            String name,
+            @Nullable ParseElement<?> annotatedElement
+    ) {
         this.imperat = imperat;
         this.parent = parent;
         this.position = position;
@@ -138,7 +126,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @return The description of a command
      */
     @Override
-    public @NotNull Description description() {
+    public @NotNull Description getDescription() {
         return description;
     }
 
@@ -418,6 +406,16 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.postProcessors = chain;
     }
 
+    @Override
+    public Collection<? extends Command<S>> getAllShortcuts() {
+        List<Command<S>> allShortcuts = new ArrayList<>(shortcuts.values());
+        for (Command<S> subCommand : this.getSubCommands()) {
+            allShortcuts.addAll(subCommand.getAllShortcuts());
+        }
+        return allShortcuts;
+    }
+
+
     /**
      * Injects a created-subcommand directly into the parent's command usages.
      *
@@ -511,6 +509,21 @@ final class CommandImpl<S extends Source> implements Command<S> {
         return children.values();
     }
 
+    @Override
+    public @Nullable Command<S> getShortcut(String shortcutName) {
+        return shortcuts.get(shortcutName);
+    }
+
+    @Override
+    public @UnmodifiableView Collection<? extends Command<S>> getShortcuts() {
+        return Collections.unmodifiableMap(shortcuts).values();
+    }
+
+    @Override
+    public void addShortcut(Command<S> shortcut) {
+        shortcuts.put(shortcut.name(), shortcut);
+    }
+
     /**
      * whether to ignore permission checks on the auto-completion of command and
      * sub commands or not
@@ -533,7 +546,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param suppress true if you want to ignore the permission checks on tab completion of args
      */
     @Override
-    public void ignoreACPermissions(boolean suppress) {
+    public void setIgnoreACPermissions(boolean suppress) {
         this.suppressACPermissionChecks = suppress;
     }
 
@@ -583,7 +596,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public Argument<S> copyWithDifferentPosition(int newPosition) {
-        CommandImpl<S> copy = new CommandImpl<>(this.imperat, this.parent, newPosition, this.name);
+        CommandImpl<S> copy = new CommandImpl<>(this.imperat, this.parent, newPosition, this.name, this.annotatedElement);
 
         // Copy basic properties
         copy.permissions = this.permissions;

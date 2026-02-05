@@ -207,7 +207,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
     }
 
     @Override
-    public Description description() {
+    public Description getDescription() {
         return description;
     }
 

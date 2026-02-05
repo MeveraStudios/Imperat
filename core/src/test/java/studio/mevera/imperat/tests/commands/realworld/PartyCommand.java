@@ -4,6 +4,7 @@ import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.Description;
 import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.Shortcut;
 import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.command.AttachmentMode;
@@ -29,8 +30,9 @@ public class PartyCommand {
 
     @SubCommand(value = "invite", attachment = AttachmentMode.EMPTY)
     @Description("Invites a player to your party")
+    @Shortcut("pinvite")
     public void invite(final TestSource sender, @Named("receiver") final String receiver) {
-
+        System.out.println("Inviting " + receiver + " to " + sender.name() + "'s party");
     }
 
     @SubCommand(value = "accept", attachment = AttachmentMode.EMPTY)

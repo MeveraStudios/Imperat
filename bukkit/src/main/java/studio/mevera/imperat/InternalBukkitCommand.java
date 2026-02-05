@@ -25,7 +25,7 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
     ) {
         super(
                 imperatCommand.name(),
-                imperatCommand.description().getValueOrElse(""),
+                imperatCommand.getDescription().getValueOrElse(""),
                 CommandUsage.format((String) null, imperatCommand.getDefaultUsage()),
                 imperatCommand.aliases()
         );

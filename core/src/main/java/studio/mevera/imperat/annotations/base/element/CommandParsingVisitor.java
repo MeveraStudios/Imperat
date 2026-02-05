@@ -18,6 +18,7 @@ import studio.mevera.imperat.annotations.Permission;
 import studio.mevera.imperat.annotations.PostProcessor;
 import studio.mevera.imperat.annotations.PreProcessor;
 import studio.mevera.imperat.annotations.Range;
+import studio.mevera.imperat.annotations.Shortcut;
 import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Suggest;
 import studio.mevera.imperat.annotations.SuggestionProvider;
@@ -464,7 +465,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         if (description != null) {
             builder.description(
-                    config.replacePlaceholders(description.value())
+                    Description.of(config.replacePlaceholders(description.value()))
             );
         }
 
@@ -490,10 +491,17 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             builder.coordinator(CommandCoordinator.async());
         }
         boolean help = method.isHelp();
-        return builder
+        var usage = builder
                        //.registerFlags(usageData.freeFlags)
                        .build(loadedCmd, help);
 
+        Shortcut shortcutAnn = method.getAnnotation(Shortcut.class);
+        if(shortcutAnn != null) {
+            var shortcut = loadUsageShortcut(method, usageData, loadedCmd, usage, shortcutAnn);
+            loadedCmd.addShortcut(shortcut);
+        }
+
+        return usage;
     }
 
     private MethodUsageData<S> loadParameters(
@@ -527,7 +535,6 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
         LinkedList<Argument<S>> totalMethodParameters = new LinkedList<>(mainUsageParameters);
         LinkedList<ParameterElement> originalMethodParameters = new LinkedList<>(method.getParameters());
-        ImperatDebugger.debugForTesting("Method parameters collected '%s'", getMethodParamsCollected(originalMethodParameters));
 
         ParameterElement senderParam = null;
 
@@ -586,14 +593,34 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return imperat.canBeSender(type) || config.hasSourceResolver(type);
     }
 
-    private String getMethodParamsCollected(LinkedList<ParameterElement> methodParameters) {
+    private studio.mevera.imperat.command.Command<S> loadUsageShortcut(
+            @NotNull MethodElement method,
+            @NotNull MethodUsageData<S> methodUsageData,
+            @NotNull studio.mevera.imperat.command.Command<S> originalCommand,
+            @NotNull CommandUsage<S> originalUsage,
+            @NotNull Shortcut shortcutAnn
+    ) {
 
-        StringBuilder builder = new StringBuilder();
-        for (var pe : methodParameters) {
-            builder.append(pe.getName()).append(" ");
+        String shortcutValue = config.replacePlaceholders(shortcutAnn.value());
+
+        studio.mevera.imperat.command.Command<S> shortcut = originalCommand.getShortcut(shortcutValue);
+        if(shortcut == null) {
+            shortcut = studio.mevera.imperat.command.Command.create(imperat, shortcutValue, method)
+                                                                   .setMetaPropertiesFromOtherCommand(originalCommand)
+                                                                   .build();
         }
-        return builder.toString();
+
+        CommandUsage<S> fabricated = CommandUsage.<S>builder()
+                                           .parameters(methodUsageData.inheritedTotalParameters())
+                                           .execute(originalUsage.getExecution())
+                                           .permission(originalUsage.getPermissionsData())
+                                           .description(originalUsage.getDescription())
+                                           .build(shortcut, originalUsage.isHelp());
+
+        shortcut.addUsage(fabricated);
+        return shortcut;
     }
+
 
     @SuppressWarnings("unchecked")
     private <T> @Nullable Argument<S> loadParameter(

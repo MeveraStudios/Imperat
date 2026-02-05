@@ -13,9 +13,9 @@ import java.lang.annotation.Target;
  * will be executed the same with same input-parameters as the inheriting one.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.METHOD})
 @ApiStatus.Experimental
-public @interface Forward {
+public @interface Shortcut {
 
     String value();
 }

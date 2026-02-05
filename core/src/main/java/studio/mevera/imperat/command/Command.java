@@ -156,12 +156,11 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     @NotNull
     CommandPathSearch<S> contextMatch(Context<S> context);
 
-
     /**
      * @return The description of a command
      */
     @NotNull
-    Description description();
+    Description getDescription();
 
     /**
      * Retrieves the parameter type associated with the current command,
@@ -364,6 +363,23 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     }
 
     /**
+     * @return the parent command of this command, null if it doesn't have a parent
+     */
+    @Nullable Command<S> getShortcut(String shortcutName);
+
+    /**
+     * @return the shortcuts of this command
+     */
+    @UnmodifiableView Collection<? extends Command<S>> getShortcuts();
+
+    /**
+     * Adds a shortcut to this command. Shortcuts are alternative names for the same command, allowing users to execute the command using different aliases.
+     *
+     * @param shortcut the Command instance representing the shortcut to be added
+     */
+    void addShortcut(Command<S> shortcut);
+
+    /**
      * @return the value valueType of this parameter
      */
     @Override
@@ -430,12 +446,11 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      *
      * @param ignore true if you want to ignore the permission checks on tab completion of args
      */
-    void ignoreACPermissions(boolean ignore);
+    void setIgnoreACPermissions(boolean ignore);
 
     @ApiStatus.Internal
     @ApiStatus.AvailableSince("1.9.0")
     void registerSubCommand(Command<S> subCommand);
-
 
     CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors();
 
@@ -444,6 +459,8 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     void setPreProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain);
 
     void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain);
+
+    Collection<? extends Command<S>> getAllShortcuts();
 
     class Builder<S extends Source> {
 
@@ -460,7 +477,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
         }
 
         public Builder<S> ignoreACPermissions(boolean ignore) {
-            this.cmd.ignoreACPermissions(ignore);
+            this.cmd.setIgnoreACPermissions(ignore);
             return this;
         }
 
@@ -555,9 +572,8 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
             cmd.setDefaultUsage(other.getDefaultUsage());
             cmd.setPreProcessingChain(other.getPreProcessors());
             cmd.setPostProcessingChain(other.getPostProcessors());
-
-            cmd.describe(other.description());
-            cmd.ignoreACPermissions(other.isIgnoringACPerms());
+            cmd.describe(other.getDescription());
+            cmd.setIgnoreACPermissions(other.isIgnoringACPerms());
 
             return this;
         }

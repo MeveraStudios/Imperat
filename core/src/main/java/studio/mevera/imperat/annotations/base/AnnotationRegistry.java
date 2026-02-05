@@ -12,7 +12,7 @@ import studio.mevera.imperat.annotations.ExceptionHandler;
 import studio.mevera.imperat.annotations.ExternalSubCommand;
 import studio.mevera.imperat.annotations.Flag;
 import studio.mevera.imperat.annotations.Format;
-import studio.mevera.imperat.annotations.Forward;
+import studio.mevera.imperat.annotations.Shortcut;
 import studio.mevera.imperat.annotations.GlobalAttachmentMode;
 import studio.mevera.imperat.annotations.Greedy;
 import studio.mevera.imperat.annotations.Named;
@@ -46,7 +46,7 @@ final class AnnotationRegistry {
     AnnotationRegistry() {
         this.registerAnnotationTypes(
                 Command.class, ExternalSubCommand.class, Execute.class, SubCommand.class,
-                Cooldown.class, Description.class, Permission.class, Format.class, Forward.class,
+                Cooldown.class, Description.class, Permission.class, Format.class, Shortcut.class,
                 Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
                 Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, ContextResolved.class, Range.class, Async.class,
                 PostProcessor.class, PreProcessor.class, GlobalAttachmentMode.class, ExceptionHandler.class,

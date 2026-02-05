@@ -18,7 +18,7 @@ public final class NumericArgumentDecorator<S extends Source> extends InputParam
     NumericArgumentDecorator(Argument<S> parameter, NumericRange range) {
         super(
                 parameter.name(), parameter.type(), parameter.getPermissionsData(),
-                parameter.description(), parameter.isOptional(), parameter.isFlag(),
+                parameter.getDescription(), parameter.isOptional(), parameter.isFlag(),
                 parameter.isFlag(), parameter.getDefaultValueSupplier(),
                 loadSuggestionResolver(parameter, range)
         );

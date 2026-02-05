@@ -223,7 +223,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
 
         return CommandUsage.<S>builder()
                        .coordinator(usage.getCoordinator())
-                       .description(subCommand.description().getValue())
+                       .description(subCommand.getDescription())
                        .cooldown(usage.getCooldown())
                        .parameters(comboParams)
                        .execute(usage.getExecution())
@@ -336,7 +336,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
         private final Set<FlagArgument<S>> flagArguments = new HashSet<>();
         private final List<String> examples = new ArrayList<>(3);
         private CommandExecution<S> execution = CommandExecution.empty();
-        private String description = "N/A";
+        private Description description = Description.EMPTY;
         private PermissionsData permission = PermissionsData.empty();
         private UsageCooldown cooldown = null;
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
@@ -380,7 +380,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
             return this;
         }
 
-        public Builder<S> description(String description) {
+        public Builder<S> description(Description description) {
             if (description != null) {
                 this.description = description;
             }
@@ -426,7 +426,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
             CommandUsage<S> mainUsage = command.getMainUsage();
 
             //copy only meta properties
-            this.description = mainUsage.description().getValue();
+            this.description = mainUsage.getDescription();
             this.permission = mainUsage.getPermissionsData();
 
             this.execution = mainUsage.getExecution();

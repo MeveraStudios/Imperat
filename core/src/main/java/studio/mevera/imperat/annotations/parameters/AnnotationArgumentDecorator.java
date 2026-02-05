@@ -20,7 +20,7 @@ public final class AnnotationArgumentDecorator<S extends Source> extends InputPa
     AnnotationArgumentDecorator(Argument<S> parameter, ParameterElement element) {
         super(
                 parameter.name(), parameter.type(), parameter.getPermissionsData(),
-                parameter.description(), parameter.isOptional(),
+                parameter.getDescription(), parameter.isOptional(),
                 parameter.isFlag(), parameter.isGreedy(),
                 parameter.getDefaultValueSupplier(), parameter.getSuggestionResolver()
         );
