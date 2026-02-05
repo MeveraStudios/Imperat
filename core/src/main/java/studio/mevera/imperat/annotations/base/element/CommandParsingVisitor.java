@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.ImperatConfig;
+import studio.mevera.imperat.annotations.ArgType;
 import studio.mevera.imperat.annotations.Async;
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Cooldown;
@@ -648,10 +649,19 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
             throw new IllegalStateException("both @Flag and @Switch at the same time !");
         }
 
-        TypeWrap<T> ArgumentTypeWrap = (TypeWrap<T>) TypeWrap.of(parameter.getElement().getParameterizedType());
-        var type = (ArgumentType<S, T>) config.getArgumentType(ArgumentTypeWrap.getType());
-        if (type == null) {
-            throw new IllegalArgumentException("Unknown type detected '" + ArgumentTypeWrap.getType().getTypeName() + "'");
+        ArgumentType<S, T> type;
+        ArgType argTypeAnn = parameter.getAnnotation(ArgType.class);
+        if(argTypeAnn != null && (flag != null || switchAnnotation != null)) {
+            throw new IllegalStateException("@ArgType cannot be used on flag/switch parameters");
+        }
+        else if(argTypeAnn != null) {
+            type = (ArgumentType<S, T>) config.getInstanceFactory().createInstance(config, argTypeAnn.value());
+        }else {
+            TypeWrap<T> argumentTypeWrap = (TypeWrap<T>) TypeWrap.of(parameter.getElement().getParameterizedType());
+            type = (ArgumentType<S, T>) config.getArgumentType(argumentTypeWrap.getType());
+            if (type == null) {
+                throw new IllegalArgumentException("Unknown type detected '" + argumentTypeWrap.getType().getTypeName() + "'");
+            }
         }
 
         String name = parameter.getName();

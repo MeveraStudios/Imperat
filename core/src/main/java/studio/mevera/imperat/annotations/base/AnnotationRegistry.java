@@ -1,6 +1,7 @@
 package studio.mevera.imperat.annotations.base;
 
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.annotations.ArgType;
 import studio.mevera.imperat.annotations.Async;
 import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.ContextResolved;
@@ -50,7 +51,7 @@ final class AnnotationRegistry {
                 Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
                 Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, ContextResolved.class, Range.class, Async.class,
                 PostProcessor.class, PreProcessor.class, GlobalAttachmentMode.class, ExceptionHandler.class,
-                Validators.class
+                Validators.class, ArgType.class
         );
     }
 
