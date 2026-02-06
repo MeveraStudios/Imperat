@@ -4,10 +4,9 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
+import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.handlers.ParameterHandler;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.FlagOutsideCommandScopeException;
@@ -71,13 +70,14 @@ public class ParameterChain<S extends Source> {
                 if (!lastCmd.getMainUsage().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
                     throw new FlagOutsideCommandScopeException(lastCmd, raw);
                 }
-                FlagData<S> extractedFlagData = flagParam.flagData();
                 context.resolveFlag(
-                        new ExtractedFlagArgument(
-                                extractedFlagData,
+                        ParsedFlagArgument.forFlag(
+                                flagParam,
                                 raw,
                                 inputRaw,
-                                extractedFlagData.isSwitch() ? true : Objects.requireNonNull(extractedFlagData.inputType()).parse(context,
+                                rPos,
+                                flagParam.isSwitch() ? rPos : rPos + 1,
+                                flagParam.isSwitch() ? true : Objects.requireNonNull(flagParam.flagData().inputType()).parse(context,
                                         Cursor.ofSingleString(flagParam, inputRaw), inputRaw)
                         )
                 );
@@ -116,24 +116,27 @@ public class ParameterChain<S extends Source> {
         return inputRaw;
     }
 
-    private void resolveFlagDefaultValue(FlagArgument<S> FlagArgument, ExecutionContext<S> context) throws
+    private void resolveFlagDefaultValue(FlagArgument<S> flagArgument, ExecutionContext<S> context) throws
             CommandException {
-        FlagData<S> flagDataFromRaw = FlagArgument.flagData();
 
-        if (flagDataFromRaw.isSwitch()) {
-            context.resolveFlag(new ExtractedFlagArgument(flagDataFromRaw, null, "false", false));
+        if (flagArgument.isSwitch()) {
+            context.resolveFlag(
+                    ParsedFlagArgument.forDefaultSwitch(
+                            flagArgument
+                    )
+            );
             return;
         }
 
-        String defValue = FlagArgument.getDefaultValueSupplier().supply(context, FlagArgument);
+        String defValue = flagArgument.getDefaultValueSupplier().supply(context, flagArgument);
         if (defValue != null) {
-            Object flagValueResolved = FlagArgument.getDefaultValueSupplier().isEmpty() ? null :
-                                               Objects.requireNonNull(flagDataFromRaw.inputType()).parse(
+            Object flagValueResolved = flagArgument.getDefaultValueSupplier().isEmpty() ? null :
+                                               Objects.requireNonNull(flagArgument.flagData().inputType()).parse(
                                                        context,
-                                                       Cursor.ofSingleString(FlagArgument, defValue),
+                                                       Cursor.ofSingleString(flagArgument, defValue),
                                                        defValue
                                                );
-            context.resolveFlag(new ExtractedFlagArgument(flagDataFromRaw, null, defValue, flagValueResolved));
+            context.resolveFlag(ParsedFlagArgument.forDefaultFlag(flagArgument, defValue, flagValueResolved));
         }
     }
 

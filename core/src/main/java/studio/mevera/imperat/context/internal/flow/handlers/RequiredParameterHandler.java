@@ -5,7 +5,6 @@ import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
@@ -32,13 +31,8 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
         try {
             var value = currentParameter.type().parse(context, stream, stream.readInput());
 
-            if (value instanceof ExtractedFlagArgument extractedFlagArgument) {
-                context.resolveFlag(extractedFlagArgument);
-                stream.skip();
-            } else {
-                context.resolveArgument(context.getLastUsedCommand(), currentRaw, stream.currentParameterPosition(), currentParameter, value);
-                stream.skip();
-            }
+            context.resolveArgument(stream, value);
+            stream.skip();
 
             return HandleResult.NEXT_ITERATION;
         } catch (CommandException e) {

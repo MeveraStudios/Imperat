@@ -9,7 +9,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
+import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
@@ -17,7 +17,7 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import java.util.Collections;
 import java.util.Set;
 
-public class FlagArgumentType<S extends Source> extends ArgumentType<S, ExtractedFlagArgument> {
+public class FlagArgumentType<S extends Source> extends ArgumentType<S, ParsedFlagArgument<S>> {
 
     private final FlagData<S> flagData;
 
@@ -31,7 +31,7 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, Extracte
     }
 
     @Override
-    public @Nullable ExtractedFlagArgument parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor,
+    public @Nullable ParsedFlagArgument<S> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         var currentParameter = cursor.currentParameterIfPresent();
@@ -43,31 +43,37 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, Extracte
             throw new IllegalArgumentException();
         }
 
-        FlagArgument<S> FlagArgument = currentParameter.asFlagParameter();
+        FlagArgument<S> flagArgument = currentParameter.asFlagParameter();
 
-        String rawInput = null;
+        String rawInput;
         Object objInput;
 
-        if (!FlagArgument.isSwitch()) {
-            ArgumentType<S, ?> inputType = FlagArgument.flagData().inputType();
+        if (!flagArgument.isSwitch()) {
+            ArgumentType<S, ?> inputType = flagArgument.flagData().inputType();
+            int currentPosition = cursor.currentRawPosition();
             rawInput = cursor.popRaw().orElse(null);
             if (rawInput != null) {
                 assert inputType != null;
                 objInput = inputType.parse(context, cursor, rawInput);
-                if (objInput == null && !FlagArgument.getDefaultValueSupplier().isEmpty()) {
-                    String defValue = FlagArgument.getDefaultValueSupplier().supply(context, FlagArgument);
+                if (objInput == null && !flagArgument.getDefaultValueSupplier().isEmpty()) {
+                    String defValue = flagArgument.getDefaultValueSupplier().supply(context, flagArgument);
                     if (defValue != null) {
                         objInput = inputType.parse(context, cursor, defValue);
                     }
                 }
+                return ParsedFlagArgument.forFlag(
+                        flagArgument, correspondingInput, rawInput,
+                        currentPosition, currentPosition+1,
+                        objInput
+                );
+
             } else {
                 //"Please enter the value for flag '%s'"
-                throw new MissingFlagInputException(Set.of(FlagArgument.name()), correspondingInput);
+                throw new MissingFlagInputException(Set.of(flagArgument.name()), correspondingInput);
             }
         } else {
-            objInput = true;
+            return ParsedFlagArgument.forSwitch(flagArgument, correspondingInput, cursor.currentRawPosition());
         }
-        return new ExtractedFlagArgument(FlagArgument.flagData(), correspondingInput, rawInput, objInput);
     }
 
     @Override

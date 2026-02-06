@@ -8,9 +8,10 @@ import studio.mevera.imperat.annotations.ContextResolved;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
+import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -41,7 +42,7 @@ import java.util.Optional;
  * @see Command
  * @see CommandUsage
  * @see ParsedArgument
- * @see ExtractedFlagArgument
+ * @see ParsedFlagArgument
  * @since 1.0.0
  */
 @ApiStatus.AvailableSince("1.0.0")
@@ -61,7 +62,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param flagName the name of the flag (without prefix)
      * @return an {@link Optional} containing the flag if present, empty otherwise
      */
-    Optional<ExtractedFlagArgument> getFlag(String flagName);
+    Optional<ParsedFlagArgument<S>> getFlag(String flagName);
 
     /**
      * Gets the resolved value of a command flag.
@@ -144,26 +145,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      *
      * @return a collection of resolved flags
      */
-    Collection<? extends ExtractedFlagArgument> getResolvedFlags();
-
-    /**
-     * Resolves and registers a command argument.
-     *
-     * @param <T> the type of the argument value
-     * @param command the owning command
-     * @param raw the raw input string
-     * @param index the argument position
-     * @param parameter the parameter definition
-     * @param value the resolved value
-     * @throws CommandException if resolution fails
-     */
-    <T> void resolveArgument(
-            Command<S> command,
-            @Nullable String raw,
-            int index,
-            Argument<S> parameter,
-            @Nullable T value
-    ) throws CommandException;
+    Collection<? extends ParsedFlagArgument> getResolvedFlags();
 
     /**
      * Resolves and registers a command argument.
@@ -173,45 +155,26 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param value the resolved value.
      * @throws CommandException if resolution fails.
      */
-    default <T> void resolveArgument(
+    <T> void resolveArgument(
             Cursor<S> stream,
             @Nullable T value
-    ) throws CommandException {
-        resolveArgument(
-                getLastUsedCommand(),
-                stream.currentRawIfPresent(),
-                stream.currentRawPosition(),
-                stream.currentParameterIfPresent(),
-                value
-        );
-    }
-
+    ) throws CommandException;
 
     /**
-     * Resolves a command flag from its raw components.
+     * Registers a resolved argument in the context.
      *
-     * @param flagDetected the flag parameter definition
-     * @param flagRaw the raw flag string (including prefix)
-     * @param flagInputRaw the raw flag value (may be null for switches)
-     * @param flagInputValue the resolved flag value
+     * @param argument the resolved argument to register
      */
-    default void resolveFlag(
-            FlagData<S> flagDetected,
-            String flagRaw,
-            @Nullable String flagInputRaw,
-            @Nullable Object flagInputValue
-    ) {
-        resolveFlag(
-                new ExtractedFlagArgument(flagDetected, flagRaw, flagInputRaw, flagInputValue)
-        );
-    }
+    void resolveArgument(
+            ParsedArgument<S> argument
+    ) throws InvalidArgumentException;
 
     /**
      * Registers a resolved flag in the context.
      *
      * @param flag the resolved flag to register
      */
-    void resolveFlag(ExtractedFlagArgument flag);
+    void resolveFlag(ParsedFlagArgument<S> flag) throws InvalidArgumentException;
 
     /**
      * Gets the most specific command that was resolved in this context.

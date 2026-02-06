@@ -16,18 +16,18 @@ public final class RangeValidator<S extends Source> implements ArgValidator<S> {
 
     @Override
     public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
-        Object value = parsedArgument.value();
+        Object value = parsedArgument.getArgumentParsedValue();
         if (value instanceof Number number) {
             double doubleValue = number.doubleValue();
-            var param = parsedArgument.parameter().asNumeric();
+            var param = parsedArgument.getOriginalArgument().asNumeric();
             var range = param.getRange();
 
             if (range != null && !range.matches(doubleValue)) {
-                throw new NumberOutOfRangeException(parsedArgument.raw(), parsedArgument.parameter().asNumeric(), number, range);
+                throw new NumberOutOfRangeException(parsedArgument.getArgumentRawInput(), parsedArgument.getOriginalArgument().asNumeric(), number, range);
             }
 
         } else {
-            throw new InvalidArgumentException("Argument '" + parsedArgument.name() + "' is not a number.");
+            throw new InvalidArgumentException("Argument '" + parsedArgument.getArgumentName() + "' is not a number.");
         }
     }
 }

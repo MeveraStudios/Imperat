@@ -104,7 +104,7 @@ public abstract class EnhancedBaseImperatTest {
             isSuccessful();
             ParsedArgument<?> parsedArgument = null;
             for (var arg : actual.getExecutionContext().getResolvedArguments()) {
-                if (arg.parameter().name().equals(paramName)) {
+                if (arg.getOriginalArgument().name().equals(paramName)) {
                     parsedArgument = arg;
                     break;
                 }

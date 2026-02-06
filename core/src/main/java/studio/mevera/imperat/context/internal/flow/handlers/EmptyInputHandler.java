@@ -7,8 +7,10 @@ import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
+import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
@@ -46,27 +48,36 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
     private void handleEmptyOptional(Argument<S> optionalEmptyParameter, Cursor<S> stream,
             ExecutionContext<S> context) throws CommandException {
         if (optionalEmptyParameter.isFlag()) {
-            FlagArgument<S> FlagArgument = optionalEmptyParameter.asFlagParameter();
-            FlagData<S> flag = FlagArgument.flagData();
-            Object value = null;
+            FlagArgument<S> flagArgument = optionalEmptyParameter.asFlagParameter();
+            FlagData<S> flag = flagArgument.flagData();
 
+            ParsedFlagArgument<S> parsedFlagArgument;
             if (flag.isSwitch()) {
-                value = false;
+                parsedFlagArgument = ParsedFlagArgument.forDefaultSwitch(flagArgument);
             } else {
                 var flagInputType = flag.inputType();
                 assert flagInputType != null;
 
-                String defaultStrValue = FlagArgument.getDefaultValueSupplier()
-                                                 .supply(context, FlagArgument);
+                String defaultStrValue = flagArgument.getDefaultValueSupplier()
+                                                 .supply(context, flagArgument);
                 if (defaultStrValue != null) {
-                    value = flagInputType.parse(context, Cursor.subStream(stream, defaultStrValue), defaultStrValue);
+                    java.lang.Object flagInputValue = flagInputType.parse(context, Cursor.subStream(stream, defaultStrValue), defaultStrValue);
+                    parsedFlagArgument = ParsedFlagArgument.forDefaultFlag(flagArgument, defaultStrValue, flagInputValue);
+                }else {
+                    parsedFlagArgument = ParsedFlagArgument.forDefaultFlag(flagArgument, "null", null);
                 }
             }
+            context.resolveFlag(parsedFlagArgument);
 
-            context.resolveFlag(flag, null, null, value);
         } else {
-            context.resolveArgument(context.getLastUsedCommand(), null, stream.position().getParameter(),
-                    optionalEmptyParameter, getDefaultValue(context, stream, optionalEmptyParameter));
+            context.resolveArgument(
+                    new ParsedArgument<>(
+                            null,
+                            optionalEmptyParameter,
+                            stream.position().getParameter(),
+                            getDefaultValue(context, stream, optionalEmptyParameter)
+                    )
+            );
         }
     }
 

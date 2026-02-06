@@ -39,7 +39,7 @@ public final class ConstrainedValueValidator<S extends Source> implements ArgVal
 
     @Override
     public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
-        String input = parsedArgument.raw();
+        String input = parsedArgument.getArgumentRawInput();
         if (!contains(input, allowedValues, caseSensitive)) {
             throw new ValueOutOfConstraintException(input, allowedValues);
         }

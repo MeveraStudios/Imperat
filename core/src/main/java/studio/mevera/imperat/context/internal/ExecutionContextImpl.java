@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.ParsedArgument;
@@ -32,7 +31,7 @@ import java.util.Optional;
 final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implements ExecutionContext<S> {
 
     private final CommandUsage<S> usage;
-    private final Registry<String, ExtractedFlagArgument> flagRegistry = new Registry<>();
+    private final Registry<String, ParsedFlagArgument<S>> flagRegistry = new Registry<>();
     //per command/subcommand because the class 'CommandProcessingChain' can be also treated as a sub command
     private final Registry<Command<S>, Registry<String, ParsedArgument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
     //all resolved arguments EXCEPT for subcommands and flags.
@@ -107,7 +106,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @Override
     @SuppressWarnings("unchecked")
     public <T> @Nullable T getArgument(String name) {
-        return (T) allResolvedArgs.getData(name).map(ParsedArgument::value)
+        return (T) allResolvedArgs.getData(name).map(ParsedArgument::getArgumentParsedValue)
                            .orElse(null);
     }
 
@@ -141,7 +140,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return the resolved flag arguments
      */
     @Override
-    public Collection<? extends ExtractedFlagArgument> getResolvedFlags() {
+    public Collection<? extends ParsedFlagArgument<S>> getResolvedFlags() {
         return flagRegistry.getAll();
     }
 
@@ -152,7 +151,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     }
 
     @Override
-    public Optional<ExtractedFlagArgument> getFlag(String flagName) {
+    public Optional<ParsedFlagArgument<S>> getFlag(String flagName) {
         return flagRegistry.getData(flagName);
     }
 
@@ -168,7 +167,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @SuppressWarnings("unchecked")
     public <T> @Nullable T getFlagValue(String flagName) {
         return (T) getFlag(flagName)
-                           .map(ExtractedFlagArgument::value)
+                           .map(ParsedArgument::getArgumentParsedValue)
                            .orElse(null);
     }
 
@@ -182,26 +181,44 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
 
     @Override
     public <T> void resolveArgument(
-            Command<S> command,
-            @Nullable String raw,
-            int index,
-            Argument<S> parameter,
+            @NotNull Cursor<S> cursor,
             @Nullable T value
     ) throws InvalidArgumentException {
-        final ParsedArgument<S> parsedArgument = new ParsedArgument<>(raw, parameter, index, value);
-        parameter.validate(this, parsedArgument);
-        resolvedArgumentsPerCommand.update(command, (existingResolvedArgs) -> {
-            if (existingResolvedArgs != null) {
-                return existingResolvedArgs.setData(parameter.name(), parsedArgument);
-            }
-            return new Registry<>(parameter.name(), parsedArgument, LinkedHashMap::new);
-        });
-        allResolvedArgs.setData(parameter.name(), parsedArgument);
+        var argument = cursor.currentParameterIfPresent();
+        if (argument == null) {
+            throw new IllegalStateException(
+                    "No argument found at index " + cursor.position().parameter + " for command " + getLastUsedCommand().name());
+        }
+
+        String raw = cursor.currentRawIfPresent();
+        if(argument.type().getNumberOfParametersToConsume() > 1) {
+            StringBuilder builder = new StringBuilder();
+            for (int i = cursor.position().parameter; i <= cursor.position().raw; i++)
+                builder.append(arguments().get(i)).append(" ");
+            raw = builder.toString();
+        }
+
+        final ParsedArgument<S> parsedArgument = new ParsedArgument<>(raw, argument, cursor.position().parameter, value);
+        resolveArgument(parsedArgument);
     }
 
     @Override
-    public void resolveFlag(ExtractedFlagArgument flag) {
-        flagRegistry.setData(flag.flag().name(), flag);
+    public void resolveArgument(ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
+        var argument = parsedArgument.getOriginalArgument();
+        argument.validate(this, parsedArgument);
+        resolvedArgumentsPerCommand.update(getLastUsedCommand(), (existingResolvedArgs) -> {
+            if (existingResolvedArgs != null) {
+                return existingResolvedArgs.setData(argument.name(), parsedArgument);
+            }
+            return new Registry<>(argument.name(), parsedArgument, LinkedHashMap::new);
+        });
+        allResolvedArgs.setData(argument.name(), parsedArgument);
+    }
+
+    @Override
+    public void resolveFlag(ParsedFlagArgument<S> flag) throws InvalidArgumentException {
+        flag.getOriginalArgument().validate(this, flag);
+        flagRegistry.setData(flag.getOriginalArgument().name(), flag);
     }
 
     /**
@@ -238,7 +255,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
 
         for (var arg : allResolvedArgs.getAll()) {
             ImperatDebugger.debug("Argument '%s' at index #%s with input='%s' with value='%s'",
-                    arg.parameter().format(), arg.index(), arg.raw(), arg.value());
+                    arg.getOriginalArgument().format(), arg.getInputPosition(), arg.getArgumentRawInput(), arg.getArgumentParsedValue());
         }
     }
 

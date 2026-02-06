@@ -5,13 +5,13 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.context.internal.ExtractedFlagArgument;
+import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, ExtractedFlagArgument> {
+public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, ParsedFlagArgument<S>> {
 
     private final ArgumentType<S, T> inputType;
     private final List<String> aliases = new ArrayList<>();
