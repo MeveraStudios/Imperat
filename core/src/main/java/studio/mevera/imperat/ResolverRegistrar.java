@@ -6,6 +6,7 @@ import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.returns.ReturnResolver;
+import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.resolvers.ContextResolver;
@@ -14,10 +15,7 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * The ResolverRegistrar interface provides mechanisms for registering and retrieving various
@@ -58,28 +56,11 @@ public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfi
     <T> void registerArgType(Type type, @NotNull ArgumentType<S, T> resolver);
 
     /**
-     * Registers a supplier function that provides new instances of a specific Collection type.
-     * This allows the framework to create appropriate collection instances during deserialization
-     * or initialization processes.
+     * Retrieves the {@link ArgumentTypeRegistry} associated with this registrar.
      *
-     * @param <C> the type of Collection to be initialized
-     * @param collectionType the Class object representing the collection type
-     * @param newInstanceSupplier a Supplier that creates new instances of the collection type
-     * @throws NullPointerException if collectionType or newInstanceSupplier is null
+     * @return the {@link ArgumentTypeRegistry} instance
      */
-    <C extends Collection<?>> void registerCollectionInitializer(Class<C> collectionType, Supplier<C> newInstanceSupplier);
-
-    /**
-     * Registers a supplier function that provides new instances of a specific Map type.
-     * This allows the framework to create appropriate map instances during deserialization
-     * or initialization processes.
-     *
-     * @param <M> the type of Map to be initialized
-     * @param mapType the Class object representing the map type
-     * @param newInstanceSupplier a Supplier that creates new instances of the map type
-     * @throws NullPointerException if mapType or newInstanceSupplier is null
-     */
-    <M extends Map<?, ?>> void registerMapInitializer(Class<M> mapType, Supplier<M> newInstanceSupplier);
+    ArgumentTypeRegistry<S> getArgumentTypeRegistry();
 
     /**
      * Retrieves the default suggestion resolver associated with this registrar.

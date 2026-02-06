@@ -58,18 +58,14 @@ import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
-import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.verification.UsageVerifier;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
@@ -439,46 +435,15 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * @param type     the class-valueType of value being resolved from context
      * @param resolver the resolver for this value
      */
-    @SuppressWarnings("unchecked")
     public <T> void registerArgType(Type type, @NotNull ArgumentType<S, T> resolver) {
         Preconditions.notNull(type, "type");
         Preconditions.notNull(resolver, "resolver");
         argumentTypeRegistry.registerResolver(type, () -> resolver);
-
-        Class<T> rawType = (Class<T>) TypeWrap.of(type).getRawType();
-        argumentTypeRegistry.registerArrayInitializer(rawType, (length) -> (Object[]) Array.newInstance(rawType, length));
     }
 
-    /**
-     * Registers a supplier function that provides new instances of a specific Collection type.
-     * This allows the framework to create appropriate collection instances during deserialization
-     * or initialization processes.
-     *
-     * @param collectionType      the Class object representing the collection type
-     * @param newInstanceSupplier a Supplier that creates new instances of the collection type
-     * @throws NullPointerException     if collectionType or newInstanceSupplier is null
-     */
     @Override
-    public <C extends Collection<?>> void registerCollectionInitializer(Class<C> collectionType, Supplier<C> newInstanceSupplier) {
-        Preconditions.notNull(collectionType, "collectionType");
-        Preconditions.notNull(newInstanceSupplier, "newInstanceSupplier");
-        argumentTypeRegistry.registerCollectionInitializer(collectionType, newInstanceSupplier);
-    }
-
-    /**
-     * Registers a supplier function that provides new instances of a specific Map type.
-     * This allows the framework to create appropriate map instances during deserialization
-     * or initialization processes.
-     *
-     * @param mapType             the Class object representing the map type
-     * @param newInstanceSupplier a Supplier that creates new instances of the map type
-     * @throws NullPointerException     if mapType or newInstanceSupplier is null
-     */
-    @Override
-    public <M extends Map<?, ?>> void registerMapInitializer(Class<M> mapType, Supplier<M> newInstanceSupplier) {
-        Preconditions.notNull(mapType, "mapType");
-        Preconditions.notNull(newInstanceSupplier, "newInstanceSupplier");
-        argumentTypeRegistry.registerMapInitializer(mapType, newInstanceSupplier);
+    public ArgumentTypeRegistry<S> getArgumentTypeRegistry() {
+        return argumentTypeRegistry;
     }
 
     /**
