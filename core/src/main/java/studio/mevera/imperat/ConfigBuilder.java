@@ -8,6 +8,7 @@ import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -367,9 +368,21 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param resolver The resolver to handle parsing for the specified parameter type.
      * @return The current instance of {@code ConfigBuilder}, allowing method chaining.
      */
-    // Parameter Type
-    public <T> B ArgumentType(Type type, ArgumentType<S, T> resolver) {
+    public <T> B argType(Type type, ArgumentType<S, T> resolver) {
         config.registerArgType(type, resolver);
+        return (B) this;
+    }
+
+    /**
+     * Registers an {@link ArgumentTypeHandler} to the configuration, allowing for custom handling
+     * of argument types during command processing. This method enables the addition of custom
+     * logic for resolving and managing argument types based on the provided handler implementation.
+     *
+     * @param handler the {@link ArgumentTypeHandler} instance that defines custom handling logic for argument types
+     * @return the current instance of {@code ConfigBuilder} for method chaining and further configuration
+     */
+    public B argTypeHandler(ArgumentTypeHandler<S> handler) {
+        config.registerArgTypeHandler(handler);
         return (B) this;
     }
 

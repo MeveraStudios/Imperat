@@ -15,6 +15,7 @@ import studio.mevera.imperat.command.ReturnResolverRegistry;
 import studio.mevera.imperat.command.SourceResolverRegistry;
 import studio.mevera.imperat.command.parameters.NumericRange;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -76,7 +77,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private final PlaceholderRegistry<S> placeholderRegistry;
     private final SourceResolverRegistry<S> sourceResolverRegistry;
     private final ReturnResolverRegistry<S> returnResolverRegistry;
-    private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> handlers = new HashMap<>();
+    private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
     private final Map<Class<?>, AnnotationReplacer<?>> annotationReplacerMap = new HashMap<>();
     private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
     private @NotNull SuggestionResolver<S> defaultSuggestionResolver =
@@ -429,18 +430,33 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         contextResolverRegistry.registerResolver(type, resolver);
     }
 
-    /**
-     * Registers {@link ArgumentType}
-     *
-     * @param type     the class-valueType of value being resolved from context
-     * @param resolver the resolver for this value
-     */
+    @Override
     public <T> void registerArgType(Type type, @NotNull ArgumentType<S, T> resolver) {
         Preconditions.notNull(type, "type");
         Preconditions.notNull(resolver, "resolver");
         argumentTypeRegistry.registerResolver(type, () -> resolver);
     }
 
+
+    /**
+     * Registers a custom {@link ArgumentTypeHandler}.
+     * <p>
+     * The handler will be added to the priority list and checked during type resolution
+     * based on its priority.
+     * </p>
+     *
+     * @param handler the handler to register
+     */
+    @Override
+    public void registerArgTypeHandler(@NotNull ArgumentTypeHandler<S> handler) {
+        argumentTypeRegistry.registerHandler(handler);
+    }
+
+    /**
+     * Retrieves the {@link ArgumentTypeRegistry} associated with this registrar.
+     *
+     * @return the {@link ArgumentTypeRegistry} instance
+     */
     @Override
     public ArgumentTypeRegistry<S> getArgumentTypeRegistry() {
         return argumentTypeRegistry;
@@ -712,7 +728,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public <T extends Throwable> ThrowableResolver<T, S> getThrowableResolver(Class<T> exception) {
         Class<?> current = exception;
         while (current != null && Throwable.class.isAssignableFrom(current)) {
-            var resolver = handlers.get(current);
+            var resolver = errorHandlers.get(current);
             if (resolver != null) {
                 return (ThrowableResolver<T, S>) resolver;
             }
@@ -723,7 +739,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     @Override
     public <T extends Throwable> void setThrowableResolver(Class<T> exception, ThrowableResolver<T, S> handler) {
-        this.handlers.put(exception, handler);
+        this.errorHandlers.put(exception, handler);
     }
 
     @Override

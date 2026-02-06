@@ -13,7 +13,7 @@ class ExamplePlugin extends JavaPlugin {
     public void onEnable() {
         // Setting up our imperat
         imperat = BukkitImperat.builder(this)
-                          .ArgumentType(Player.class, new PlayerArgument())
+                          .argType(Player.class, new PlayerArgument())
                           .build();
 
         // Registering rank command.

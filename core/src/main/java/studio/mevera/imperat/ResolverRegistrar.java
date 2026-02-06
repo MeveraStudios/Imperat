@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.Source;
@@ -54,6 +55,17 @@ public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfi
      * @param <T>      the valueType of value being resolved from context
      */
     <T> void registerArgType(Type type, @NotNull ArgumentType<S, T> resolver);
+
+    /**
+     * Registers a custom {@link ArgumentTypeHandler}.
+     * <p>
+     * The handler will be added to the priority list and checked during type resolution
+     * based on its priority.
+     * </p>
+     *
+     * @param handler the handler to register
+     */
+    void registerArgTypeHandler(@NotNull ArgumentTypeHandler<S> handler);
 
     /**
      * Retrieves the {@link ArgumentTypeRegistry} associated with this registrar.
