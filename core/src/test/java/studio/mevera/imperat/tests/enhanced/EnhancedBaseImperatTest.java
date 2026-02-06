@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.ParsedArgument;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestImperatConfig;
@@ -14,6 +15,7 @@ import studio.mevera.imperat.tests.TestSource;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 
 /**
@@ -173,6 +175,23 @@ public abstract class EnhancedBaseImperatTest {
 
         public ExecutionResultAssert hasSwitchDisabled(String switchName) {
             return hasFlag(switchName, false);
+        }
+
+        public <T> ExecutionResultAssert hasContextArgumentOf(Class<T> type, Predicate<T> predicate) {
+            isNotNull();
+            isSuccessful();
+            try {
+                T argument = actual.getExecutionContext().getContextResolvedArgument(type);
+                if (argument != null && predicate.test(argument)) {
+                    return this;
+                }
+                failWithMessage("Expected context argument of type <%s> to satisfy the predicate but it did not. Actual value: <%s>",
+                        type.getSimpleName(), argument);
+            } catch (CommandException exception) {
+                Assertions.fail(exception);
+            }
+
+            return this;
         }
     }
 }

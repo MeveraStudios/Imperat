@@ -8,6 +8,7 @@ import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.contextresolver.PlayerData;
+import studio.mevera.imperat.tests.contextresolver.SomeData;
 
 @Command("ctx")
 public final class ContextResolvingCmd {
@@ -19,8 +20,11 @@ public final class ContextResolvingCmd {
 
     @SubCommand("sub")
     public void defSub(TestSource source, @ContextResolved Group group) {
-        //throws an error
         System.out.println("DEFAULT SUBCMD EXECUTION, CONTEXT RESOLVED GROUP=" + group.name());
+    }
+
+    @SubCommand("sub2")
+    public void defSub2(TestSource source, SomeData data) {
     }
 
 }

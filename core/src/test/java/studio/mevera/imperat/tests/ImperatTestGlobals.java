@@ -49,6 +49,8 @@ import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.GroupArgument;
 import studio.mevera.imperat.tests.contextresolver.PlayerData;
 import studio.mevera.imperat.tests.contextresolver.PlayerDataContextResolver;
+import studio.mevera.imperat.tests.contextresolver.SomeData;
+import studio.mevera.imperat.tests.contextresolver.SomeDataCR;
 import studio.mevera.imperat.tests.parameters.CustomDuration;
 import studio.mevera.imperat.tests.parameters.CustomDurationArgumentType;
 import studio.mevera.imperat.tests.parameters.JavaDurationArgumentType;
@@ -71,7 +73,6 @@ public class ImperatTestGlobals {
     public static final TestImperat IMPERAT = TestImperatConfig.builder()
                                                       .usageVerifier(UsageVerifier.typeTolerantVerifier())
                                                       .permissionChecker((src, perm) -> perm == null || src.hasPermission(perm))
-                                                      .contextResolver(PlayerData.class, new PlayerDataContextResolver())
                                                       .argType(Group.class, new GroupArgument())
                                                       .argType(Duration.class, new JavaDurationArgumentType())
                                                       .argType(TestPlayer.class, new TestPlayerParamType())
@@ -83,6 +84,8 @@ public class ImperatTestGlobals {
                                                       }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
                                                       .contextResolver(new TypeWrap<Context<TestSource>>() {
                                                       }.getType(), (ctx, pe) -> ctx)
+                                                      .contextResolver(PlayerData.class, new PlayerDataContextResolver())
+                                                      .contextResolver(SomeData.class, new SomeDataCR())
                                                       .handleMiddleOptionalArgSkipping(true)
                                                       .overlapOptionalParameterSuggestions(true)
                                                       .build();
