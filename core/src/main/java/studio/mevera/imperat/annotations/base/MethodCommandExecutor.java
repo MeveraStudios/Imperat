@@ -85,4 +85,8 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
     public Object[] prepareArguments(@NotNull ExecutionContext<@NotNull S> context) throws CommandException {
         return AnnotationHelper.loadParameterInstances(dispatcher, fullParameters, context.source(), context, method);
     }
+
+    public MethodCaller.BoundMethodCaller getBoundMethodCaller() {
+        return boundMethodCaller;
+    }
 }

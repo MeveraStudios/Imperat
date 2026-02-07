@@ -49,13 +49,29 @@ public interface MethodCaller {
      * @return The bound method caller
      */
     default BoundMethodCaller bindTo(@Nullable Object instance) {
-        return arguments -> call(instance, arguments);
+        return new BoundMethodCaller() {
+            @Override
+            public Object instance() {
+                return instance;
+            }
+
+            @Override
+            public Object call(@NotNull Object... arguments) {
+                return MethodCaller.this.call(instance, arguments);
+            }
+        };
     }
 
     /**
      * Represents a {@link MethodCaller} that is attached to an instance
      */
     interface BoundMethodCaller {
+        /**
+         * Get the instance bound to the method caller
+         * @return the instance.
+         */
+        Object instance();
+
         /**
          * Calls the method of this caller
          *
