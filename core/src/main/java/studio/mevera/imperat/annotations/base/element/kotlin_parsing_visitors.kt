@@ -1,7 +1,7 @@
 package studio.mevera.imperat.annotations.base.element
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
 import studio.mevera.imperat.Imperat
@@ -20,7 +20,8 @@ import studio.mevera.imperat.util.ImperatDebugger
 import kotlin.coroutines.Continuation
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.full.callSuspend
+import kotlin.reflect.full.callSuspendBy
+import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.kotlinFunction
 
@@ -186,39 +187,34 @@ internal class KotlinCoroutineCommandParsingVisitor<S : Source>(
 
         return object : studio.mevera.imperat.annotations.base.MethodCommandExecutor<S>(originalExecutor) {
             override fun execute(source: S, context: ExecutionContext<S>) {
-                kotlinx.coroutines.runBlocking {
+                coroutineScope.launch {
                     val args = originalExecutor.prepareArguments(context)
-                    val parameterMap = buildParameterMap(kFunction, args)
-                    kFunction.callSuspend(*buildCallArgs(parameterMap, kFunction))
+                    val parameterMap = buildParameterMap(kFunction, args, originalExecutor.boundMethodCaller.instance())
+                    kFunction.callSuspendBy(parameterMap)
                 }
             }
 
             private fun buildParameterMap(
                 kFunction: KFunction<*>,
-                args: Array<Any?>
+                args: Array<Any?>,
+                instance: Any
             ): Map<KParameter, Any?> {
                 val parameterMap = mutableMapOf<KParameter, Any?>()
-                val valueParameters = kFunction.parameters.filter {
-                    it.kind == KParameter.Kind.VALUE
+
+                kFunction.instanceParameter?.let {
+                    parameterMap[it] = instance
                 }
 
+                val valueParameters = kFunction.parameters
+                    .filter { it.kind == KParameter.Kind.VALUE }
+
                 args.forEachIndexed { index, arg ->
-                    if (index < valueParameters.size) {
+                    if (index < valueParameters.size && arg != null) {
                         parameterMap[valueParameters[index]] = arg
                     }
                 }
 
                 return parameterMap
-            }
-
-            private fun buildCallArgs(
-                parameterMap: Map<KParameter, Any?>,
-                kFunction: KFunction<*>
-            ): Array<Any?> {
-                return kFunction.parameters
-                    .filter { it.kind != KParameter.Kind.EXTENSION_RECEIVER }
-                    .map { parameterMap[it] }
-                    .toTypedArray()
             }
         }
     }
@@ -251,6 +247,7 @@ internal class KotlinBasicCommandParsingVisitor<S : Source>(
  * Factory for creating the appropriate Kotlin command parsing visitor
  * based on classpath availability of kotlinx-coroutines.
  */
+@Suppress("unused") // used by reflection
 internal object KotlinCommandParsingVisitorFactory {
 
     /**
