@@ -56,7 +56,6 @@ public interface MethodCaller {
      * Represents a {@link MethodCaller} that is attached to an instance
      */
     interface BoundMethodCaller {
-
         /**
          * Calls the method of this caller
          *

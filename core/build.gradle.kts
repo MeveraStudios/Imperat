@@ -1,11 +1,20 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
+plugins {
+    id("java")
+    kotlin("jvm") version "2.3.0"
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
     compileOnly("org.jetbrains:annotations:24.1.0")
+    compileOnly(kotlin("stdlib-jdk8"))
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    compileOnly("org.jetbrains.kotlin:kotlin-reflect:2.3.10")
+
     annotationProcessor("org.jetbrains:annotations:24.1.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")

@@ -376,4 +376,19 @@ public sealed interface ImperatConfig<S extends Source> extends
 
     void setGlobalCommandCoordinator(CommandCoordinator<S> commandCoordinator);
 
+    void setCoroutineScope(@NotNull Object scope);
+
+    @Nullable Object getCoroutineScope();
+
+    boolean hasCoroutineScope();
+
+    ImperatConfig<S> setCommandParsingMode(CommandParsingMode mode);
+
+    CommandParsingMode getCommandParsingMode();
+
+    enum CommandParsingMode {
+        JAVA,
+        KOTLIN,
+        AUTO
+    }
 }

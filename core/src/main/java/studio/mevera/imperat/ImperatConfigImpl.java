@@ -70,6 +70,7 @@ import java.util.Optional;
 
 final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
+    private CommandParsingMode parsingMode = CommandParsingMode.AUTO;
     private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
     private final ContextResolverRegistry<S> contextResolverRegistry;
     private final ArgumentTypeRegistry<S> argumentTypeRegistry;
@@ -100,6 +101,20 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
 
     private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
+
+    private Object coroutineScope = null; // Will be CoroutineScope if set
+    private static final boolean COROUTINES_AVAILABLE;
+
+    static {
+        boolean available = false;
+        try {
+            Class.forName("kotlinx.coroutines.CoroutineScope");
+            available = true;
+        } catch (ClassNotFoundException e) {
+            // Coroutines not available
+        }
+        COROUTINES_AVAILABLE = available;
+    }
 
     ImperatConfigImpl() {
         contextResolverRegistry = ContextResolverRegistry.createDefault();
@@ -824,5 +839,50 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             throwablePrinter.print(throwable);
         }
         return true;
+    }
+
+    public ImperatConfig<S> setCommandParsingMode(CommandParsingMode mode) {
+        this.parsingMode = mode;
+        return this;
+    }
+
+    public CommandParsingMode getCommandParsingMode() {
+        return parsingMode;
+    }
+
+    @Override
+    public void setCoroutineScope(@NotNull Object scope) {
+        if (!COROUTINES_AVAILABLE) {
+            throw new IllegalStateException(
+                "Cannot set coroutine scope - kotlinx.coroutines is not available on the classpath. " +
+                    "Add 'org.jetbrains.kotlinx:kotlinx-coroutines-core' dependency to enable coroutine support."
+            );
+        }
+
+        // Verify it's actually a CoroutineScope using reflection
+        try {
+            Class<?> scopeClass = Class.forName("kotlinx.coroutines.CoroutineScope");
+            if (!scopeClass.isInstance(scope)) {
+                throw new IllegalArgumentException(
+                    "Provided scope must be an instance of kotlinx.coroutines.CoroutineScope, got: "
+                        + scope.getClass().getName()
+                );
+            }
+        } catch (ClassNotFoundException e) {
+            // Should never happen since we checked COROUTINES_AVAILABLE
+            throw new IllegalStateException("Coroutines check failed", e);
+        }
+
+        this.coroutineScope = scope;
+    }
+
+    @Override
+    public @Nullable Object getCoroutineScope() {
+        return coroutineScope;
+    }
+
+    @Override
+    public boolean hasCoroutineScope() {
+        return coroutineScope != null;
     }
 }

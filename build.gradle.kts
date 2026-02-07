@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     id("com.vanniktech.maven.publish") version "0.33.0"
-    //kotlin("jvm") version "2.3.0" apply false
+    kotlin("jvm") version "2.3.0" apply false
 }
 
 val baseVersion = "3.0.0"

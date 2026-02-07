@@ -59,7 +59,7 @@ public sealed interface Rule<T> permits Rule.SimpleRule {
 
     }
 
-    final class SimpleRule<T> implements Rule<T> {
+    non-sealed class SimpleRule<T> implements Rule<T> {
 
         private final @NotNull BiConsumer<AnnotationParser<?>, T> onFailure;
         private @NotNull RuleCondition<T> condition;

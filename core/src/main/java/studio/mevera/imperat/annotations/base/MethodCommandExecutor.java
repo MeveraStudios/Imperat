@@ -1,6 +1,7 @@
 package studio.mevera.imperat.annotations.base;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
@@ -43,6 +44,12 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
         //this.helpAnnotation = help;
     }
 
+    public MethodCommandExecutor(
+            MethodCommandExecutor<S> executor
+    ) {
+        this(executor.dispatcher, executor.method, executor.fullParameters);
+    }
+
     public static <S extends Source> MethodCommandExecutor<S> of(
             Imperat<S> imperat,
             MethodElement method,
@@ -60,13 +67,9 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
      */
     @Override
     public void execute(S source, ExecutionContext<S> context) throws CommandException {
+        var arguments = this.prepareArguments(context);
 
-        var instances = AnnotationHelper.loadParameterInstances(
-                dispatcher, fullParameters,
-                source, context, method
-        );
-
-        Object returned = boundMethodCaller.call(instances);
+        Object returned = boundMethodCaller.call(arguments);
         if (method.getReturnType() == void.class) {
             return;
         }
@@ -77,7 +80,9 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
         }
 
         returnResolver.handle(context, method, returned);
-
     }
 
+    public Object[] prepareArguments(@NotNull ExecutionContext<@NotNull S> context) throws CommandException {
+        return AnnotationHelper.loadParameterInstances(dispatcher, fullParameters, context.source(), context, method);
+    }
 }
