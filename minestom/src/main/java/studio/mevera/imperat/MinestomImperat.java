@@ -56,6 +56,7 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
     MinestomImperat(@NotNull ServerProcess serverProcess, @NotNull ImperatConfig<MinestomSource> config) {
         super(config);
         this.serverProcess = serverProcess;
+        SyntaxDataLoader.migrateToImperatTypeData(this);
     }
 
     /**

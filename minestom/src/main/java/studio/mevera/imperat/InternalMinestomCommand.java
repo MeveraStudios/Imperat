@@ -29,7 +29,7 @@ final class InternalMinestomCommand extends Command {
             addConditionalSyntax(
                     loadCondition(imperat, usage),
                     loadExecutor(imperat),
-                    loadArguments(imperat, imperatCommand, usage)
+                    loadArguments(imperat, usage)
             );
         }
 
