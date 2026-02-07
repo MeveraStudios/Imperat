@@ -62,13 +62,12 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ApiStatus.Internal
-final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set<studio.mevera.imperat.command.Command<S>>> {
+class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set<studio.mevera.imperat.command.Command<S>>> {
 
     private final static String VALUES_SEPARATION_CHAR = "\\|";
     private final ImperatConfig<S> config;
@@ -86,8 +85,9 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     ) {
         boolean requiresParameterInheritance = false;
 
-        if (method.isAnnotationPresent(SubCommand.class)) {
-            var attachment = Objects.requireNonNull(method.getAnnotation(SubCommand.class)).attachment();
+        SubCommand annotation = method.getAnnotation(SubCommand.class);
+        if (annotation != null) {
+            var attachment = annotation.attachment();
             if (parentCmd == null) {
                 requiresParameterInheritance = attachment.requiresParameterInheritance();
             } else {
@@ -154,8 +154,9 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         } else {
             //no annotation
             for (ParseElement<?> element : clazz.getChildren()) {
-                if (element.isAnnotationPresent(Command.class)) {
-                    var cmd = loadCommand(null, element, Objects.requireNonNull(element.getAnnotation(Command.class)));
+                Command elementCommandAnnotation = element.getAnnotation(Command.class);
+                if (elementCommandAnnotation != null) {
+                    var cmd = loadCommand(null, element, elementCommandAnnotation);
                     if (cmd != null) {
                         imperat.registerSimpleCommand(cmd);
                     }
@@ -168,15 +169,12 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
     }
 
     private Annotation getCommandAnnotation(ClassElement clazz) {
-        if (clazz.isAnnotationPresent(Command.class)) {
-            return clazz.getAnnotation(Command.class);
+        Command commandAnnotation = clazz.getAnnotation(Command.class);
+        if (commandAnnotation != null) {
+            return commandAnnotation;
         }
 
-        if (clazz.isAnnotationPresent(SubCommand.class)) {
-            return clazz.getAnnotation(SubCommand.class);
-        }
-
-        return null;
+        return clazz.getAnnotation(SubCommand.class);
     }
 
     private void loadCommandMethods(ClassElement clazz) {
@@ -203,86 +201,14 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         studio.mevera.imperat.command.Command.Builder<S> builder;
         if (cmdAnnotation instanceof Command cmdAnn) {
             final String[] values = config.replacePlaceholders(cmdAnn.value());
-            final List<String> aliases = List.of(values).subList(1, values.length);
-            final boolean ignoreAC = cmdAnn.skipSuggestionsChecks();
-
-            builder = studio.mevera.imperat.command.Command.create(imperat, values[0], element)
-                              .ignoreACPermissions(ignoreAC)
-                              .aliases(aliases);
-
-            PermissionsData permissionsData = PermissionsData.empty();
-            for (Permission pe : permissions) {
-                String permLine = config.replacePlaceholders(pe.value());
-
-                permissionsData.append(
-                        PermissionsData.fromText(permLine)
-                );
-
-            }
-            builder.permission(
-                    permissionsData
-            );
-
-            if (description != null) {
-                builder.description(
-                        config.replacePlaceholders(description.value())
-                );
-            }
-
-            if (preProcessor != null) {
-                for (var processor : preProcessor.value()) {
-                    builder.preProcessor(loadPreProcessorInstance(processor));
-                }
-            }
-
-            if (postProcessor != null) {
-                for (var processor : postProcessor.value()) {
-                    builder.postProcessor(loadPostProcessorInstance(processor));
-                }
-            }
+            builder = addCommonCommandData(element, preProcessor, postProcessor, permissions, description, values, cmdAnn.skipSuggestionsChecks());
 
 
         } else if (cmdAnnotation instanceof SubCommand subCommand) {
             final String[] values = config.replacePlaceholders(subCommand.value());
             assert values != null;
 
-            final List<String> aliases = List.of(values).subList(1, values.length);
-            final boolean ignoreAC = subCommand.skipSuggestionsChecks();
-
-            builder = studio.mevera.imperat.command.Command.create(imperat, values[0], element)
-                              .ignoreACPermissions(ignoreAC)
-                              .aliases(aliases);
-
-            PermissionsData permissionsData = PermissionsData.empty();
-            for (Permission pe : permissions) {
-                String permLine = config.replacePlaceholders(pe.value());
-                permissionsData.append(
-                        PermissionsData.fromText(permLine)
-                );
-            }
-
-            builder.permission(
-                    permissionsData
-            );
-
-            if (description != null) {
-                builder.description(
-                        config.replacePlaceholders(description.value())
-                );
-            }
-
-            if (preProcessor != null) {
-
-                for (var processor : preProcessor.value()) {
-                    builder.preProcessor(loadPreProcessorInstance(processor));
-                }
-            }
-
-            if (postProcessor != null) {
-                for (var processor : postProcessor.value()) {
-                    builder.postProcessor(loadPostProcessorInstance(processor));
-                }
-            }
+            builder = addCommonCommandData(element, preProcessor, postProcessor, permissions, description, values, subCommand.skipSuggestionsChecks());
 
 
         } else {
@@ -301,6 +227,47 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         }
 
         return cmd;
+    }
+
+    @NotNull
+    private studio.mevera.imperat.command.Command.Builder<S> addCommonCommandData(
+        ParseElement<?> element, PreProcessor preProcessor, PostProcessor postProcessor, Permission[] permissions,
+        studio.mevera.imperat.annotations.Description description, String[] values, boolean ignoreAC
+    ) {
+        final List<String> aliases = List.of(values).subList(1, values.length);
+        studio.mevera.imperat.command.Command.Builder<S> builder = studio.mevera.imperat.command.Command.create(imperat, values[0], element)
+                          .ignoreACPermissions(ignoreAC)
+                          .aliases(aliases);
+
+        PermissionsData permissionsData = PermissionsData.empty();
+        for (Permission pe : permissions) {
+            String permLine = config.replacePlaceholders(pe.value());
+
+            permissionsData.append(
+                    PermissionsData.fromText(permLine)
+            );
+
+        }
+        builder.permission(permissionsData);
+
+        if (description != null) {
+            builder.description(
+                    config.replacePlaceholders(description.value())
+            );
+        }
+
+        if (preProcessor != null) {
+            for (var processor : preProcessor.value()) {
+                builder.preProcessor(loadPreProcessorInstance(processor));
+            }
+        }
+
+        if (postProcessor != null) {
+            for (var processor : postProcessor.value()) {
+                builder.postProcessor(loadPostProcessorInstance(processor));
+            }
+        }
+        return builder;
     }
 
     private @Nullable studio.mevera.imperat.command.Command<S> loadCommand(
@@ -437,7 +404,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return (CommandPostProcessor<S>) config.getInstanceFactory().createInstance(config, clazz);
     }
 
-    private CommandUsage<S> loadUsage(
+    protected CommandUsage<S> loadUsage(
             @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
             @NotNull studio.mevera.imperat.command.Command<S> loadedCmd,
             MethodElement method
@@ -513,7 +480,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return usage;
     }
 
-    private MethodUsageData<S> loadParameters(
+    protected MethodUsageData<S> loadParameters(
             @NotNull MethodElement method,
             @Nullable studio.mevera.imperat.command.Command<S> parentCmd
     ) {
@@ -602,7 +569,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return imperat.canBeSender(type) || config.hasSourceResolver(type);
     }
 
-    private studio.mevera.imperat.command.Command<S> loadUsageShortcut(
+    protected studio.mevera.imperat.command.Command<S> loadUsageShortcut(
             @NotNull MethodElement method,
             @NotNull MethodUsageData<S> methodUsageData,
             @NotNull studio.mevera.imperat.command.Command<S> originalCommand,
@@ -632,7 +599,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
 
 
     @SuppressWarnings("unchecked")
-    private <T> @Nullable Argument<S> loadParameter(
+    protected  <T> @Nullable Argument<S> loadParameter(
             @NotNull ParameterElement parameter
     ) {
 
@@ -821,7 +788,7 @@ final class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<
         return flagAliases;
     }
 
-    private record MethodUsageData<S extends Source>(
+    record MethodUsageData<S extends Source>(
             List<Argument<S>> personalParameters,
             List<Argument<S>> inheritedTotalParameters
     ) {

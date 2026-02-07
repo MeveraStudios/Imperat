@@ -33,6 +33,7 @@ public interface ContextResolver<S extends Source, T> {
      *
      * @param context   the context
      * @param parameter the parameter (null if used the classic way)
+     * @throws CommandException if resolution fails
      * @return the resolved default-value
      */
     @Nullable

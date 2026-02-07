@@ -24,7 +24,19 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 
 public final class AnnotationHelper {
-
+    /**
+     * The function loads the full parameters of a method and resolves all context, such as senders, flags, regular arguments, etc.
+     * <p>
+     * Checks arguments and resolves their context, if the parameter or type contains ContextResolved then it will get the context resolver from the imperat's config instance.
+     * @param dispatcher the imperat instance
+     * @param fullParameters the full list of parameters
+     * @param source the source of the command
+     * @param context the execution context for a command, responsible for resolving and managing command arguments, flags, and their values during command execution.
+     * @param method the method we're operating on
+     * @return the array of parameter instances after loading and context resolving
+     * @param <S> the source
+     * @throws CommandException if resolution fails
+     */
     public static <S extends Source> Object[] loadParameterInstances(
             Imperat<S> dispatcher,
             List<Argument<S>> fullParameters,
@@ -32,6 +44,9 @@ public final class AnnotationHelper {
             ExecutionContext<S> context,
             MethodElement method
     ) throws CommandException {
+        if (method.getParameters().isEmpty()) {
+            throw new IllegalArgumentException("Method has no parameters");
+        }
 
         Object[] paramsInstances = new Object[method.getParameters().size()];
 
@@ -74,9 +89,8 @@ public final class AnnotationHelper {
 
             Argument<S> parameter = getUsageParam(fullParameters, p);
             if (parameter == null) {
-                if (actualParameter.isAnnotationPresent(Flag.class)) {
-                    Flag flag = actualParameter.getAnnotation(Flag.class);
-                    assert flag != null;
+                Flag flag = actualParameter.getAnnotation(Flag.class);
+                if (flag != null) {
                     paramsInstances[i] = context.getFlagValue(flag.value()[0]);
                 }
                 p--;
@@ -177,7 +191,11 @@ public final class AnnotationHelper {
         return TypeUtility.areRelatedTypes(element.getType(), CommandHelp.class);
     }*/
 
-
+    /**
+     * Checks if the type is not a concrete class (Interface, enum, abstract class, etc.)
+     * @param parseElement the parse element
+     * @return true if the type is not a concrete class, false otherwise
+     */
     public static boolean isAbnormalClass(ParseElement<?> parseElement) {
         if (parseElement instanceof ClassElement classElement) {
             return isAbnormalClass(classElement.getElement());

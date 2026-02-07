@@ -61,7 +61,8 @@ public final class ClassElement extends ParseElement<Class<?>> {
 
             field.setAccessible(true);
             try {
-                ImperatConfig<S> config = (ImperatConfig<S>) parser.getImperat().config();
+                @SuppressWarnings("unchecked") // Yes, we know what we're doing
+                var config = (ImperatConfig<S>) parser.getImperat().config();
                 InstanceFactory<S> instanceFactory = config.getInstanceFactory();
                 var supplied = instanceFactory.createInstance(config, field.getType());
                 field.set(Objects.requireNonNull(instance), supplied);

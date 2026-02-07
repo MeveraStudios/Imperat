@@ -1,5 +1,6 @@
 package studio.mevera.imperat.annotations.base.element.selector;
 
+import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.ExceptionHandler;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
@@ -77,7 +78,8 @@ public interface MethodRules {
                                                                         })
                                                                         .build();
 
-    private static IllegalStateException methodError(MethodElement element, String msg) {
+    @NotNull
+    static IllegalStateException methodError(@NotNull MethodElement element, String msg) {
         ClassElement parent = (ClassElement) element.getParent();
 
         return new IllegalStateException(
