@@ -639,7 +639,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
 
         if (!node.isExecutable()) {
-            if (node.isCommand()) {
+            if (node.isLiteral()) {
                 search.setDirectUsage(node.data.asCommand().getDefaultUsage());
                 search.setResult(result);
             }
@@ -841,7 +841,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
 
             // Check permissions
-            if (!(nextNode.isCommand() && nextNode.data.asCommand().isIgnoringACPerms())
+            if (!(nextNode.isLiteral() && nextNode.data.asCommand().isIgnoringACPerms())
                         && !hasPermission(context.source(), nextNode)) {
                 //System.out.println("Skipping " + nextNode.format() + " due to having no perm for it");
                 continue;
@@ -872,7 +872,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     private boolean hasAutoCompletionPermission(S src, CommandNode<S, ?> node) {
-        if (node.isCommand() && node.getData().asCommand().isIgnoringACPerms()) {
+        if (node.isLiteral() && node.getData().asCommand().isIgnoringACPerms()) {
             return true;
         }
         return hasPermission(src, node);

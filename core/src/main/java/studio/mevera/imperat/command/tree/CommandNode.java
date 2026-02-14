@@ -90,7 +90,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         var primaryType = data.type();
         boolean primaryMatches = matchesInput(primaryType, depth, ctx);
 
-        if (strict || isCommand()) {
+        if (strict || isLiteral()) {
             return primaryMatches;
         }
 
@@ -160,7 +160,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         return data.isRequired();
     }
 
-    public boolean isCommand() {
+    public boolean isLiteral() {
         return this instanceof LiteralCommandNode || data.isCommand();
     }
 

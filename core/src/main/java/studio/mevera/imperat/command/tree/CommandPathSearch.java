@@ -80,7 +80,7 @@ public final class CommandPathSearch<S extends Source> {
         if (node == null) {
             return;
         }
-        if (node.isCommand()) {
+        if (node.isLiteral()) {
             this.lastCommandNode = node;
         }
         this.lastNode = node;
@@ -132,7 +132,7 @@ public final class CommandPathSearch<S extends Source> {
         CommandNode<S, ?> curr;
         while (!nodes.isEmpty()) {
             curr = nodes.poll();
-            if (!curr.isCommand() && curr.isExecutable()) {
+            if (!curr.isLiteral() && curr.isExecutable()) {
                 closestUsage = curr.getExecutableUsage();
                 nodes.clear();
                 break;

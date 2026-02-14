@@ -26,7 +26,6 @@ import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.DependencySupplier;
-import studio.mevera.imperat.verification.UsageVerifier;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -289,19 +288,6 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @param type the type
      */
     <T> @Nullable T resolveDependency(Type type);
-
-
-    /**
-     * @return the usage verifier
-     */
-    UsageVerifier<S> getUsageVerifier();
-
-    /**
-     * Sets the usage verifier to a new instance
-     *
-     * @param usageVerifier the usage verifier to set
-     */
-    void setUsageVerifier(UsageVerifier<S> usageVerifier);
 
     default boolean hasSourceResolver(Type wrap) {
         return getSourceResolver(wrap) != null;
