@@ -1,7 +1,9 @@
 package studio.mevera.imperat.annotations.parameters;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
@@ -14,6 +16,8 @@ import java.util.Collection;
  */
 @ApiStatus.AvailableSince("1.0.0")
 public interface AnnotatedArgument<S extends Source> extends Argument<S> {
+
+    @NotNull ParseElement<?> getParsedElement();
 
     /**
      * Get the instance of specific annotation

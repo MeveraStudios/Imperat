@@ -149,7 +149,7 @@ public class YourPlugin extends JavaPlugin {
 @Description("Change player gamemode")
 public class GameModeCommand {
 
-    @Usage
+    @Execute
     public void mainUsage(
             Player source,
             @Named("mode") GameMode gameMode,
@@ -203,7 +203,7 @@ public class RankCommand {
     @Dependency
     private RankManager rankManager;
     
-    @Usage
+    @Execute
     public void help(CommandSource source, CommandHelp help) {
         help.display(source);  // Auto-generated help menu
     }

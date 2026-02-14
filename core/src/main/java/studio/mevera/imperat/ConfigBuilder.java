@@ -23,7 +23,6 @@ import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.DependencySupplier;
 import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
-import studio.mevera.imperat.verification.UsageVerifier;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -107,17 +106,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     public B contextFactory(ContextFactory<S> contextFactory) {
         config.setContextFactory(contextFactory);
-        return (B) this;
-    }
-
-    /**
-     * Sets the usage verifier for the configuration.
-     *
-     * @param usageVerifier the {@link UsageVerifier} instance to validate command usages
-     * @return the current {@link ConfigBuilder} instance for fluent chaining
-     */
-    public B usageVerifier(UsageVerifier<S> usageVerifier) {
-        config.setUsageVerifier(usageVerifier);
         return (B) this;
     }
 

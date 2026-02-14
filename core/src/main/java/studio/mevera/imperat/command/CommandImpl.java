@@ -170,6 +170,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
         ImperatDebugger.debug("Visualizing %s's tree", this.name);
         visualizer.visualizeSimple();
         visualizer.visualizeUniqueTreeSimple();
+        ImperatDebugger.debug("Visualizing %s's unflagged tree", this.name);
+        visualizer.visualizeUnflaggedTreeSimple();
     }
 
     /**

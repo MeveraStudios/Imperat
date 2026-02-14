@@ -69,7 +69,7 @@ import java.util.Optional;
 
 final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
-    private CommandParsingMode parsingMode = CommandParsingMode.AUTO;
+    private CommandParsingMode parsingMode = CommandParsingMode.JAVA;
     private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
     private final ContextResolverRegistry<S> contextResolverRegistry;
     private final ArgumentTypeRegistry<S> argumentTypeRegistry;

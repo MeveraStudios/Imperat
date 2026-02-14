@@ -306,7 +306,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
             //Loading @Command/@SubCommand on classes
 
             //load command class
-            // IMPORTANT: Process @Usage methods FIRST to establish mainUsage,
+            // IMPORTANT: Process @Execute methods FIRST to establish mainUsage,
             // then process @SubCommand methods so they can attach to the correct usage
             for (ParseElement<?> element : commandClass.getChildren()) {
 
@@ -320,7 +320,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                         return cmd;
                     }
 
-                    // Process @Usage methods first (skip @SubCommand for now)
+                    // Process @Execute methods first (skip @SubCommand for now)
                     if (method.isAnnotationPresent(Execute.class) && !method.isAnnotationPresent(SubCommand.class)) {
                         var usage = loadUsage(parentCmd, cmd, method);
                         if (usage != null) {

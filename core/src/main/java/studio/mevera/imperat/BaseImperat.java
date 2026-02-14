@@ -18,6 +18,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
+import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
@@ -77,13 +78,8 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
      */
     @Override
     public void registerSimpleCommand(Command<S> command) {
-        try {
-            checkAmbiguity(command);
-            this.registerCmd(command);
-        } catch (RuntimeException ex) {
-            ImperatDebugger.error(BaseImperat.class, "registerCommand(CommandProcessingChain command)", ex);
-            shutdownPlatform();
-        }
+        checkAmbiguity(command);
+        this.registerCmd(command);
     }
 
     private void checkAmbiguity(Command<S> command) {
@@ -93,7 +89,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             if (other == command) {
                 return;
             }
-            throw new IllegalStateException("Command with name '" + command.name() + "' already exists !");
+            throw new AmbiguousCommandException(command, other);
         }
 
         //now check its tree for internal ambiguity

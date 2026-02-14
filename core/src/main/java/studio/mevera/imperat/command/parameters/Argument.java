@@ -267,7 +267,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
      * @return the parameter as annotated one
      * @see AnnotatedArgument
      */
-    default AnnotatedArgument<S> asAnnotated() {
+    default AnnotatedArgument<S> asAnnotatedArgument() {
         return (AnnotatedArgument<S>) this;
     }
 

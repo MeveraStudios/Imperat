@@ -38,7 +38,7 @@ public class EconomyCommand {
     /*    @SubCommand("set")
     public static class SetCommands {
         
-        @Usage
+        @Execute
         @Async
         public void setCurrency(
                 final TestSource source,

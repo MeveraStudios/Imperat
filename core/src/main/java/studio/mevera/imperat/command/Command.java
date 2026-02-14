@@ -1,4 +1,5 @@
 package studio.mevera.imperat.command;
+import studio.mevera.imperat.annotations.parameters.AnnotatedArgument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -103,6 +104,11 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     @Override
     default boolean isAnnotated() {
         return getAnnotatedElement() != null;
+    }
+
+    @Override
+    default AnnotatedArgument<S> asAnnotatedArgument() {
+        throw new UnsupportedOperationException("This command is not an annotated argument");
     }
 
     /**

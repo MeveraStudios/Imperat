@@ -4,6 +4,8 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.command.tree.LiteralCommandNode;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.AmbiguousCommandException;
+import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Priority;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -15,9 +17,13 @@ final class AmbiguityChecker {
     private AmbiguityChecker() {
         throw new AssertionError();
     }
+    static {
+        ImperatDebugger.setEnabled(true);
 
+    }
     static <S extends Source> void checkAmbiguity(Command<S> command) {
-        var rootNode = command.tree().rootNode();
+        command.visualizeTree();
+        var rootNode = command.tree().uniqueVersionedTree();
         checkAmbiguity(
                 rootNode,
                 rootNode
@@ -26,7 +32,7 @@ final class AmbiguityChecker {
 
     static <S extends Source> void checkAmbiguity(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
         if(isNodeAmbiguous(root, node)) {
-            throw new IllegalStateException("Command '" + root.format() + "' has ambiguous syntax at parameter '" + node.format() + "' !");
+            throw new AmbiguousCommandException(root.getData(), node);
         }
         for (CommandNode<S, ?> child : node.getChildren()) {
             checkAmbiguity(root, child);
@@ -35,7 +41,7 @@ final class AmbiguityChecker {
 
     static <S extends Source> boolean isNodeAmbiguous(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
         if(node.isGreedyParam() && !node.isLast()) {
-            throw new IllegalStateException("Greedy parameter '" + node.format() + "' in command '" + root.format() + "' must be the last"
+            throw new AmbiguousCommandException("Greedy parameter '" + node.format() + "' in command '" + root.format() + "' must be the last"
                                                     + " parameter of the command !");
         }
         if(node.isLast()) {
@@ -69,8 +75,8 @@ final class AmbiguityChecker {
         return new AmbiguityResult<>(
                 nodes,
                 (requiredCount > 0 && optionalCount == 0) || (requiredCount == 0 && optionalCount > 0),
-                types.size() != nodes.size(),
-                priorities.size() != nodes.size()
+                types.size() < nodes.size(),
+                priorities.size() < nodes.size()
         );
     }
 
