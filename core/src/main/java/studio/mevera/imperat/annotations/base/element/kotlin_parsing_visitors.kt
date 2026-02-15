@@ -258,7 +258,6 @@ internal object KotlinCommandParsingVisitorFactory {
         try {
             Class.forName("kotlinx.coroutines.CoroutineScope")
             Class.forName("kotlinx.coroutines.BuildersKt")
-            Class.forName("kotlinx.coroutines.SupervisorJob")
             true
         } catch (e: ClassNotFoundException) {
             ImperatDebugger.debug("Kotlin coroutines not found on classpath - suspend functions will not be supported")
