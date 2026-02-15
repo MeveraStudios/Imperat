@@ -98,7 +98,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
     ) {
         try {
             Class<?> factory = Class.forName(
-                "studio.mevera.imperat.kotlin.KotlinCommandParsingVisitorFactory"
+                "studio.mevera.imperat.annotations.base.element.KotlinCommandParsingVisitorFactory"
             );
             return (CommandClassVisitor<S, Set<Command<S>>>)
                 factory
@@ -106,7 +106,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
                     .invoke(null, imperat, parser);
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(
-                "Kotlin support requested but Kotlin runtime is unavailable",
+                "Kotlin support requested but Kotlin runtime is unavailable, make sure you've also added kotlin-reflect.",
                 e
             );
         }
