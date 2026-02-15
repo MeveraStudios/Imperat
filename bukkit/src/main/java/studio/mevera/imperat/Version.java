@@ -72,11 +72,13 @@ public final class Version {
                 case "1.21.4" -> "1_21_R3";
                 case "1.21.5" -> "1_21_R4";
                 case "1.21.6", "1.21.7", "1.21.8" -> "1_21_R5";
-                case "1.21.9", "1.21.10" -> "1_21_R6";
-                default -> "UNKNOWN";
+                case "1.21.9", "1.21.10", "1.21.11" -> "1_21_R6";
+                default -> {
+                    String pkg = Bukkit.getServer().getClass().getPackage().getName();
+                    yield pkg.length() > 24 ? pkg.substring(24) : "UNKNOWN";
+                }
             };
         }
         return Bukkit.getServer().getClass().getPackage().getName().substring(24);
     }
-
 }
