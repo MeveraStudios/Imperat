@@ -5,6 +5,9 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.context.Source;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 public final class AmbiguousCommandException extends RuntimeException {
 
     /**
@@ -15,14 +18,25 @@ public final class AmbiguousCommandException extends RuntimeException {
      */
     public <S extends Source> AmbiguousCommandException(
             final Command<S> rootCommand,
-            final CommandNode<S, ?> node
+            final CommandNode<S, ?> node,
+            final Collection<CommandNode<S, ?>> filteredChildren
     ) {
         super(
-                String.format(
-                        "Root-Command '%s' has ambiguous syntax at parameter '%s' !",
-                        rootCommand.format(),
-                        node.format()
-                )
+                getAmbiguousParameterMsg(rootCommand, node, filteredChildren)
+        );
+    }
+
+    private static <S extends Source> String getAmbiguousParameterMsg(
+            Command<S> rootCmd,
+            CommandNode<S, ?> node,
+            Collection<CommandNode<S, ?>> filteredChildren
+    ) {
+
+        return String.format(
+                "Root-Command '%s' has node '%s' with ambiguous arguments '%s' !",
+                rootCmd,
+                node.format(),
+                filteredChildren.stream().map(CommandNode::format).collect(Collectors.joining(","))
         );
     }
 
