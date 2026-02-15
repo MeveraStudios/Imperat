@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 plugins {
     id("java")
     kotlin("jvm") version "2.3.0"
+    id("com.gradleup.shadow") version "8.3.9"
 }
 
 repositories {
@@ -142,4 +143,8 @@ tasks.register<Test>("functionalTest") {
 
     description = "Runs all functional tests (excludes performance tests)"
     group = "verification"
+}
+
+kotlin {
+    jvmToolchain(17)
 }

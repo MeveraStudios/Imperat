@@ -1,3 +1,11 @@
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id("com.gradleup.shadow") version "8.3.9"
+    kotlin("jvm") version "2.3.0"
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -62,4 +70,8 @@ tasks.withType<JavaCompile>().configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
         options.release.set(targetJavaVersion)
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
