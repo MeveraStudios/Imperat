@@ -111,6 +111,11 @@ public final class BungeeImperat extends BaseImperat<BungeeSource> {
     }
 
     @Override
+    public BungeeSource createDummySender() {
+        return new BungeeSource(adventureProvider, plugin.getProxy().getConsole());
+    }
+
+    @Override
     public BungeeSource wrapSender(Object sender) {
         return new BungeeSource(adventureProvider, (CommandSender) sender);
     }

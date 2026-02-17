@@ -13,6 +13,8 @@ import java.lang.reflect.Type;
  */
 public sealed interface SourceWrapper<S extends Source> permits Imperat {
 
+    S createDummySender();
+
     /**
      * Wraps the sender into a built-in command-sender valueType
      *

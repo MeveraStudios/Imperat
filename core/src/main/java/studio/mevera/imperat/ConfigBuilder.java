@@ -16,6 +16,7 @@ import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
+import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
@@ -40,11 +41,20 @@ import java.util.function.Consumer;
 public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B extends ConfigBuilder<S, I, B>> {
 
     protected final ImperatConfig<S> config;
-
     protected ConfigBuilder() {
         config = new ImperatConfigImpl<>();
     }
 
+    /**
+     * Sets the event bus to be used for handling events within the configuration.
+     *
+     * @param bus the {@link EventBus} instance to be set in the configuration
+     * @return the current instance of {@code ConfigBuilder} for method chaining
+     */
+    public B eventBus(EventBus bus) {
+        config.setEventBus(bus);
+        return (B) this;
+    }
 
     /**
      * Sets the command prefix for the command processing chain.

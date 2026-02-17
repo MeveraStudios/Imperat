@@ -12,6 +12,11 @@ public final class TestImperat extends BaseImperat<TestSource> {
         super(config);
     }
 
+    @Override
+    public TestSource createDummySender() {
+        return new TestSource(System.out);
+    }
+
     /**
      * Wraps the sender into a built-in command-sender valueType
      *

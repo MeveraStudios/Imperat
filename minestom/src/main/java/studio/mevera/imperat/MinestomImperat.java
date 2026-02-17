@@ -89,6 +89,11 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
         serverProcess.stop();
     }
 
+    @Override
+    public MinestomSource createDummySender() {
+        return new MinestomSource(MinecraftServer.getCommandManager().getConsoleSender());
+    }
+
     /**
      * Wraps the sender into a built-in command-sender valueType
      *

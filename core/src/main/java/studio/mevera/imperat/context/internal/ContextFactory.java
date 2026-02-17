@@ -47,6 +47,23 @@ public abstract class ContextFactory<S extends Source> {
     );
 
     /**
+     * @param imperat the imperat instance
+     * @return a dummy context with a dummy sender for testing or other purposes
+     */
+    @NotNull
+    public Context<S> createDummyContext(
+            @NotNull Imperat<S> imperat
+    ) {
+        return createContext(
+                imperat,
+                imperat.createDummySender(),
+                null,
+                "dummy",
+                ArgumentInput.empty()
+        );
+    }
+
+    /**
      * @param source  the source
      * @param command the command
      * @param queue   the argument input

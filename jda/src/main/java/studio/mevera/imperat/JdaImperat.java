@@ -83,6 +83,11 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     }
 
     @Override
+    public JdaSource createDummySender() {
+        return new JdaSource(null);
+    }
+
+    @Override
     public JdaSource wrapSender(Object sender) {
         return new JdaSource((SlashCommandInteractionEvent) sender);
     }

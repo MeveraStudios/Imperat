@@ -28,6 +28,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
+import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.CooldownException;
 import studio.mevera.imperat.exception.FlagOutsideCommandScopeException;
 import studio.mevera.imperat.exception.InvalidSourceException;
@@ -69,6 +70,7 @@ import java.util.Optional;
 
 final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
+    private EventBus eventBus;
     private CommandParsingMode parsingMode = CommandParsingMode.JAVA;
     private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
     private final ContextResolverRegistry<S> contextResolverRegistry;
@@ -133,6 +135,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         // register some defaults:
         this.regDefThrowableResolvers();
         this.registerSourceResolver(Source.class, (source, ctx) -> source);
+
+        this.eventBus = EventBus.createDummy();
     }
 
     private void regDefThrowableResolvers() {
@@ -826,6 +830,16 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     public CommandParsingMode getCommandParsingMode() {
         return parsingMode;
+    }
+
+    @Override
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
+    @Override
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
     }
 
     @Override

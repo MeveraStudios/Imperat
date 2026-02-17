@@ -142,6 +142,11 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
     }
 
     @Override
+    public VelocitySource createDummySender() {
+        return new VelocitySource(proxyServer.getConsoleCommandSource());
+    }
+
+    @Override
     public VelocitySource wrapSender(Object sender) {
         return new VelocitySource((CommandSource) sender);
     }

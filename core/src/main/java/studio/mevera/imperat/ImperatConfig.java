@@ -20,6 +20,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
+import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
@@ -377,4 +378,8 @@ public sealed interface ImperatConfig<S extends Source> extends
         KOTLIN,
         AUTO
     }
+
+    EventBus getEventBus();
+
+    void setEventBus(EventBus eventBus);
 }

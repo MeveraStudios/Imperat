@@ -9,7 +9,6 @@ import studio.mevera.imperat.brigadier.BukkitBrigadierManager;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.StringUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -107,6 +106,11 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
      */
     public static BukkitConfigBuilder builder(Plugin plugin) {
         return new BukkitConfigBuilder(plugin);
+    }
+
+    @Override
+    public BukkitSource createDummySender() {
+        return new BukkitSource(Bukkit.getConsoleSender(), adventureProvider);
     }
 
     /**

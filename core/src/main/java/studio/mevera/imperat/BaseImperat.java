@@ -18,6 +18,14 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
+import studio.mevera.imperat.events.Event;
+import studio.mevera.imperat.events.EventBus;
+import studio.mevera.imperat.events.EventExceptionHandler;
+import studio.mevera.imperat.events.EventSubscription;
+import studio.mevera.imperat.events.ExecutionStrategy;
+import studio.mevera.imperat.events.exception.EventException;
+import studio.mevera.imperat.events.types.CommandPostRegistrationEvent;
+import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
@@ -26,6 +34,7 @@ import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
+import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.annotation.Annotation;
@@ -36,7 +45,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
+import java.util.function.Consumer;
 
 public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
@@ -48,6 +60,53 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         this.config = config;
         annotationParser = AnnotationParser.defaultParser(this);
         config.applyAnnotationReplacers(this);
+        if(config.getEventBus().isDummyBus()) {
+            config.setEventBus(
+                    EventBus.builder()
+                            .exceptionHandler(
+                                    new EventExceptionHandler() {
+                                           @Override
+                                           public <E extends Event> void handle(
+                                                   E event,
+                                                   Throwable exception,
+                                                   EventSubscription<E> subscription
+                                           ) {
+                                               var ctxFactory = config.getContextFactory();
+                                               Context<S> dummy = ctxFactory.createDummyContext(BaseImperat.this);
+                                               String methodName = "handle(event, exception, subscription)";
+                                               config.handleExecutionThrowable(
+                                                       new EventException(event, subscription, exception),
+                                                       dummy ,
+                                                       EventBus.class,
+                                                       methodName
+                                               );
+                                           }
+                                       }
+                            )
+                            .executorService(ForkJoinPool.commonPool())
+                            .build()
+            );
+        }
+    }
+
+    @Override
+    public <E extends Event> void listen(
+            @NotNull Class<E> eventType,
+            @NotNull Consumer<E> handler,
+            @NotNull Priority priority,
+            @NotNull ExecutionStrategy strategy
+    ) {
+        config.getEventBus().register(eventType, handler, priority, strategy);
+    }
+
+    @Override
+    public <E extends Event> void publishEvent(E event) {
+        config.getEventBus().post(event);
+    }
+
+    @Override
+    public boolean removeListener(@NotNull UUID subscriptionId) {
+        return config.getEventBus().unregister(subscriptionId);
     }
 
     /**
@@ -72,14 +131,35 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
 
     /**
-     * Registering a command into the dispatcher
+     * Registering a command into the global registry,
+     * it will check for ambiguity with other commands and their tree before registering,
+     * if an ambiguity is detected it will throw an {@link AmbiguousCommandException}
      *
      * @param command the command to register
      */
     @Override
     public void registerSimpleCommand(Command<S> command) {
         checkAmbiguity(command);
-        this.registerCmd(command);
+
+        CommandPreRegistrationEvent<S> preRegistrationEvent = new CommandPreRegistrationEvent<>(command);
+        publishEvent(preRegistrationEvent);
+
+        if(!preRegistrationEvent.isCancelled()) {
+            Throwable error = null;
+            try {
+                this.registerCmd(command);
+            }catch (Throwable ex) {
+                error = ex;
+            }finally {
+                CommandPostRegistrationEvent<S> postRegistrationEvent = new CommandPostRegistrationEvent<>(command, error);
+                publishEvent(postRegistrationEvent);
+            }
+        }
+        else {
+            //debug cancelled command registration
+            ImperatDebugger.debug("Registration of command '%s' was cancelled by an CommandPreRegistrationEvent.", command.name());
+        }
+
     }
 
     private void checkAmbiguity(Command<S> command) {

@@ -7,6 +7,8 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.events.EventListener;
+import studio.mevera.imperat.events.EventPublisher;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +22,9 @@ import java.util.concurrent.CompletableFuture;
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public non-sealed interface Imperat<S extends Source> extends AnnotationInjector<S>, CommandRegistrar<S>, SourceWrapper<S> {
+public non-sealed interface Imperat<S extends Source> extends AnnotationInjector<S>, CommandRegistrar<S>, SourceWrapper<S>,
+                                                                      EventListener,
+                                                                      EventPublisher {
 
 
     /**

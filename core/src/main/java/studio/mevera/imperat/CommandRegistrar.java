@@ -4,13 +4,16 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.AmbiguousCommandException;
 
 import java.util.Collection;
 
 public sealed interface CommandRegistrar<S extends Source> permits Imperat {
 
     /**
-     * Registers a command into the dispatcher
+     * Registering a command into the global registry,
+     * it will check for ambiguity with other commands and their tree before registering,
+     * if an ambiguity is detected it will throw an {@link AmbiguousCommandException}
      *
      * @param command the command to register
      */

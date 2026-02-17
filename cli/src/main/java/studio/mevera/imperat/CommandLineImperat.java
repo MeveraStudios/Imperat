@@ -86,6 +86,11 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
         input = null;
     }
 
+    @Override
+    public ConsoleSource createDummySender() {
+        return new ConsoleSource(ConsoleLogger.SYSTEM);
+    }
+
     /**
      * Wraps a sender object into a ConsoleSource.
      * For CLI applications, all sources are console sources.

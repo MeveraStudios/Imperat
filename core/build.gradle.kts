@@ -104,6 +104,7 @@ tasks.register<Test>("fastTest") {
     include("**/parameters/**")
     include("**/errors/**")
     include("**/integration/**")
+    include("**/events/**")
     include("**/enhanced/**")
 
     testLogging {
