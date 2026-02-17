@@ -29,14 +29,14 @@ public final class HelpFilters {
      * Creates a filter that only includes command nodes.
      */
     public static <S extends Source> HelpFilter<S> commands() {
-        return CommandNode::isCommand;
+        return CommandNode::isLiteral;
     }
 
     /**
      * Creates a filter that excludes command nodes (only arguments).
      */
     public static <S extends Source> HelpFilter<S> arguments() {
-        return node -> !node.isCommand();
+        return node -> !node.isLiteral();
     }
 
     /**

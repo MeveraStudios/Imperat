@@ -28,11 +28,11 @@ public class Test3Command {
     /*
     @SubCommand(value = "sub", attachment = AttachmentMode.EMPTY)
     public static class Sub {
-        @Usage
+        @Execute
         public void def(TestSource source) {
             source.reply("sub command - default execution");
         }
-        @Usage
+        @Execute
         public void sub(TestSource source, @Named("sub-input") String subInput) {
             source.reply("sub command input= " + subInput);
         }

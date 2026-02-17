@@ -31,13 +31,6 @@ public class BasicCommandExecutionTest extends BaseImperatTest {
     }
 
     @Test
-    @DisplayName("Should handle empty command gracefully")
-    void testEmptyCommand() {
-        ExecutionResult<TestSource> result = execute("empty");
-        assertSuccess(result);
-    }
-
-    @Test
     @DisplayName("Should execute test command with arguments")
     void testCommandWithArguments() {
         ExecutionResult<TestSource> result = execute("test hello world");

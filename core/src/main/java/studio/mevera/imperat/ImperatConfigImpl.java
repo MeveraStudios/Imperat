@@ -59,7 +59,6 @@ import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
-import studio.mevera.imperat.verification.UsageVerifier;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -70,7 +69,7 @@ import java.util.Optional;
 
 final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
-    private CommandParsingMode parsingMode = CommandParsingMode.AUTO;
+    private CommandParsingMode parsingMode = CommandParsingMode.JAVA;
     private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
     private final ContextResolverRegistry<S> contextResolverRegistry;
     private final ArgumentTypeRegistry<S> argumentTypeRegistry;
@@ -86,7 +85,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                     Collections.emptyList();
     private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
     private @NotNull ContextFactory<S> contextFactory;
-    private @NotNull UsageVerifier<S> verifier;
     private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> globalPreProcessors;
     private @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> globalPostProcessors;
     private boolean overlapOptionalParameterSuggestions = false;
@@ -124,8 +122,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         returnResolverRegistry = ReturnResolverRegistry.createDefault();
         placeholderRegistry = PlaceholderRegistry.createDefault(this);
         contextFactory = ContextFactory.defaultFactory();
-
-        verifier = UsageVerifier.typeTolerantVerifier();
 
         globalPreProcessors = CommandProcessingChain.<S>preProcessors()
                                       .then(DefaultProcessors.preUsageCooldown())
@@ -717,24 +713,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     public <T> @Nullable T resolveDependency(Type type) {
         return (T) dependencyResolverRegistry.getData(type)
                            .map(DependencySupplier::get).orElse(null);
-    }
-
-    /**
-     * @return the usage verifier
-     */
-    @Override
-    public UsageVerifier<S> getUsageVerifier() {
-        return verifier;
-    }
-
-    /**
-     * Sets the usage verifier to a new instance
-     *
-     * @param usageVerifier the usage verifier to set
-     */
-    @Override
-    public void setUsageVerifier(UsageVerifier<S> usageVerifier) {
-        this.verifier = usageVerifier;
     }
 
     @Override

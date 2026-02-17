@@ -9,6 +9,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.parse.InvalidBooleanException;
+import studio.mevera.imperat.util.Priority;
 
 import java.util.Locale;
 import java.util.Map;
@@ -77,5 +78,10 @@ public final class BooleanArgument<S extends Source> extends ArgumentType<S, Boo
 
     public BooleanArgument<S> allowVariants() {
         return setAllowVariants(true);
+    }
+
+    @Override
+    public Priority priority() {
+        return Priority.NORMAL.plus(1);
     }
 }

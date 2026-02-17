@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * A collection that maintains elements sorted by their {@link Priority}.
@@ -162,6 +164,16 @@ public class PriorityList<E> implements Iterable<E> {
     }
 
     /**
+     * Returns a sequential {@link Stream} of the elements in this list,
+     * ordered by priority. Elements with higher priority are returned first.
+     *
+     * @return a sequential stream of elements in priority order
+     */
+    public Stream<E> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
+    /**
      * Returns an immutable view of this PriorityList.
      * The returned list will reflect any changes made to the underlying list,
      * but mutation operations will throw {@link UnsupportedOperationException}.
@@ -284,6 +296,11 @@ public class PriorityList<E> implements Iterable<E> {
         @Override
         public List<E> toList() {
             return delegate.toList();
+        }
+
+        @Override
+        public Stream<E> stream() {
+            return delegate.stream();
         }
 
         @NotNull

@@ -19,7 +19,7 @@ public class GuildMOTDCommand {
         source.reply("Default motd execution");
     }
 
-    /*@Usage
+    /*@Execute
     public void mainUsage(TestSource source, @Named("message") String msg, @Named("duration") @Default("24h")Duration duration) {
         source.reply("Message: '" + msg + "'");
         source.reply("Duration: '" + DurationParser.formatDuration(duration) + "'");

@@ -382,6 +382,19 @@ public final class CommandTreeVisualizer<S extends Source> {
         ImperatDebugger.debug(builder.toString());
     }
 
+    public void visualizeUnflaggedTreeSimple() {
+        if (tree == null || !ImperatDebugger.isEnabled()) {
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("\n==== Command Tree (Unflagged) ====\n\n");
+
+        visualizeSimpleNode(tree.unflaggedUniqueVersionedTree(), builder, 0, new ArrayList<>(), true);
+
+        ImperatDebugger.debug(builder.toString());
+    }
+
     private void visualizeSimpleNode(CommandNode<S, ?> node,
             StringBuilder builder,
             int depth,

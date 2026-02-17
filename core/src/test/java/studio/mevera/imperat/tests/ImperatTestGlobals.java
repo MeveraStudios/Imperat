@@ -11,7 +11,6 @@ import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.BuyCommand;
 import studio.mevera.imperat.tests.commands.ContextResolvingCmd;
 import studio.mevera.imperat.tests.commands.CustomEnumCommand;
-import studio.mevera.imperat.tests.commands.EmptyCmd;
 import studio.mevera.imperat.tests.commands.FailingCmd;
 import studio.mevera.imperat.tests.commands.KingdomChatCommand;
 import studio.mevera.imperat.tests.commands.MultipleVariantsCmd;
@@ -58,7 +57,6 @@ import studio.mevera.imperat.tests.parameters.TestPlayerParamType;
 import studio.mevera.imperat.tests.syntax.commands.UsageTestCommand;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeWrap;
-import studio.mevera.imperat.verification.UsageVerifier;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -71,7 +69,6 @@ public class ImperatTestGlobals {
 
     /** Global test infrastructure instances */
     public static final TestImperat IMPERAT = TestImperatConfig.builder()
-                                                      .usageVerifier(UsageVerifier.typeTolerantVerifier())
                                                       .permissionChecker((src, perm) -> perm == null || src.hasPermission(perm))
                                                       .argType(Group.class, new GroupArgument())
                                                       .argType(Duration.class, new JavaDurationArgumentType())
@@ -108,7 +105,7 @@ public class ImperatTestGlobals {
         //;
         IMPERAT.registerCommand(GitCommand.class);
         IMPERAT.registerCommand(MessageCmd.class);
-        IMPERAT.registerCommand(EmptyCmd.class);
+        //IMPERAT.registerCommand(EmptyCmd.class);
         IMPERAT.registerCommand(KitCommand.class);
 
         IMPERAT.registerCommands(TestCommand.class, Test2Command.class, Test3Command.class, TestCustomAnnotationCmd.class);

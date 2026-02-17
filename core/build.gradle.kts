@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("java")
@@ -81,6 +82,12 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
         options.release.set(targetJavaVersion)
+    }
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(targetJavaVersion.toString()))
     }
 }
 

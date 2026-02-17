@@ -54,6 +54,12 @@ public interface CommandTree<S extends Source> {
     @NotNull LiteralCommandNode<S> uniqueVersionedTree();
 
     /**
+     * Gets the unflagged unique versioned tree, which excludes flag nodes.
+     * @return the unflagged unique versioned tree.
+     */
+    @NotNull LiteralCommandNode<S> unflaggedUniqueVersionedTree();
+
+    /**
      * The number of nodes cached in this {@link CommandTree}.
      * @return the number of nodes representing the size
      * of this N-ary tree
@@ -66,6 +72,13 @@ public interface CommandTree<S extends Source> {
      * @return The size of the unique versioned tree.
      */
     int uniqueSize();
+
+    /**
+     * The size of the unflagged unique versioned tree, which excludes flag nodes.
+     * @see #unflaggedUniqueVersionedTree()
+     * @return The size of the unflagged unique versioned tree.
+     */
+    int unflaggedUniqueSize();
 
     /**
      * Parses the given command usage and updates the command tree accordingly.

@@ -35,6 +35,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private final static int INITIAL_SUGGESTIONS_CAPACITY = 20;
     final LiteralCommandNode<S> root;
     final LiteralCommandNode<S> uniqueRoot;
+    final LiteralCommandNode<S> unflaggedUniqueRoot;
     private final Command<S> rootCommand;
     // Pre-sized collections for common operations
     private final ThreadLocal<ArrayList<CommandNode<S, ?>>> pathBuffer =
@@ -46,7 +47,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
     private final HelpEntryFactory<S> helpEntryFactory = HelpEntryFactory.defaultFactory();
-    private int size, uniqueSize;
+    private int size, uniqueSize, unflaggedUniqueSize;
 
 
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
@@ -55,6 +56,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         this.imperatConfig = imperatConfig;
         this.permissionChecker = imperatConfig.getPermissionChecker();
         this.uniqueRoot = root.copy();
+        this.unflaggedUniqueRoot = uniqueRoot.copy();
     }
 
     /**
@@ -105,6 +107,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     @Override
+    public @NotNull LiteralCommandNode<S> unflaggedUniqueVersionedTree() {
+        return unflaggedUniqueRoot;
+    }
+
+    @Override
     public int size() {
         return size;
     }
@@ -115,6 +122,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     @Override
+    public int unflaggedUniqueSize() {
+        return unflaggedUniqueSize;
+    }
+
+    @Override
     public void parseUsage(@NotNull CommandUsage<S> usage) {
         // Register flags once
 
@@ -122,6 +134,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (usage.isDefault()) {
             root.setExecutableUsage(usage);
             uniqueRoot.setExecutableUsage(usage);
+            unflaggedUniqueRoot.setExecutableUsage(usage);
         }
 
         // Use thread-local buffer to eliminate allocations
@@ -137,6 +150,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
         //adding unique versioned tree
         addParametersWithoutOptionalBranchingToTree(uniqueRoot, usage, parameters, 0);
+        addParametersUnflaggedWithoutOptionalBranchingToTree(unflaggedUniqueRoot, usage, parameters, 0);
     }
 
     private void addParametersToTree(
@@ -154,11 +168,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
 
         if (currentNode.isGreedyParam()) {
-            if (!currentNode.isLast()) {
-                throw new IllegalStateException("A greedy node '%s' is not the last argument!".formatted(currentNode.format()));
-            }
             currentNode.setExecutableUsage(usage);
-            return;
         }
 
         // Optimized flag sequence detection
@@ -173,7 +183,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
         // Regular parameter handling
         final var param = parameters.get(index);
-        final var childNode = getOrCreateChildNode(currentNode, param, true);
+        final var childNode = getOrCreateChildNode(currentNode, param, true, false);
 
         // Efficient path management
         final int pathSize = path.size();
@@ -208,18 +218,44 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
 
         if (currentNode.isGreedyParam()) {
-            if (!currentNode.isLast()) {
-                throw new IllegalStateException("A greedy node '%s' is not the last argument!".formatted(currentNode.format()));
-            }
             currentNode.setExecutableUsage(usage);
-            return;
         }
 
         // Regular parameter handling
         final var param = parameters.get(index);
-        final var childNode = getOrCreateChildNode(currentNode, param, true);
+        final var childNode = getOrCreateChildNode(currentNode, param, true, false);
 
         addParametersWithoutOptionalBranchingToTree(
+                childNode, usage, parameters, index + 1
+        );
+    }
+
+    private void addParametersUnflaggedWithoutOptionalBranchingToTree(
+            CommandNode<S, ?> currentNode,
+            CommandUsage<S> usage,
+            List<Argument<S>> parameters,
+            int index
+    ) {
+        final int paramSize = parameters.size();
+        if (index >= paramSize) {
+            currentNode.setExecutableUsage(usage);
+            return;
+        }
+
+        if (currentNode.isGreedyParam()) {
+            currentNode.setExecutableUsage(usage);
+        }
+
+        // Regular parameter handling
+        final var param = parameters.get(index);
+        if (param.isFlag()) {
+            // Skip flags in unflagged unique tree
+            addParametersUnflaggedWithoutOptionalBranchingToTree(currentNode, usage, parameters, index + 1);
+            return;
+        }
+        final var childNode = getOrCreateChildNode(currentNode, param, false, true);
+
+        addParametersUnflaggedWithoutOptionalBranchingToTree(
                 childNode, usage, parameters, index + 1
         );
     }
@@ -429,7 +465,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         // Process each flag in the permutation
         for (int i = 0; i < permutation.size(); i++) {
             final var flagParam = permutation.get(i);
-            final var flagNode = getOrCreateChildNode(nodePointer, flagParam, false);
+            final var flagNode = getOrCreateChildNode(nodePointer, flagParam, false, false);
             updatedPath.add(flagNode);
             nodePointer = flagNode;
 
@@ -473,7 +509,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         return true;
     }
 
-    private CommandNode<S, ?> getOrCreateChildNode(CommandNode<S, ?> parent, Argument<S> param, boolean onlyUnique) {
+    private CommandNode<S, ?> getOrCreateChildNode(CommandNode<S, ?> parent, Argument<S> param, boolean onlyUnique, boolean unflagged) {
         // Optimized child lookup with early termination
         final var children = parent.getChildren();
         final String paramName = param.name();
@@ -492,10 +528,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                                                     : CommandNode.createArgumentNode(parent, param, parent.getDepth() + 1, null);
 
         parent.addChild(newNode);
-        if (onlyUnique) {
-            uniqueSize++;
-        } else {
-            size++;
+        if(!unflagged) {
+            if (onlyUnique) {
+                uniqueSize++;
+            } else {
+                size++;
+            }
+        }else {
+            unflaggedUniqueSize++;
         }
 
         return newNode;
@@ -639,7 +679,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
 
         if (!node.isExecutable()) {
-            if (node.isCommand()) {
+            if (node.isLiteral()) {
                 search.setDirectUsage(node.data.asCommand().getDefaultUsage());
                 search.setResult(result);
             }
@@ -841,7 +881,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
 
             // Check permissions
-            if (!(nextNode.isCommand() && nextNode.data.asCommand().isIgnoringACPerms())
+            if (!(nextNode.isLiteral() && nextNode.data.asCommand().isIgnoringACPerms())
                         && !hasPermission(context.source(), nextNode)) {
                 //System.out.println("Skipping " + nextNode.format() + " due to having no perm for it");
                 continue;
@@ -872,7 +912,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     private boolean hasAutoCompletionPermission(S src, CommandNode<S, ?> node) {
-        if (node.isCommand() && node.getData().asCommand().isIgnoringACPerms()) {
+        if (node.isLiteral() && node.getData().asCommand().isIgnoringACPerms()) {
             return true;
         }
         return hasPermission(src, node);

@@ -18,13 +18,12 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.exception.AmbiguousUsageAdditionException;
+import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.UnknownCommandException;
-import studio.mevera.imperat.exception.UsageRegistrationException;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
@@ -79,31 +78,26 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
      */
     @Override
     public void registerSimpleCommand(Command<S> command) {
-        try {
-            var verifier = config.getUsageVerifier();
-            for (CommandUsage<S> usage : command.usages()) {
-                if (!verifier.verify(usage)) {
-                    throw new UsageRegistrationException(command, usage);
-                }
-
-                for (CommandUsage<S> other : command.usages()) {
-                    if (other.equals(usage)) {
-                        continue;
-                    }
-                    if (verifier.areAmbiguous(usage, other)) {
-                        throw new AmbiguousUsageAdditionException(command, usage, other);
-                    }
-                }
-            }
-            this.registerCmd(command);
-        } catch (RuntimeException ex) {
-            ImperatDebugger.error(BaseImperat.class, "registerCommand(CommandProcessingChain command)", ex);
-            shutdownPlatform();
-        }
+        checkAmbiguity(command);
+        this.registerCmd(command);
     }
 
-    private void registerCmd(@NotNull Command<S> command) {
+    private void checkAmbiguity(Command<S> command) {
+        //check if cmd exists
+        var other = getCommand(command.name());
+        if(other != null) {
+            if (other == command) {
+                return;
+            }
+            throw new AmbiguousCommandException(command, other);
+        }
 
+        //now check its tree for internal ambiguity
+        AmbiguityChecker.checkAmbiguity(command);
+    }
+
+
+    private void registerCmd(@NotNull Command<S> command) {
 
         this.commands.put(command.name().trim().toLowerCase(), command);
         for (var aliases : command.aliases()) {

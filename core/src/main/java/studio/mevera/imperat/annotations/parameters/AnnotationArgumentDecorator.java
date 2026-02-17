@@ -1,8 +1,10 @@
 package studio.mevera.imperat.annotations.parameters;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
+import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.InputParameter;
@@ -33,6 +35,11 @@ public final class AnnotationArgumentDecorator<S extends Source> extends InputPa
             ParameterElement element
     ) {
         return new AnnotationArgumentDecorator<>(parameter, element);
+    }
+
+    @Override
+    public @NotNull ParseElement<?> getParsedElement() {
+        return element;
     }
 
     /**
