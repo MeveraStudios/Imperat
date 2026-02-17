@@ -107,10 +107,23 @@ tasks.register<Test>("fastTest") {
     include("**/events/**")
     include("**/enhanced/**")
 
+    // Test execution configuration
+    maxParallelForks = Runtime.getRuntime().availableProcessors()
+
+    // System properties for tests
+    systemProperty("imperat.test.mode", "true")
+    systemProperty("imperat.debug.enabled", "false")
+
     testLogging {
         events("passed", "skipped", "failed")
         exceptionFormat = TestExceptionFormat.SHORT
     }
+
+    // Ensure tests are detected and executed properly
+    isScanForTestClasses = true
+
+    // Prevent test result caching issues
+    outputs.upToDateWhen { false }
 
     description = "Runs fast unit tests for development"
     group = "verification"
@@ -125,6 +138,13 @@ tasks.register<Test>("eventsTest") {
 
     include("**/events/**")
 
+    // Test execution configuration
+    maxParallelForks = 1
+
+    // System properties for tests
+    systemProperty("imperat.test.mode", "true")
+    systemProperty("imperat.debug.enabled", "false")
+
     testLogging {
         events("passed", "skipped", "failed")
         exceptionFormat = TestExceptionFormat.FULL
@@ -133,6 +153,12 @@ tasks.register<Test>("eventsTest") {
         showExceptions = true
         showStackTraces = true
     }
+
+    // Ensure tests are detected and executed
+    isScanForTestClasses = true
+
+    // Prevent test result caching issues
+    outputs.upToDateWhen { false }
 
     description = "Runs event system tests"
     group = "verification"

@@ -140,7 +140,6 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     @Override
     public void registerSimpleCommand(Command<S> command) {
         checkAmbiguity(command);
-        System.out.println("Registering non-ambiguous command '" + command.name() + "'");
         CommandPreRegistrationEvent<S> preRegistrationEvent = new CommandPreRegistrationEvent<>(command);
         publishEvent(preRegistrationEvent);
 

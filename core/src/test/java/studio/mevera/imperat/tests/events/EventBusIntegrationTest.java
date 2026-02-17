@@ -1,23 +1,28 @@
 package studio.mevera.imperat.tests.events;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import studio.mevera.imperat.events.*;
+import studio.mevera.imperat.events.CancellableEvent;
+import studio.mevera.imperat.events.Event;
+import studio.mevera.imperat.events.EventBus;
+import studio.mevera.imperat.events.EventExceptionHandler;
+import studio.mevera.imperat.events.EventSubscription;
+import studio.mevera.imperat.events.ExecutionStrategy;
 import studio.mevera.imperat.util.Priority;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for complex event system scenarios.
@@ -169,27 +174,44 @@ public class EventBusIntegrationTest {
 
         eventBus.post(new TestEvent("test"));
 
-        // All SYNC handlers should be done
+        // Wait for ASYNC handlers to complete
+        assertTrue(asyncLatch.await(5, TimeUnit.SECONDS), "Async handlers should complete within timeout");
+
+
+        // All handlers should have been executed
+        assertEquals(5, execution.size(), "All 5 handlers should have executed");
         assertTrue(execution.contains("SYNC-HIGHEST"));
         assertTrue(execution.contains("SYNC-NORMAL"));
         assertTrue(execution.contains("SYNC-LOWEST"));
-
-        // Wait for ASYNC
-        assertTrue(asyncLatch.await(5, TimeUnit.SECONDS));
         assertTrue(execution.contains("ASYNC-HIGH"));
         assertTrue(execution.contains("ASYNC-LOW"));
 
-        // Verify SYNC executed before ASYNC
-        int lastSyncIndex = Math.max(
-            execution.indexOf("SYNC-LOWEST"),
-            Math.max(execution.indexOf("SYNC-NORMAL"), execution.indexOf("SYNC-HIGHEST"))
-        );
-        int firstAsyncIndex = Math.min(
-            execution.indexOf("ASYNC-HIGH"),
-            execution.indexOf("ASYNC-LOW")
-        );
+        // Verify SYNC handlers executed before ASYNC handlers
+        // Since all SYNC handlers must complete before ANY ASYNC handlers start,
+        // we need to find the last SYNC and first ASYNC in the execution list
+        int syncHighestIndex = execution.indexOf("SYNC-HIGHEST");
+        int syncNormalIndex = execution.indexOf("SYNC-NORMAL");
+        int syncLowestIndex = execution.indexOf("SYNC-LOWEST");
+        int asyncHighIndex = execution.indexOf("ASYNC-HIGH");
+        int asyncLowIndex = execution.indexOf("ASYNC-LOW");
 
-        assertTrue(lastSyncIndex < firstAsyncIndex);
+        // All indices should be valid
+        assertTrue(syncHighestIndex >= 0, "SYNC-HIGHEST should be in execution list");
+        assertTrue(syncNormalIndex >= 0, "SYNC-NORMAL should be in execution list");
+        assertTrue(syncLowestIndex >= 0, "SYNC-LOWEST should be in execution list");
+        assertTrue(asyncHighIndex >= 0, "ASYNC-HIGH should be in execution list");
+        assertTrue(asyncLowIndex >= 0, "ASYNC-LOW should be in execution list");
+
+        // Find the last SYNC handler index
+        int lastSyncIndex = Math.max(syncHighestIndex, Math.max(syncNormalIndex, syncLowestIndex));
+
+        // Find the first ASYNC handler index
+        int firstAsyncIndex = Math.min(asyncHighIndex, asyncLowIndex);
+
+        // SYNC handlers must all execute before ASYNC handlers
+        assertTrue(lastSyncIndex < firstAsyncIndex,
+                String.format("All SYNC handlers should execute before ASYNC handlers. Last SYNC at %d, First ASYNC at %d. Execution order: %s",
+                        lastSyncIndex, firstAsyncIndex, execution));
     }
 
     @Test
@@ -356,10 +378,12 @@ public class EventBusIntegrationTest {
     void testComplexExceptionScenarios() throws InterruptedException {
         List<String> exceptionLog = Collections.synchronizedList(new ArrayList<>());
         CountDownLatch asyncLatch = new CountDownLatch(1);
+        CountDownLatch exceptionLatch = new CountDownLatch(3); // Wait for all 3 exceptions
 
         EventExceptionHandler handler = new EventExceptionHandler() {
             @Override public <E extends Event> void handle(E event, Throwable exception, EventSubscription<E> subscription) {
                 exceptionLog.add(exception.getMessage());
+                exceptionLatch.countDown();
             }
         };
 
@@ -392,9 +416,14 @@ public class EventBusIntegrationTest {
         }, Priority.LOW, ExecutionStrategy.ASYNC);
 
         bus.post(new TestEvent("test"));
-        assertTrue(asyncLatch.await(5, TimeUnit.SECONDS));
 
-        assertEquals(3, exceptionLog.size());
+        // Wait for async handler to execute
+        assertTrue(asyncLatch.await(5, TimeUnit.SECONDS), "Async handler should execute");
+
+        // Wait for all exception handlers to complete
+        assertTrue(exceptionLatch.await(5, TimeUnit.SECONDS), "All exception handlers should complete");
+
+        assertEquals(3, exceptionLog.size(), "Should have logged 3 exceptions");
         assertTrue(exceptionLog.contains("SYNC-1 error"));
         assertTrue(exceptionLog.contains("SYNC-2 error"));
         assertTrue(exceptionLog.contains("ASYNC error"));

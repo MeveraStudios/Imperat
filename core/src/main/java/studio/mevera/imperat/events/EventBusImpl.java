@@ -102,13 +102,22 @@ final class EventBusImpl implements EventBus {
         PriorityList<EventSubscription<?>> list = subscriptions.get(eventType);
         if (list == null || list.isEmpty()) return;
 
+        // Execute all SYNC handlers first (in priority order)
         for (EventSubscription<?> subscription : list) {
             @SuppressWarnings("unchecked")
             EventSubscription<T> typed = (EventSubscription<T>) subscription;
 
             if (typed.strategy() == ExecutionStrategy.SYNC) {
                 executeSyncHandler(event, typed);
-            } else {
+            }
+        }
+
+        // Then submit all ASYNC handlers (in priority order)
+        for (EventSubscription<?> subscription : list) {
+            @SuppressWarnings("unchecked")
+            EventSubscription<T> typed = (EventSubscription<T>) subscription;
+
+            if (typed.strategy() == ExecutionStrategy.ASYNC) {
                 executeAsyncHandler(event, typed);
             }
         }
