@@ -34,7 +34,8 @@ final class SlashCommandMapper {
 
     SlashMapping mapCommand(Command<JdaSource> command) {
         String commandName = command.name().toLowerCase();
-        SlashCommandData data = Commands.slash(commandName, command.getDescription().getValueOrElse(""));
+
+        SlashCommandData data = Commands.slash(commandName, command.getDescription().getValueOrElse("N/A"));
         List<UsagePath> usagePaths = collectUsagePaths(command, List.of(), List.of());
         Map<InvocationKey, Invocation> invocations = new LinkedHashMap<>();
 
@@ -90,6 +91,7 @@ final class SlashCommandMapper {
             UsageBucket bucket = buckets.computeIfAbsent(usage.path(), key -> new UsageBucket());
             bucket.setDescriptionIfAbsent(usage.description());
             bucket.includeUsage(usage.parameters());
+
         }
         return buckets;
     }
@@ -122,7 +124,7 @@ final class SlashCommandMapper {
                         parameters.add(parameter);
                     }
                 }
-                paths.add(new UsagePath(List.copyOf(path), List.copyOf(parameters), usage.getDescription().getValue()));
+                paths.add(new UsagePath(List.copyOf(path), List.copyOf(parameters), usage.getDescription().getValueOrElse("N/A")));
             }
             return paths;
         }
@@ -179,13 +181,13 @@ final class SlashCommandMapper {
         }
 
         static OptionSpec from(String name, Argument<JdaSource> parameter, OptionType type) {
-            return new OptionSpec(name, type, parameter.getDescription().getValue(), !parameter.isOptional());
+            return new OptionSpec(name, type, parameter.getDescription().getValueOrElse("N/A"), !parameter.isOptional());
         }
 
         void merge(Argument<JdaSource> parameter, OptionType resolvedType) {
             type = compatibleType(type, resolvedType);
             description = description == null || description.isEmpty()
-                                  ? parameter.getDescription().getValue()
+                                  ? parameter.getDescription().getValueOrElse("N/A")
                                   : description;
             required = required && !parameter.isOptional();
         }
@@ -203,7 +205,7 @@ final class SlashCommandMapper {
         }
 
         String description() {
-            return description == null ? "" : description;
+            return description == null ? "N/A" : description;
         }
 
         boolean required() {
