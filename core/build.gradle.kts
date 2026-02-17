@@ -116,6 +116,28 @@ tasks.register<Test>("fastTest") {
     group = "verification"
 }
 
+// Task for running event system tests
+tasks.register<Test>("eventsTest") {
+    useJUnitPlatform()
+
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+
+    include("**/events/**")
+
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = TestExceptionFormat.FULL
+        showStandardStreams = true
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+    }
+
+    description = "Runs event system tests"
+    group = "verification"
+}
+
 // Task for running integration tests
 tasks.register<Test>("integrationTest") {
     useJUnitPlatform()
