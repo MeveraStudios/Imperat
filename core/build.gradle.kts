@@ -102,6 +102,7 @@ tasks.register<Test>("fastTest") {
     include("**/arguments/**")
     include("**/flags/**")
     include("**/parameters/**")
+    include("**/responses/**")
     include("**/errors/**")
     include("**/integration/**")
     include("**/events/**")
