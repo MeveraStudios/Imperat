@@ -7,8 +7,8 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
-import studio.mevera.imperat.exception.UnknownPlayerException;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.VelocityResponseKey;
 import studio.mevera.imperat.type.PlayerArgument;
 
 import java.util.concurrent.ExecutorService;
@@ -90,17 +90,10 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
         // Register Player and other source/value resolvers
         config.registerArgType(Player.class, new PlayerArgument(proxyServer));
 
-        // Define custom exception handling for unknown players
-        config.setThrowableResolver(
-                UnknownPlayerException.class, (exception, context) ->
-                                                      context.source().error("A player with the name '" + exception.getInput()
-                                                                                     + "' doesn't seem to be online")
-        );
-
         // Register source resolver for Player
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });

@@ -28,10 +28,9 @@ import studio.mevera.imperat.events.types.CommandPostRegistrationEvent;
 import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.InvalidSyntaxException;
-import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.UnknownCommandException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Priority;
@@ -328,32 +327,34 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         S source = context.source();
 
         if (!config.getPermissionChecker().hasPermission(source, command)) {
-            throw new PermissionDeniedException(
-                    command.getDefaultUsage(),
-                    command
-            );
+            throw new CommandException(ResponseKey.PERMISSION_DENIED)
+                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("usage", CommandUsage.format(command, command.getDefaultUsage()));
         }
 
         CommandPathSearch<S> searchResult = command.contextMatch(context);
         ImperatDebugger.debug("Search-result: '" + searchResult.getResult().name() + "'");
 
         if (searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
-            throw new PermissionDeniedException(searchResult);
+            throw new CommandException(ResponseKey.PERMISSION_DENIED)
+                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("usage", CommandUsage.format(command, searchResult.getClosestUsage()));
         }
 
         CommandUsage<S> usage = searchResult.getFoundUsage();
-        if (usage == null) {
+        if (usage == null || searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
             ImperatDebugger.debug("Usage not found !");
-            throw new InvalidSyntaxException(searchResult);
-            //TODO fix closest usage suggestion
-        } else if (searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
-            throw new InvalidSyntaxException(searchResult);
+            var closestUsage = searchResult.getClosestUsage();
+            throw new CommandException(ResponseKey.INVALID_SYNTAX)
+                          .withPlaceholder("closest_usage", closestUsage != null ? CommandUsage.format(command, closestUsage) : "No usage found");
         }
 
         var usageAccessCheckResult = config.getPermissionChecker().hasPermission(source, usage);
         if (!usageAccessCheckResult) {
             ImperatDebugger.debug("Failed usage permission check !");
-            throw new PermissionDeniedException(usage, null);
+            throw new CommandException(ResponseKey.PERMISSION_DENIED)
+                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("usage", CommandUsage.format(command, usage));
         }
         ImperatDebugger.debug("Usage Found Format: '" + CommandUsage.formatWithTypes(command, usage) + "'");
 

@@ -9,7 +9,6 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.UnknownFlagException;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.Priority;
 
@@ -56,7 +55,7 @@ public final class StringArgument<S extends Source> extends ArgumentType<S, Stri
     }
 
     private String resolveWithPrecision(ExecutionContext<S> context, Cursor<S> inputStream, String input, Argument<S> parameter)
-            throws UnknownFlagException {
+            throws CommandException {
         StringBuilder builder = new StringBuilder();
 
         final Character current = inputStream.currentLetter().orElse(null);
@@ -87,8 +86,7 @@ public final class StringArgument<S extends Source> extends ArgumentType<S, Stri
     /**
      * Optimized greedy handling with better performance characteristics
      */
-    private void handleGreedyOptimized(StringBuilder builder, Cursor<S> inputStream, ExecutionContext<S> context)
-            throws UnknownFlagException {
+    private void handleGreedyOptimized(StringBuilder builder, Cursor<S> inputStream, ExecutionContext<S> context) throws CommandException {
         // If truly greedy (consumes multiple raw inputs), handle remaining
         while (inputStream.isCurrentRawInputAvailable()) {
             String nextRaw = inputStream.currentRaw().orElse(null);

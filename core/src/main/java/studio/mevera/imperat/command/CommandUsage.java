@@ -7,13 +7,12 @@ import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
 import studio.mevera.imperat.command.flags.FlagExtractor;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.ArgumentBuilder;
+import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.UnknownFlagException;
 import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.Preconditions;
@@ -102,7 +101,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
      * }</pre>
      *
      * <p><strong>Error Handling:</strong>
-     * The extractor will throw an {@link UnknownFlagException} if the input contains
+     * The extractor will throw an {@link CommandException} if the input contains
      * any characters that cannot be matched to known flag aliases.
      *
      * <p><strong>Thread Safety:</strong>

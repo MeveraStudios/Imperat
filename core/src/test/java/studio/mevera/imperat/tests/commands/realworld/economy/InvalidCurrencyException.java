@@ -19,7 +19,7 @@ public final class InvalidCurrencyException extends SelfHandledException {
     }
 
     @Override
-    public <S extends Source> void handle(ImperatConfig<S> imperat, Context<S> context) {
+    public <S extends Source> void handle(ImperatConfig<S> config, Context<S> context) {
         context.source().reply("Invalid currency '" + input + "'");
     }
 }

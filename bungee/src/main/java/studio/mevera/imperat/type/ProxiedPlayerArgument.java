@@ -11,8 +11,8 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.responses.BungeeResponseKey;
 
 import java.util.List;
 
@@ -32,14 +32,16 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
 
         if (correspondingInput.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
-                throw new UnknownPlayerException(correspondingInput);
+                throw new CommandException(BungeeResponseKey.UNKNOWN_PLAYER)
+                              .withPlaceholder("name", correspondingInput);
             }
             return context.source().asPlayer();
         }
 
         ProxiedPlayer proxiedPlayer = ProxyServer.getInstance().getPlayer(correspondingInput);
         if (proxiedPlayer == null) {
-            throw new UnknownPlayerException(correspondingInput);
+            throw new CommandException(BungeeResponseKey.UNKNOWN_PLAYER)
+                          .withPlaceholder("name", correspondingInput);
         }
         return proxiedPlayer;
     }

@@ -1,14 +1,12 @@
 package studio.mevera.imperat.placeholders;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.Preconditions;
 
-public sealed interface Placeholder<S extends Source> permits PlaceholderImpl {
+public interface Placeholder {
 
-    static <S extends Source> Builder<S> builder(String id) {
-        return new Builder<>(id);
+    static Builder builder(String id) {
+        return new Builder(id);
     }
 
     /**
@@ -19,39 +17,42 @@ public sealed interface Placeholder<S extends Source> permits PlaceholderImpl {
     @NotNull
     String id();
 
+    @NotNull
+    String formattedId();
+
     /**
      * The dynamic resolver for this placeholder
      *
      * @return the {@link PlaceholderResolver} resolver
      */
     @NotNull
-    PlaceholderResolver<S> resolver();
+    PlaceholderResolver resolver();
 
     boolean isUsedIn(String input);
 
-    default String resolveInput(String id, ImperatConfig<S> imperat) {
-        return resolver().resolve(id, imperat);
+    default String resolveInput(String id) {
+        return resolver().resolve(id);
     }
 
-    String replaceResolved(ImperatConfig<S> imperat, String id, String input);
+    String replaceResolved(String id, String input);
 
-    final class Builder<S extends Source> {
+    final class Builder {
 
         private final String id;
-        private PlaceholderResolver<S> resolver = null;
+        private PlaceholderResolver resolver = null;
 
         Builder(String id) {
             this.id = id;
         }
 
-        public Builder<S> resolver(PlaceholderResolver<S> resolver) {
+        public Builder resolver(PlaceholderResolver resolver) {
             this.resolver = resolver;
             return this;
         }
 
-        public Placeholder<S> build() {
+        public Placeholder build() {
             Preconditions.notNull(resolver, "resolver is not set in the placeholder-builder");
-            return new PlaceholderImpl<>(id, resolver);
+            return new PlaceholderImpl(id, resolver);
         }
     }
 }

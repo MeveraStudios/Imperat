@@ -6,7 +6,6 @@ import com.hypixel.hytale.math.vector.Vector3f;
 import com.hypixel.hytale.math.vector.Vector3i;
 import com.hypixel.hytale.protocol.GameMode;
 import com.hypixel.hytale.protocol.SoundCategory;
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.ambiencefx.config.AmbienceFX;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
@@ -40,11 +39,8 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.InvalidIntegerOperator;
-import studio.mevera.imperat.exception.InvalidLocationFormatException;
-import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
-import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
-import studio.mevera.imperat.exception.UnknownPlayerException;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.HytaleResponseKey;
 import studio.mevera.imperat.type.HytaleArgumentType;
 import studio.mevera.imperat.type.LocationArgument;
 import studio.mevera.imperat.type.PlayerArgument;
@@ -56,60 +52,94 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
     private static final HytaleArgumentType.Data<?>[] HYTALE_ARGUMENT_TYPES = {
             //TODO we should add exceptions(and their providers) for each type of data eventually.
 
-            /* new HytaleArgumentType.Data<>(Boolean.class, ArgTypes.BOOLEAN, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(Integer.class, ArgTypes.INTEGER, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(String.class, ArgTypes.STRING, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(Float.class, ArgTypes.FLOAT, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(Double.class, ArgTypes.DOUBLE, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(UUID.class, ArgTypes.UUID, HytaleArgumentType.ExceptionProvider.DEFAULT), */
+            /* new HytaleArgumentType.Data<>(Boolean.class, ArgTypes.BOOLEAN, new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey
+            .INVALID_BOOLEAN)),
+            new HytaleArgumentType.Data<>(Integer.class, ArgTypes.INTEGER, new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey
+            .INVALID_INTEGER)),
+            new HytaleArgumentType.Data<>(String.class, ArgTypes.STRING, new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey
+            .INVALID_STRING)),
+            new HytaleArgumentType.Data<>(Float.class, ArgTypes.FLOAT, new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey
+            .INVALID_FLOAT)),
+            new HytaleArgumentType.Data<>(Double.class, ArgTypes.DOUBLE, new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey
+            .INVALID_DOUBLE)),
+            new HytaleArgumentType.Data<>(UUID.class, ArgTypes.UUID, new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey
+            .INVALID_UUID)), */
 
-            // new HytaleArgumentType.Data<>(PlayerRef.class, ArgTypes.PLAYER_REF, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            // new HytaleArgumentType.Data<>(World.class, ArgTypes.WORLD, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            // new HytaleArgumentType.Data<>(PlayerRef.class, ArgTypes.PLAYER_REF, new HytaleArgumentType.ResponseKeyExceptionProvider
+            // (HytaleResponseKey.UNKNOWN_PLAYER)),
+            // new HytaleArgumentType.Data<>(World.class, ArgTypes.WORLD, new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey
+            // .UNKNOWN_WORLD)),
 
-            new HytaleArgumentType.Data<>(Coord.class, ArgTypes.RELATIVE_DOUBLE_COORD, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(IntCoord.class, ArgTypes.RELATIVE_INT_COORD, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(RelativeInteger.class, ArgTypes.RELATIVE_INTEGER, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(RelativeFloat.class, ArgTypes.RELATIVE_FLOAT, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Coord.class, ArgTypes.RELATIVE_DOUBLE_COORD,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_RELATIVE_DOUBLE_COORD)),
+            new HytaleArgumentType.Data<>(IntCoord.class, ArgTypes.RELATIVE_INT_COORD,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_RELATIVE_INT_COORD)),
+            new HytaleArgumentType.Data<>(RelativeInteger.class, ArgTypes.RELATIVE_INTEGER,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_RELATIVE_INTEGER)),
+            new HytaleArgumentType.Data<>(RelativeFloat.class, ArgTypes.RELATIVE_FLOAT,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_RELATIVE_FLOAT)),
 
-            new HytaleArgumentType.Data<>(Vector2i.class, ArgTypes.VECTOR2I, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(Vector3i.class, ArgTypes.VECTOR3I, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(RelativeVector3i.class, ArgTypes.RELATIVE_VECTOR3I, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Vector2i.class, ArgTypes.VECTOR2I,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_VECTOR2I)),
+            new HytaleArgumentType.Data<>(Vector3i.class, ArgTypes.VECTOR3I,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_VECTOR3I)),
+            new HytaleArgumentType.Data<>(RelativeVector3i.class, ArgTypes.RELATIVE_VECTOR3I,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_RELATIVE_VECTOR3I)),
 
             new HytaleArgumentType.Data<>(RelativeIntPosition.class, ArgTypes.RELATIVE_BLOCK_POSITION,
-                    HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(RelativeDoublePosition.class, ArgTypes.RELATIVE_POSITION, HytaleArgumentType.ExceptionProvider.DEFAULT),
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_RELATIVE_BLOCK_POSITION)),
+            new HytaleArgumentType.Data<>(RelativeDoublePosition.class, ArgTypes.RELATIVE_POSITION,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_RELATIVE_POSITION)),
             new HytaleArgumentType.Data<>(RelativeChunkPosition.class, ArgTypes.RELATIVE_CHUNK_POSITION,
-                    HytaleArgumentType.ExceptionProvider.DEFAULT),
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_RELATIVE_CHUNK_POSITION)),
 
-            new HytaleArgumentType.Data<>(Vector3f.class, ArgTypes.ROTATION, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(Vector3f.class, ArgTypes.ROTATION,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_ROTATION)),
 
-            new HytaleArgumentType.Data<>(ModelAsset.class, ArgTypes.MODEL_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(Weather.class, ArgTypes.WEATHER_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(Interaction.class, ArgTypes.INTERACTION_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(RootInteraction.class, ArgTypes.ROOT_INTERACTION_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(EntityEffect.class, ArgTypes.EFFECT_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(Environment.class, ArgTypes.ENVIRONMENT_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(Item.class, ArgTypes.ITEM_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(BlockType.class, ArgTypes.BLOCK_TYPE_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(ParticleSystem.class, ArgTypes.PARTICLE_SYSTEM, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(ModelAsset.class, ArgTypes.MODEL_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_MODEL_ASSET)),
+            new HytaleArgumentType.Data<>(Weather.class, ArgTypes.WEATHER_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_WEATHER_ASSET)),
+            new HytaleArgumentType.Data<>(Interaction.class, ArgTypes.INTERACTION_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_INTERACTION_ASSET)),
+            new HytaleArgumentType.Data<>(RootInteraction.class, ArgTypes.ROOT_INTERACTION_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_ROOT_INTERACTION_ASSET)),
+            new HytaleArgumentType.Data<>(EntityEffect.class, ArgTypes.EFFECT_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_EFFECT_ASSET)),
+            new HytaleArgumentType.Data<>(Environment.class, ArgTypes.ENVIRONMENT_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_ENVIRONMENT_ASSET)),
+            new HytaleArgumentType.Data<>(Item.class, ArgTypes.ITEM_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_ITEM_ASSET)),
+            new HytaleArgumentType.Data<>(BlockType.class, ArgTypes.BLOCK_TYPE_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_BLOCK_TYPE_ASSET)),
+            new HytaleArgumentType.Data<>(ParticleSystem.class, ArgTypes.PARTICLE_SYSTEM,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_PARTICLE_SYSTEM)),
             new HytaleArgumentType.Data<>(HitboxCollisionConfig.class, ArgTypes.HITBOX_COLLISION_CONFIG,
-                    HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(RepulsionConfig.class, ArgTypes.REPULSION_CONFIG, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(SoundEvent.class, ArgTypes.SOUND_EVENT_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(AmbienceFX.class, ArgTypes.AMBIENCE_FX_ASSET, HytaleArgumentType.ExceptionProvider.DEFAULT),
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_HITBOX_COLLISION_CONFIG)),
+            new HytaleArgumentType.Data<>(RepulsionConfig.class, ArgTypes.REPULSION_CONFIG,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_REPULSION_CONFIG)),
+            new HytaleArgumentType.Data<>(SoundEvent.class, ArgTypes.SOUND_EVENT_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_SOUND_EVENT_ASSET)),
+            new HytaleArgumentType.Data<>(AmbienceFX.class, ArgTypes.AMBIENCE_FX_ASSET,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_AMBIENCE_FX_ASSET)),
 
-            new HytaleArgumentType.Data<>(SoundCategory.class, ArgTypes.SOUND_CATEGORY, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(GameMode.class, ArgTypes.GAME_MODE, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(SoundCategory.class, ArgTypes.SOUND_CATEGORY,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_SOUND_CATEGORY)),
+            new HytaleArgumentType.Data<>(GameMode.class, ArgTypes.GAME_MODE,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_GAME_MODE)),
 
-            new HytaleArgumentType.Data<>(BlockMask.class, ArgTypes.BLOCK_MASK, HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(BlockPattern.class, ArgTypes.BLOCK_PATTERN, HytaleArgumentType.ExceptionProvider.DEFAULT),
+            new HytaleArgumentType.Data<>(BlockMask.class, ArgTypes.BLOCK_MASK,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_BLOCK_MASK)),
+            new HytaleArgumentType.Data<>(BlockPattern.class, ArgTypes.BLOCK_PATTERN,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_BLOCK_PATTERN)),
 
             new HytaleArgumentType.Data<>(ArgTypes.IntegerComparisonOperator.class, ArgTypes.INTEGER_COMPARISON_OPERATOR,
-                    HytaleArgumentType.ExceptionProvider.DEFAULT),
-            new HytaleArgumentType.Data<>(ArgTypes.IntegerOperation.class, ArgTypes.INTEGER_OPERATION, InvalidIntegerOperator::new)
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_INTEGER_COMPARISON_OPERATOR)),
+            new HytaleArgumentType.Data<>(ArgTypes.IntegerOperation.class, ArgTypes.INTEGER_OPERATION,
+                    new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey.INVALID_INTEGER_OPERATION))
 
-            // new HytaleArgumentType.Data<>(Pair.class, ArgTypes.INT_RANGE, HytaleArgumentType.ExceptionProvider.DEFAULT) // shared Pair<Integer,
-            // Integer>
+            // new HytaleArgumentType.Data<>(Pair.class, ArgTypes.INT_RANGE, new HytaleArgumentType.ResponseKeyExceptionProvider(HytaleResponseKey
+            // .INVALID_INT_RANGE)) // shared Pair<Integer, Integer>
     };
 
     private final JavaPlugin plugin;
@@ -125,7 +155,7 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
         this.registerContextResolvers();
         this.registerDefaultSourceResolvers();
         this.registerDefaultParamTypes();
-        this.addThrowableHandlers();
+        this.registerHytaleResponses();
     }
 
     /**
@@ -156,21 +186,21 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
 
         config.registerSourceResolver(ConsoleSender.class, (minestomSource, ctx) -> {
             if (!minestomSource.isConsole()) {
-                throw new OnlyConsoleAllowedException();
+                throw new CommandException(HytaleResponseKey.ONLY_CONSOLE);
             }
             return (ConsoleSender) minestomSource.origin();
         });
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(HytaleResponseKey.ONLY_PLAYER);
             }
             return source.as(Player.class);
         });
 
         config.registerSourceResolver(PlayerRef.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(HytaleResponseKey.ONLY_PLAYER);
             }
             return source.asPlayerRef();
         });
@@ -189,48 +219,194 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
     }
 
     /**
-     * Registers exception handlers for common Hytale command scenarios.
+     * Registers responses for common Hytale command scenarios.
      * This provides user-friendly error messages for various error conditions.
      */
-    private void addThrowableHandlers() {
-        config.setThrowableResolver(
-                OnlyPlayerAllowedException.class,
-                (ex, context) -> context.source().error("Only players can do this!")
+    private void registerHytaleResponses() {
+        var responseRegistry = config.getResponseRegistry();
+
+        // Register responses for Hytale-specific exceptions
+        responseRegistry.registerResponse(
+                HytaleResponseKey.ONLY_PLAYER,
+                () -> "Only players can do this!"
         );
 
-        config.setThrowableResolver(
-                OnlyConsoleAllowedException.class,
-                (ex, context) -> context.source().error("Only console can do this!")
+        responseRegistry.registerResponse(
+                HytaleResponseKey.ONLY_CONSOLE,
+                () -> "Only console can do this!"
         );
 
-        config.setThrowableResolver(
-                UnknownPlayerException.class,
-                (exception, context) ->
-                        context.source().origin().sendMessage(
-                                Message.translation("server.commands.errors.noSuchPlayer").param("username", exception.getName())
-                        )
+        responseRegistry.registerResponse(
+                HytaleResponseKey.UNKNOWN_PLAYER,
+                () -> "Player '%username%' not found"
         );
 
-        config.setThrowableResolver(InvalidLocationFormatException.class, (exception, context) -> {
-            InvalidLocationFormatException.Reason reason = exception.getReason();
-            String msg = switch (reason) {
-                case INVALID_X_COORDINATE -> "Invalid X coordinate '" + exception.getInputX() + "'";
-                case INVALID_Y_COORDINATE -> "Invalid Y coordinate '" + exception.getInputY() + "'";
-                case INVALID_Z_COORDINATE -> "Invalid Z coordinate '" + exception.getInputZ() + "'";
-                case INVALID_YAW_COORDINATE -> "Invalid Yaw coordinate '" + exception.getInputYaw() + "'";
-                case INVALID_PITCH_COORDINATE -> "Invalid Pitch coordinate '" + exception.getInputPitch() + "'";
-                case NO_WORLDS_AVAILABLE -> "Failed to fetch the world of the given location";
-                case WRONG_FORMAT -> "Wrong location format!";
-                case SELF_LOCATION_NOT_AVAILABLE -> null;
-            };
+        responseRegistry.registerResponse(
+                HytaleResponseKey.UNKNOWN_WORLD,
+                () -> "World '%name%' not found"
+        );
 
-            context.source().reply("&4Failed to parse location '" + exception.getInput() + "' due to: &c" + msg);
-        });
-        config.setThrowableResolver(InvalidIntegerOperator.class,
-                (ex, ctx) ->
-                        ctx.source().origin().sendMessage(
-                                Message.raw("Could not find an integer operator for value: '" + ex.getInput() + "'.")
-                        )
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_LOCATION,
+                () -> "&4Failed to parse location '%input%' due to: &c%message%"
+        );
+
+        // Coordinate parsing errors
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_RELATIVE_DOUBLE_COORD,
+                () -> "Invalid relative double coordinate: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_RELATIVE_INT_COORD,
+                () -> "Invalid relative integer coordinate: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_RELATIVE_INTEGER,
+                () -> "Invalid relative integer: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_RELATIVE_FLOAT,
+                () -> "Invalid relative float: '%input%'"
+        );
+
+        // Vector parsing errors
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_VECTOR2I,
+                () -> "Invalid 2D vector: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_VECTOR3I,
+                () -> "Invalid 3D vector: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_RELATIVE_VECTOR3I,
+                () -> "Invalid relative 3D vector: '%input%'"
+        );
+
+        // Position parsing errors
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_RELATIVE_BLOCK_POSITION,
+                () -> "Invalid relative block position: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_RELATIVE_POSITION,
+                () -> "Invalid relative position: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_RELATIVE_CHUNK_POSITION,
+                () -> "Invalid relative chunk position: '%input%'"
+        );
+
+        // Rotation parsing errors
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_ROTATION,
+                () -> "Invalid rotation: '%input%'"
+        );
+
+        // Asset parsing errors
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_MODEL_ASSET,
+                () -> "Invalid model asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_WEATHER_ASSET,
+                () -> "Invalid weather asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_INTERACTION_ASSET,
+                () -> "Invalid interaction asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_ROOT_INTERACTION_ASSET,
+                () -> "Invalid root interaction asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_EFFECT_ASSET,
+                () -> "Invalid effect asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_ENVIRONMENT_ASSET,
+                () -> "Invalid environment asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_ITEM_ASSET,
+                () -> "Invalid item asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_BLOCK_TYPE_ASSET,
+                () -> "Invalid block type asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_PARTICLE_SYSTEM,
+                () -> "Invalid particle system: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_HITBOX_COLLISION_CONFIG,
+                () -> "Invalid hitbox collision config: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_REPULSION_CONFIG,
+                () -> "Invalid repulsion config: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_SOUND_EVENT_ASSET,
+                () -> "Invalid sound event asset: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_AMBIENCE_FX_ASSET,
+                () -> "Invalid ambience FX asset: '%input%'"
+        );
+
+        // Enum parsing errors
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_SOUND_CATEGORY,
+                () -> "Invalid sound category: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_GAME_MODE,
+                () -> "Invalid game mode: '%input%'"
+        );
+
+        // Selection parsing errors
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_BLOCK_MASK,
+                () -> "Invalid block mask: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_BLOCK_PATTERN,
+                () -> "Invalid block pattern: '%input%'"
+        );
+
+        // Operator parsing errors
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_INTEGER_COMPARISON_OPERATOR,
+                () -> "Invalid integer comparison operator: '%input%'"
+        );
+
+        responseRegistry.registerResponse(
+                HytaleResponseKey.INVALID_INTEGER_OPERATION,
+                () -> "Invalid integer operation: '%input%'"
         );
     }
 

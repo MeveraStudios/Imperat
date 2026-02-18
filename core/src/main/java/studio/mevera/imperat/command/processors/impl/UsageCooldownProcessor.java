@@ -6,7 +6,10 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.CooldownException;
+import studio.mevera.imperat.responses.ResponseKey;
+
+import java.time.Duration;
+import java.time.Instant;
 
 public final class UsageCooldownProcessor<S extends Source> implements CommandPreProcessor<S> {
 
@@ -38,11 +41,17 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
                         || cooldown.permission().isEmpty()
                         || !imperat.config().getPermissionChecker().hasPermission(source, cooldown.permission())) {
 
+                var cooldownDuration = cooldown.toDuration();
+                var lastTimeExecuted = handler.getLastTimeExecuted(source).orElseThrow();
+                var elapsed = Duration.between(lastTimeExecuted, Instant.now());
+                var remaining = cooldownDuration.minus(elapsed);
+                var remainingDuration = remaining.isNegative() ? Duration.ZERO : remaining;
 
-                throw new CooldownException(
-                        cooldown.toDuration(),
-                        handler.getLastTimeExecuted(source).orElseThrow()
-                );
+                throw new CommandException(ResponseKey.COOLDOWN)
+                              .withPlaceholder("seconds", String.valueOf(remainingDuration.toSeconds()))
+                              .withPlaceholder("remaining_duration", remainingDuration.toString())
+                              .withPlaceholder("cooldown_duration", cooldownDuration.toString())
+                              .withPlaceholder("last_executed", lastTimeExecuted.toString());
             }
         }
         handler.registerExecutionMoment(source);

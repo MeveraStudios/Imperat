@@ -16,9 +16,9 @@ public abstract class SelfHandledException extends CommandException {
      * Handles the exception
      *
      * @param <S>     the command-source valueType
-     * @param imperat the api
+     * @param config the api
      * @param context the context
      */
-    public abstract <S extends Source> void handle(ImperatConfig<S> imperat, Context<S> context);
+    public abstract <S extends Source> void handle(ImperatConfig<S> config, Context<S> context);
 
 }

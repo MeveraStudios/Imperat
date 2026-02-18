@@ -10,7 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.exception.NumberOutOfRangeException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
@@ -98,7 +98,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     )
     void testArgumentValidatorHandling() {
         ExecutionResult<TestSource> result = execute("buy potato 0"); // Should fail due to validator range
-        assertFailure(result, NumberOutOfRangeException.class);
+        assertFailure(result, CommandException.class);
     }
     
    /*@Test

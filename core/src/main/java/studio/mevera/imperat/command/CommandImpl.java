@@ -9,7 +9,6 @@ import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
-import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -19,8 +18,8 @@ import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.ParsedArgument;
+import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.ThrowableResolver;
@@ -647,7 +646,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
+    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
         throw new UnsupportedOperationException("A command does not have argument validators !");
     }
 

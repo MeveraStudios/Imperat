@@ -8,7 +8,6 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.flow.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.parse.UnknownSubCommandException;
 
 public final class SubCommandHandler<S extends Source> implements ParameterHandler<S> {
 
@@ -30,7 +29,8 @@ public final class SubCommandHandler<S extends Source> implements ParameterHandl
                 stream.skip();
                 return HandleResult.NEXT_ITERATION;
             } else {
-                return HandleResult.failure(new UnknownSubCommandException(currentRaw));
+                return HandleResult.failure(new CommandException("Invalid sub-command: '%input%'")
+                                                    .withPlaceholder("%input%", currentRaw));
             }
         } catch (Exception e) {
             return HandleResult.failure(new CommandException("Error processing command parameter", e));

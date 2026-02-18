@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.parse.InvalidNumberFormatException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeUtility;
 
@@ -39,7 +39,9 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         try {
             return parse(correspondingInput);
         } catch (NumberFormatException ex) {
-            throw new InvalidNumberFormatException(correspondingInput, ex, display(), this.wrappedType());
+            throw new CommandException(ResponseKey.INVALID_NUMBER_FORMAT)
+                          .withPlaceholder("input", correspondingInput)
+                          .withPlaceholder("number_type", display());
         }
     }
 

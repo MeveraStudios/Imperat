@@ -18,15 +18,8 @@ import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.InvalidLocationFormatException;
-import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
-import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
-import studio.mevera.imperat.exception.UnknownOfflinePlayerException;
-import studio.mevera.imperat.exception.UnknownPlayerException;
-import studio.mevera.imperat.exception.UnknownWorldException;
-import studio.mevera.imperat.exception.selector.InvalidSelectorFieldCriteriaFormat;
-import studio.mevera.imperat.exception.selector.UnknownEntitySelectionTypeException;
-import studio.mevera.imperat.exception.selector.UnknownSelectorFieldException;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.type.LocationArgument;
 import studio.mevera.imperat.type.OfflinePlayerArgument;
@@ -73,7 +66,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     BukkitConfigBuilder(Plugin plugin) {
         this.plugin = plugin;
         config.setPermissionResolver(DEFAULT_PERMISSION_RESOLVER);
-        addThrowableHandlers();
+        registerBukkitResponses();
         registerSourceResolvers();
         registerValueResolvers();
         registerContextResolvers();
@@ -102,77 +95,67 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         config.registerSourceResolver(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
             var origin = bukkitSource.origin();
             if (!(origin instanceof ConsoleCommandSender console)) {
-                throw new OnlyConsoleAllowedException();
+                throw new CommandException(BukkitResponseKey.ONLY_CONSOLE);
             }
             return console;
         });
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(BukkitResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });
     }
 
-    private void addThrowableHandlers() {
-        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context) ->
-                                                                              context.source().error("Only players can do this!"));
+    private void registerBukkitResponses() {
+        var responseRegistry = config.getResponseRegistry();
 
-        config.setThrowableResolver(
-                OnlyConsoleAllowedException.class,
-                (ex, context) -> context.source().error("Only console can do this!")
+        // Register responses for Bukkit-specific exceptions
+        responseRegistry.registerResponse(
+                BukkitResponseKey.ONLY_PLAYER,
+                () -> "Only players can do this!"
         );
 
-        config.setThrowableResolver(InvalidSelectorFieldCriteriaFormat.class, (ex, context) ->
-                                                                                      context.source().error("Invalid field-criteria format '"
-                                                                                                                     + ex.getFieldCriteriaInput()
-                                                                                                                     + "'"));
-
-        config.setThrowableResolver(
-                UnknownSelectorFieldException.class,
-                (ex, context) ->
-                        context.source().error("Unknown selection field '" + ex.getFieldEntered() + "'")
+        responseRegistry.registerResponse(
+                BukkitResponseKey.ONLY_CONSOLE,
+                () -> "Only console can do this!"
         );
 
-        config.setThrowableResolver(
-                UnknownEntitySelectionTypeException.class,
-                (exception, context) ->
-                        context.source().error("Unknown selection type '" + exception.getInput() + "'")
+        responseRegistry.registerResponse(
+                BukkitResponseKey.UNKNOWN_PLAYER,
+                () -> "A player with the name '%name%' doesn't seem to be online"
         );
 
-        config.setThrowableResolver(InvalidLocationFormatException.class, (exception, context) -> {
-            InvalidLocationFormatException.Reason reason = exception.getReason();
-            String msg = switch (reason) {
-                case INVALID_X_COORDINATE -> "Invalid X coordinate '" + exception.getInputX() + "'";
-                case INVALID_Y_COORDINATE -> "Invalid Y coordinate '" + exception.getInputY() + "'";
-                case INVALID_Z_COORDINATE -> "Invalid Z coordinate '" + exception.getInputZ() + "'";
-                case INVALID_YAW_COORDINATE -> "Invalid Yaw coordinate '" + exception.getInputYaw() + "'";
-                case INVALID_PITCH_COORDINATE -> "Invalid Pitch coordinate '" + exception.getInputPitch() + "'";
-                case NO_WORLDS_AVAILABLE -> "Failed to fetch the world of the given location";
-                case WRONG_FORMAT -> "Wrong location format!";
-                case SELF_LOCATION_NOT_AVAILABLE -> null;
-            };
-
-            context.source().reply("&4Failed to parse location '" + exception.getInput() + "' due to: &c" + msg);
-        });
-
-        config.setThrowableResolver(
-                UnknownPlayerException.class,
-                (exception, context) ->
-                        context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
-        );
-        config.setThrowableResolver(
-                UnknownOfflinePlayerException.class,
-                (exception, context) ->
-                        context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to exist")
-        );
-        config.setThrowableResolver(
-                UnknownWorldException.class,
-                (exception, context) ->
-                        context.source().error("A world with the name '" + exception.getName() + "' doesn't seem to exist")
+        responseRegistry.registerResponse(
+                BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER,
+                () -> "A player with the name '%name%' doesn't seem to exist"
         );
 
+        responseRegistry.registerResponse(
+                BukkitResponseKey.UNKNOWN_WORLD,
+                () -> "A world with the name '%name%' doesn't seem to exist"
+        );
+
+        responseRegistry.registerResponse(
+                BukkitResponseKey.INVALID_LOCATION,
+                () -> "&4Failed to parse location '%input%' due to: &c%message%"
+        );
+
+        responseRegistry.registerResponse(
+                BukkitResponseKey.INVALID_SELECTOR_FIELD,
+                () -> "Invalid field-criteria format '%fieldCriteriaInput%'"
+        );
+
+        responseRegistry.registerResponse(
+                BukkitResponseKey.UNKNOWN_SELECTOR_FIELD,
+                () -> "Unknown selection field '%fieldEntered%'"
+        );
+
+        responseRegistry.registerResponse(
+                BukkitResponseKey.UNKNOWN_SELECTION_TYPE,
+                () -> "Unknown selection type '%input%'"
+        );
     }
 
     private void registerValueResolvers() {

@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.UnknownFlagException;
+import studio.mevera.imperat.exception.CommandException;
 
 import java.util.Set;
 
@@ -34,6 +34,6 @@ public sealed interface FlagExtractor<S extends Source> extends FlagRegistrar<S>
      * @param rawInput the raw input of an argument
      * @return the extracted {@link FlagData} for flags.
      */
-    Set<FlagArgument<S>> extract(String rawInput) throws UnknownFlagException;
+    Set<FlagArgument<S>> extract(String rawInput) throws CommandException;
 
 }

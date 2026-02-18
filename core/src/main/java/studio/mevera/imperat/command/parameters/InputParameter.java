@@ -11,10 +11,10 @@ import studio.mevera.imperat.command.parameters.type.CollectionArgument;
 import studio.mevera.imperat.command.parameters.type.CommandArgument;
 import studio.mevera.imperat.command.parameters.type.MapArgument;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
-import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.ParsedArgument;
+import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
 import studio.mevera.imperat.util.PriorityList;
@@ -227,7 +227,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
     }
 
     @Override
-    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
+    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
         for (ArgValidator<S> validator : validators) {
             validator.validate(context, parsedArgument);
         }

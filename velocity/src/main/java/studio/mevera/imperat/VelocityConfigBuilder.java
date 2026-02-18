@@ -12,10 +12,8 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
-import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
-import studio.mevera.imperat.exception.UnknownPlayerException;
-import studio.mevera.imperat.exception.UnknownServerException;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.VelocityResponseKey;
 import studio.mevera.imperat.type.PlayerArgument;
 import studio.mevera.imperat.type.ServerInfoArgument;
 import studio.mevera.imperat.util.TypeWrap;
@@ -64,7 +62,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
             }
             return src.asPlayer().hasPermission(perm);
         });
-        addThrowableHandlers();
+        registerVelocityResponses();
         registerSourceResolvers();
         registerArgumentTypes();
         registerContextResolvers();
@@ -92,7 +90,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         config.registerContextResolver(ServerInfo.class, (ctx, paramElement) -> {
             VelocitySource source = ctx.source();
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
             }
             Player player = source.asPlayer();
             return player.getCurrentServer()
@@ -111,7 +109,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         config.registerSourceResolver(AdventureSource.class, (velocitySource, ctx) -> velocitySource);
         config.registerSourceResolver(ConsoleCommandSource.class, (velocitySource, ctx) -> {
             if (!velocitySource.isConsole()) {
-                throw new OnlyConsoleAllowedException();
+                throw new CommandException(VelocityResponseKey.ONLY_CONSOLE);
             }
             return velocitySource.asConsole();
         });
@@ -120,32 +118,37 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });
     }
 
     /**
-     * Registers exception handlers for common Velocity command scenarios.
+     * Registers responses for common Velocity command scenarios.
      * This provides user-friendly error messages for various error conditions.
      */
-    private void addThrowableHandlers() {
-        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context) -> {
-            context.source().error("Only players can do this!");
-        });
+    private void registerVelocityResponses() {
+        var responseRegistry = config.getResponseRegistry();
 
-        config.setThrowableResolver(
-                UnknownPlayerException.class, (exception, context) ->
-                                                      context.source().error("A player with the name '" + exception.getInput()
-                                                                                     + "' doesn't seem to be online")
+        responseRegistry.registerResponse(
+                VelocityResponseKey.ONLY_PLAYER,
+                () -> "Only players can do this!"
         );
 
-        //resolve for unknownserverexception
-        config.setThrowableResolver(
-                UnknownServerException.class, (exception, context) ->
-                                                      context.source()
-                                                              .error("A server with the name '" + exception.getInput() + "' doesn't seem to exist")
+        responseRegistry.registerResponse(
+                VelocityResponseKey.ONLY_CONSOLE,
+                () -> "Only console can do this!"
+        );
+
+        responseRegistry.registerResponse(
+                VelocityResponseKey.UNKNOWN_PLAYER,
+                () -> "A player with the name '%input%' doesn't seem to be online"
+        );
+
+        responseRegistry.registerResponse(
+                VelocityResponseKey.UNKNOWN_SERVER,
+                () -> "A server with the name '%input%' doesn't seem to exist"
         );
     }
 

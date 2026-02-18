@@ -24,10 +24,14 @@ import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.DependencySupplier;
 import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.responses.Response;
+import studio.mevera.imperat.responses.ResponseContentFetcher;
+import studio.mevera.imperat.responses.ResponseKey;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * A generic abstract builder class for configuring instances of ImperatConfig and creating
@@ -44,6 +48,23 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     protected ConfigBuilder() {
         config = new ImperatConfigImpl<>();
     }
+
+    public B setResponse(Response response) {
+        config.getResponseRegistry().registerResponse(response);
+        return (B) this;
+    }
+
+
+    public B setResponse(ResponseKey key, Supplier<String> contentSupplier) {
+        config.getResponseRegistry().registerResponse(key, contentSupplier, null);
+        return (B) this;
+    }
+
+    public B setTextResponse(ResponseKey key, Supplier<String> contentSupplier, ResponseContentFetcher contentFetcher) {
+        config.getResponseRegistry().registerResponse(key, contentSupplier, contentFetcher);
+        return (B) this;
+    }
+
 
     /**
      * Sets the event bus to be used for handling events within the configuration.
@@ -446,7 +467,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return the current {@link ConfigBuilder} instance for chaining further configuration.
      */
     // Placeholder
-    public B placeholder(Placeholder<S> placeholder) {
+    public B placeholder(Placeholder placeholder) {
         config.registerPlaceholder(placeholder);
         return (B) this;
     }

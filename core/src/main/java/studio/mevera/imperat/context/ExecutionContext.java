@@ -8,7 +8,6 @@ import studio.mevera.imperat.annotations.ContextResolved;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandUsage;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
@@ -167,14 +166,14 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      */
     void resolveArgument(
             ParsedArgument<S> argument
-    ) throws InvalidArgumentException;
+    ) throws CommandException;
 
     /**
      * Registers a resolved flag in the context.
      *
      * @param flag the resolved flag to register
      */
-    void resolveFlag(ParsedFlagArgument<S> flag) throws InvalidArgumentException;
+    void resolveFlag(ParsedFlagArgument<S> flag) throws CommandException;
 
     /**
      * Gets the most specific command that was resolved in this context.

@@ -3,7 +3,7 @@ package studio.mevera.imperat.tests.enhanced;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import studio.mevera.imperat.exception.InvalidSyntaxException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.commands.MultipleOptionals;
 
 @DisplayName("Enhanced Complex Argument Parsing Tests")
@@ -201,7 +201,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
         // Scenario 8: Test command with extra inputs (should fail)
         assertThat(execute("deep req1 optional-text 42 final-value extra"))
                 .hasFailed()
-                .hasFailedWith(InvalidSyntaxException.class);
+                .hasFailedWith(CommandException.class);
     }
 
     @Test

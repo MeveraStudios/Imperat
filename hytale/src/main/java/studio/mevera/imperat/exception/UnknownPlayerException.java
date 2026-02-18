@@ -1,12 +1,15 @@
 package studio.mevera.imperat.exception;
 
-public class UnknownPlayerException extends ParseException {
+import studio.mevera.imperat.responses.HytaleResponseKey;
+
+public class UnknownPlayerException extends CommandException {
 
     private final String name;
 
     public UnknownPlayerException(final String name) {
-        super(name);
+        super(HytaleResponseKey.UNKNOWN_PLAYER);
         this.name = name;
+        withPlaceholder("player", name);
     }
 
     public String getName() {

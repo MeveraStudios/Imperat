@@ -13,6 +13,7 @@ import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
@@ -28,6 +29,13 @@ import java.util.Objects;
  */
 public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfig {
 
+
+    /**
+     * Retrieves the {@link ResponseRegistry} associated with this registrar.
+     *
+     * @return the {@link ResponseRegistry} instance
+     */
+    @NotNull ResponseRegistry getResponseRegistry();
 
     /**
      * Registers a context resolver factory
@@ -197,7 +205,7 @@ public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfi
      *
      * @param placeholder to register
      */
-    void registerPlaceholder(Placeholder<S> placeholder);
+    void registerPlaceholder(Placeholder placeholder);
 
 
 }

@@ -17,8 +17,8 @@ import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ContextFactory;
+import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.ThrowableResolver;
@@ -254,7 +254,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @param id the id for the placeholder
      * @return the placeholder
      */
-    Optional<Placeholder<S>> getPlaceHolder(String id);
+    Optional<Placeholder> getPlaceHolder(String id);
 
     /**
      * Replaces the placeholders of input by their {@link PlaceholderResolver}

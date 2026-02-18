@@ -8,7 +8,8 @@ import studio.mevera.imperat.VelocitySource;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.exception.UnknownServerException;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.VelocityResponseKey;
 
 public final class ServerInfoArgument extends ArgumentType<VelocitySource, ServerInfo> {
 
@@ -23,9 +24,10 @@ public final class ServerInfoArgument extends ArgumentType<VelocitySource, Serve
             @NotNull ExecutionContext<VelocitySource> context,
             @NotNull Cursor<VelocitySource> cursor,
             @NotNull String correspondingInput
-    ) throws UnknownServerException {
+    ) throws CommandException {
         return server.getServer(correspondingInput)
                        .map(RegisteredServer::getServerInfo)
-                       .orElseThrow(() -> new UnknownServerException(correspondingInput));
+                       .orElseThrow(() -> new CommandException(VelocityResponseKey.UNKNOWN_SERVER)
+                                                  .withPlaceholder("input", correspondingInput));
     }
 }
