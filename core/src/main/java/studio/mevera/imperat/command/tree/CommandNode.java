@@ -86,7 +86,6 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
     }
 
     public boolean matchesInput(int depth, Context<S> ctx, boolean strict) {
-        System.out.println("Node= " + this.data.name() + ", strict= " + strict);
         var primaryType = data.type();
         boolean primaryMatches = matchesInput(primaryType, depth, ctx);
 

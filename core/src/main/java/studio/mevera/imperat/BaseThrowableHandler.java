@@ -101,7 +101,7 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
      *                   and error logging purposes, may be {@code null}
      * @param methodName the name of the method where the exception occurred,
      *                   used for debugging and error logging, may be {@code null}
-     * @return whether the exception got handled or not.
+     * @return the unhandled exception if no handler was found, or null if the exception was handled successfully
      * @implNote The default implementation never throws exceptions itself, ensuring
      * that exception handling does not create additional execution failures.
      * All resolver calls are wrapped in implicit exception safety.
@@ -134,8 +134,10 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
                 return true;
             }
 
+
             current = current.getCause();
         }
+
         return false;
     }
 }

@@ -8,7 +8,7 @@ import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.errors.CustomException;
 
 @Command("fail")
-public class FailingCmd {
+public class FailCmd {
 
     @Execute
     public void t(TestSource src, @ContextResolved Context<TestSource> ctx) throws CustomException {

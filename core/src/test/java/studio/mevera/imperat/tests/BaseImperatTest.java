@@ -35,12 +35,6 @@ public abstract class BaseImperatTest {
      * Uses the correct execute method that takes the full command line.
      */
     protected ExecutionResult<TestSource> execute(String commandLine) {
-        //print an array of command names registered in imperat
-        //do it
-        for (var cmd : IMPERAT.getRegisteredCommands()) {
-            System.out.println("Registered command: " + cmd.name());
-        }
-
         return IMPERAT.execute(SOURCE, commandLine);
     }
 

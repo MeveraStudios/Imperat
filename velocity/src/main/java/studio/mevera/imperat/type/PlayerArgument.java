@@ -36,14 +36,17 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
 
         if (correspondingInput.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
-                throw new CommandException(VelocityResponseKey.UNKNOWN_PLAYER)
-                              .withPlaceholder("input", correspondingInput);
+                throw new CommandException(VelocityResponseKey.ONLY_PLAYER)
+                              .withPlaceholder("player", correspondingInput);
             }
             return context.source().asPlayer();
         }
-        return proxyServer.getPlayer(correspondingInput.toLowerCase()).orElseThrow(() ->
-                                                                                           new CommandException(VelocityResponseKey.UNKNOWN_PLAYER)
-                                                                                                   .withPlaceholder("input", correspondingInput));
+        return proxyServer.getPlayer(
+                correspondingInput.toLowerCase()
+        ).orElseThrow(() ->
+                              new CommandException(VelocityResponseKey.UNKNOWN_PLAYER)
+                                      .withPlaceholder("player", correspondingInput)
+        );
     }
 
     @Override
