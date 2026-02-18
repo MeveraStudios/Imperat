@@ -30,9 +30,6 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
     parser: AnnotationParser<S>,
     methodSelector: ElementSelector<MethodElement>
 ) : CommandParsingVisitor<S>(imperat, parser, methodSelector) {
-
-    private val kotlinDefaultParameters = mutableMapOf<String, Set<String>>()
-
     protected fun isSuspendFunction(method: MethodElement): Boolean =
         method.element.parameters.isNotEmpty() &&
                 method.element.parameters.last().type == Continuation::class.java
@@ -45,7 +42,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
             val kFunction = (parameter.parent as? MethodElement)?.element?.kotlinFunction ?: return false
             val kParam = findKParameter(kFunction, parameter) ?: return false
             return kParam.type.isMarkedNullable
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return false
         }
     }
@@ -62,7 +59,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
             val kFunction = (parameter.parent as? MethodElement)?.element?.kotlinFunction ?: return false
             val kParam = findKParameter(kFunction, parameter) ?: return false
             return kParam.isOptional
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return false
         }
     }
@@ -85,13 +82,6 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
 
         if (!hasKotlinDefault && !isNullable) {
             return argument
-        }
-
-        val methodKey = (parameter.parent as? MethodElement)?.element?.toString() ?: "unknown"
-        if (hasKotlinDefault) {
-            kotlinDefaultParameters.compute(methodKey) { _, existing ->
-                (existing ?: emptySet()) + parameter.name
-            }
         }
 
         ImperatDebugger.debug(
@@ -118,22 +108,13 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         usage: CommandUsage<S>
     ): CommandUsage<S>?
 
-    override fun loadUsage(
-        @Nullable parentCmd: Command<S>?,
-        @NotNull loadedCmd: Command<S>,
-        method: MethodElement
-    ): CommandUsage<S>? {
+    override fun loadUsage(parentCmd: Command<S>?, loadedCmd: Command<S>, method: MethodElement): CommandUsage<S>? {
         val usage = super.loadUsage(parentCmd, loadedCmd, method) ?: return null
-        val kFunction = method.element.kotlinFunction ?: return usage
-
-        val hasKotlinDefaults = kFunction.parameters.any {
-            it.isOptional && it.kind == KParameter.Kind.VALUE
-        }
+        method.element.kotlinFunction ?: return usage  // Not a Kotlin function, skip
 
         return when {
             isSuspendFunction(method) -> handleSuspendFunction(parentCmd, loadedCmd, method, usage)
-            hasKotlinDefaults -> wrapWithKotlinHandling(loadedCmd, method, usage, false)
-            else -> usage
+            else -> wrapWithKotlinHandling(loadedCmd, method, usage, false)
         }
     }
 
@@ -145,13 +126,10 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
     ): CommandUsage<S> {
         val originalExecutor = usage.execution as MethodCommandExecutor<S>
         val kFunction = method.element.kotlinFunction ?: return usage
-        val methodKey = method.element.toString()
-        val defaultParams = kotlinDefaultParameters[methodKey] ?: emptySet()
 
         val wrappedExecutor = KotlinAwareExecutor(
             originalExecutor,
             kFunction,
-            defaultParams,
             isSuspend,
             if (isSuspend) (imperat.config().coroutineScope as? CoroutineScope) else null
         )
@@ -179,7 +157,6 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
     private class KotlinAwareExecutor<S : Source>(
         originalExecutor: MethodCommandExecutor<S>,
         private val kFunction: KFunction<*>,
-        private val kotlinDefaultParams: Set<String>,
         private val isSuspend: Boolean,
         private val coroutineScope: CoroutineScope?
     ) : MethodCommandExecutor<S>(originalExecutor) {
@@ -199,25 +176,17 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         private fun buildParamMap(args: Array<Any?>): Map<KParameter, Any?> {
             val map = mutableMapOf<KParameter, Any?>()
 
-            kFunction.instanceParameter?.let {
-                map[it] = boundMethodCaller.instance()
-            }
+            kFunction.instanceParameter?.let { map[it] = boundMethodCaller.instance() }
 
             val valueParams = kFunction.parameters.filter { it.kind == KParameter.Kind.VALUE }
 
             args.forEachIndexed { index, arg ->
                 if (index < valueParams.size) {
                     val kParam = valueParams[index]
-                    val paramName = kParam.name ?: "param$index"
-
-                    when {
-                        arg == null && kotlinDefaultParams.contains(paramName) -> {
-                            ImperatDebugger.debug("Omitting '$paramName' - using Kotlin default")
-                            // Don't add to map!
-                        }
-                        else -> {
-                            map[kParam] = arg
-                        }
+                    if (arg == null && kParam.isOptional) {
+                        ImperatDebugger.debug("Omitting '${kParam.name}' — using Kotlin default")
+                    } else {
+                        map[kParam] = arg
                     }
                 }
             }
