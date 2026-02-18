@@ -1,0 +1,5 @@
+name: TestImperatPlugin
+version: "1.0.0"
+main: studio.mevera.imperat.bukkit.test.TestImperatPlugin
+api-version: "1.21"
+

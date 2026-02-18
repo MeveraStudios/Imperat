@@ -86,7 +86,6 @@ public class TestSource implements Source {
                        "origin=" + origin + ']';
     }
 
-
     public void debugPerms() {
         StringBuilder builder = new StringBuilder();
         for (var str : permissions) {

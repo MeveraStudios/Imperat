@@ -1,6 +1,3 @@
-import org.gradle.kotlin.dsl.withType
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id("com.gradleup.shadow") version "8.3.9"
     kotlin("jvm") version "2.3.0"
@@ -49,10 +46,25 @@ dependencies {
     compileOnly("org.spigotmc:spigot:1.13.2-R0.1-SNAPSHOT")
 
     compileOnly(kyoriPlatform(KyoriModule["BUKKIT"]!!))
+
+    // Test dependencies
+    testImplementation(project(":core"))
+    testImplementation(project(":adventure"))
+    testImplementation(project(":brigadier"))
+    testImplementation(project(":paper"))
+    testImplementation("com.mojang:brigadier:1.0.18")
+    testImplementation("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    testImplementation(kyoriPlatform(KyoriModule["BUKKIT"]!!))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.29.0")
 }
 
 tasks.processTestResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 val targetJavaVersion = 17
@@ -70,6 +82,20 @@ tasks.withType<JavaCompile>().configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
         options.release.set(targetJavaVersion)
     }
+}
+
+// MockBukkit v1.21 requires Java 21 at runtime and compile time
+tasks.named<JavaCompile>("compileTestJava") {
+    options.release.set(21)
+    javaCompiler.set(javaToolchains.compilerFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
+}
+
+tasks.test {
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
 }
 
 kotlin {
