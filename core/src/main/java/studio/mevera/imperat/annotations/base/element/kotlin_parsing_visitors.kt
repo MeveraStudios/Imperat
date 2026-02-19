@@ -34,13 +34,19 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         method.element.parameters.isNotEmpty() &&
                 method.element.parameters.last().type == Continuation::class.java
 
-    protected fun isContinuationParameter(parameter: ParameterElement): Boolean =
-        parameter.element.type == Continuation::class.java
+    protected fun isContinuationParameter(parameter: ParameterElement): Boolean {
+        val type = parameter.element.type
+        return type == Continuation::class.java ||
+                type.name == "kotlin.coroutines.Continuation" ||
+                type.interfaces.any { it.name == "kotlin.coroutines.Continuation" } ||
+                Continuation::class.java.isAssignableFrom(type)
+    }
 
     protected fun isKotlinNullable(parameter: ParameterElement): Boolean {
         try {
-            val kFunction = (parameter.parent as? MethodElement)?.element?.kotlinFunction ?: return false
-            val kParam = findKParameter(kFunction, parameter) ?: return false
+            val kParam = findKValueParameterByIndex(parameter)
+                ?: ((parameter.parent as? MethodElement)?.element?.kotlinFunction?.let { findKParameter(it, parameter) })
+                ?: return false
             return kParam.type.isMarkedNullable
         } catch (_: Exception) {
             return false
@@ -54,10 +60,34 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
                     kParam.type.javaType == parameter.element.parameterizedType
         }
 
+    private fun findKValueParameterByIndex(parameter: ParameterElement): KParameter? {
+        val method = parameter.parent as? MethodElement ?: return null
+        val kFunction = method.element.kotlinFunction ?: return null
+
+        val kValueParams = kFunction.parameters.filter { it.kind == KParameter.Kind.VALUE }
+        if (kValueParams.isEmpty()) {
+            return null
+        }
+
+        var javaValueIndex = 0
+        for (methodParam in method.parameters) {
+            if (methodParam === parameter) {
+                break
+            }
+            if (isContinuationParameter(methodParam) || methodParam.isContextResolved) {
+                continue
+            }
+            javaValueIndex++
+        }
+
+        return kValueParams.getOrNull(javaValueIndex)
+    }
+
     protected fun hasKotlinDefault(parameter: ParameterElement): Boolean {
         try {
-            val kFunction = (parameter.parent as? MethodElement)?.element?.kotlinFunction ?: return false
-            val kParam = findKParameter(kFunction, parameter) ?: return false
+            val kParam = findKValueParameterByIndex(parameter)
+                ?: ((parameter.parent as? MethodElement)?.element?.kotlinFunction?.let { findKParameter(it, parameter) })
+                ?: return false
             return kParam.isOptional
         } catch (_: Exception) {
             return false
@@ -78,6 +108,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         }
 
         val hasKotlinDefault = hasKotlinDefault(parameter)
+
         val isNullable = isKotlinNullable(parameter)
 
         if (!hasKotlinDefault && !isNullable) {
@@ -110,11 +141,14 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
 
     override fun loadUsage(parentCmd: Command<S>?, loadedCmd: Command<S>, method: MethodElement): CommandUsage<S>? {
         val usage = super.loadUsage(parentCmd, loadedCmd, method) ?: return null
-        method.element.kotlinFunction ?: return usage  // Not a Kotlin function, skip
+        val kFunction = method.element.kotlinFunction ?: return usage
+
+        val hasDefaults = kFunction.parameters.any { it.kind == KParameter.Kind.VALUE && it.isOptional }
 
         return when {
             isSuspendFunction(method) -> handleSuspendFunction(parentCmd, loadedCmd, method, usage)
-            else -> wrapWithKotlinHandling(loadedCmd, method, usage, false)
+            hasDefaults -> wrapWithKotlinHandling(loadedCmd, method, usage, false)
+            else -> usage  // Plain Kotlin function, no wrapping needed
         }
     }
 

@@ -26,6 +26,8 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.8.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.8.0")
 
+    testImplementation("org.jetbrains.kotlin:kotlin-reflect:2.3.10")
+
     testImplementation("org.jetbrains:annotations:24.1.0")
     testAnnotationProcessor("org.jetbrains:annotations:24.1.0")
 }
