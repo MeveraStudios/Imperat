@@ -1,6 +1,7 @@
 package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.command.AttachmentMode;
@@ -511,6 +512,18 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     public B instanceFactory(InstanceFactory<S> instanceFactory) {
         config.setInstanceFactory(instanceFactory);
         return (B) this;
+    }
+
+    public void setCoroutineScope(@NotNull Object scope) {
+        config.setCoroutineScope(scope);
+    }
+
+    public @Nullable Object getCoroutineScope() {
+        return config.getCoroutineScope();
+    }
+
+    public boolean hasCoroutineScope() {
+        return config.hasCoroutineScope();
     }
 
     /**
