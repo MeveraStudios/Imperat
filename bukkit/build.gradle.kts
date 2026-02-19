@@ -8,6 +8,7 @@ repositories {
     maven {
         url = uri("https://repo.codemc.io/repository/nms/")
     }
+    maven("https://hub.spigotmc.org/nexus/content/groups/public/")
     maven {
         url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
 
@@ -25,6 +26,7 @@ repositories {
     maven {
         url = uri("https://libraries.minecraft.net")
     }
+
 }
 
 fun kyoriPlatform(module: String): String {
@@ -53,10 +55,12 @@ dependencies {
     testImplementation(project(":brigadier"))
     testImplementation(project(":paper"))
     testImplementation("com.mojang:brigadier:1.0.18")
-    testImplementation("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    //testImplementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     testImplementation(kyoriPlatform(KyoriModule["BUKKIT"]!!))
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
-    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.29.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.1")
+    testImplementation("org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.101.0")
 }
 
 tasks.processTestResources {

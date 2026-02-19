@@ -17,7 +17,7 @@ public class TestImperatPlugin extends JavaPlugin {
                           .build();
 
         // Register the test command
-        imperat.registerCommand(new GreetCommand());
+        imperat.registerCommand(new TellCmd());
     }
 
     @Override

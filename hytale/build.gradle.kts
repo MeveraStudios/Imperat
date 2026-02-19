@@ -8,7 +8,8 @@ repositories {
 
 dependencies {
     compileOnly(project(":core"))
-    compileOnly("com.hypixel.hytale:Server:2026.01.24-6e2d4fc36")
+
+    compileOnly("com.hypixel.hytale:Server:2026.02.18-f3b8fff95")
     compileOnly("org.jetbrains:annotations:26.0.2-1")
     annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 }
