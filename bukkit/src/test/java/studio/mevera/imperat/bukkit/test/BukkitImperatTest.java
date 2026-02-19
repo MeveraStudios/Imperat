@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.destroystokyo.paper.event.server.AsyncTabCompleteEvent;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
@@ -13,6 +15,9 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import studio.mevera.imperat.BukkitImperat;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.ExecutionResult;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Simple unit test for executing Imperat commands on Bukkit using MockBukkit.
@@ -74,6 +79,54 @@ class BukkitImperatTest {
         ExecutionResult<BukkitSource> result = imperat.execute(consoleSource, "greet");
 
         assertFalse(result.hasFailed(), "Console greet execution should succeed");
+    }
+
+    @Test
+    void testGreetArgumentSuggestion() throws Exception {
+        // Test that suggestions for the "name" argument are provided
+        PlayerMock player = server.addPlayer("TestPlayer");
+        BukkitSource source = imperat.wrapSender(player);
+
+        // 1) Verify Imperat's autoComplete API works directly
+        var imperatResults = imperat.autoComplete(source, "greet ")
+                                     .join();
+        Assertions.assertLinesMatch(List.of("Mazen", "Ahmed", "Eyad"), imperatResults);
+
+        // 2) Verify the Bukkit-side path: on Paper, tab completion goes through
+        //    AsyncTabCompleteEvent (InternalBukkitCommand.tabComplete returns emptyList
+        //    on Paper by design). We simulate the real Paper flow here.
+        //    MockBukkit enforces that async events must be fired off the main thread.
+        var event = new AsyncTabCompleteEvent(
+                player,
+                new ArrayList<>(),
+                "/greet ",
+                true,
+                player.getLocation()
+        );
+
+        var thread = new Thread(() -> server.getPluginManager().callEvent(event));
+        thread.start();
+        thread.join();
+
+        List<String> bukkitResults = event.getCompletions();
+        Assertions.assertLinesMatch(List.of("Mazen", "Ahmed", "Eyad"), bukkitResults);
+
+
+        //test for alias "salute"
+        var event2 = new AsyncTabCompleteEvent(
+                player,
+                new ArrayList<>(),
+                "/salute ",
+                true,
+                player.getLocation()
+        );
+
+        var thread2 = new Thread(() -> server.getPluginManager().callEvent(event2));
+        thread2.start();
+        thread2.join();
+
+        List<String> bukkitResults2 = event2.getCompletions();
+        Assertions.assertLinesMatch(List.of("Mazen", "Ahmed", "Eyad"), bukkitResults2);
     }
 }
 

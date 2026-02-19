@@ -13,6 +13,7 @@ public class TestImperatPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         imperat = BukkitImperat.builder(this)
+                          //.applyBrigadier(true)
                           .build();
 
         // Register the test command
