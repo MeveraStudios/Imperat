@@ -86,6 +86,10 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
         return AnnotationHelper.loadParameterInstances(dispatcher, fullParameters, context.source(), context, method);
     }
 
+    public MethodElement getMethodElement() {
+        return method;
+    }
+
     public MethodCaller.BoundMethodCaller getBoundMethodCaller() {
         return boundMethodCaller;
     }

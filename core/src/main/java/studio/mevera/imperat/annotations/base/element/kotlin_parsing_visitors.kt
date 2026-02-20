@@ -200,11 +200,26 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
             val paramMap = buildParamMap(args)
             if (isSuspend) {
                 coroutineScope?.launch {
-                    kFunction.callSuspendBy(paramMap)
+                    val returned = kFunction.callSuspendBy(paramMap)
+                    handleReturnValue(context, returned)
                 }
             } else {
-                kFunction.callBy(paramMap)
+                val returned = kFunction.callBy(paramMap)
+                handleReturnValue(context, returned)
             }
+        }
+
+        private fun handleReturnValue(context: ExecutionContext<S>, returned: Any?) {
+            val method = getMethodElement()
+            if (method.returnType == Void.TYPE) {
+                return
+            }
+            @Suppress("UNCHECKED_CAST")
+            val returnResolver = context.imperatConfig()
+                    .getReturnResolver<Any>(method.returnType)
+                ?: return
+
+            returnResolver.handle(context, method, returned)
         }
 
         private fun buildParamMap(args: Array<Any?>): Map<KParameter, Any?> {
