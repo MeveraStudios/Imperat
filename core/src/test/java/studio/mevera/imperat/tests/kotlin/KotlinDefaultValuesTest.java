@@ -1,6 +1,7 @@
 package studio.mevera.imperat.tests.kotlin;
 
 import org.junit.jupiter.api.Test;
+import studio.mevera.imperat.CommandParsingMode;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.tests.TestImperat;
@@ -27,7 +28,7 @@ public class KotlinDefaultValuesTest {
     @Test
     void shouldUseKotlinDefaultWhenArgumentOmitted() {
         TestImperat imperat = TestImperatConfig.builder()
-                .applyOnConfig(cfg -> cfg.setCommandParsingMode(ImperatConfig.CommandParsingMode.KOTLIN))
+                .applyOnConfig(cfg -> cfg.setCommandParsingMode(CommandParsingMode.KOTLIN))
                 .build();
         imperat.registerCommand(KotlinDefaultCommand.class);
 
@@ -41,7 +42,7 @@ public class KotlinDefaultValuesTest {
     @Test
     void shouldUseProvidedValueWhenArgumentPresent() {
         TestImperat imperat = TestImperatConfig.builder()
-                .applyOnConfig(cfg -> cfg.setCommandParsingMode(ImperatConfig.CommandParsingMode.KOTLIN))
+                .applyOnConfig(cfg -> cfg.setCommandParsingMode(CommandParsingMode.KOTLIN))
                 .build();
         imperat.registerCommand(KotlinDefaultCommand.class);
 

@@ -1,6 +1,7 @@
 package studio.mevera.imperat.annotations.base.element;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.CommandParsingMode;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
@@ -41,26 +42,18 @@ public abstract class CommandClassVisitor<S extends Source, R> {
         Imperat<S> imperat,
         AnnotationParser<S> parser
     ) {
-        ImperatConfig.CommandParsingMode mode = imperat.config().getCommandParsingMode();
+        CommandParsingMode mode = imperat.config().getCommandParsingMode();
 
-        switch (mode) {
-            case KOTLIN:
-                return createKotlinVisitorReflectively(imperat, parser);
-            case AUTO:
-                if (isKotlinAvailable()) {
-                    return createKotlinVisitorReflectively(imperat, parser);
-                }
-                // Fall through to JAVA
-            case JAVA:
-            default:
-                return new CommandParsingVisitor<>(
-                    imperat,
-                    parser,
-                    ElementSelector.<MethodElement>create()
-                        .addRule(MethodRules.HAS_KNOWN_SENDER)
-                    //.addRule(MethodRules.HAS_LEAST_ONLY_ONE_MAIN_ANNOTATION)
-                );
-        }
+        return switch (mode) {
+            case KOTLIN -> createKotlinVisitorReflectively(imperat, parser);
+            case JAVA -> new CommandParsingVisitor<>(
+                imperat,
+                parser,
+                ElementSelector.<MethodElement>create()
+                    .addRule(MethodRules.HAS_KNOWN_SENDER)
+                //.addRule(MethodRules.HAS_LEAST_ONLY_ONE_MAIN_ANNOTATION)
+            );
+        };
     }
 
     public static <S extends Source> CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> newThrowableParsingVisitor(
@@ -78,25 +71,14 @@ public abstract class CommandClassVisitor<S extends Source, R> {
             @NotNull ClassElement clazz
     );
 
-    /**
-     * Checks if Kotlin runtime is available on the classpath
-     */
-    private static boolean isKotlinAvailable() {
-        try {
-            Class.forName("kotlin.coroutines.Continuation");
-            Class.forName("kotlin.reflect.KFunction");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     private static <S extends Source> CommandClassVisitor<S, Set<Command<S>>> createKotlinVisitorReflectively(
         Imperat<S> imperat,
         AnnotationParser<S> parser
     ) {
         try {
+            Class.forName("kotlin.coroutines.Continuation");
+            Class.forName("kotlin.reflect.KFunction");
             Class<?> factory = Class.forName(
                 "studio.mevera.imperat.annotations.base.element.KotlinCommandParsingVisitorFactory"
             );
@@ -104,7 +86,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
                 factory
                     .getMethod("create", Imperat.class, AnnotationParser.class)
                     .invoke(null, imperat, parser);
-        } catch (ReflectiveOperationException e) {
+        } catch (ReflectiveOperationException | NoClassDefFoundError e) {
             throw new IllegalStateException(
                 "Kotlin support requested but Kotlin runtime is unavailable, make sure you've also added kotlin-reflect.",
                 e

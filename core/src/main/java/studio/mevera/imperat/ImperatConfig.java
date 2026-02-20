@@ -373,12 +373,6 @@ public sealed interface ImperatConfig<S extends Source> extends
 
     CommandParsingMode getCommandParsingMode();
 
-    enum CommandParsingMode {
-        JAVA,
-        KOTLIN,
-        AUTO
-    }
-
     EventBus getEventBus();
 
     void setEventBus(EventBus eventBus);

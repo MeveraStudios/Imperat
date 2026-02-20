@@ -526,6 +526,15 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         return config.hasCoroutineScope();
     }
 
+    public B setCommandParsingMode(CommandParsingMode mode) {
+        config.setCommandParsingMode(mode);
+        return (B) this;
+    }
+
+    public CommandParsingMode getCommandParsingMode() {
+        return config.getCommandParsingMode();
+    }
+
     /**
      * Builds and returns the final configuration object based on the provided settings and definitions
      * within the builder. This method finalizes the configuration and ensures all dependencies
