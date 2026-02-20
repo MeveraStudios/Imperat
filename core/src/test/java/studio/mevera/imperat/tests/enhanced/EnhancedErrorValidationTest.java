@@ -10,6 +10,7 @@ import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownCommandException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Enhanced Error Validation Tests")
@@ -32,7 +33,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
 
         @Test
         @DisplayName("Should fail for incomplete required arguments")
-        void testIncompleteRequiredArguments() throws CommandException {
+        void testIncompleteRequiredArguments() {
             ExecutionResult<TestSource> result = execute("test hello"); // Missing second required arg
 
             assertThat(result)
@@ -41,11 +42,12 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
 
         @Test
         @DisplayName("Should fail for incomplete subcommands")
-        void testIncompleteSubcommands() throws CommandException {
+        void testIncompleteSubcommands() {
             ExecutionResult<TestSource> result = execute("group member setperm"); // Missing permission
 
-            assertThat(result)
-                    .isSuccessful();
+            Assertions.assertNotNull(result.getError());
+            Assertions.assertTrue(result.getError() instanceof CommandException e && e.getResponseKey() != null
+                                          && e.getResponseKey() == ResponseKey.INVALID_SYNTAX);
         }
     }
 

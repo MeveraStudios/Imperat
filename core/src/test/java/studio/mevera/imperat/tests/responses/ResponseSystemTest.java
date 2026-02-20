@@ -2,6 +2,7 @@ package studio.mevera.imperat.tests.responses;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -219,10 +220,9 @@ class ResponseSystemTest {
         // When validation fails, the CompletableFuture completes exceptionally
         // and no message is sent to the source
         response.sendContent(context, placeholders);
-        Thread.sleep(100);
 
         // Verify that no message was sent because validation failed
-        assertThat(capturedMessages).isEmpty();
+        Assertions.assertTrue(capturedMessages.isEmpty());
     }
 
     @Test

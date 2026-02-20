@@ -62,7 +62,13 @@ public class Response {
     public <S extends Source> void sendContent(Context<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
         var src = ctx.source();
         getContent(ctx, placeholders)
-                .thenAccept(src::reply);
+                .thenAccept((content) -> {
+                    if (content == null) {
+                        throw new IllegalStateException(
+                                "Failed to fetch content for response '" + key.getKey() + "'. Check previous logs for more details.");
+                    }
+                    src.reply(content);
+                });
     }
 
     private <S extends Source> CompletableFuture<String> getContent(Context<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
