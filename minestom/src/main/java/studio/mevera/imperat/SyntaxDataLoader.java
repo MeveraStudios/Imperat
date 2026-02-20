@@ -17,7 +17,7 @@ import net.minestom.server.particle.Particle;
 import net.minestom.server.utils.location.RelativeVec;
 import net.minestom.server.utils.time.TimeUnit;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.responses.MinestomResponseKey;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Patterns;
@@ -148,13 +148,13 @@ final class SyntaxDataLoader {
         };
     }
 
-    static @NotNull CommandCondition loadCondition(MinestomImperat imperat, CommandUsage<MinestomSource> usage) {
+    static @NotNull CommandCondition loadCondition(MinestomImperat imperat, CommandPathway<MinestomSource> usage) {
         return (sender, _) -> imperat.config().getPermissionChecker().hasPermission(imperat.wrapSender(sender), usage);
     }
 
     static <T> Argument<?>[] loadArguments(
             MinestomImperat imperat,
-            CommandUsage<MinestomSource> usage
+            CommandPathway<MinestomSource> usage
     ) {
         Argument<?>[] args = new Argument[usage.size()];
         List<studio.mevera.imperat.command.parameters.Argument<MinestomSource>> parameters = usage.getParameters();

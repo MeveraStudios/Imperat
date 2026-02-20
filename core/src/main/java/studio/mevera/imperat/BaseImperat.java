@@ -6,7 +6,7 @@ import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.AnnotationReader;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
@@ -329,7 +329,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         if (!config.getPermissionChecker().hasPermission(source, command)) {
             throw new CommandException(ResponseKey.PERMISSION_DENIED)
                           .withPlaceholder("command", command.name())
-                          .withPlaceholder("usage", CommandUsage.format(command, command.getDefaultUsage()));
+                          .withPlaceholder("usage", CommandPathway.format(command, command.getDefaultPathway()));
         }
 
         CommandPathSearch<S> searchResult = command.contextMatch(context);
@@ -338,15 +338,15 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         if (searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
             throw new CommandException(ResponseKey.PERMISSION_DENIED)
                           .withPlaceholder("command", command.name())
-                          .withPlaceholder("usage", CommandUsage.format(command, searchResult.getClosestUsage()));
+                          .withPlaceholder("usage", CommandPathway.format(command, searchResult.getClosestUsage()));
         }
 
-        CommandUsage<S> usage = searchResult.getFoundUsage();
+        CommandPathway<S> usage = searchResult.getFoundUsage();
         if (usage == null || searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
             ImperatDebugger.debug("Usage not found !");
             var closestUsage = searchResult.getClosestUsage();
             throw new CommandException(ResponseKey.INVALID_SYNTAX)
-                          .withPlaceholder("closest_usage", closestUsage != null ? CommandUsage.format(command, closestUsage) : "No usage found");
+                          .withPlaceholder("closest_usage", closestUsage != null ? CommandPathway.format(command, closestUsage) : "No usage found");
         }
 
         var usageAccessCheckResult = config.getPermissionChecker().hasPermission(source, usage);
@@ -354,9 +354,9 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             ImperatDebugger.debug("Failed usage permission check !");
             throw new CommandException(ResponseKey.PERMISSION_DENIED)
                           .withPlaceholder("command", command.name())
-                          .withPlaceholder("usage", CommandUsage.format(command, usage));
+                          .withPlaceholder("usage", CommandPathway.format(command, usage));
         }
-        ImperatDebugger.debug("Usage Found Format: '" + CommandUsage.formatWithTypes(command, usage) + "'");
+        ImperatDebugger.debug("Usage Found Format: '" + CommandPathway.formatWithTypes(command, usage) + "'");
 
         return executeUsage(command, source, context, usage, searchResult);
     }
@@ -365,7 +365,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             final Command<S> command,
             final S source,
             final Context<S> context,
-            final CommandUsage<S> usage,
+            final CommandPathway<S> usage,
             final CommandPathSearch<S> dispatch
     ) throws CommandException {
 
@@ -388,7 +388,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
     private void globalPreProcessing(
             @NotNull Context<S> context,
-            @NotNull CommandUsage<S> usage
+            @NotNull CommandPathway<S> usage
     ) throws ProcessorException {
 
         for (CommandPreProcessor<S> preProcessor : config.getPreProcessors()) {
@@ -531,8 +531,8 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                 cmd.visualizeTree();
             } else {
                 ImperatDebugger.debug("Debugging command '%s'", cmd.name());
-                for (CommandUsage<S> usage : cmd.usages()) {
-                    ImperatDebugger.debug("   - '%s'", CommandUsage.format(cmd, usage));
+                for (CommandPathway<S> usage : cmd.getAllPossiblePathways()) {
+                    ImperatDebugger.debug("   - '%s'", CommandPathway.format(cmd, usage));
                 }
             }
         }

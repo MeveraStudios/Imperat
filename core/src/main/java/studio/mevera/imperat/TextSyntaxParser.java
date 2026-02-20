@@ -1,10 +1,10 @@
 package studio.mevera.imperat;
 
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.FlagBuilder;
 import studio.mevera.imperat.command.parameters.ArgumentBuilder;
+import studio.mevera.imperat.command.parameters.FlagBuilder;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.TypeWrap;
@@ -39,7 +39,7 @@ public final class TextSyntaxParser<S extends Source> {
     }
 
     /**
-     * Parses a command syntax string into a CommandUsage object.
+     * Parses a command syntax string into a CommandPathway object.
      * The syntax string should follow the format:
      * - It must start with the command name, optionally prefixed by the command prefix (e.g., "/").
      * - Followed by parameters which can be:
@@ -57,11 +57,11 @@ public final class TextSyntaxParser<S extends Source> {
      * - Custom generic types like CustomType<AnotherType> are supported if specifically set.
      * </p>
      *
-     * @param syntax the syntax string to parse into a {@link CommandUsage}
-     * @return the parsed {@link CommandUsage} object
+     * @param syntax the syntax string to parse into a {@link CommandPathway}
+     * @return the parsed {@link CommandPathway} object
      * @throws IllegalArgumentException if the syntax string is invalid
      */
-    public CommandUsage<S> parseSyntaxToUsage(final String syntax) {
+    public CommandPathway<S> parseSyntaxToUsage(final String syntax) {
         String trimmedSyntax = syntax.trim();
         final String cmdPrefix = imperat.config().commandPrefix();
         if (trimmedSyntax.startsWith(imperat.config().commandPrefix())) {
@@ -81,7 +81,7 @@ public final class TextSyntaxParser<S extends Source> {
             registerNewCommand = true;
         }
 
-        CommandUsage.Builder<S> commandUsage = CommandUsage.builder();
+        CommandPathway.Builder<S> commandUsage = CommandPathway.builder();
 
         List<ArgumentBuilder<S, ?>> parameters = new ArrayList<>();
 
@@ -121,7 +121,7 @@ public final class TextSyntaxParser<S extends Source> {
                             .parameterBuilders(parameters)
                             .build(command);
 
-        command.addUsage(usage);
+        command.addPathway(usage);
         if (registerNewCommand) {
             imperat.registerSimpleCommand(command);
         }
@@ -179,7 +179,7 @@ public final class TextSyntaxParser<S extends Source> {
                                          .setMetaPropertiesFromOtherCommand(shortcutOwner)
                                          .build();
 
-        CommandUsage.Builder<S> commandUsage = CommandUsage.<S>builder()
+        CommandPathway.Builder<S> commandUsage = CommandPathway.<S>builder()
                                                        .setPropertiesFromCommandMainUsage(shortcutOwner);
 
         //now lets add parameters to the command usage, part by part
@@ -188,7 +188,7 @@ public final class TextSyntaxParser<S extends Source> {
 
         Map<String, Argument<S>> params = new HashMap<>();
 
-        for (CommandUsage<S> usage : shortcutOwner.usages()) {
+        for (CommandPathway<S> usage : shortcutOwner.getAllPossiblePathways()) {
             for (Argument<S> param : usage.getParameters()) {
                 if (params.containsKey(param.format())) {
                     //if already exists, skip
@@ -222,7 +222,7 @@ public final class TextSyntaxParser<S extends Source> {
         }
 
         commandUsage.parameters(orderedParameters);
-        rootCommand.addUsage(commandUsage);
+        rootCommand.addPathway(commandUsage);
         return rootCommand;
     }
 

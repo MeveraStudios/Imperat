@@ -67,7 +67,7 @@ public class ParameterChain<S extends Source> {
             //all flags here must be resolved inside the context
             for (var flagParam : extracted) {
 
-                if (!lastCmd.getMainUsage().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
+                if (!lastCmd.getMainPathway().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
                     throw new CommandException(ResponseKey.FLAG_OUTSIDE_SCOPE)
                                   .withPlaceholder("flag_input", raw)
                                   .withPlaceholder("wrong_cmd", lastCmd.name());

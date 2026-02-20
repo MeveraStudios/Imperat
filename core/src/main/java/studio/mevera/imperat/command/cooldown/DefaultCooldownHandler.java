@@ -1,6 +1,6 @@
 package studio.mevera.imperat.command.cooldown;
 
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.Source;
 
 import java.time.Instant;
@@ -11,9 +11,9 @@ import java.util.Optional;
 final class DefaultCooldownHandler<S extends Source> implements CooldownHandler<S> {
 
     private final Map<String, Instant> lastTimeExecuted = new HashMap<>();
-    private final CommandUsage<S> usage;
+    private final CommandPathway<S> usage;
 
-    DefaultCooldownHandler(CommandUsage<S> usage) {
+    DefaultCooldownHandler(CommandPathway<S> usage) {
         this.usage = usage;
     }
 
@@ -22,7 +22,7 @@ final class DefaultCooldownHandler<S extends Source> implements CooldownHandler<
      * Sets the last time of execution to this
      * current moment using {@link System#currentTimeMillis()}
      *
-     * @param source the command sender executing the {@link CommandUsage}
+     * @param source the command sender executing the {@link CommandPathway}
      */
     @Override
     public void registerExecutionMoment(S source) {
@@ -55,7 +55,7 @@ final class DefaultCooldownHandler<S extends Source> implements CooldownHandler<
      * executed a specific command usage
      *
      * @param source the command sender
-     * @return the last time the sender executed {@link CommandUsage}
+     * @return the last time the sender executed {@link CommandPathway}
      */
     @Override
     public Optional<Instant> getLastTimeExecuted(S source) {

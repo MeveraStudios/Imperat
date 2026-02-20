@@ -23,7 +23,7 @@ public enum AttachmentMode {
     DEFAULT(true),
 
     /**
-     * Attaches the sub command to the main {@link CommandUsage} of a {@link Command}
+     * Attaches the sub command to the main {@link CommandPathway} of a {@link Command}
      * A main usage is a usage that contains required arguments/parameters.
      */
     MAIN(true),

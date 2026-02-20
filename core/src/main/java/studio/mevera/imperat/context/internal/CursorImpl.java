@@ -2,7 +2,7 @@ package studio.mevera.imperat.context.internal;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Source;
@@ -26,7 +26,7 @@ final class CursorImpl<S extends Source> implements Cursor<S> {
     int lastRawPosition = -1;
     boolean cacheValid = false;
 
-    CursorImpl(ArgumentInput queue, CommandUsage<S> usage) {
+    CursorImpl(ArgumentInput queue, CommandPathway<S> usage) {
         this(queue, usage.getParameters());
     }
 

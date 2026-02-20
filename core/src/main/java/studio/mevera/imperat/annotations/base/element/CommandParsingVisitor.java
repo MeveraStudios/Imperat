@@ -11,6 +11,7 @@ import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Cooldown;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.DefaultProvider;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Flag;
 import studio.mevera.imperat.annotations.Format;
 import studio.mevera.imperat.annotations.GlobalAttachmentMode;
@@ -24,7 +25,6 @@ import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Suggest;
 import studio.mevera.imperat.annotations.SuggestionProvider;
 import studio.mevera.imperat.annotations.Switch;
-import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Validators;
 import studio.mevera.imperat.annotations.Values;
 import studio.mevera.imperat.annotations.base.AnnotationHelper;
@@ -35,7 +35,7 @@ import studio.mevera.imperat.annotations.parameters.AnnotationArgumentDecorator;
 import studio.mevera.imperat.annotations.parameters.NumericArgumentDecorator;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.NumericRange;
@@ -92,7 +92,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                 requiresParameterInheritance = attachment.requiresParameterInheritance();
             } else {
                 if (attachment == AttachmentMode.DEFAULT) {
-                    requiresParameterInheritance = parentCmd.getDefaultUsage().size() > 0;
+                    requiresParameterInheritance = parentCmd.getDefaultPathway().size() > 0;
                 } else {
                     requiresParameterInheritance = (attachment == AttachmentMode.MAIN || attachment == AttachmentMode.UNSET);
                 }
@@ -102,13 +102,13 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
             if (ann != null) {
                 requiresParameterInheritance = ann.attachment().requiresParameterInheritance();
             } else if (parentCmd != null) {
-                requiresParameterInheritance = parentCmd.getMainUsage().getParameters().isEmpty();
+                requiresParameterInheritance = parentCmd.getMainPathway().getParameters().isEmpty();
             }
         }
         return requiresParameterInheritance;
     }
 
-    private static <S extends Source> @NotNull StringBuilder getMainUsageParametersCollected(StrictParameterList<S> mainUsageParameters) {
+    private static <S extends Source> @NotNull StringBuilder getMainPathwayParametersCollected(StrictParameterList<S> mainUsageParameters) {
         StringBuilder builder = new StringBuilder();
         for (var p : mainUsageParameters) {
             builder.append(p.format()).append(" ");
@@ -294,10 +294,10 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                 return cmd;
             }
 
-            var usage = loadUsage(parentCmd, cmd, method);
+            var pathway = loadPathway(parentCmd, cmd, method);
 
-            if (usage != null) {
-                cmd.addUsage(usage);
+            if (pathway != null) {
+                cmd.addPathway(pathway);
             }
 
             return cmd;
@@ -322,9 +322,9 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
 
                     // Process @Execute methods first (skip @SubCommand for now)
                     if (method.isAnnotationPresent(Execute.class) && !method.isAnnotationPresent(SubCommand.class)) {
-                        var usage = loadUsage(parentCmd, cmd, method);
-                        if (usage != null) {
-                            cmd.addUsage(usage);
+                        var pathway = loadPathway(parentCmd, cmd, method);
+                        if (pathway != null) {
+                            cmd.addPathway(pathway);
                         }
                     }
 
@@ -404,7 +404,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         return (CommandPostProcessor<S>) config.getInstanceFactory().createInstance(config, clazz);
     }
 
-    protected CommandUsage<S> loadUsage(
+    protected CommandPathway<S> loadPathway(
             @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
             @NotNull studio.mevera.imperat.command.Command<S> loadedCmd,
             MethodElement method
@@ -418,7 +418,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         Cooldown cooldown = method.getAnnotation(Cooldown.class);
         Async async = method.getAnnotation(Async.class);
 
-        var builder = CommandUsage.<S>builder()
+        var builder = CommandPathway.<S>builder()
                               .parameters(usageData.personalParameters())
                               .execute(execution);
 
@@ -473,7 +473,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                 throw new IllegalStateException("Shortcut value cannot contain spaces for method '" + method.getName() + "'");
             }
 
-            var shortcut = loadUsageShortcut(method, usageData, loadedCmd, usage, shortcutAnn);
+            var shortcut = loadPathwayShortcut(method, usageData, loadedCmd, usage, shortcutAnn);
             loadedCmd.addShortcut(shortcut);
         }
 
@@ -496,7 +496,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         if (doesRequireParameterInheritance(parentCmd, method)) {
             LinkedList<studio.mevera.imperat.command.Command<S>> parenteralSequence = getParenteralSequence(parentCmd);
             for (studio.mevera.imperat.command.Command<S> parent : parenteralSequence) {
-                parent.getMainUsage().getParameters()
+                parent.getMainPathway().getParameters()
                         .forEach((param) -> {
                             if (!param.isFlag()) {
                                 mainUsageParameters.add(param);
@@ -506,7 +506,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
 
         }
 
-        var inheritedParamsFormatted = getMainUsageParametersCollected(mainUsageParameters);
+        var inheritedParamsFormatted = getMainPathwayParametersCollected(mainUsageParameters);
         ImperatDebugger.debugForTesting("Main usage params collected '%s'", inheritedParamsFormatted.toString());
 
         LinkedList<Argument<S>> totalMethodParameters = new LinkedList<>(mainUsageParameters);
@@ -569,11 +569,11 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         return imperat.canBeSender(type) || config.hasSourceResolver(type);
     }
 
-    protected studio.mevera.imperat.command.Command<S> loadUsageShortcut(
+    protected studio.mevera.imperat.command.Command<S> loadPathwayShortcut(
             @NotNull MethodElement method,
             @NotNull MethodUsageData<S> methodUsageData,
             @NotNull studio.mevera.imperat.command.Command<S> originalCommand,
-            @NotNull CommandUsage<S> originalUsage,
+            @NotNull CommandPathway<S> originalUsage,
             @NotNull Shortcut shortcutAnn
     ) {
 
@@ -586,14 +586,14 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                                                                    .build();
         }
 
-        CommandUsage<S> fabricated = CommandUsage.<S>builder()
+        CommandPathway<S> fabricated = CommandPathway.<S>builder()
                                            .parameters(methodUsageData.inheritedTotalParameters())
                                            .execute(originalUsage.getExecution())
                                            .permission(originalUsage.getPermissionsData())
                                            .description(originalUsage.getDescription())
                                            .build(shortcut, originalUsage.isHelp());
 
-        shortcut.addUsage(fabricated);
+        shortcut.addPathway(fabricated);
         return shortcut;
     }
 

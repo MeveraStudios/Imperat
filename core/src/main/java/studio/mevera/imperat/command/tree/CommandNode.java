@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.tree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.Context;
@@ -21,9 +21,9 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
     private final PriorityList<CommandNode<S, ?>> children = new PriorityList<>();
     private final int depth;
     private final @Nullable CommandNode<S, ?> parent;
-    protected @Nullable CommandUsage<S> executableUsage;
+    protected @Nullable CommandPathway<S> executableUsage;
 
-    protected CommandNode(@Nullable CommandNode<S, ?> parent, @NotNull T data, int depth, @Nullable CommandUsage<S> executableUsage) {
+    protected CommandNode(@Nullable CommandNode<S, ?> parent, @NotNull T data, int depth, @Nullable CommandPathway<S> executableUsage) {
         this.parent = parent;
         this.data = data;
         this.depth = depth;
@@ -34,7 +34,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
             @Nullable CommandNode<S, ?> parent,
             @NotNull Command<S> data,
             int depth,
-            @Nullable CommandUsage<S> executableUsage
+            @Nullable CommandPathway<S> executableUsage
     ) {
         return new LiteralCommandNode<>(parent, data, depth, executableUsage);
     }
@@ -43,7 +43,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
             CommandNode<S, ?> parent,
             Argument<S> data,
             int depth,
-            @Nullable CommandUsage<S> executableUsage
+            @Nullable CommandPathway<S> executableUsage
     ) {
         return new ArgumentNode<>(parent, data, depth, executableUsage);
     }
@@ -52,11 +52,11 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         return depth;
     }
 
-    public @Nullable CommandUsage<S> getExecutableUsage() {
+    public @Nullable CommandPathway<S> getExecutableUsage() {
         return executableUsage;
     }
 
-    public void setExecutableUsage(@Nullable CommandUsage<S> executableUsage) {
+    public void setExecutableUsage(@Nullable CommandPathway<S> executableUsage) {
         this.executableUsage = executableUsage;
     }
 

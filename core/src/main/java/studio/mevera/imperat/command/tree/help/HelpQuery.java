@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.Source;
 
 import java.util.LinkedList;
@@ -21,7 +21,7 @@ public final class HelpQuery<S extends Source> {
 
     private final int maxDepth, limit;
     private final @NotNull Queue<HelpFilter<S>> filters;
-    private final @NotNull Predicate<CommandUsage<S>> rootUsagePredicate;
+    private final @NotNull Predicate<CommandPathway<S>> rootUsagePredicate;
 
     /**
      * Constructs a new HelpQuery. This constructor is private to enforce
@@ -31,7 +31,7 @@ public final class HelpQuery<S extends Source> {
      * @param limit The maximum number of help entries to return.
      * @param filters A queue of filters to apply to the help entries.
      */
-    private HelpQuery(int maxDepth, int limit, @NotNull Queue<HelpFilter<S>> filters, @NotNull Predicate<CommandUsage<S>> rootUsagePredicate) {
+    private HelpQuery(int maxDepth, int limit, @NotNull Queue<HelpFilter<S>> filters, @NotNull Predicate<CommandPathway<S>> rootUsagePredicate) {
         this.maxDepth = maxDepth;
         this.limit = limit;
         this.filters = filters;
@@ -76,9 +76,9 @@ public final class HelpQuery<S extends Source> {
     }
 
     /**
-     * @return Fetches the condition for including the root's {@link CommandUsage}
+     * @return Fetches the condition for including the root's {@link CommandPathway}
      */
-    public @NotNull Predicate<CommandUsage<S>> getRootUsagePredicate() {
+    public @NotNull Predicate<CommandPathway<S>> getRootUsagePredicate() {
         return rootUsagePredicate;
     }
 
@@ -95,7 +95,7 @@ public final class HelpQuery<S extends Source> {
         private final @NotNull Queue<HelpFilter<S>> filters = new LinkedList<>();
         private int maxDepth = 25;
         private int limit = 50;
-        private @NotNull Predicate<CommandUsage<S>> rootUsagePredicate = (u) -> u.size() > 0;
+        private @NotNull Predicate<CommandPathway<S>> rootUsagePredicate = (u) -> u.size() > 0;
 
         /**
          * Private constructor to enforce builder pattern.
@@ -130,7 +130,7 @@ public final class HelpQuery<S extends Source> {
          * @param rootUsagePredicate the condition/predicate to include the root.
          * @return This builder instance.
          */
-        public Builder<S> conditionalRootUsage(Predicate<CommandUsage<S>> rootUsagePredicate) {
+        public Builder<S> conditionalRootUsage(Predicate<CommandPathway<S>> rootUsagePredicate) {
             this.rootUsagePredicate = rootUsagePredicate;
             return this;
         }

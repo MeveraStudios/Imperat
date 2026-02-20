@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 
 import java.util.List;
@@ -29,7 +29,7 @@ class SlashCommandMapperTest {
     @Test
     void flattensOptionalParametersAfterRequiredOnRoot() {
         Command<JdaSource> command = Command.create(imperat, "mix")
-                                             .usage(CommandUsage.<JdaSource>builder()
+                                             .usage(CommandPathway.<JdaSource>builder()
                                                             .parameters(
                                                                     Argument.requiredText("first"),
                                                                     Argument.optionalText("middle"),
@@ -62,21 +62,21 @@ class SlashCommandMapperTest {
         Command<JdaSource> command = Command.create(imperat, "root")
                                              .subCommand(
                                                      Command.create(imperat, "alpha")
-                                                             .usage(CommandUsage.<JdaSource>builder()
+                                                             .usage(CommandPathway.<JdaSource>builder()
                                                                             .parameters(Argument.requiredText("alphaArg"))
                                                                             .execute((source, ctx) -> {
                                                                             })
                                                              )
                                                              .subCommand(
                                                                      Command.create(imperat, "beta")
-                                                                             .usage(CommandUsage.<JdaSource>builder()
+                                                                             .usage(CommandPathway.<JdaSource>builder()
                                                                                             .parameters(Argument.requiredText("betaArg"))
                                                                                             .execute((source, ctx) -> {
                                                                                             })
                                                                              )
                                                                              .subCommand(
                                                                                      Command.create(imperat, "gamma")
-                                                                                             .usage(CommandUsage.<JdaSource>builder()
+                                                                                             .usage(CommandPathway.<JdaSource>builder()
                                                                                                             .parameters(Argument.requiredText(
                                                                                                                     "gammaArg"))
                                                                                                             .execute((source, ctx) -> {
@@ -112,14 +112,14 @@ class SlashCommandMapperTest {
     }
 
     @Test
-    void combinesMultipleUsagesIntoOptionalOptions() {
+    void combinesMultipleGetAllPossiblePathwaysIntoOptionalOptions() {
         Command<JdaSource> command = Command.create(imperat, "variants")
-                                             .usage(CommandUsage.<JdaSource>builder()
+                                             .usage(CommandPathway.<JdaSource>builder()
                                                             .parameters(Argument.requiredText("first"))
                                                             .execute((source, ctx) -> {
                                                             })
                                              )
-                                             .usage(CommandUsage.<JdaSource>builder()
+                                             .usage(CommandPathway.<JdaSource>builder()
                                                             .parameters(Argument.optionalText("second"))
                                                             .execute((source, ctx) -> {
                                                             })

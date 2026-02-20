@@ -4,7 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.ArgumentInput;
@@ -79,7 +79,7 @@ public abstract class ContextFactory<S extends Source> {
 
     /**
      * @param plainContext the context plain
-     * @param dispatch     the result of a search and dispatch for the proper {@link CommandUsage}
+     * @param dispatch     the result of a search and dispatch for the proper {@link CommandPathway}
      * @return the context after resolving args into values for
      * later on parsing it into the execution
      */

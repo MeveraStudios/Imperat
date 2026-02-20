@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
@@ -311,14 +311,14 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @return The global/centralized default usage of EVERY command
      * its empty by default.
      */
-    @NotNull CommandUsage.Builder<S> getGlobalDefaultUsage();
+    @NotNull CommandPathway.Builder<S> getGlobalDefaultPathway();
 
     /**
      * Sets the usual default usage if the user doesn't set
      * the default-usage for a {@link Command}
      * @param globalDefaultUsage the global default usage BUILDER.
      */
-    void setGlobalDefaultUsage(@NotNull CommandUsage.Builder<S> globalDefaultUsage);
+    void setGlobalDefaultUsage(@NotNull CommandPathway.Builder<S> globalDefaultUsage);
 
 
     /**

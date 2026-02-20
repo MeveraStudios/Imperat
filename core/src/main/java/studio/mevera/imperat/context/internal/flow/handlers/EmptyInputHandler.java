@@ -1,7 +1,7 @@
 package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
@@ -39,10 +39,10 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
 
             //required parameter with no input - invalid syntax
             var command = context.getLastUsedCommand();
-            var usage = command != null ? command.getDefaultUsage() : null;
+            var usage = command != null ? command.getDefaultPathway() : null;
             var exception = new CommandException(ResponseKey.INVALID_SYNTAX);
             if (usage != null) {
-                exception.withPlaceholder("closest_usage", context.imperatConfig().commandPrefix() + CommandUsage.format(command, usage));
+                exception.withPlaceholder("closest_usage", context.imperatConfig().commandPrefix() + CommandPathway.format(command, usage));
             } else {
                 exception.withPlaceholder("closest_usage", "");
             }

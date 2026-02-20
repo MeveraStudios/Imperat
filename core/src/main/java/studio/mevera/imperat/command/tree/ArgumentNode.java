@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.tree;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.Source;
@@ -14,7 +14,7 @@ public final class ArgumentNode<S extends Source> extends CommandNode<S, Argumen
 
     private final Priority priority;
 
-    ArgumentNode(@Nullable CommandNode<S, ?> parent, @NotNull Argument<S> data, int depth, @Nullable CommandUsage<S> usage) {
+    ArgumentNode(@Nullable CommandNode<S, ?> parent, @NotNull Argument<S> data, int depth, @Nullable CommandPathway<S> usage) {
         super(parent, data, depth, usage);
         priority = Priority.of(loadPriority(data));
     }

@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 
 import java.util.ArrayList;
@@ -110,14 +110,14 @@ final class SlashCommandMapper {
         List<UsagePath> paths = new ArrayList<>();
         List<Argument<JdaSource>> inheritedForChildren = new ArrayList<>(inherited);
 
-        for (Argument<JdaSource> parameter : command.getMainUsage().getParameters()) {
+        for (Argument<JdaSource> parameter : command.getMainPathway().getParameters()) {
             if (!parameter.isCommand()) {
                 inheritedForChildren.add(parameter);
             }
         }
 
         if (command.getSubCommands().isEmpty()) {
-            for (CommandUsage<JdaSource> usage : command.usages()) {
+            for (CommandPathway<JdaSource> usage : command.getAllPossiblePathways()) {
                 List<Argument<JdaSource>> parameters = new ArrayList<>(inherited);
                 for (Argument<JdaSource> parameter : usage.getParameters()) {
                     if (!parameter.isCommand()) {

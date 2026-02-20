@@ -25,7 +25,7 @@ final class InternalMinestomCommand extends Command {
 
         this.setDefaultExecutor(loadExecutor(imperat));
 
-        for (var usage : imperatCommand.usages()) {
+        for (var usage : imperatCommand.getAllPossiblePathways()) {
             addConditionalSyntax(
                     loadCondition(imperat, usage),
                     loadExecutor(imperat),

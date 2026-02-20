@@ -8,7 +8,7 @@ import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.ContextResolverRegistry;
 import studio.mevera.imperat.command.ReturnResolverRegistry;
@@ -74,7 +74,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private boolean overlapOptionalParameterSuggestions = false;
     private boolean handleExecutionConsecutiveOptionalArgumentsSkip = false;
     private String commandPrefix = "/";
-    private CommandUsage.Builder<S> globalDefaultUsage = CommandUsage.<S>builder()
+    private CommandPathway.Builder<S> globalDefaultUsage = CommandPathway.<S>builder()
                                                                  .execute((src, ctx) -> {
                                                                      StringBuilder invalidUsage = new StringBuilder("/" + ctx.label());
                                                                      var args = ctx.arguments();
@@ -616,12 +616,12 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     @Override
-    public CommandUsage.@NotNull Builder<S> getGlobalDefaultUsage() {
+    public CommandPathway.@NotNull Builder<S> getGlobalDefaultPathway() {
         return globalDefaultUsage;
     }
 
     @Override
-    public void setGlobalDefaultUsage(CommandUsage.@NotNull Builder<S> globalDefaultUsage) {
+    public void setGlobalDefaultUsage(CommandPathway.@NotNull Builder<S> globalDefaultUsage) {
         this.globalDefaultUsage = globalDefaultUsage;
     }
 

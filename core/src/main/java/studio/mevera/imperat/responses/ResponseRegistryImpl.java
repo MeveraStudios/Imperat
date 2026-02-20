@@ -114,8 +114,8 @@ final class ResponseRegistryImpl implements ResponseRegistry {
 
         // Permission exceptions
 
-        // PermissionDeniedException: CommandUsage<?> usage, Argument<?> targetParameter
-        // CommandUsage has: getCommand(), getPermission(), getDescription(), format()
+        // PermissionDeniedException: CommandPathway<?> usage, Argument<?> targetParameter
+        // CommandPathway has: getCommand(), getPermission(), getDescription(), format()
         // Argument has: name(), description(), permission(), format()
         registerResponse(
                 new Response(ResponseKey.PERMISSION_DENIED, () -> "You don't have permission to use this command!")

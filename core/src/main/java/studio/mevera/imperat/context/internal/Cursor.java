@@ -2,7 +2,7 @@ package studio.mevera.imperat.context.internal;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Source;
@@ -83,7 +83,7 @@ public interface Cursor<S extends Source> {
      *         provided data
      * @throws IllegalArgumentException if queue or usage is {@code null}
      */
-    static <S extends Source> Cursor<S> of(ArgumentInput queue, CommandUsage<S> usage) {
+    static <S extends Source> Cursor<S> of(ArgumentInput queue, CommandPathway<S> usage) {
         return new CursorImpl<>(queue, usage);
     }
 

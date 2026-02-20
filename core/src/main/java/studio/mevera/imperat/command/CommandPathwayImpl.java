@@ -27,7 +27,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 @ApiStatus.Internal
-final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
+final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
 
     private final static int EXPECTED_PARAMETERS_CAPACITY = 8;
 
@@ -42,11 +42,11 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
     private @Nullable UsageCooldown cooldown = null;
     private CommandCoordinator<S> commandCoordinator;
 
-    CommandUsageImpl(@NotNull CommandExecution<S> execution) {
+    CommandPathwayImpl(@NotNull CommandExecution<S> execution) {
         this(execution, false);
     }
 
-    CommandUsageImpl(@NotNull CommandExecution<S> execution, boolean help) {
+    CommandPathwayImpl(@NotNull CommandExecution<S> execution, boolean help) {
         this.execution = execution;
         this.cooldownHandler = CooldownHandler.createDefault(this);
         this.commandCoordinator = null;
@@ -395,7 +395,7 @@ final class CommandUsageImpl<S extends Source> implements CommandUsage<S> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        CommandUsageImpl<?> that = (CommandUsageImpl<?>) o;
+        CommandPathwayImpl<?> that = (CommandPathwayImpl<?>) o;
         if (this.size() != that.size()) {
             return false;
         }

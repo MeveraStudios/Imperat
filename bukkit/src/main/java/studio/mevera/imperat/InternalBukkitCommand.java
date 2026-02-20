@@ -7,7 +7,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +26,7 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
         super(
                 imperatCommand.name(),
                 imperatCommand.getDescription().getValueOrElse(""),
-                CommandUsage.format((String) null, imperatCommand.getDefaultUsage()),
+                CommandPathway.format((String) null, imperatCommand.getDefaultPathway()),
                 imperatCommand.aliases()
         );
         this.dispatcher = dispatcher;

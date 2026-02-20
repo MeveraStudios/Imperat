@@ -4,7 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @ApiStatus.Internal
 final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implements ExecutionContext<S> {
 
-    private final CommandUsage<S> usage;
+    private final CommandPathway<S> usage;
     private final Registry<String, ParsedFlagArgument<S>> flagRegistry = new Registry<>();
     //per command/subcommand because the class 'CommandProcessingChain' can be also treated as a sub command
     private final Registry<Command<S>, Registry<String, ParsedArgument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
@@ -235,7 +235,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return The used usage to use it to resolve commands
      */
     @Override
-    public CommandUsage<S> getDetectedUsage() {
+    public CommandPathway<S> getDetectedUsage() {
         return usage;
     }
 

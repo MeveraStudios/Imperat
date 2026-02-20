@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.cooldown;
 
 import org.jetbrains.annotations.ApiStatus;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.Source;
 
 import java.time.Duration;
@@ -10,7 +10,7 @@ import java.util.Optional;
 
 /**
  * Cool-down checker and handler for the command usages
- * {@link CommandUsage}
+ * {@link CommandPathway}
  *
  * @param <S> the sender-valueType
  */
@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface CooldownHandler<S extends Source> {
 
 
-    static <S extends Source> CooldownHandler<S> createDefault(CommandUsage<S> usage) {
+    static <S extends Source> CooldownHandler<S> createDefault(CommandPathway<S> usage) {
         return new DefaultCooldownHandler<>(usage);
     }
 
@@ -26,7 +26,7 @@ public interface CooldownHandler<S extends Source> {
      * Sets the last time of execution to this
      * current moment using {@link System#currentTimeMillis()}
      *
-     * @param source the command sender executing the {@link CommandUsage}
+     * @param source the command sender executing the {@link CommandPathway}
      */
     void registerExecutionMoment(S source);
 
@@ -76,7 +76,7 @@ public interface CooldownHandler<S extends Source> {
      * executed a specific command usage
      *
      * @param source the command sender
-     * @return the last time the sender executed {@link CommandUsage}
+     * @return the last time the sender executed {@link CommandPathway}
      */
     Optional<Instant> getLastTimeExecuted(S source);
 }

@@ -1,6 +1,6 @@
 package studio.mevera.imperat.command.flags;
 
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.Source;
@@ -20,12 +20,12 @@ import java.util.stream.Collectors;
 
 final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
 
-    private final CommandUsage<S> usage;
+    private final CommandPathway<S> usage;
     private final FlagTrie<S> flagTrie;
     private final Set<FlagArgument<S>> registeredFlagArguments = new LinkedHashSet<>();
 
-    FlagExtractorImpl(CommandUsage<S> usage) {
-        this.usage = Objects.requireNonNull(usage, "CommandUsage cannot be null");
+    FlagExtractorImpl(CommandPathway<S> usage) {
+        this.usage = Objects.requireNonNull(usage, "CommandPathway cannot be null");
         this.flagTrie = buildFlagTrie();
     }
 
@@ -59,7 +59,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
     private FlagTrie<S> buildFlagTrie() {
         FlagTrie<S> trie = new FlagTrie<>();
 
-        // Get all flags from CommandUsage and build the trie
+        // Get all flags from CommandPathway and build the trie
         Set<FlagArgument<S>> allFlagArguments = usage.getParameters()
                                                  .stream()
                                                  .filter(Argument::isFlag)

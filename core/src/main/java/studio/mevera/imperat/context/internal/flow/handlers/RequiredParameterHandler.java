@@ -1,7 +1,7 @@
 package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -31,7 +31,7 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
                 var command = context.getLastUsedCommand();
                 if (command != null) {
                     exception.withPlaceholder("closest_usage_line",
-                            "Closest Usage: " + context.imperatConfig().commandPrefix() + CommandUsage.format(command, closestUsage));
+                            "Closest Usage: " + context.imperatConfig().commandPrefix() + CommandPathway.format(command, closestUsage));
                 } else {
                     exception.withPlaceholder("closest_usage_line", "");
                 }

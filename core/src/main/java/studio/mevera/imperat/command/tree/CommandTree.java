@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.tree;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
@@ -85,7 +85,7 @@ public interface CommandTree<S extends Source> {
      *
      * @param usage the command usage to parse, must not be null
      */
-    void parseUsage(@NotNull CommandUsage<S> usage);
+    void parseUsage(@NotNull CommandPathway<S> usage);
 
     /**
      * Matches the given input against this command tree and returns a dispatch context.
@@ -133,6 +133,6 @@ public interface CommandTree<S extends Source> {
      * @param context the context containing the details of an input.
      * @return A set of the closest usages to a {@link Context}
      */
-    Set<CommandUsage<S>> getClosestUsages(Context<S> context);
+    Set<CommandPathway<S>> getClosestUsages(Context<S> context);
 
 }

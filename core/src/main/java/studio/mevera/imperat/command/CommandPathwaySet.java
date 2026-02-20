@@ -7,25 +7,25 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-final class CommandUsageSet<S extends Source> implements Iterable<CommandUsage<S>> {
+final class CommandPathwaySet<S extends Source> implements Iterable<CommandPathway<S>> {
 
-    private final LinkedHashSet<CommandUsage<S>> sort = new LinkedHashSet<>();
+    private final LinkedHashSet<CommandPathway<S>> sort = new LinkedHashSet<>();
 
-    CommandUsageSet() {
+    CommandPathwaySet() {
         super();
     }
 
-    public CommandUsageSet<S> put(CommandUsage<S> value) {
+    public CommandPathwaySet<S> put(CommandPathway<S> value) {
         sort.add(value);
         return this;
     }
 
-    public Set<CommandUsage<S>> asSortedSet() {
+    public Set<CommandPathway<S>> asSortedSet() {
         return sort;
     }
 
     @Override
-    public @NotNull Iterator<CommandUsage<S>> iterator() {
+    public @NotNull Iterator<CommandPathway<S>> iterator() {
         return sort.iterator();
     }
 

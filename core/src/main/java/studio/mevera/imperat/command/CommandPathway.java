@@ -31,11 +31,11 @@ import java.util.function.Predicate;
  *
  * @see Command
  */
-public sealed interface CommandUsage<S extends Source> extends Iterable<Argument<S>>, PermissionHolder, DescriptionHolder, CooldownHolder
-        permits CommandUsageImpl {
+public sealed interface CommandPathway<S extends Source> extends Iterable<Argument<S>>, PermissionHolder, DescriptionHolder, CooldownHolder
+        permits CommandPathwayImpl {
 
 
-    static <S extends Source> String formatWithTypes(Command<S> command, CommandUsage<S> usage) {
+    static <S extends Source> String formatWithTypes(Command<S> command, CommandPathway<S> usage) {
         Preconditions.notNull(usage, "usage");
         StringBuilder builder = new StringBuilder(command.name()).append(' ');
 
@@ -51,7 +51,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
         return builder.toString();
     }
 
-    static <S extends Source> String format(@Nullable String label, CommandUsage<S> usage) {
+    static <S extends Source> String format(@Nullable String label, CommandPathway<S> usage) {
         Preconditions.notNull(usage, "usage");
         StringBuilder builder = new StringBuilder(label == null ? "" : label);
         if (label != null) {
@@ -70,7 +70,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
         return builder.toString();
     }
 
-    static <S extends Source> String format(@Nullable Command<S> command, CommandUsage<S> usage) {
+    static <S extends Source> String format(@Nullable Command<S> command, CommandPathway<S> usage) {
         String label = command == null ? null : command.name();
         return format(label, usage);
     }
@@ -166,7 +166,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
 
     /**
      * The pre-defined syntax examples for this usage.
-     * @return the pre-defined examples for this {@link CommandUsage}
+     * @return the pre-defined examples for this {@link CommandPathway}
      */
     List<String> getExamples();
 
@@ -209,7 +209,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
      * @param usage      the usage to merge with
      * @return the merged command usage!
      */
-    default CommandUsage<S> mergeWithCommand(Command<S> subCommand, CommandUsage<S> usage) {
+    default CommandPathway<S> mergeWithCommand(Command<S> subCommand, CommandPathway<S> usage) {
         List<Argument<S>> comboParams = new ArrayList<>(this.getParameters());
         comboParams.add(subCommand);
         for (Argument<S> param : usage.loadCombinedParameters()) {
@@ -220,7 +220,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
         }
         //comboParams.addAll(usage.getParameters());
 
-        return CommandUsage.<S>builder()
+        return CommandPathway.<S>builder()
                        .coordinator(usage.getCoordinator())
                        .description(subCommand.getDescription())
                        .cooldown(usage.getCooldown())
@@ -422,7 +422,7 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
         }
 
         public Builder<S> setPropertiesFromCommandMainUsage(Command<S> command) {
-            CommandUsage<S> mainUsage = command.getMainUsage();
+            CommandPathway<S> mainUsage = command.getMainPathway();
 
             //copy only meta properties
             this.description = mainUsage.getDescription();
@@ -436,8 +436,8 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
             return this;
         }
 
-        public CommandUsage<S> build(@NotNull Command<S> command, boolean help) {
-            CommandUsageImpl<S> impl = new CommandUsageImpl<>(execution, help);
+        public CommandPathway<S> build(@NotNull Command<S> command, boolean help) {
+            CommandPathwayImpl<S> impl = new CommandPathwayImpl<>(execution, help);
             impl.setCoordinator(commandCoordinator);
             impl.setPermissionData(permission);
             impl.describe(description);
@@ -451,11 +451,11 @@ public sealed interface CommandUsage<S extends Source> extends Iterable<Argument
         }
 
 
-        public CommandUsage<S> build(@NotNull Command<S> command) {
+        public CommandPathway<S> build(@NotNull Command<S> command) {
             return build(command, false);
         }
 
-        public CommandUsage<S> buildAsHelp(@NotNull Command<S> command) {
+        public CommandPathway<S> buildAsHelp(@NotNull Command<S> command) {
             return build(command, true);
         }
     }

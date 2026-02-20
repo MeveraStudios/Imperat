@@ -8,7 +8,7 @@ import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 import studio.mevera.imperat.annotations.RequireConfirmation;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.EnumArgument;
 import studio.mevera.imperat.type.HytaleArgumentType;
@@ -99,7 +99,7 @@ final class InternalHytaleCommand extends CommandBase {
     //we split each usage INTO variants
     //the main usage will be split into multiple usages
     private void deduceVariants(Command<HytaleSource> imperatCmd) {
-        CommandUsage<HytaleSource> mainUsage = imperatCmd.getMainUsage();
+        CommandPathway<HytaleSource> mainUsage = imperatCmd.getMainPathway();
         Map<Integer, Argument<HytaleSource>> optionals = new HashMap<>();
         for (int i = 0; i < mainUsage.size(); i++) {
             var parameter = mainUsage.getParameter(i);
