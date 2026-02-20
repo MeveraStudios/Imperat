@@ -514,8 +514,9 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         return (B) this;
     }
 
-    public void setCoroutineScope(@NotNull Object scope) {
+    public B setCoroutineScope(@NotNull Object scope) {
         config.setCoroutineScope(scope);
+        return (B) this;
     }
 
     public @Nullable Object getCoroutineScope() {

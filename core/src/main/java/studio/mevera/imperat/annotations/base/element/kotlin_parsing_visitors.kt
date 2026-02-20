@@ -199,7 +199,9 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
             val args = super.prepareArguments(context)
             val paramMap = buildParamMap(args)
             if (isSuspend) {
-                coroutineScope?.launch {
+                val scope = coroutineScope
+                    ?: throw IllegalStateException("Suspend function found but no coroutine scope")
+                scope.launch {
                     val returned = kFunction.callSuspendBy(paramMap)
                     handleReturnValue(context, returned)
                 }
