@@ -31,6 +31,7 @@ import studio.mevera.imperat.responses.ResponseKey;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -56,7 +57,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
 
 
     public B setResponse(ResponseKey key, Supplier<String> contentSupplier) {
-        config.getResponseRegistry().registerResponse(key, contentSupplier, null);
+        config.getResponseRegistry().registerResponse(key, contentSupplier, (ResponseContentFetcher) null);
         return (B) this;
     }
 
@@ -531,6 +532,12 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     public B instanceFactory(InstanceFactory<S> instanceFactory) {
         config.setInstanceFactory(instanceFactory);
+        return (B) this;
+    }
+
+    public <T> B visit(Function<ImperatConfig<S>, T> configFunction, Consumer<T> resultConsumer) {
+        T result = configFunction.apply(config);
+        resultConsumer.accept(result);
         return (B) this;
     }
 

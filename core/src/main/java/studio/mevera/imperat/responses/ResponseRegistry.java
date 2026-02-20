@@ -17,19 +17,30 @@ public interface ResponseRegistry {
     default void registerResponse(
             ResponseKey key,
             Supplier<String> contentSupplier,
-            ResponseContentFetcher contentFetcher
+            ResponseContentFetcher contentFetcher,
+            String... possiblePlaceholders
     ) {
+        Response response = new Response(key, contentSupplier, contentFetcher);
+        response.addContextPlaceholders();
+        for (String placeholder : possiblePlaceholders) {
+            response.addPlaceholder(placeholder);
+        }
+
         registerResponse(
-                new Response(key, contentSupplier, contentFetcher)
+                response
         );
     }
 
     default void registerResponse(
             ResponseKey key,
-            Supplier<String> contentSupplier
+            Supplier<String> contentSupplier,
+            String... possiblePlaceholders
     ) {
         registerResponse(
-                new Response(key, contentSupplier, null)
+                key,
+                contentSupplier,
+                null,
+                possiblePlaceholders
         );
     }
 

@@ -5,17 +5,17 @@ package studio.mevera.imperat.responses;
  * These keys are used to identify error messages and responses
  * for Velocity-specific exceptions.
  */
-public interface VelocityResponseKey {
+public interface VelocityResponseKey extends ResponseKey {
 
     // Source restrictions
-    ResponseKey ONLY_PLAYER = () -> "only-player";
-    ResponseKey ONLY_CONSOLE = () -> "only-console";
+    VelocityResponseKey ONLY_PLAYER = () -> "commands.conditions.only-player";
+    VelocityResponseKey ONLY_CONSOLE = () -> "commands.conditions.only-console";
 
     // Entity/Player exceptions
-    ResponseKey UNKNOWN_PLAYER = () -> "unknown-player";
+    VelocityResponseKey UNKNOWN_PLAYER = () -> "args.parsing.unknown-player";
 
     // Server exceptions
-    ResponseKey UNKNOWN_SERVER = () -> "unknown-server";
+    VelocityResponseKey UNKNOWN_SERVER = () -> "args.parsing.unknown-server";
 
 }
 

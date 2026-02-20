@@ -5,17 +5,17 @@ package studio.mevera.imperat.responses;
  * These keys are used to identify error messages and responses
  * for Bungee-specific exceptions.
  */
-public interface BungeeResponseKey {
+public interface BungeeResponseKey extends ResponseKey {
 
     // Source restrictions
-    ResponseKey ONLY_PLAYER = () -> "only-player";
-    ResponseKey ONLY_CONSOLE = () -> "only-console";
+    BungeeResponseKey ONLY_PLAYER = () -> "commands.conditions.only-player";
+    BungeeResponseKey ONLY_CONSOLE = () -> "commands.conditions.only-console";
 
     // Entity/Player exceptions
-    ResponseKey UNKNOWN_PLAYER = () -> "unknown-player";
+    BungeeResponseKey UNKNOWN_PLAYER = () -> "args.parsing.unknown-player";
 
     // Server exceptions
-    ResponseKey UNKNOWN_SERVER = () -> "unknown-server";
+    BungeeResponseKey UNKNOWN_SERVER = () -> "args.parsing.unknown-server";
 
 }
 

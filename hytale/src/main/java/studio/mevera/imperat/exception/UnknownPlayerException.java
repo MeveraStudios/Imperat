@@ -9,7 +9,7 @@ public class UnknownPlayerException extends CommandException {
     public UnknownPlayerException(final String name) {
         super(HytaleResponseKey.UNKNOWN_PLAYER);
         this.name = name;
-        withPlaceholder("player", name);
+        withPlaceholder("input", name);
     }
 
     public String getName() {

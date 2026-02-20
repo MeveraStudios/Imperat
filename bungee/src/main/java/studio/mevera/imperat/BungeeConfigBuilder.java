@@ -111,28 +111,29 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void registerBungeeResponses() {
-        var responseRegistry = config.getResponseRegistry();
+        this.visit(ImperatConfig::getResponseRegistry, responseRegistry -> {
+            // Register responses for Bungee-specific exceptions
+            responseRegistry.registerResponse(
+                    BungeeResponseKey.ONLY_PLAYER,
+                    () -> "Only players can do this!"
+            );
 
-        // Register responses for Bungee-specific exceptions
-        responseRegistry.registerResponse(
-                BungeeResponseKey.ONLY_PLAYER,
-                () -> "Only players can do this!"
-        );
+            responseRegistry.registerResponse(
+                    BungeeResponseKey.ONLY_CONSOLE,
+                    () -> "Only console can do this!"
+            );
 
-        responseRegistry.registerResponse(
-                BungeeResponseKey.ONLY_CONSOLE,
-                () -> "Only console can do this!"
-        );
+            responseRegistry.registerResponse(
+                    BungeeResponseKey.UNKNOWN_PLAYER,
+                    () -> "A player with the name '%input%' doesn't seem to be online", "input"
+            );
 
-        responseRegistry.registerResponse(
-                BungeeResponseKey.UNKNOWN_PLAYER,
-                () -> "A player with the name '%name%' doesn't seem to be online"
-        );
+            responseRegistry.registerResponse(
+                    BungeeResponseKey.UNKNOWN_SERVER,
+                    () -> "A server with the name '%input%' doesn't seem to exist", "input"
+            );
+        });
 
-        responseRegistry.registerResponse(
-                BungeeResponseKey.UNKNOWN_SERVER,
-                () -> "A server with the name '%input%' doesn't seem to exist"
-        );
     }
 
     private void registerValueResolvers() {

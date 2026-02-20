@@ -13,6 +13,7 @@ import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.responses.VelocityResponseKey;
 import studio.mevera.imperat.type.PlayerArgument;
 import studio.mevera.imperat.type.ServerInfoArgument;
@@ -129,27 +130,32 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      * This provides user-friendly error messages for various error conditions.
      */
     private void registerVelocityResponses() {
-        var responseRegistry = config.getResponseRegistry();
+        this.visit(ImperatConfig::getResponseRegistry, responseRegistry -> {
+            responseRegistry.registerResponse(
+                    VelocityResponseKey.ONLY_PLAYER,
+                    () -> "Only players can do this!"
+            );
 
+            responseRegistry.registerResponse(
+                    VelocityResponseKey.ONLY_CONSOLE,
+                    () -> "Only console can do this!"
+            );
+
+            registerInputResponse(responseRegistry, VelocityResponseKey.UNKNOWN_PLAYER,
+                    "A player with the name '%input%' doesn't seem to be online");
+
+            registerInputResponse(responseRegistry, VelocityResponseKey.UNKNOWN_SERVER,
+                    "A server with the name '%input%' doesn't seem to exist");
+        });
+    }
+
+    private void registerInputResponse(ResponseRegistry responseRegistry, VelocityResponseKey responseKey, String message) {
         responseRegistry.registerResponse(
-                VelocityResponseKey.ONLY_PLAYER,
-                () -> "Only players can do this!"
+                responseKey,
+                () -> message,
+                "input"
         );
 
-        responseRegistry.registerResponse(
-                VelocityResponseKey.ONLY_CONSOLE,
-                () -> "Only console can do this!"
-        );
-
-        responseRegistry.registerResponse(
-                VelocityResponseKey.UNKNOWN_PLAYER,
-                () -> "A player with the name '%input%' doesn't seem to be online"
-        );
-
-        responseRegistry.registerResponse(
-                VelocityResponseKey.UNKNOWN_SERVER,
-                () -> "A server with the name '%input%' doesn't seem to exist"
-        );
     }
 
     /**

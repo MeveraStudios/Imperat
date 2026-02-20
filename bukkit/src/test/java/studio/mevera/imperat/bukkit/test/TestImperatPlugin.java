@@ -2,6 +2,7 @@ package studio.mevera.imperat.bukkit.test;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import studio.mevera.imperat.BukkitImperat;
+import studio.mevera.imperat.bukkit.test.commands.TellCmd;
 
 /**
  * A simple test plugin used by MockBukkit for unit testing Imperat commands.

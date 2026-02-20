@@ -109,53 +109,26 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
 
     private void registerBukkitResponses() {
-        var responseRegistry = config.getResponseRegistry();
+        this.visit(ImperatConfig::getResponseRegistry, registry -> {
+            registry.registerResponse(BukkitResponseKey.ONLY_PLAYER, () -> "Only players can do this!");
+            registry.registerResponse(BukkitResponseKey.ONLY_CONSOLE, () -> "Only console can do this!");
 
-        // Register responses for Bukkit-specific exceptions
-        responseRegistry.registerResponse(
-                BukkitResponseKey.ONLY_PLAYER,
-                () -> "Only players can do this!"
-        );
+            registry.registerResponse(BukkitResponseKey.UNKNOWN_PLAYER, () -> "A player with the name '%input%' doesn't seem to be online", "input");
+            registry.registerResponse(BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER, () -> "A player with the name '%input%' doesn't seem to exist",
+                    "input");
+            registry.registerResponse(BukkitResponseKey.UNKNOWN_WORLD, () -> "A world with the name '%input%' doesn't seem to exist", "input");
+            registry.registerResponse(BukkitResponseKey.INVALID_LOCATION, () -> "&4Failed to parse location '%input%' due to: &c%cause%", "input",
+                    "inputX", "inputY", "inputZ", "inputYaw", "inputPitch", "cause");
 
-        responseRegistry.registerResponse(
-                BukkitResponseKey.ONLY_CONSOLE,
-                () -> "Only console can do this!"
-        );
 
-        responseRegistry.registerResponse(
-                BukkitResponseKey.UNKNOWN_PLAYER,
-                () -> "A player with the name '%name%' doesn't seem to be online"
-        );
+            registry.registerResponse(BukkitResponseKey.INVALID_SELECTOR_FIELD, () -> "Invalid field-criteria format '%criteria_entered%'", "input",
+                    "criteria_expression");
+            registry.registerResponse(BukkitResponseKey.UNKNOWN_SELECTOR_FIELD, () -> "Unknown selection field '%field_entered%'", "input",
+                    "field_entered");
+            registry.registerResponse(BukkitResponseKey.UNKNOWN_SELECTION_TYPE, () -> "Unknown selection type '%type_entered%'", "input",
+                    "type_entered");
 
-        responseRegistry.registerResponse(
-                BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER,
-                () -> "A player with the name '%name%' doesn't seem to exist"
-        );
-
-        responseRegistry.registerResponse(
-                BukkitResponseKey.UNKNOWN_WORLD,
-                () -> "A world with the name '%name%' doesn't seem to exist"
-        );
-
-        responseRegistry.registerResponse(
-                BukkitResponseKey.INVALID_LOCATION,
-                () -> "&4Failed to parse location '%input%' due to: &c%message%"
-        );
-
-        responseRegistry.registerResponse(
-                BukkitResponseKey.INVALID_SELECTOR_FIELD,
-                () -> "Invalid field-criteria format '%fieldCriteriaInput%'"
-        );
-
-        responseRegistry.registerResponse(
-                BukkitResponseKey.UNKNOWN_SELECTOR_FIELD,
-                () -> "Unknown selection field '%fieldEntered%'"
-        );
-
-        responseRegistry.registerResponse(
-                BukkitResponseKey.UNKNOWN_SELECTION_TYPE,
-                () -> "Unknown selection type '%input%'"
-        );
+        });
     }
 
     private void registerValueResolvers() {

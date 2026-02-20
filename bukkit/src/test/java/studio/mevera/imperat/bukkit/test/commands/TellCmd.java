@@ -1,4 +1,4 @@
-package studio.mevera.imperat.bukkit.test;
+package studio.mevera.imperat.bukkit.test.commands;
 
 import org.bukkit.entity.Player;
 import studio.mevera.imperat.annotations.Command;
@@ -12,11 +12,6 @@ import studio.mevera.imperat.annotations.Suggest;
  */
 @Command({"tell", "msg", "t", "w", "whisper", "pm"})
 public class TellCmd {
-
-    @Execute
-    public void defaultUsage(Player source) {
-        source.sendMessage("/tell <name> - Greet someone by name.");
-    }
 
     @Execute
     public void whisper(Player source, @Named("name") @Suggest({"Mazen", "Ahmed", "Eyad"}) String name, @Named("message") @Greedy String message) {

@@ -250,7 +250,7 @@ public class LocationArgument extends ArgumentType<BukkitSource, Location> {
 
         return new CommandException(BukkitResponseKey.INVALID_LOCATION)
                        .withPlaceholder("input", input)
-                       .withPlaceholder("message", message)
+                       .withPlaceholder("cause", message)
                        .withPlaceholder("reason", reason)
                        .withPlaceholder("inputX", inputX != null ? inputX : "")
                        .withPlaceholder("inputY", inputY != null ? inputY : "")

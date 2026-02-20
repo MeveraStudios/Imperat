@@ -33,7 +33,7 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
         if (correspondingInput.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
                 throw new CommandException(BungeeResponseKey.UNKNOWN_PLAYER)
-                              .withPlaceholder("name", correspondingInput);
+                              .withPlaceholder("input", correspondingInput);
             }
             return context.source().asPlayer();
         }
@@ -41,7 +41,7 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
         ProxiedPlayer proxiedPlayer = ProxyServer.getInstance().getPlayer(correspondingInput);
         if (proxiedPlayer == null) {
             throw new CommandException(BungeeResponseKey.UNKNOWN_PLAYER)
-                          .withPlaceholder("name", correspondingInput);
+                          .withPlaceholder("input", correspondingInput);
         }
         return proxiedPlayer;
     }

@@ -10,7 +10,8 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.UnknownUserException;
+import studio.mevera.imperat.exception.JdaArgumentParseException;
+import studio.mevera.imperat.responses.JdaResponseKey;
 
 public final class UserArgument extends ArgumentType<JdaSource, User> {
 
@@ -27,12 +28,12 @@ public final class UserArgument extends ArgumentType<JdaSource, User> {
         String userId = correspondingInput.replaceAll("\\D", "");
         String lookupId = userId.isEmpty() ? correspondingInput : userId;
         if (!lookupId.matches("\\d{17,20}")) {
-            throw new UnknownUserException(correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, correspondingInput);
         }
 
         User user = jda.getUserById(lookupId);
         if (user == null) {
-            throw new UnknownUserException(correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, correspondingInput);
         }
         return user;
     }

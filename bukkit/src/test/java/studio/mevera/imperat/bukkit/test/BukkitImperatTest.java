@@ -12,6 +12,7 @@ import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import studio.mevera.imperat.BukkitImperat;
 import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,26 @@ class BukkitImperatTest {
     void testCommandRegistered() {
         // Verify the "greet" command was registered in Imperat
         assertNotNull(imperat.getCommand("tell"), "Command 'greet' should be registered");
+    }
+
+    @Test
+    void testDefCommandExecution() {
+        // Create a mock player and execute the command
+        String[] aliases = {"tell", "msg", "t", "w", "whisper", "pm"};
+
+        PlayerMock player = server.addPlayer("TestPlayer");
+        BukkitSource source = imperat.wrapSender(player);
+
+        ImperatDebugger.setEnabled(true);
+        for (String alias : aliases) {
+            // Execute the command with arguments
+            var res = imperat.execute(source, alias);
+
+            // Verify the player received the correct message
+            Assertions.assertEquals("Invalid command usage '/" + alias + "', you probably meant '/" + alias + " <name> <message...>'",
+                    player.nextMessage());
+        }
+
     }
 
     @Test

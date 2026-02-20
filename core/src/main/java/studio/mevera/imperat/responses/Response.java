@@ -6,6 +6,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderDataProvider;
+import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -52,6 +53,12 @@ public class Response {
         return this;
     }
 
+    public Response addContextPlaceholders() {
+        return addPlaceholder("command")
+                       .addPlaceholder("arguments")
+                       .addPlaceholder("source");
+    }
+
     public <S extends Source> void sendContent(Context<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
         var src = ctx.source();
         getContent(ctx, placeholders)
@@ -67,7 +74,11 @@ public class Response {
                                                         : responseRegistry.loadDefaultContentFetcher();
 
         return contentFetcher.fetch(contentSupplier)
-                       .thenApply(content -> applyPlaceholders(content, placeholders));
+                       .thenApply(content -> applyPlaceholders(content, placeholders))
+                       .exceptionally((ex) -> {
+                           ImperatDebugger.error("Failed to fetch content for response '" + key.getKey() + "', caused by: " + ex.getMessage());
+                           return null;
+                       });
     }
 
     private String applyPlaceholders(
@@ -84,7 +95,7 @@ public class Response {
                                                        .collect(Collectors.toSet());
 
         if (!unknownPlaceholders.isEmpty()) {
-            throw new IllegalStateException("The response '" + key + "' was provided with unknown placeholders: " +
+            throw new IllegalStateException("The response '" + key.getKey() + "' was provided with unknown placeholders: " +
                                                     unknownPlaceholders.stream().map(Placeholder::id).collect(Collectors.joining(", ")));
         }
 

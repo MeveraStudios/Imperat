@@ -31,7 +31,7 @@ public final class ServerInfoArgument extends ArgumentType<BungeeSource, ServerI
         ServerInfo serverInfo = server.getServerInfo(correspondingInput);
         if (serverInfo == null) {
             throw new CommandException(BungeeResponseKey.UNKNOWN_SERVER)
-                          .withPlaceholder("input", correspondingInput);
+                          .withPlaceholder("server", correspondingInput);
         }
         return serverInfo;
     }

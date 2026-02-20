@@ -38,7 +38,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
         if (correspondingInput.equalsIgnoreCase("me") || correspondingInput.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
                 throw new CommandException(BukkitResponseKey.UNKNOWN_PLAYER)
-                              .withPlaceholder("name", correspondingInput);
+                              .withPlaceholder("input", correspondingInput);
             }
             return context.source().asPlayer();
         }
@@ -49,7 +49,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
         }
 
         throw new CommandException(BukkitResponseKey.UNKNOWN_PLAYER)
-                      .withPlaceholder("name", correspondingInput);
+                      .withPlaceholder("input", correspondingInput);
     }
 
     /**

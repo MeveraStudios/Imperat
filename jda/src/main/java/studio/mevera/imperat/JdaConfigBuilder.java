@@ -9,8 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.NoDMSException;
-import studio.mevera.imperat.exception.UnknownMemberException;
-import studio.mevera.imperat.exception.UnknownUserException;
+import studio.mevera.imperat.responses.JdaResponseKey;
 import studio.mevera.imperat.type.MemberArgument;
 import studio.mevera.imperat.type.RoleArgument;
 import studio.mevera.imperat.type.UserArgument;
@@ -29,6 +28,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
         registerSourceResolvers();
         registerArgumentTypes();
         registerThrowableResolvers();
+        registerDefaultResponses();
         config.registerDependencyResolver(JDA.class, () -> jda);
     }
 
@@ -60,17 +60,27 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
     }
 
     private void registerThrowableResolvers() {
-        config.setThrowableResolver(UnknownUserException.class, (ex, ctx) ->
-                                                                        ctx.source().error("User '" + ex.getIdentifier() + "' could not be found")
-        );
-
-        config.setThrowableResolver(UnknownMemberException.class, (ex, ctx) ->
-                                                                          ctx.source().error("Member '" + ex.getIdentifier() + "' could not be found")
-        );
+        //        config.setThrowableResolver(UnknownUserException.class, (ex, ctx) ->
+        //                                                                        ctx.source().error("User '" + ex.getIdentifier() + "' could not
+        //                                                                        be found")
+        //        );
+        //
+        //        config.setThrowableResolver(UnknownMemberException.class, (ex, ctx) ->
+        //                                                                          ctx.source().error("Member '" + ex.getIdentifier() + "' could
+        //                                                                          not be found")
+        //        );
 
         config.setThrowableResolver(NoDMSException.class, (ex, ctx) ->
                                                                   ctx.source().error(ex.getMessage())
         );
+    }
+
+    private void registerDefaultResponses() {
+        this.visit(ImperatConfig::getResponseRegistry, registry -> {
+            registry.registerResponse(JdaResponseKey.UNKNOWN_USER, () -> "Unknown user: %input%", "input");
+            registry.registerResponse(JdaResponseKey.UNKNOWN_MEMBER, () -> "Unknown member: %input%", "input");
+            registry.registerResponse(JdaResponseKey.UNKNOWN_ROLE, () -> "Unknown role: %input%", "input");
+        });
     }
 
     @Override

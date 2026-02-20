@@ -39,6 +39,7 @@ import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.DependencySupplier;
 import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
@@ -73,7 +74,22 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private boolean overlapOptionalParameterSuggestions = false;
     private boolean handleExecutionConsecutiveOptionalArgumentsSkip = false;
     private String commandPrefix = "/";
-    private CommandUsage.Builder<S> globalDefaultUsage = CommandUsage.builder();
+    private CommandUsage.Builder<S> globalDefaultUsage = CommandUsage.<S>builder()
+                                                                 .execute((src, ctx) -> {
+                                                                     StringBuilder invalidUsage = new StringBuilder("/" + ctx.label());
+                                                                     var args = ctx.arguments();
+                                                                     if (!args.isEmpty()) {
+                                                                         invalidUsage.append(" ")
+                                                                                 .append(String.join(" ", ctx.arguments()));
+                                                                     }
+                                                                     throw new CommandException(ResponseKey.INVALID_SYNTAX)
+                                                                                   .withContextPlaceholders(ctx)
+                                                                                   .withPlaceholder("invalid_usage", invalidUsage.toString())
+                                                                                   .withPlaceholder("closest_usage",
+                                                                                           "/" + ctx.label() + " " + ctx.getPathwaySearch()
+                                                                                                                             .getClosestUsage()
+                                                                                                                             .formatted());
+                                                                 });
 
     private AttachmentMode defaultAttachmentMode = AttachmentMode.UNSET;
 

@@ -182,13 +182,13 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
      * This enables automatic casting and validation of command sources.
      */
     private void registerDefaultSourceResolvers() {
-        config.registerSourceResolver(CommandSender.class, (minestomSource, ctx) -> minestomSource.origin());
+        config.registerSourceResolver(CommandSender.class, (hytaleSource, ctx) -> hytaleSource.origin());
 
-        config.registerSourceResolver(ConsoleSender.class, (minestomSource, ctx) -> {
-            if (!minestomSource.isConsole()) {
+        config.registerSourceResolver(ConsoleSender.class, (hytaleSource, ctx) -> {
+            if (!hytaleSource.isConsole()) {
                 throw new CommandException(HytaleResponseKey.ONLY_CONSOLE);
             }
-            return (ConsoleSender) minestomSource.origin();
+            return (ConsoleSender) hytaleSource.origin();
         });
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
@@ -223,191 +223,225 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
      * This provides user-friendly error messages for various error conditions.
      */
     private void registerHytaleResponses() {
-        var responseRegistry = config.getResponseRegistry();
+        this.visit(ImperatConfig::getResponseRegistry, responseRegistry -> {
+            // Register responses for Hytale-specific exceptions
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.ONLY_PLAYER,
+                    () -> "Only players can do this!"
+            );
 
-        // Register responses for Hytale-specific exceptions
-        responseRegistry.registerResponse(
-                HytaleResponseKey.ONLY_PLAYER,
-                () -> "Only players can do this!"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.ONLY_CONSOLE,
+                    () -> "Only console can do this!"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.ONLY_CONSOLE,
-                () -> "Only console can do this!"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.UNKNOWN_PLAYER,
+                    () -> "Player '%input%' not found",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.UNKNOWN_PLAYER,
-                () -> "Player '%username%' not found"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.UNKNOWN_WORLD,
+                    () -> "World '%input%' not found",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.UNKNOWN_WORLD,
-                () -> "World '%name%' not found"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_LOCATION,
+                    () -> "&4Failed to parse location '%input%' due to: &c%message%",
+                    "input", "message"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_LOCATION,
-                () -> "&4Failed to parse location '%input%' due to: &c%message%"
-        );
+            // Coordinate parsing errors
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_RELATIVE_DOUBLE_COORD,
+                    () -> "Invalid relative double coordinate: '%input%'",
+                    "input"
+            );
 
-        // Coordinate parsing errors
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_RELATIVE_DOUBLE_COORD,
-                () -> "Invalid relative double coordinate: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_RELATIVE_INT_COORD,
+                    () -> "Invalid relative integer coordinate: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_RELATIVE_INT_COORD,
-                () -> "Invalid relative integer coordinate: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_RELATIVE_INTEGER,
+                    () -> "Invalid relative integer: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_RELATIVE_INTEGER,
-                () -> "Invalid relative integer: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_RELATIVE_FLOAT,
+                    () -> "Invalid relative float: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_RELATIVE_FLOAT,
-                () -> "Invalid relative float: '%input%'"
-        );
+            // Vector parsing errors
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_VECTOR2I,
+                    () -> "Invalid 2D vector: '%input%'",
+                    "input"
+            );
 
-        // Vector parsing errors
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_VECTOR2I,
-                () -> "Invalid 2D vector: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_VECTOR3I,
+                    () -> "Invalid 3D vector: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_VECTOR3I,
-                () -> "Invalid 3D vector: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_RELATIVE_VECTOR3I,
+                    () -> "Invalid relative 3D vector: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_RELATIVE_VECTOR3I,
-                () -> "Invalid relative 3D vector: '%input%'"
-        );
+            // Position parsing errors
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_RELATIVE_BLOCK_POSITION,
+                    () -> "Invalid relative block position: '%input%'",
+                    "input"
+            );
 
-        // Position parsing errors
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_RELATIVE_BLOCK_POSITION,
-                () -> "Invalid relative block position: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_RELATIVE_POSITION,
+                    () -> "Invalid relative position: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_RELATIVE_POSITION,
-                () -> "Invalid relative position: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_RELATIVE_CHUNK_POSITION,
+                    () -> "Invalid relative chunk position: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_RELATIVE_CHUNK_POSITION,
-                () -> "Invalid relative chunk position: '%input%'"
-        );
+            // Rotation parsing errors
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_ROTATION,
+                    () -> "Invalid rotation: '%input%'",
+                    "input"
+            );
 
-        // Rotation parsing errors
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_ROTATION,
-                () -> "Invalid rotation: '%input%'"
-        );
+            // Asset parsing errors
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_MODEL_ASSET,
+                    () -> "Invalid model asset: '%input%'",
+                    "input"
+            );
 
-        // Asset parsing errors
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_MODEL_ASSET,
-                () -> "Invalid model asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_WEATHER_ASSET,
+                    () -> "Invalid weather asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_WEATHER_ASSET,
-                () -> "Invalid weather asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_INTERACTION_ASSET,
+                    () -> "Invalid interaction asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_INTERACTION_ASSET,
-                () -> "Invalid interaction asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_ROOT_INTERACTION_ASSET,
+                    () -> "Invalid root interaction asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_ROOT_INTERACTION_ASSET,
-                () -> "Invalid root interaction asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_EFFECT_ASSET,
+                    () -> "Invalid effect asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_EFFECT_ASSET,
-                () -> "Invalid effect asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_ENVIRONMENT_ASSET,
+                    () -> "Invalid environment asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_ENVIRONMENT_ASSET,
-                () -> "Invalid environment asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_ITEM_ASSET,
+                    () -> "Invalid item asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_ITEM_ASSET,
-                () -> "Invalid item asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_BLOCK_TYPE_ASSET,
+                    () -> "Invalid block type asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_BLOCK_TYPE_ASSET,
-                () -> "Invalid block type asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_PARTICLE_SYSTEM,
+                    () -> "Invalid particle system: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_PARTICLE_SYSTEM,
-                () -> "Invalid particle system: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_HITBOX_COLLISION_CONFIG,
+                    () -> "Invalid hitbox collision config: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_HITBOX_COLLISION_CONFIG,
-                () -> "Invalid hitbox collision config: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_REPULSION_CONFIG,
+                    () -> "Invalid repulsion config: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_REPULSION_CONFIG,
-                () -> "Invalid repulsion config: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_SOUND_EVENT_ASSET,
+                    () -> "Invalid sound event asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_SOUND_EVENT_ASSET,
-                () -> "Invalid sound event asset: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_AMBIENCE_FX_ASSET,
+                    () -> "Invalid ambience FX asset: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_AMBIENCE_FX_ASSET,
-                () -> "Invalid ambience FX asset: '%input%'"
-        );
+            // Enum parsing errors
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_SOUND_CATEGORY,
+                    () -> "Invalid sound category: '%input%'",
+                    "input"
+            );
 
-        // Enum parsing errors
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_SOUND_CATEGORY,
-                () -> "Invalid sound category: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_GAME_MODE,
+                    () -> "Invalid game mode: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_GAME_MODE,
-                () -> "Invalid game mode: '%input%'"
-        );
+            // Selection parsing errors
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_BLOCK_MASK,
+                    () -> "Invalid block mask: '%input%'",
+                    "input"
+            );
 
-        // Selection parsing errors
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_BLOCK_MASK,
-                () -> "Invalid block mask: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_BLOCK_PATTERN,
+                    () -> "Invalid block pattern: '%input%'",
+                    "input"
+            );
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_BLOCK_PATTERN,
-                () -> "Invalid block pattern: '%input%'"
-        );
+            // Operator parsing errors
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_INTEGER_COMPARISON_OPERATOR,
+                    () -> "Invalid integer comparison operator: '%input%'",
+                    "input"
+            );
 
-        // Operator parsing errors
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_INTEGER_COMPARISON_OPERATOR,
-                () -> "Invalid integer comparison operator: '%input%'"
-        );
+            responseRegistry.registerResponse(
+                    HytaleResponseKey.INVALID_INTEGER_OPERATION,
+                    () -> "Invalid integer operation: '%input%'",
+                    "input"
+            );
+        });
 
-        responseRegistry.registerResponse(
-                HytaleResponseKey.INVALID_INTEGER_OPERATION,
-                () -> "Invalid integer operation: '%input%'"
-        );
     }
 
     @Override
