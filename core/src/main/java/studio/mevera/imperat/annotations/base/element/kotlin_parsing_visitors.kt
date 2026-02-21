@@ -21,6 +21,7 @@ import kotlin.coroutines.Continuation
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.full.callSuspendBy
+import kotlin.reflect.full.extensionReceiverParameter
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.kotlinFunction
@@ -226,6 +227,10 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
 
         private fun buildParamMap(args: Array<Any?>): Map<KParameter, Any?> {
             val map = mutableMapOf<KParameter, Any?>()
+
+            kFunction.extensionReceiverParameter?.let {
+                throw IllegalStateException("Extension receiver parameters are not supported yet.")
+            }
 
             kFunction.instanceParameter?.let { map[it] = boundMethodCaller.instance() }
 
