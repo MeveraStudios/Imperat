@@ -11,7 +11,7 @@ import studio.mevera.imperat.annotations.base.MethodCommandExecutor
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules
 import studio.mevera.imperat.command.Command
-import studio.mevera.imperat.command.CommandUsage
+import studio.mevera.imperat.command.CommandPathway
 import studio.mevera.imperat.command.CoroutineCommandCoordinator
 import studio.mevera.imperat.command.parameters.Argument
 import studio.mevera.imperat.context.ExecutionContext
@@ -137,11 +137,11 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         @Nullable parentCmd: Command<S>?,
         @NotNull loadedCmd: Command<S>,
         method: MethodElement,
-        usage: CommandUsage<S>
-    ): CommandUsage<S>?
+        usage: CommandPathway<S>
+    ): CommandPathway<S>?
 
-    override fun loadUsage(parentCmd: Command<S>?, loadedCmd: Command<S>, method: MethodElement): CommandUsage<S>? {
-        val usage = super.loadUsage(parentCmd, loadedCmd, method) ?: return null
+    override fun loadPathway(parentCmd: Command<S>?, loadedCmd: Command<S>, method: MethodElement): CommandPathway<S>? {
+        val usage = super.loadPathway(parentCmd, loadedCmd, method) ?: return null
         val kFunction = method.element.kotlinFunction ?: return usage
 
         val hasDefaults = kFunction.parameters.any { it.kind == KParameter.Kind.VALUE && it.isOptional }
@@ -156,9 +156,9 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
     protected fun wrapWithKotlinHandling(
         loadedCmd: Command<S>,
         method: MethodElement,
-        usage: CommandUsage<S>,
+        usage: CommandPathway<S>,
         isSuspend: Boolean
-    ): CommandUsage<S> {
+    ): CommandPathway<S> {
         val originalExecutor = usage.execution as MethodCommandExecutor<S>
         val kFunction = method.element.kotlinFunction ?: return usage
 
@@ -169,7 +169,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
             if (isSuspend) (imperat.config().coroutineScope as? CoroutineScope) else null
         )
 
-        return CommandUsage.builder<S>()
+        return CommandPathway.builder<S>()
             .parameters(usage.parameters)
             .execute(wrappedExecutor)
             .permission(usage.permissionsData)
@@ -262,8 +262,8 @@ internal class KotlinCoroutineCommandParsingVisitor<S : Source>(
         @Nullable parentCmd: Command<S>?,
         @NotNull loadedCmd: Command<S>,
         method: MethodElement,
-        usage: CommandUsage<S>
-    ): CommandUsage<S> {
+        usage: CommandPathway<S>
+    ): CommandPathway<S> {
         return wrapWithKotlinHandling(loadedCmd, method, usage, true)
     }
 }
@@ -281,8 +281,8 @@ internal class KotlinBasicCommandParsingVisitor<S : Source>(
         @Nullable parentCmd: Command<S>?,
         @NotNull loadedCmd: Command<S>,
         method: MethodElement,
-        usage: CommandUsage<S>
-    ): CommandUsage<S> {
+        usage: CommandPathway<S>
+    ): CommandPathway<S> {
         throw IllegalStateException(
             "Suspend function '${method.name}' requires kotlinx-coroutines-core dependency"
         )

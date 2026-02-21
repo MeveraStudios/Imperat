@@ -1,8 +1,9 @@
 package studio.mevera.imperat.tests.kotlin;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.CommandParsingMode;
-import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.returns.BaseReturnResolver;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -15,8 +16,6 @@ import studio.mevera.imperat.tests.commands.KotlinReturnCommand;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class KotlinDefaultValuesTest {
 
@@ -70,6 +69,7 @@ public class KotlinDefaultValuesTest {
                     }
                 })
                 .build();
+
         imperat.registerCommand(KotlinReturnCommand.class);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();

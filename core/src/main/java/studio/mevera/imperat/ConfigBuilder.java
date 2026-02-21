@@ -5,7 +5,7 @@ import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
@@ -446,7 +446,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return the current {@link ConfigBuilder} instance for chaining further configuration.
      */
     // Placeholder
-    public B placeholder(Placeholder<S> placeholder) {
+    public B placeholder(Placeholder placeholder) {
         config.registerPlaceholder(placeholder);
         return (B) this;
     }
@@ -464,16 +464,16 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * <p>This method follows the builder pattern and returns the current builder
      * instance to allow for method chaining.
      *
-     * @param usage the {@link CommandUsage.Builder} to use as the global default
+     * @param usage the {@link studio.mevera.imperat.command.CommandPathway.Builder} to use as the global default
      *              for building command usage/syntax data. Must not be {@code null}.
      * @return this builder instance for method chaining
      * @throws NullPointerException if {@code usage} is {@code null}
      *
-     * @see CommandUsage.Builder
+     * @see studio.mevera.imperat.command.CommandPathway.Builder
      *
      * @since 1.0.0
      */
-    public B globalDefaultUsageBuilder(CommandUsage.Builder<S> usage) {
+    public B globalDefaultUsageBuilder(CommandPathway.Builder<S> usage) {
         config.setGlobalDefaultUsage(usage);
         return (B) this;
     }
