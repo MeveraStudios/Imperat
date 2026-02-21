@@ -14,8 +14,8 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.responses.BukkitResponseKey;
 
 import java.util.List;
 
@@ -37,7 +37,8 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
 
         if (correspondingInput.equalsIgnoreCase("me") || correspondingInput.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
-                throw new UnknownPlayerException(correspondingInput);
+                throw new CommandException(BukkitResponseKey.UNKNOWN_PLAYER)
+                              .withPlaceholder("input", correspondingInput);
             }
             return context.source().asPlayer();
         }
@@ -47,7 +48,8 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
             return player;
         }
 
-        throw new UnknownPlayerException(correspondingInput);
+        throw new CommandException(BukkitResponseKey.UNKNOWN_PLAYER)
+                      .withPlaceholder("input", correspondingInput);
     }
 
     /**

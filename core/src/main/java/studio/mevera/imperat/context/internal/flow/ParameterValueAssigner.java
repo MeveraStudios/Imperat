@@ -1,7 +1,7 @@
 package studio.mevera.imperat.context.internal.flow;
 
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -20,11 +20,11 @@ public final class ParameterValueAssigner<S extends Source> {
     private final Cursor<S> stream;
     private final ParameterChain<S> chain;
 
-    ParameterValueAssigner(ExecutionContext<S> context, CommandUsage<S> usage) {
+    ParameterValueAssigner(ExecutionContext<S> context, CommandPathway<S> usage) {
         this(context, usage, (ParameterChain<S>) DEFAULT_CHAIN);
     }
 
-    ParameterValueAssigner(ExecutionContext<S> context, CommandUsage<S> usage, ParameterChain<S> customChain) {
+    ParameterValueAssigner(ExecutionContext<S> context, CommandPathway<S> usage, ParameterChain<S> customChain) {
         this.context = context;
         this.chain = customChain;
         this.stream = Cursor.of(context.arguments(), usage);
@@ -42,14 +42,14 @@ public final class ParameterValueAssigner<S extends Source> {
 
     public static <S extends Source> ParameterValueAssigner<S> create(
             ExecutionContext<S> context,
-            CommandUsage<S> usage
+            CommandPathway<S> usage
     ) {
         return new ParameterValueAssigner<>(context, usage);
     }
 
     public static <S extends Source> ParameterValueAssigner<S> createWithCustomChain(
             ExecutionContext<S> context,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             ParameterChain<S> customChain
     ) {
         return new ParameterValueAssigner<>(context, usage, customChain);

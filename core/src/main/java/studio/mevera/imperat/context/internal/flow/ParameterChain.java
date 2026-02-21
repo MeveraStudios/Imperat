@@ -9,11 +9,11 @@ import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.handlers.ParameterHandler;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.FlagOutsideCommandScopeException;
-import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.exception.ShortHandFlagException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.TypeUtility;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -67,8 +67,10 @@ public class ParameterChain<S extends Source> {
             //all flags here must be resolved inside the context
             for (var flagParam : extracted) {
 
-                if (!lastCmd.getMainUsage().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
-                    throw new FlagOutsideCommandScopeException(lastCmd, raw);
+                if (!lastCmd.getMainPathway().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
+                    throw new CommandException(ResponseKey.FLAG_OUTSIDE_SCOPE)
+                                  .withPlaceholder("flag_input", raw)
+                                  .withPlaceholder("wrong_cmd", lastCmd.name());
                 }
                 context.resolveFlag(
                         ParsedFlagArgument.forFlag(
@@ -111,7 +113,8 @@ public class ParameterChain<S extends Source> {
 
         String inputRaw = areAllSwitches ? currentRaw : nextRaw;
         if (!areAllSwitches && inputRaw == null) {
-            throw new MissingFlagInputException(extracted.stream().map(FlagArgument::name).collect(Collectors.toSet()), currentRaw);
+            throw new CommandException(ResponseKey.MISSING_FLAG_INPUT)
+                          .withPlaceholder("flags", extracted.stream().map(FlagArgument::name).collect(Collectors.joining(",")));
         }
         return inputRaw;
     }

@@ -1,10 +1,11 @@
 package studio.mevera.imperat.command.flags;
 
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.UnknownFlagException;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Patterns;
 
 import java.util.ArrayList;
@@ -19,12 +20,12 @@ import java.util.stream.Collectors;
 
 final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
 
-    private final CommandUsage<S> usage;
+    private final CommandPathway<S> usage;
     private final FlagTrie<S> flagTrie;
     private final Set<FlagArgument<S>> registeredFlagArguments = new LinkedHashSet<>();
 
-    FlagExtractorImpl(CommandUsage<S> usage) {
-        this.usage = Objects.requireNonNull(usage, "CommandUsage cannot be null");
+    FlagExtractorImpl(CommandPathway<S> usage) {
+        this.usage = Objects.requireNonNull(usage, "CommandPathway cannot be null");
         this.flagTrie = buildFlagTrie();
     }
 
@@ -38,7 +39,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
     }
 
     @Override
-    public Set<FlagArgument<S>> extract(String rawInput) throws UnknownFlagException {
+    public Set<FlagArgument<S>> extract(String rawInput) throws CommandException {
         if (rawInput == null || rawInput.isEmpty()) {
             return Collections.emptySet();
         }
@@ -58,7 +59,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
     private FlagTrie<S> buildFlagTrie() {
         FlagTrie<S> trie = new FlagTrie<>();
 
-        // Get all flags from CommandUsage and build the trie
+        // Get all flags from CommandPathway and build the trie
         Set<FlagArgument<S>> allFlagArguments = usage.getParameters()
                                                  .stream()
                                                  .filter(Argument::isFlag)
@@ -82,7 +83,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
      * Parses the input string using a greedy longest-match algorithm.
      * This ensures that longer aliases are matched before shorter ones.
      */
-    private Set<FlagArgument<S>> parseFlags(String input) throws UnknownFlagException {
+    private Set<FlagArgument<S>> parseFlags(String input) throws CommandException {
         Set<FlagArgument<S>> extractedFlagArguments = new LinkedHashSet<>(3);
         List<String> unmatchedParts = new ArrayList<>();
 
@@ -102,10 +103,8 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
 
         // Throw exception if there are unmatched parts
         if (!unmatchedParts.isEmpty()) {
-            throw new UnknownFlagException(
-                    String.join(", ", unmatchedParts)
-
-            );
+            throw new CommandException(ResponseKey.UNKNOWN_FLAG)
+                          .withPlaceholder("input", String.join(", ", unmatchedParts));
         }
 
         return extractedFlagArguments;

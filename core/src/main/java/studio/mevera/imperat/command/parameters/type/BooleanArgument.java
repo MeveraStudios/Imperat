@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.parse.InvalidBooleanException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Priority;
 
 import java.util.Locale;
@@ -46,7 +46,8 @@ public final class BooleanArgument<S extends Source> extends ArgumentType<S, Boo
         if (allowVariants) {
             return VARIANTS.get(raw.toLowerCase());
         } else {
-            throw new InvalidBooleanException(raw);
+            throw new CommandException(ResponseKey.INVALID_BOOLEAN)
+                          .withPlaceholder("input", raw);
         }
     }
 

@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help.renderers;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.theme.HelpComponent;
@@ -96,7 +96,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             HelpTheme<S, C> theme,
             Set<String> renderedPaths
     ) {
-        CommandUsage<S> usage = entry.getPathway();
+        CommandPathway<S> usage = entry.getPathway();
         S source = context.source();
 
         // Get all subcommand positions from this usage
@@ -149,7 +149,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
     /**
      * Gets all subcommand positions from a usage, sorted by position.
      */
-    private List<Integer> getSubcommandPositions(CommandUsage<S> usage) {
+    private List<Integer> getSubcommandPositions(CommandPathway<S> usage) {
         List<Integer> positions = new ArrayList<>();
         for (int i = 0; i < usage.size(); i++) {
             var parameter = usage.getParameter(i);
@@ -165,7 +165,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
     /**
      * Builds subcommand path up to the specified position.
      */
-    private String buildSubcommandPath(CommandUsage<S> usage, int upToPosition) {
+    private String buildSubcommandPath(CommandPathway<S> usage, int upToPosition) {
         StringBuilder path = new StringBuilder();
         boolean first = true;
 
@@ -186,11 +186,11 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
     /**
      * Checks if a subcommand at the given position has child subcommands.
      */
-    private boolean hasChildSubcommands(List<HelpEntry<S>> allEntries, CommandUsage<S> currentUsage, int position) {
+    private boolean hasChildSubcommands(List<HelpEntry<S>> allEntries, CommandPathway<S> currentUsage, int position) {
         String currentPath = buildSubcommandPath(currentUsage, position);
 
         for (HelpEntry<S> otherEntry : allEntries) {
-            CommandUsage<S> otherUsage = otherEntry.getPathway();
+            CommandPathway<S> otherUsage = otherEntry.getPathway();
 
             // Look for entries that extend our path with more subcommands
             for (int i = 0; i < otherUsage.size(); i++) {
@@ -211,7 +211,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
      * Determines if this entry is the last sibling at the given position.
      */
     private boolean isLastSiblingAtPosition(List<HelpEntry<S>> allEntries, HelpEntry<S> currentEntry, int position) {
-        CommandUsage<S> currentUsage = currentEntry.getPathway();
+        CommandPathway<S> currentUsage = currentEntry.getPathway();
         var currentParameter = currentUsage.getParameter(position);
 
         if (position == 0) {
@@ -220,7 +220,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             String currentSubcommand = currentParameter.name();
 
             for (HelpEntry<S> otherEntry : allEntries) {
-                CommandUsage<S> otherUsage = otherEntry.getPathway();
+                CommandPathway<S> otherUsage = otherEntry.getPathway();
                 for (int i = 0; i < otherUsage.size(); i++) {
                     var otherParameter = otherUsage.getParameter(i);
                     assert otherParameter != null;
@@ -240,7 +240,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             String currentSubcommand = currentParameter.name();
 
             for (HelpEntry<S> otherEntry : allEntries) {
-                CommandUsage<S> otherUsage = otherEntry.getPathway();
+                CommandPathway<S> otherUsage = otherEntry.getPathway();
                 for (int i = 0; i < otherUsage.size(); i++) {
                     var otherParameter = otherUsage.getParameter(i);
                     assert otherParameter != null;
@@ -294,8 +294,8 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
         }
 
         sorted.sort((a, b) -> {
-            CommandUsage<S> pathA = a.getPathway();
-            CommandUsage<S> pathB = b.getPathway();
+            CommandPathway<S> pathA = a.getPathway();
+            CommandPathway<S> pathB = b.getPathway();
 
             // Get subcommand positions for comparison
             List<Integer> positionsA = getSubcommandPositions(pathA);

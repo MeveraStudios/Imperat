@@ -25,6 +25,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.mockito:mockito-core:5.8.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.8.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.1")
 
     testImplementation("org.jetbrains.kotlin:kotlin-reflect:2.3.10")
 
@@ -104,6 +105,7 @@ tasks.register<Test>("fastTest") {
     include("**/arguments/**")
     include("**/flags/**")
     include("**/parameters/**")
+    include("**/responses/**")
     include("**/errors/**")
     include("**/integration/**")
     include("**/events/**")

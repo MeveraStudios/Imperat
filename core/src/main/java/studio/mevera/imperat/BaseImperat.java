@@ -6,7 +6,7 @@ import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.AnnotationReader;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
@@ -28,10 +28,9 @@ import studio.mevera.imperat.events.types.CommandPostRegistrationEvent;
 import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.InvalidSyntaxException;
-import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.UnknownCommandException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Priority;
@@ -328,34 +327,36 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         S source = context.source();
 
         if (!config.getPermissionChecker().hasPermission(source, command)) {
-            throw new PermissionDeniedException(
-                    command.getDefaultUsage(),
-                    command
-            );
+            throw new CommandException(ResponseKey.PERMISSION_DENIED)
+                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("usage", CommandPathway.format(command, command.getDefaultPathway()));
         }
 
         CommandPathSearch<S> searchResult = command.contextMatch(context);
         ImperatDebugger.debug("Search-result: '" + searchResult.getResult().name() + "'");
 
         if (searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
-            throw new PermissionDeniedException(searchResult);
+            throw new CommandException(ResponseKey.PERMISSION_DENIED)
+                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("usage", CommandPathway.format(command, searchResult.getClosestUsage()));
         }
 
-        CommandUsage<S> usage = searchResult.getFoundUsage();
-        if (usage == null) {
+        CommandPathway<S> usage = searchResult.getFoundUsage();
+        if (usage == null || searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
             ImperatDebugger.debug("Usage not found !");
-            throw new InvalidSyntaxException(searchResult);
-            //TODO fix closest usage suggestion
-        } else if (searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
-            throw new InvalidSyntaxException(searchResult);
+            var closestUsage = searchResult.getClosestUsage();
+            throw new CommandException(ResponseKey.INVALID_SYNTAX)
+                          .withPlaceholder("closest_usage", closestUsage != null ? CommandPathway.format(command, closestUsage) : "No usage found");
         }
 
         var usageAccessCheckResult = config.getPermissionChecker().hasPermission(source, usage);
         if (!usageAccessCheckResult) {
             ImperatDebugger.debug("Failed usage permission check !");
-            throw new PermissionDeniedException(usage, null);
+            throw new CommandException(ResponseKey.PERMISSION_DENIED)
+                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("usage", CommandPathway.format(command, usage));
         }
-        ImperatDebugger.debug("Usage Found Format: '" + CommandUsage.formatWithTypes(command, usage) + "'");
+        ImperatDebugger.debug("Usage Found Format: '" + CommandPathway.formatWithTypes(command, usage) + "'");
 
         return executeUsage(command, source, context, usage, searchResult);
     }
@@ -364,7 +365,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             final Command<S> command,
             final S source,
             final Context<S> context,
-            final CommandUsage<S> usage,
+            final CommandPathway<S> usage,
             final CommandPathSearch<S> dispatch
     ) throws CommandException {
 
@@ -387,7 +388,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
     private void globalPreProcessing(
             @NotNull Context<S> context,
-            @NotNull CommandUsage<S> usage
+            @NotNull CommandPathway<S> usage
     ) throws ProcessorException {
 
         for (CommandPreProcessor<S> preProcessor : config.getPreProcessors()) {
@@ -530,8 +531,8 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                 cmd.visualizeTree();
             } else {
                 ImperatDebugger.debug("Debugging command '%s'", cmd.name());
-                for (CommandUsage<S> usage : cmd.usages()) {
-                    ImperatDebugger.debug("   - '%s'", CommandUsage.format(cmd, usage));
+                for (CommandPathway<S> usage : cmd.getAllPossiblePathways()) {
+                    ImperatDebugger.debug("   - '%s'", CommandPathway.format(cmd, usage));
                 }
             }
         }

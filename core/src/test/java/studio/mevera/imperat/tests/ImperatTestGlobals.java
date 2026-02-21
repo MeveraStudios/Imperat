@@ -11,7 +11,7 @@ import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.BuyCommand;
 import studio.mevera.imperat.tests.commands.ContextResolvingCmd;
 import studio.mevera.imperat.tests.commands.CustomEnumCommand;
-import studio.mevera.imperat.tests.commands.FailingCmd;
+import studio.mevera.imperat.tests.commands.FailCmd;
 import studio.mevera.imperat.tests.commands.KingdomChatCommand;
 import studio.mevera.imperat.tests.commands.MultipleVariantsCmd;
 import studio.mevera.imperat.tests.commands.MyCustomAnnotation;
@@ -50,6 +50,7 @@ import studio.mevera.imperat.tests.contextresolver.PlayerData;
 import studio.mevera.imperat.tests.contextresolver.PlayerDataContextResolver;
 import studio.mevera.imperat.tests.contextresolver.SomeData;
 import studio.mevera.imperat.tests.contextresolver.SomeDataCR;
+import studio.mevera.imperat.tests.errors.CustomException;
 import studio.mevera.imperat.tests.parameters.CustomDuration;
 import studio.mevera.imperat.tests.parameters.CustomDurationArgumentType;
 import studio.mevera.imperat.tests.parameters.JavaDurationArgumentType;
@@ -85,6 +86,9 @@ public class ImperatTestGlobals {
                                                       .contextResolver(SomeData.class, new SomeDataCR())
                                                       .handleMiddleOptionalArgSkipping(true)
                                                       .overlapOptionalParameterSuggestions(true)
+                                                      .throwableResolver(CustomException.class, (exc, ctx) -> {
+                                                          System.out.println("CustomException occurred: " + exc.getMessage());
+                                                      })
                                                       .build();
     public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);
 
@@ -131,7 +135,7 @@ public class ImperatTestGlobals {
                 FirstOptionalArgumentCmd.class,
                 SomeClass.class,
                 TestPerm.class,
-                FailingCmd.class
+                FailCmd.class
         );
 
         IMPERAT.registerCommands(EconomyCommand.class, BalanceCmd.class);

@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.context.Source;
 
@@ -11,7 +11,7 @@ import java.util.Objects;
  * Represents a final, immutable entry for a single executable command in the help system.
  * <p>
  * This class encapsulates a {@link CommandNode} that represents an executable command,
- * along with its corresponding {@link CommandUsage} pathway. It ensures that only
+ * along with its corresponding {@link CommandPathway} pathway. It ensures that only
  * executable nodes can be used to create a help entry, making it a reliable data
  * model for displaying help information.
  *
@@ -20,7 +20,7 @@ import java.util.Objects;
 public final class HelpEntry<S extends Source> {
 
     private final CommandNode<S, ?> node;
-    private final @NotNull CommandUsage<S> pathway;
+    private final @NotNull CommandPathway<S> pathway;
 
     /**
      * Constructs a new HelpEntry from an executable {@link CommandNode}.
@@ -43,7 +43,7 @@ public final class HelpEntry<S extends Source> {
      *
      * @return The pathway of the command.
      */
-    public @NotNull CommandUsage<S> getPathway() {
+    public @NotNull CommandPathway<S> getPathway() {
         return pathway;
     }
 

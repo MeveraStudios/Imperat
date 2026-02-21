@@ -8,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
-import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
+import studio.mevera.imperat.responses.MinestomResponseKey;
 import studio.mevera.imperat.util.TypeWrap;
 
 /**
@@ -84,14 +84,14 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
         config.registerSourceResolver(AdventureSource.class, (minestomSource, ctx) -> minestomSource);
         config.registerSourceResolver(ConsoleSender.class, (minestomSource, ctx) -> {
             if (!minestomSource.isConsole()) {
-                throw new OnlyConsoleAllowedException();
+                throw new CommandException(MinestomResponseKey.ONLY_CONSOLE);
             }
             return (ConsoleSender) minestomSource.origin();
         });
 
         config.registerSourceResolver(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(MinestomResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });
@@ -102,11 +102,6 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
      * This provides user-friendly error messages for various error conditions.
      */
     private void addThrowableHandlers() {
-        config.setThrowableResolver(OnlyPlayerAllowedException.class, (ex, context) -> context.source().error("Only players can do this!"));
-
-        // Enhanced exception handling similar to Velocity
-        config.setThrowableResolver(OnlyConsoleAllowedException.class, (ex, context) -> context.source().error("Only console can do this!"));
-
         config.setThrowableResolver(
                 UnknownPlayerException.class,
                 (exception, context) -> context.source().error("A player with the name '" + exception.getName() + "' is not online.")

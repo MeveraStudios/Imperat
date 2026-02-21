@@ -10,10 +10,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.exception.NumberOutOfRangeException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
-import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Error Handling Tests")
@@ -81,13 +80,9 @@ public class ErrorHandlingTest extends BaseImperatTest {
 
     @Test
     @DisplayName("Should detect thrown exception handler from annotated class")
-    void testExceptionHandlerAnnotation() {
+    void testExceptionHandlerInCmdMethod() {
         var res = execute("fail");
-        assertFailure(res);
-
-        assertNotNull(res.getError());
-        ImperatTestGlobals.IMPERAT.config()
-                .handleExecutionThrowable(res.getError(), res.getContext(), BaseImperatTest.class, "testFail");
+        assertFailure(res, CustomException.class);
 
         // Should fail due to missing Group context
     }
@@ -98,7 +93,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     )
     void testArgumentValidatorHandling() {
         ExecutionResult<TestSource> result = execute("buy potato 0"); // Should fail due to validator range
-        assertFailure(result, NumberOutOfRangeException.class);
+        assertFailure(result, CommandException.class);
     }
     
    /*@Test

@@ -2,9 +2,10 @@ package studio.mevera.imperat.command.parameters.validator;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.ParsedArgument;
-import studio.mevera.imperat.exception.parse.ValueOutOfConstraintException;
+import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Priority;
 
 import java.util.Set;
@@ -38,10 +39,12 @@ public final class ConstrainedValueValidator<S extends Source> implements ArgVal
     }
 
     @Override
-    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
+    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
         String input = parsedArgument.getArgumentRawInput();
         if (!contains(input, allowedValues, caseSensitive)) {
-            throw new ValueOutOfConstraintException(input, allowedValues);
+            throw new CommandException(ResponseKey.VALUE_OUT_OF_CONSTRAINT)
+                          .withPlaceholder("input", input)
+                          .withPlaceholder("allowed_values", String.join(",", allowedValues));
         }
     }
 }

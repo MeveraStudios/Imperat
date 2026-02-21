@@ -10,10 +10,10 @@ import studio.mevera.imperat.command.DescriptionHolder;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
-import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.context.Context;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.ParsedArgument;
+import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
@@ -333,5 +333,5 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
 
     void addValidator(@NotNull ArgValidator<S> validator);
 
-    void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws InvalidArgumentException;
+    void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException;
 }

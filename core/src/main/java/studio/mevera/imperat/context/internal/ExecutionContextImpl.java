@@ -4,13 +4,12 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
-import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
-import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
+import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
 import studio.mevera.imperat.exception.CommandException;
@@ -30,7 +29,7 @@ import java.util.Optional;
 @ApiStatus.Internal
 final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implements ExecutionContext<S> {
 
-    private final CommandUsage<S> usage;
+    private final CommandPathway<S> usage;
     private final Registry<String, ParsedFlagArgument<S>> flagRegistry = new Registry<>();
     //per command/subcommand because the class 'CommandProcessingChain' can be also treated as a sub command
     private final Registry<Command<S>, Registry<String, ParsedArgument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
@@ -183,7 +182,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     public <T> void resolveArgument(
             @NotNull Cursor<S> cursor,
             @Nullable T value
-    ) throws InvalidArgumentException {
+    ) throws CommandException {
         var argument = cursor.currentParameterIfPresent();
         if (argument == null) {
             throw new IllegalStateException(
@@ -203,7 +202,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     }
 
     @Override
-    public void resolveArgument(ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
+    public void resolveArgument(ParsedArgument<S> parsedArgument) throws CommandException {
         var argument = parsedArgument.getOriginalArgument();
         argument.validate(this, parsedArgument);
         resolvedArgumentsPerCommand.update(getLastUsedCommand(), (existingResolvedArgs) -> {
@@ -216,7 +215,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     }
 
     @Override
-    public void resolveFlag(ParsedFlagArgument<S> flag) throws InvalidArgumentException {
+    public void resolveFlag(ParsedFlagArgument<S> flag) throws CommandException {
         flag.getOriginalArgument().validate(this, flag);
         flagRegistry.setData(flag.getOriginalArgument().name(), flag);
     }
@@ -236,7 +235,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return The used usage to use it to resolve commands
      */
     @Override
-    public CommandUsage<S> getDetectedUsage() {
+    public CommandPathway<S> getDetectedUsage() {
         return usage;
     }
 

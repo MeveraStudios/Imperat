@@ -6,9 +6,8 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.ContextResolved;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
@@ -40,7 +39,7 @@ import java.util.Optional;
  * @param <S> the type of the command source/sender
  *
  * @see Command
- * @see CommandUsage
+ * @see CommandPathway
  * @see ParsedArgument
  * @see ParsedFlagArgument
  * @since 1.0.0
@@ -83,7 +82,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * Gets a resolved command argument by its parameter name.
      *
      * @param <T> the type of the argument value
-     * @param name the parameter name defined in the {@link CommandUsage}
+     * @param name the parameter name defined in the {@link CommandPathway}
      * @return the resolved argument value, or {@code null} if not provided or couldn't be resolved
      * @see ParsedArgument
      */
@@ -167,14 +166,14 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      */
     void resolveArgument(
             ParsedArgument<S> argument
-    ) throws InvalidArgumentException;
+    ) throws CommandException;
 
     /**
      * Registers a resolved flag in the context.
      *
      * @param flag the resolved flag to register
      */
-    void resolveFlag(ParsedFlagArgument<S> flag) throws InvalidArgumentException;
+    void resolveFlag(ParsedFlagArgument<S> flag) throws CommandException;
 
     /**
      * Gets the most specific command that was resolved in this context.
@@ -188,7 +187,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      *
      * @return the detected command usage
      */
-    CommandUsage<S> getDetectedUsage();
+    CommandPathway<S> getDetectedUsage();
 
     /**
      * Resolves all arguments and flags from the raw context input.

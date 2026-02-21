@@ -81,6 +81,18 @@ public final class ImperatDebugger {
         LOGGER.log(Level.SEVERE, ex, () -> String.format("Error in class '%s', in method '%s'", owningClass.getName(), method));
     }
 
+    public static void error(String msg, Object... args) {
+        if (!enabled) {
+            return;
+        }
+        if (testing) {
+            System.err.println(String.format("ERROR > " + msg, args));
+        } else {
+            LOGGER.log(Level.SEVERE, () -> String.format(msg, args));
+        }
+    }
+
+
     public static void error(Class<?> owningClass, String method, Throwable ex, String message) {
         LOGGER.log(Level.SEVERE, ex, () -> String.format("Error in class '%s', in method '%s' due to '%s'", owningClass.getName(), method, message));
     }

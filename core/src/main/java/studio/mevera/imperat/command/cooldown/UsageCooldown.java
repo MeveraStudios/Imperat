@@ -2,14 +2,14 @@ package studio.mevera.imperat.command.cooldown;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Represents a required cooldown of a {@link CommandUsage}
+ * Represents a required cooldown of a {@link CommandPathway}
  *
  * @see TimeUnit
  * @see Duration

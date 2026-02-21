@@ -9,8 +9,9 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.exception.NoDMSException;
-import studio.mevera.imperat.exception.UnknownMemberException;
+import studio.mevera.imperat.responses.JdaResponseKey;
 
 public final class MemberArgument extends ArgumentType<JdaSource, Member> {
 
@@ -26,12 +27,12 @@ public final class MemberArgument extends ArgumentType<JdaSource, Member> {
         String memberId = correspondingInput.replaceAll("\\D", "");
         String lookupId = memberId.isEmpty() ? correspondingInput : memberId;
         if (!lookupId.matches("\\d{17,20}")) {
-            throw new UnknownMemberException(correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_MEMBER, correspondingInput);
         }
 
         Member member = guild.getMemberById(lookupId);
         if (member == null) {
-            throw new UnknownMemberException(correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_MEMBER, correspondingInput);
         }
         return member;
     }

@@ -9,7 +9,6 @@ import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
-import studio.mevera.imperat.command.parameters.validator.InvalidArgumentException;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -19,8 +18,8 @@ import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.ParsedArgument;
+import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.ThrowableResolver;
@@ -48,18 +47,18 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final int position;
     private final List<String> aliases = new ArrayList<>();
     private final Map<String, Command<S>> children = new LinkedHashMap<>();
-    private final CommandUsageSet<S> usages = new CommandUsageSet<>();
+    private final CommandPathwaySet<S> usages = new CommandPathwaySet<>();
     private final AutoCompleter<S> autoCompleter;
     private final @Nullable CommandTree<S> tree;
     private final @NotNull CommandTreeVisualizer<S> visualizer;
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
     private final @NotNull SuggestionResolver<S> suggestionResolver;
-    private final CommandUsage<S> emptyUsage;
+    private final CommandPathway<S> emptyPathway;
     private PermissionsData permissions = PermissionsData.empty();
     private Description description = Description.EMPTY;
     private boolean suppressACPermissionChecks = false;
-    private CommandUsage<S> mainUsage = null;
-    private CommandUsage<S> defaultUsage;
+    private CommandPathway<S> mainPathway = null;
+    private CommandPathway<S> defaultPathway;
     private final Map<String, Command<S>> shortcuts = new HashMap<>();
 
     private ParseElement<?> annotatedElement = null;
@@ -85,8 +84,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.parent = parent;
         this.position = position;
         this.name = name.toLowerCase();
-        this.emptyUsage = CommandUsage.<S>builder().build(this);
-        this.defaultUsage = imperat.config().getGlobalDefaultUsage().build(this);
+        this.emptyPathway = CommandPathway.<S>builder().build(this);
+        this.defaultPathway = imperat.config().getGlobalDefaultPathway().build(this);
         this.autoCompleter = AutoCompleter.createNative(this);
         this.tree = parent != null ? null : CommandTree.create(imperat.config(), this);
         this.visualizer = CommandTreeVisualizer.of(tree);
@@ -192,7 +191,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param usage   the usage detected being used
      */
     @Override
-    public void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) throws ProcessorException {
+    public void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandPathway<S> usage) throws ProcessorException {
         for (var processor : preProcessors) {
             try {
                 processor.process(api, context, usage);
@@ -220,7 +219,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param usage   the usage detected being used
      */
     @Override
-    public void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) throws ProcessorException {
+    public void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandPathway<S> usage)
+            throws ProcessorException {
         for (var processor : postProcessors) {
             try {
                 processor.process(api, context);
@@ -237,8 +237,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @return A usage with empty parameters.
      */
     @Override
-    public @NotNull CommandUsage<S> getEmptyUsage() {
-        return emptyUsage;
+    public @NotNull CommandPathway<S> getEmptyPathway() {
+        return emptyPathway;
     }
 
     /**
@@ -300,8 +300,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * without any args
      */
     @Override
-    public @NotNull CommandUsage<S> getDefaultUsage() {
-        return defaultUsage;
+    public @NotNull CommandPathway<S> getDefaultPathway() {
+        return defaultPathway;
     }
 
     /**
@@ -310,39 +310,39 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param usage the default command usage instance to be set, which must not be null
      */
     @Override
-    public void setDefaultUsage(@NotNull CommandUsage<S> usage) {
-        this.defaultUsage = Objects.requireNonNull(usage, "Default usage cannot be null");
+    public void setDefaultPathway(@NotNull CommandPathway<S> usage) {
+        this.defaultPathway = Objects.requireNonNull(usage, "Default usage cannot be null");
     }
 
 
     /**
      * Adds a usage to the command
      *
-     * @param usage the usage {@link CommandUsage} of the command
+     * @param usage the usage {@link CommandPathway} of the command
      */
     @Override
-    public void addUsage(CommandUsage<S> usage) {
+    public void addPathway(CommandPathway<S> usage) {
         if (tree != null) {
             tree.parseUsage(usage);
         }
 
         if (usage.isDefault()) {
-            this.defaultUsage = usage;
+            this.defaultPathway = usage;
         }
 
         usages.put(usage);
 
-        if (mainUsage == null && !usage.isDefault() && usage.getMaxLength() >= 1 && !usage.hasParamType(Command.class)) {
-            mainUsage = usage;
+        if (mainPathway == null && !usage.isDefault() && usage.getMaxLength() >= 1 && !usage.hasParamType(Command.class)) {
+            mainPathway = usage;
         }
     }
 
     /**
-     * @return all {@link CommandUsage} that were registered
+     * @return all {@link CommandPathway} that were registered
      * to this command by the user
      */
     @Override
-    public Collection<? extends CommandUsage<S>> usages() {
+    public Collection<? extends CommandPathway<S>> getAllPossiblePathways() {
         return usages.asSortedSet();
     }
 
@@ -351,9 +351,9 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * required parameters
      */
     @Override
-    public @NotNull CommandUsage<S> getMainUsage() {
-        return Optional.ofNullable(mainUsage)
-                       .orElse(defaultUsage);
+    public @NotNull CommandPathway<S> getMainPathway() {
+        return Optional.ofNullable(mainPathway)
+                       .orElse(defaultPathway);
     }
 
     /**
@@ -429,26 +429,26 @@ final class CommandImpl<S extends Source> implements Command<S> {
         subcmd.parent(this);
         registerSubCommand(subcmd);
 
-        final CommandUsage<S> prime;
+        final CommandPathway<S> prime;
         switch (attachmentMode) {
-            case EMPTY -> prime = getEmptyUsage();
-            case MAIN, UNSET -> prime = getMainUsage();
-            case DEFAULT -> prime = getDefaultUsage();
+            case EMPTY -> prime = getEmptyPathway();
+            case MAIN, UNSET -> prime = getMainPathway();
+            case DEFAULT -> prime = getDefaultPathway();
             default -> throw new IllegalArgumentException("Unknown attachment mode: " + attachmentMode);
         }
-        CommandUsage<S> combo = prime.mergeWithCommand(subcmd, subcmd.getMainUsage());
+        CommandPathway<S> combo = prime.mergeWithCommand(subcmd, subcmd.getMainPathway());
         //adding the merged command usage
 
-        this.addUsage(combo);
+        this.addPathway(combo);
 
-        for (CommandUsage<S> subUsage : subcmd.usages()) {
-            if (subUsage.equals(subcmd.getMainUsage())) {
+        for (CommandPathway<S> subPathway : subcmd.getAllPossiblePathways()) {
+            if (subPathway.equals(subcmd.getMainPathway())) {
                 continue;
             }
-            combo = prime.mergeWithCommand(subcmd, subUsage);
+            combo = prime.mergeWithCommand(subcmd, subPathway);
             //adding the merged command usage
 
-            this.addUsage(
+            this.addPathway(
                     combo
             );
         }
@@ -459,14 +459,14 @@ final class CommandImpl<S extends Source> implements Command<S> {
     public void addSubCommandUsage(
             String subCommand,
             List<String> aliases,
-            CommandUsage.Builder<S> usage,
+            CommandPathway.Builder<S> usage,
             AttachmentMode attachmentMode
     ) {
         int position;
         if (attachmentMode == AttachmentMode.EMPTY) {
             position = position() + 1;
         } else {
-            CommandUsage<S> main = attachmentMode == AttachmentMode.MAIN ? getMainUsage() : getDefaultUsage();
+            CommandPathway<S> main = attachmentMode == AttachmentMode.MAIN ? getMainPathway() : getDefaultPathway();
             position = this.position() + (main.getMinLength() == 0 ? 1 : main.getMinLength());
         }
 
@@ -607,8 +607,8 @@ final class CommandImpl<S extends Source> implements Command<S> {
         copy.aliases.addAll(this.aliases);
 
         // Copy usages
-        for (CommandUsage<S> usage : this.usages()) {
-            copy.addUsage(usage);
+        for (CommandPathway<S> usage : this.getAllPossiblePathways()) {
+            copy.addPathway(usage);
         }
 
         // Copy sub-commands
@@ -631,7 +631,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
         }
 
         // Set default usage if it was customized
-        copy.setDefaultUsage(this.defaultUsage);
+        copy.setDefaultPathway(this.defaultPathway);
 
         return copy;
     }
@@ -647,7 +647,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws InvalidArgumentException {
+    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
         throw new UnsupportedOperationException("A command does not have argument validators !");
     }
 

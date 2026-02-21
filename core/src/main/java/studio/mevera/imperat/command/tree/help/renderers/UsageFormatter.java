@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.tree.help.renderers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.help.theme.HelpComponent;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -28,7 +28,7 @@ public interface UsageFormatter<S extends Source, C> {
      */
     @NotNull HelpComponent<S, C> format(
             Command<S> lastOwningCommand,
-            CommandUsage<S> pathway,
+            CommandPathway<S> pathway,
             ExecutionContext<S> context,
             HelpTheme<S, C> theme
     );

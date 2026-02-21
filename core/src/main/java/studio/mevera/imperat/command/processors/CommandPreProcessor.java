@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.processors;
 
 import studio.mevera.imperat.Imperat;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
@@ -26,7 +26,7 @@ public interface CommandPreProcessor<S extends Source> extends CommandProcessor<
     void process(
             Imperat<S> imperat,
             Context<S> context,
-            CommandUsage<S> usage
+            CommandPathway<S> usage
     ) throws CommandException;
 
 }

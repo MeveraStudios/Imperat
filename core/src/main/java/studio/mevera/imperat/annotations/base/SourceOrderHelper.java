@@ -1,6 +1,6 @@
 package studio.mevera.imperat.annotations.base;
 
-import studio.mevera.imperat.annotations.Priority;
+import studio.mevera.imperat.annotations.ParseOrder;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
@@ -17,8 +17,8 @@ public final class SourceOrderHelper {
     }
 
     private static int priorityOf(AnnotatedElement element) {
-        Priority priority = element.getAnnotation(Priority.class);
-        return priority != null ? priority.value() : Integer.MAX_VALUE;
+        ParseOrder parseOrder = element.getAnnotation(ParseOrder.class);
+        return parseOrder != null ? parseOrder.value() : Integer.MAX_VALUE;
     }
 
     /**

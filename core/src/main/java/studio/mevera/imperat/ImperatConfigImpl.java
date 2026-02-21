@@ -8,12 +8,11 @@ import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextResolverFactory;
 import studio.mevera.imperat.command.ContextResolverRegistry;
 import studio.mevera.imperat.command.ReturnResolverRegistry;
 import studio.mevera.imperat.command.SourceResolverRegistry;
-import studio.mevera.imperat.command.parameters.NumericRange;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
@@ -23,33 +22,15 @@ import studio.mevera.imperat.command.processors.impl.DefaultProcessors;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.suggestions.SuggestionResolverRegistry;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
+import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
-import studio.mevera.imperat.exception.CooldownException;
-import studio.mevera.imperat.exception.FlagOutsideCommandScopeException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSourceException;
-import studio.mevera.imperat.exception.InvalidSyntaxException;
-import studio.mevera.imperat.exception.InvalidUUIDException;
-import studio.mevera.imperat.exception.MissingFlagInputException;
-import studio.mevera.imperat.exception.NoHelpException;
-import studio.mevera.imperat.exception.NoHelpPageException;
-import studio.mevera.imperat.exception.NumberOutOfRangeException;
-import studio.mevera.imperat.exception.PermissionDeniedException;
-import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.exception.ThrowableResolver;
-import studio.mevera.imperat.exception.UnknownCommandException;
-import studio.mevera.imperat.exception.UnknownFlagException;
-import studio.mevera.imperat.exception.parse.InvalidBooleanException;
-import studio.mevera.imperat.exception.parse.InvalidEnumException;
-import studio.mevera.imperat.exception.parse.InvalidMapEntryFormatException;
-import studio.mevera.imperat.exception.parse.InvalidNumberFormatException;
-import studio.mevera.imperat.exception.parse.UnknownSubCommandException;
-import studio.mevera.imperat.exception.parse.ValueOutOfConstraintException;
-import studio.mevera.imperat.exception.parse.WordOutOfRestrictionsException;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
@@ -58,6 +39,8 @@ import studio.mevera.imperat.resolvers.ContextResolver;
 import studio.mevera.imperat.resolvers.DependencySupplier;
 import studio.mevera.imperat.resolvers.SourceResolver;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.responses.ResponseKey;
+import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
 
@@ -76,7 +59,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private final ContextResolverRegistry<S> contextResolverRegistry;
     private final ArgumentTypeRegistry<S> argumentTypeRegistry;
     private final SuggestionResolverRegistry<S> suggestionResolverRegistry;
-    private final PlaceholderRegistry<S> placeholderRegistry;
     private final SourceResolverRegistry<S> sourceResolverRegistry;
     private final ReturnResolverRegistry<S> returnResolverRegistry;
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
@@ -92,7 +74,22 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private boolean overlapOptionalParameterSuggestions = false;
     private boolean handleExecutionConsecutiveOptionalArgumentsSkip = false;
     private String commandPrefix = "/";
-    private CommandUsage.Builder<S> globalDefaultUsage = CommandUsage.builder();
+    private CommandPathway.Builder<S> globalDefaultUsage = CommandPathway.<S>builder()
+                                                                 .execute((src, ctx) -> {
+                                                                     StringBuilder invalidUsage = new StringBuilder("/" + ctx.label());
+                                                                     var args = ctx.arguments();
+                                                                     if (!args.isEmpty()) {
+                                                                         invalidUsage.append(" ")
+                                                                                 .append(String.join(" ", ctx.arguments()));
+                                                                     }
+                                                                     throw new CommandException(ResponseKey.INVALID_SYNTAX)
+                                                                                   .withContextPlaceholders(ctx)
+                                                                                   .withPlaceholder("invalid_usage", invalidUsage.toString())
+                                                                                   .withPlaceholder("closest_usage",
+                                                                                           "/" + ctx.label() + " " + ctx.getPathwaySearch()
+                                                                                                                             .getClosestUsage()
+                                                                                                                             .formatted());
+                                                                 });
 
     private AttachmentMode defaultAttachmentMode = AttachmentMode.UNSET;
 
@@ -101,6 +98,9 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
 
     private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
+
+    private final ResponseRegistry responseRegistry = ResponseRegistry.createDefault();
+    private final PlaceholderRegistry placeholderRegistry = PlaceholderRegistry.createDefault();
 
     private Object coroutineScope = null; // Will be CoroutineScope if set
     private static final boolean COROUTINES_AVAILABLE;
@@ -122,7 +122,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         suggestionResolverRegistry = SuggestionResolverRegistry.createDefault(this);
         sourceResolverRegistry = SourceResolverRegistry.createDefault();
         returnResolverRegistry = ReturnResolverRegistry.createDefault();
-        placeholderRegistry = PlaceholderRegistry.createDefault(this);
         contextFactory = ContextFactory.defaultFactory();
 
         globalPreProcessors = CommandProcessingChain.<S>preProcessors()
@@ -140,153 +139,22 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     private void regDefThrowableResolvers() {
-
-        // This throwable resolver is intended for CLI applications that lack a low-level command dispatcher
-        // to validate whether a command exists. It is needed for non-minecraft java applications.
-        this.setThrowableResolver(UnknownCommandException.class, (exception, context) -> {
-            context.source().error("No command named '" + exception.getCommand() + "' is registered");
+        this.setThrowableResolver(CommandException.class, (exception, context) -> {
+            // CommandException - this is an exception that should be handled and not printed as error
+            if (exception.getResponseKey() != null) {
+                var response = this.getResponseRegistry().getResponse(exception.getResponseKey());
+                if (response != null) {
+                    response.sendContent(context, exception.getPlaceholderDataProvider());
+                }
+            } else {
+                context.source().reply(exception.getMessage());
+            }
         });
-
+        // InvalidSourceException - this is a system/runtime exception that should still be handled
         this.setThrowableResolver(InvalidSourceException.class, (exception, context) -> {
             throw new UnsupportedOperationException("Couldn't find any source resolver for valueType `"
                                                             + exception.getTargetType().getTypeName() + "'");
         });
-
-        this.setThrowableResolver(UnknownFlagException.class, (ex, context) -> {
-            context.source().error("Unknown flag '" + ex.getInput() + "'");
-        });
-
-        this.setThrowableResolver(MissingFlagInputException.class, (ex, context) -> {
-            context.source().error("Please enter the value for flag(s) '" + String.join(",", ex.getFlagData()) + "'");
-        });
-
-        this.setThrowableResolver(FlagOutsideCommandScopeException.class, (ex, context) -> {
-
-            context.source().error("Flag(s) '" + ex.getFlagInput() + "' were used (in " + ex.getWrongCmd().name() + "'s scope) outside of their "
-                                           + "command's scope");
-        });
-
-        this.setThrowableResolver(ValueOutOfConstraintException.class, (ex, context) -> {
-            context.source().error("Input '" + ex.getInput() + "' is not one of: [" + String.join(",", ex.getAllowedValues()) + "]");
-        });
-
-        this.setThrowableResolver(WordOutOfRestrictionsException.class, (ex, context) -> {
-            context.source().error("Word '" + ex.getInput() + "' is not within the given restrictions=" + String.join(",", ex.getRestrictions()));
-        });
-
-        this.setThrowableResolver(UnknownSubCommandException.class, (exception, context) -> {
-            context.source().error("Unknown sub-command '" + exception.getInput() + "'");
-        });
-
-        this.setThrowableResolver(InvalidMapEntryFormatException.class, (exception, context) -> {
-            InvalidMapEntryFormatException.Reason reason = exception.getReason();
-            String extraMsg = "";
-            if (reason == InvalidMapEntryFormatException.Reason.MISSING_SEPARATOR) {
-                extraMsg = "entry doesn't contain '" + exception.getRequiredSeparator() + "'";
-            } else if (reason == InvalidMapEntryFormatException.Reason.NOT_TWO_ELEMENTS) {
-                extraMsg = "entry is not made of 2 elements";
-            }
-            context.source().error("Invalid map entry '" + exception.getInput() + "'" + (!extraMsg.isEmpty() ? ", " + extraMsg : ""));
-        });
-
-        this.setThrowableResolver(InvalidBooleanException.class, (exception, context) -> {
-            context.source().error("Invalid boolean '" + exception.getInput() + "'");
-        });
-
-        this.setThrowableResolver(InvalidEnumException.class, (exception, context) -> {
-            context.source().error("Invalid " + exception.getEnumType().getTypeName() + " '" + exception.getInput() + "'");
-        });
-
-        this.setThrowableResolver(InvalidNumberFormatException.class, (exception, context) -> {
-            context.source().error("Invalid " + exception.getNumberTypeDisplay() + " format '" + exception.getInput() + "'");
-        });
-
-        this.setThrowableResolver(NumberOutOfRangeException.class, ((exception, context) -> {
-            NumericRange range = exception.getRange();
-            final StringBuilder builder = new StringBuilder();
-            if (range.getMin() != Double.MIN_VALUE && range.getMax() != Double.MAX_VALUE) {
-                builder.append("within ").append(range.getMin()).append('-').append(range.getMax());
-            } else if (range.getMin() != Double.MIN_VALUE) {
-                builder.append("at least '").append(range.getMin()).append("'");
-            } else if (range.getMax() != Double.MAX_VALUE) {
-                builder.append("at most '").append(range.getMax()).append("'");
-            } else {
-                builder.append("(Open range)");
-            }
-
-            String rangeFormatted = builder.toString();
-            context.source().error("Value '" + exception.getValue() + "' entered for parameter '" + exception.getParameter().format() + "' must be "
-                                           + rangeFormatted);
-        }));
-
-        this.setThrowableResolver(
-                SourceException.class,
-                (exception, context) -> {
-                    final String msg = exception.getMessage();
-                    switch (exception.getType()) {
-                        case SEVERE -> context.source().error(msg);
-                        case WARN -> context.source().warn(msg);
-                        case REPLY -> context.source().reply(msg);
-                    }
-                }
-        );
-
-        this.setThrowableResolver(
-                InvalidUUIDException.class, (exception, context) ->
-                                                    context.source().error("Invalid uuid-format '" + exception.getInput() + "'")
-        );
-
-        this.setThrowableResolver(
-                CooldownException.class,
-                (exception, context) -> {
-                    context.source().error(
-                            "Please wait %d second(s) to execute this command again!".formatted(exception.getRemainingDuration().toSeconds())
-                    );
-                }
-        );
-        this.setThrowableResolver(
-                PermissionDeniedException.class,
-                (exception, context) -> context.source().error("You don't have permission to use this command!")
-        );
-        this.setThrowableResolver(
-                InvalidSyntaxException.class,
-                (exception, context) -> {
-                    S source = context.source();
-                    //if usage is null, find the closest usage
-                    source.error("Invalid command usage '/" + context.command().name() + " " + context.arguments().join(" ") + "'");
-
-                    var closestUsage = exception.getExecutionResult().getClosestUsage();
-                    if (closestUsage != null) {
-                        source.error("Closest Command Usage: " + (context.imperatConfig().commandPrefix() + CommandUsage.format(context.label(),
-                                closestUsage)));
-                    }
-                }
-        );
-
-        this.setThrowableResolver(
-                NoHelpException.class,
-                (exception, context) -> {
-                    Command<S> cmdUsed;
-                    if (context instanceof ExecutionContext<S> resolvedContext) {
-                        cmdUsed = resolvedContext.getLastUsedCommand();
-                    } else {
-                        cmdUsed = context.command();
-                    }
-                    assert cmdUsed != null;
-                    context.source().error("No Help available for '<command>'".replace("<command>", cmdUsed.name()));
-                }
-        );
-        this.setThrowableResolver(
-                NoHelpPageException.class,
-                (exception, context) -> {
-                    if (!(context instanceof ExecutionContext<S> resolvedContext) || resolvedContext.getDetectedUsage() == null) {
-                        throw new IllegalCallerException("Called NoHelpPageCaption in wrong the wrong sequence/part of the code");
-                    }
-
-                    int page = resolvedContext.getArgumentOr("page", 1);
-                    context.source().error("Page '<page>' doesn't exist!".replace("<page>", String.valueOf(page)));
-                }
-        );
     }
 
 
@@ -389,6 +257,14 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @Override
     public boolean hasContextResolver(Type type) {
         return getContextResolver(type) != null;
+    }
+
+    /**
+     * @return the registry for responses/messages.
+     */
+    @Override
+    public @NotNull ResponseRegistry getResponseRegistry() {
+        return responseRegistry;
     }
 
     /**
@@ -637,7 +513,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * @param placeholder to register
      */
     @Override
-    public void registerPlaceholder(Placeholder<S> placeholder) {
+    public void registerPlaceholder(Placeholder placeholder) {
         placeholderRegistry.setData(placeholder.id(), placeholder);
     }
 
@@ -648,7 +524,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * @return the placeholder
      */
     @Override
-    public Optional<Placeholder<S>> getPlaceHolder(String id) {
+    public Optional<Placeholder> getPlaceHolder(String id) {
         return placeholderRegistry.getData(id);
     }
 
@@ -660,7 +536,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      */
     @Override
     public @NotNull String replacePlaceholders(String input) {
-        return placeholderRegistry.resolvedString(input);
+        return placeholderRegistry.applyPlaceholders(input);
     }
 
     /**
@@ -740,12 +616,12 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     @Override
-    public CommandUsage.@NotNull Builder<S> getGlobalDefaultUsage() {
+    public CommandPathway.@NotNull Builder<S> getGlobalDefaultPathway() {
         return globalDefaultUsage;
     }
 
     @Override
-    public void setGlobalDefaultUsage(CommandUsage.@NotNull Builder<S> globalDefaultUsage) {
+    public void setGlobalDefaultUsage(CommandPathway.@NotNull Builder<S> globalDefaultUsage) {
         this.globalDefaultUsage = globalDefaultUsage;
     }
 

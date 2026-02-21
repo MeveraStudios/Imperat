@@ -7,7 +7,8 @@ import studio.mevera.imperat.BungeeSource;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.exception.UnknownServerException;
+import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.responses.BungeeResponseKey;
 
 public final class ServerInfoArgument extends ArgumentType<BungeeSource, ServerInfo> {
 
@@ -26,10 +27,11 @@ public final class ServerInfoArgument extends ArgumentType<BungeeSource, ServerI
             @NotNull ExecutionContext<BungeeSource> context,
             @NotNull Cursor<BungeeSource> cursor,
             @NotNull String correspondingInput
-    ) throws UnknownServerException {
+    ) throws CommandException {
         ServerInfo serverInfo = server.getServerInfo(correspondingInput);
         if (serverInfo == null) {
-            throw new UnknownServerException(correspondingInput);
+            throw new CommandException(BungeeResponseKey.UNKNOWN_SERVER)
+                          .withPlaceholder("server", correspondingInput);
         }
         return serverInfo;
     }

@@ -9,8 +9,9 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.exception.NoDMSException;
-import studio.mevera.imperat.exception.UnknownRoleException;
+import studio.mevera.imperat.responses.JdaResponseKey;
 
 public final class RoleArgument extends ArgumentType<JdaSource, Role> {
 
@@ -26,12 +27,12 @@ public final class RoleArgument extends ArgumentType<JdaSource, Role> {
         String userId = correspondingInput.replaceAll("\\D", "");
         String lookupId = userId.isEmpty() ? correspondingInput : userId;
         if (!lookupId.matches("\\d{17,20}")) {
-            throw new UnknownRoleException(correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_ROLE, correspondingInput);
         }
 
         final Role role = guild.getRoleById(lookupId);
         if (role == null) {
-            throw new UnknownRoleException(correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_ROLE, correspondingInput);
         }
         return role;
     }

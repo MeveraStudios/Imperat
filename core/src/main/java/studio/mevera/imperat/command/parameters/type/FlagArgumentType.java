@@ -11,8 +11,8 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.MissingFlagInputException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.responses.ResponseKey;
 
 import java.util.Collections;
 import java.util.Set;
@@ -69,7 +69,8 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, ParsedFl
 
             } else {
                 //"Please enter the value for flag '%s'"
-                throw new MissingFlagInputException(Set.of(flagArgument.name()), correspondingInput);
+                throw new CommandException(ResponseKey.MISSING_FLAG_INPUT)
+                              .withPlaceholder("flags", String.join(",", Set.of(flagArgument.name())));
             }
         } else {
             return ParsedFlagArgument.forSwitch(flagArgument, correspondingInput, cursor.currentRawPosition());

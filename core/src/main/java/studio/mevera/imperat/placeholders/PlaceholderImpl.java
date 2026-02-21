@@ -1,23 +1,33 @@
 package studio.mevera.imperat.placeholders;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.context.Source;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-final class PlaceholderImpl<S extends Source> implements Placeholder<S> {
+final class PlaceholderImpl implements Placeholder {
 
-    private final String id;
-    private final PlaceholderResolver<S> resolver;
+    public final static String PLACEHOLDER_PREFIX = "%";
+    public final static String PLACEHOLDER_SUFFIX = "%";
 
     private final Pattern pattern;
+    private final String id, formattedId;
+    private final PlaceholderResolver resolver;
 
-    PlaceholderImpl(String id, PlaceholderResolver<S> resolver) {
+
+    PlaceholderImpl(String id, PlaceholderResolver resolver) {
         this.id = id;
+        this.formattedId = formatPlaceholder(id);
         this.resolver = resolver;
-        this.pattern = Pattern.compile(id);
+        this.pattern = Pattern.compile(formattedId);
+    }
+
+    static String formatPlaceholder(String key, String prefix, String suffix) {
+        return prefix + key + suffix;
+    }
+
+    static String formatPlaceholder(String key) {
+        return formatPlaceholder(key, PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX);
     }
 
     @Override
@@ -26,7 +36,12 @@ final class PlaceholderImpl<S extends Source> implements Placeholder<S> {
     }
 
     @Override
-    public @NotNull PlaceholderResolver<S> resolver() {
+    public @NotNull String formattedId() {
+        return formattedId;
+    }
+
+    @Override
+    public @NotNull PlaceholderResolver resolver() {
         return resolver;
     }
 
@@ -36,10 +51,10 @@ final class PlaceholderImpl<S extends Source> implements Placeholder<S> {
     }
 
     @Override
-    public String replaceResolved(ImperatConfig<S> imperat, String id, String input) {
+    public String replaceResolved(String id, String input) {
         assert isUsedIn(input);
         return pattern.matcher(input).replaceAll(
-                resolveInput(id, imperat)
+                resolveInput(id)
         );
     }
 
@@ -52,7 +67,7 @@ final class PlaceholderImpl<S extends Source> implements Placeholder<S> {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        var that = (PlaceholderImpl<?>) obj;
+        var that = (PlaceholderImpl) obj;
         return Objects.equals(this.id, that.id);
     }
 

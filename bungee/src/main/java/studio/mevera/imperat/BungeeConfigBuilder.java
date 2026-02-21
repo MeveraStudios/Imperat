@@ -13,11 +13,9 @@ import studio.mevera.imperat.adventure.BungeeAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.OnlyConsoleAllowedException;
-import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
-import studio.mevera.imperat.exception.UnknownPlayerException;
-import studio.mevera.imperat.exception.UnknownServerException;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.resolvers.BungeePermissionChecker;
+import studio.mevera.imperat.responses.BungeeResponseKey;
 import studio.mevera.imperat.type.ProxiedPlayerArgument;
 import studio.mevera.imperat.type.ServerInfoArgument;
 import studio.mevera.imperat.util.TypeWrap;
@@ -59,7 +57,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
         config.setPermissionResolver(DEFAULT_PERMISSION_RESOLVER);
-        addThrowableHandlers();
+        registerBungeeResponses();
         registerSourceResolvers();
         registerValueResolvers();
         registerContextResolvers();
@@ -83,7 +81,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
         config.registerContextResolver(ServerInfo.class, (ctx, paramElement) -> {
             BungeeSource source = ctx.source();
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(BungeeResponseKey.ONLY_PLAYER);
             }
             ProxiedPlayer player = source.asPlayer();
             return player.getServer() != null ? player.getServer().getInfo() : null;
@@ -106,36 +104,36 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
         config.registerSourceResolver(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
         config.registerSourceResolver(ProxiedPlayer.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(BungeeResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });
     }
 
-    private void addThrowableHandlers() {
-        config.setThrowableResolver(
-                OnlyPlayerAllowedException.class,
-                (ex, context) -> context.source().error("Only players can do this!")
-        );
+    private void registerBungeeResponses() {
+        this.visit(ImperatConfig::getResponseRegistry, responseRegistry -> {
+            // Register responses for Bungee-specific exceptions
+            responseRegistry.registerResponse(
+                    BungeeResponseKey.ONLY_PLAYER,
+                    () -> "Only players can do this!"
+            );
 
-        // Enhanced exception handling similar to Velocity
-        config.setThrowableResolver(
-                OnlyConsoleAllowedException.class,
-                (ex, context) -> context.source().error("Only console can do this!")
-        );
+            responseRegistry.registerResponse(
+                    BungeeResponseKey.ONLY_CONSOLE,
+                    () -> "Only console can do this!"
+            );
 
-        config.setThrowableResolver(
-                UnknownPlayerException.class,
-                (exception, context) ->
-                        context.source().error("A player with the name '" + exception.getName() + "' doesn't seem to be online")
-        );
+            responseRegistry.registerResponse(
+                    BungeeResponseKey.UNKNOWN_PLAYER,
+                    () -> "A player with the name '%input%' doesn't seem to be online", "input"
+            );
 
-        // Enhanced server exception handling similar to Velocity
-        config.setThrowableResolver(
-                UnknownServerException.class,
-                (exception, context) ->
-                        context.source().error("A server with the name '" + exception.getInput() + "' doesn't seem to exist")
-        );
+            responseRegistry.registerResponse(
+                    BungeeResponseKey.UNKNOWN_SERVER,
+                    () -> "A server with the name '%input%' doesn't seem to exist", "input"
+            );
+        });
+
     }
 
     private void registerValueResolvers() {

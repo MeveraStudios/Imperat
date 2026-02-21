@@ -10,7 +10,7 @@ import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.OnlyPlayerAllowedException;
+import studio.mevera.imperat.responses.BukkitResponseKey;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ public interface SelectionType {
                 @NotNull Cursor<BukkitSource> cursor
         ) throws CommandException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(BukkitResponseKey.ONLY_PLAYER);
             }
             return List.of((E) context.source().asPlayer());
         }
@@ -51,7 +51,7 @@ public interface SelectionType {
                 @NotNull Cursor<BukkitSource> cursor
         ) throws CommandException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(BukkitResponseKey.ONLY_PLAYER);
             }
 
             Player sender = context.source().asPlayer();
@@ -118,7 +118,7 @@ public interface SelectionType {
                 @NotNull Cursor<BukkitSource> cursor
         ) throws CommandException {
             if (context.source().isConsole()) {
-                throw new OnlyPlayerAllowedException();
+                throw new CommandException(BukkitResponseKey.ONLY_PLAYER);
             }
             Player player = context.source().asPlayer();
             World world = player.getWorld();

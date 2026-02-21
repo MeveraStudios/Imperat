@@ -1,6 +1,4 @@
 package studio.mevera.imperat.command;
-import studio.mevera.imperat.annotations.parameters.AnnotatedArgument;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -9,8 +7,10 @@ import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.BaseThrowableHandler;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
+import studio.mevera.imperat.annotations.parameters.AnnotatedArgument;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
@@ -215,7 +215,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      * @param context the context
      * @param usage   the usage detected being used
      */
-    void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandUsage<S> usage) throws CommandException;
+    void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandPathway<S> usage) throws CommandException;
 
     /**
      * Sets a post-processor for the command
@@ -231,7 +231,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      * @param context the context
      * @param usage   the usage detected being used
      */
-    void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandUsage<S> usage) throws CommandException;
+    void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandPathway<S> usage) throws CommandException;
 
     /**
      * Retrieves a usage with no args for this command
@@ -239,7 +239,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     @NotNull
     @ApiStatus.AvailableSince("1.9.0")
-    CommandUsage<S> getEmptyUsage();
+    CommandPathway<S> getEmptyPathway();
 
     /**
      * @return the default usage of the command
@@ -247,7 +247,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     @NotNull
     @ApiStatus.AvailableSince("1.9.0")
-    CommandUsage<S> getDefaultUsage();
+    CommandPathway<S> getDefaultPathway();
 
 
     /**
@@ -256,36 +256,36 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      * @param usage the default command usage instance to be set, which must not be null
      */
     @ApiStatus.AvailableSince("1.9.0")
-    void setDefaultUsage(@NotNull CommandUsage<S> usage);
+    void setDefaultPathway(@NotNull CommandPathway<S> usage);
 
 
     /**
      * Adds a usage to the command
      *
-     * @param usage the usage {@link CommandUsage} of the command
+     * @param usage the usage {@link CommandPathway} of the command
      */
-    void addUsage(CommandUsage<S> usage);
+    void addPathway(CommandPathway<S> usage);
 
-    default void addUsage(CommandUsage.Builder<S> builder, boolean help) {
-        addUsage(builder.build(this, help));
+    default void addPathway(CommandPathway.Builder<S> builder, boolean help) {
+        addPathway(builder.build(this, help));
     }
 
-    default void addUsage(CommandUsage.Builder<S> builder) {
-        addUsage(builder, false);
+    default void addPathway(CommandPathway.Builder<S> builder) {
+        addPathway(builder, false);
     }
 
     /**
-     * @return All {@link CommandUsage} that were registered
+     * @return All {@link CommandPathway} that were registered
      * to this command by the user
      */
-    Collection<? extends CommandUsage<S>> usages();
+    Collection<? extends CommandPathway<S>> getAllPossiblePathways();
 
     /**
      * @return the usage that doesn't include any subcommands, only
      * required parameters
      */
     @NotNull
-    CommandUsage<S> getMainUsage();
+    CommandPathway<S> getMainPathway();
 
     /**
      * @return Returns {@link AutoCompleter}
@@ -303,7 +303,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
 
     /**
      * Creates and adds a new sub-command (if it doesn't exist) then add
-     * the {@link CommandUsage} to the sub-command
+     * the {@link CommandPathway} to the sub-command
      *
      * @param subCommand     the sub-command's unique name
      * @param aliases        of the subcommand
@@ -312,29 +312,29 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     void addSubCommandUsage(String subCommand,
             List<String> aliases,
-            CommandUsage.Builder<S> usage,
+            CommandPathway.Builder<S> usage,
             AttachmentMode attachmentMode);
 
     default void addSubCommandUsage(String subCommand,
             List<String> aliases,
-            CommandUsage.Builder<S> usage) {
+            CommandPathway.Builder<S> usage) {
         addSubCommandUsage(subCommand, aliases, usage, imperat().config().getDefaultAttachmentMode());
     }
 
     default void addSubCommandUsage(String subCommand,
-            CommandUsage.Builder<S> usage,
+            CommandPathway.Builder<S> usage,
             AttachmentMode attachmentMode) {
         addSubCommandUsage(subCommand, Collections.emptyList(), usage, attachmentMode);
     }
 
     /**
      * Creates and adds a new sub-command (if it doesn't exist) then add
-     * the {@link CommandUsage} to the sub-command
+     * the {@link CommandPathway} to the sub-command
      *
      * @param subCommand the sub-command's unique name
      * @param usage      the usage
      */
-    default void addSubCommandUsage(String subCommand, CommandUsage.Builder<S> usage) {
+    default void addSubCommandUsage(String subCommand, CommandPathway.Builder<S> usage) {
         addSubCommandUsage(subCommand, usage, imperat().config().getDefaultAttachmentMode());
     }
 
@@ -351,8 +351,8 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     @NotNull
     Collection<? extends Command<S>> getSubCommands();
 
-    default @Nullable CommandUsage<S> getUsage(Predicate<CommandUsage<S>> usagePredicate) {
-        for (var usage : usages()) {
+    default @Nullable CommandPathway<S> getUsage(Predicate<CommandPathway<S>> usagePredicate) {
+        for (var usage : getAllPossiblePathways()) {
             if (usagePredicate.test(usage)) {
                 return usage;
             }
@@ -512,12 +512,12 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
         }
 
         public Builder<S> defaultExecution(CommandExecution<S> defaultExec) {
-            return usage(CommandUsage.<S>builder()
+            return usage(CommandPathway.<S>builder()
                                  .execute(defaultExec));
         }
 
-        public Builder<S> usage(CommandUsage.Builder<S> usage) {
-            cmd.addUsage(usage);
+        public Builder<S> usage(CommandPathway.Builder<S> usage) {
+            cmd.addPathway(usage);
             return this;
         }
 
@@ -530,7 +530,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
             return subCommand(subCommand, AttachmentMode.DEFAULT);
         }
 
-        public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage, AttachmentMode attachmentMode) {
+        public Builder<S> subCommand(String name, CommandPathway.Builder<S> mainUsage, AttachmentMode attachmentMode) {
             return subCommand(
                     Command.create(imperat, name)
                             .usage(mainUsage)
@@ -539,7 +539,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
             );
         }
 
-        public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage, AttachmentMode attachmentMode,
+        public Builder<S> subCommand(String name, CommandPathway.Builder<S> mainUsage, AttachmentMode attachmentMode,
                 @Nullable ParseElement<?> annotatedElement) {
             return subCommand(
                     Command.create(imperat, name, annotatedElement)
@@ -549,11 +549,11 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
             );
         }
 
-        public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage) {
+        public Builder<S> subCommand(String name, CommandPathway.Builder<S> mainUsage) {
             return subCommand(name, mainUsage, cmd.imperat().config().getDefaultAttachmentMode());
         }
 
-        public Builder<S> subCommand(String name, CommandUsage.Builder<S> mainUsage, @Nullable ParseElement<?> annotatedElement) {
+        public Builder<S> subCommand(String name, CommandPathway.Builder<S> mainUsage, @Nullable ParseElement<?> annotatedElement) {
             return subCommand(name, mainUsage, cmd.imperat().config().getDefaultAttachmentMode(), annotatedElement);
         }
 
@@ -575,7 +575,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
 
         public Builder<S> setMetaPropertiesFromOtherCommand(Command<S> other) {
             cmd.setPermissionData(other.getPermissionsData());
-            cmd.setDefaultUsage(other.getDefaultUsage());
+            cmd.setDefaultPathway(other.getDefaultPathway());
             cmd.setPreProcessingChain(other.getPreProcessors());
             cmd.setPostProcessingChain(other.getPostProcessors());
             cmd.describe(other.getDescription());

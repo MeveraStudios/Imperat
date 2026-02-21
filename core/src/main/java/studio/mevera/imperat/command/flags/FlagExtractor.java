@@ -2,11 +2,11 @@ package studio.mevera.imperat.command.flags;
 
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.FlagRegistrar;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.UnknownFlagException;
+import studio.mevera.imperat.exception.CommandException;
 
 import java.util.Set;
 
@@ -17,7 +17,7 @@ import java.util.Set;
 @ApiStatus.AvailableSince("1.9.6")
 public sealed interface FlagExtractor<S extends Source> extends FlagRegistrar<S> permits FlagExtractorImpl {
 
-    static <S extends Source> FlagExtractor<S> createNative(CommandUsage<S> usage) {
+    static <S extends Source> FlagExtractor<S> createNative(CommandPathway<S> usage) {
         return new FlagExtractorImpl<>(usage);
     }
 
@@ -34,6 +34,6 @@ public sealed interface FlagExtractor<S extends Source> extends FlagRegistrar<S>
      * @param rawInput the raw input of an argument
      * @return the extracted {@link FlagData} for flags.
      */
-    Set<FlagArgument<S>> extract(String rawInput) throws UnknownFlagException;
+    Set<FlagArgument<S>> extract(String rawInput) throws CommandException;
 
 }

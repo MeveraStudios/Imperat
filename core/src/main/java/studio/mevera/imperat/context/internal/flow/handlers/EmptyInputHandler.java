@@ -1,10 +1,10 @@
 package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
-import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.ParsedArgument;
@@ -13,7 +13,7 @@ import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.InvalidSyntaxException;
+import studio.mevera.imperat.responses.ResponseKey;
 
 public final class EmptyInputHandler<S extends Source> implements ParameterHandler<S> {
 
@@ -37,8 +37,16 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
                 return HandleResult.NEXT_ITERATION;
             }
 
-            //required
-            return HandleResult.failure(new InvalidSyntaxException(CommandPathSearch.freshlyNew(context.getLastUsedCommand())));
+            //required parameter with no input - invalid syntax
+            var command = context.getLastUsedCommand();
+            var usage = command != null ? command.getDefaultPathway() : null;
+            var exception = new CommandException(ResponseKey.INVALID_SYNTAX);
+            if (usage != null) {
+                exception.withPlaceholder("closest_usage", context.imperatConfig().commandPrefix() + CommandPathway.format(command, usage));
+            } else {
+                exception.withPlaceholder("closest_usage", "");
+            }
+            return HandleResult.failure(exception);
 
         } catch (CommandException e) {
             return HandleResult.failure(e);

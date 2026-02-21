@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.tree;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.tree.help.HelpEntryFactory;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
@@ -52,7 +52,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
         this.rootCommand = command;
-        this.root = CommandNode.createCommandNode(null, command, -1, command.getDefaultUsage());
+        this.root = CommandNode.createCommandNode(null, command, -1, command.getDefaultPathway());
         this.imperatConfig = imperatConfig;
         this.permissionChecker = imperatConfig.getPermissionChecker();
         this.uniqueRoot = root.copy();
@@ -84,7 +84,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     // Optimized parsing with reduced allocations
     public void parseCommandUsages() {
-        final var usages = root.data.usages();
+        final var usages = root.data.getAllPossiblePathways();
         for (var usage : usages) {
             parseUsage(usage);
         }
@@ -127,7 +127,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     @Override
-    public void parseUsage(@NotNull CommandUsage<S> usage) {
+    public void parseUsage(@NotNull CommandPathway<S> usage) {
         // Register flags once
 
         final var parameters = usage.loadCombinedParameters();
@@ -155,7 +155,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     private void addParametersToTree(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> parameters,
             int index,
             List<CommandNode<S, ?>> path
@@ -207,7 +207,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     private void addParametersWithoutOptionalBranchingToTree(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> parameters,
             int index
     ) {
@@ -232,7 +232,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     private void addParametersUnflaggedWithoutOptionalBranchingToTree(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> parameters,
             int index
     ) {
@@ -292,7 +292,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     private void handleFlagSequenceOptimized(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> allParameters,
             int flagStart,
             int flagEnd,
@@ -319,7 +319,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     private void generateAllFlagCombinations(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> allParameters,
             List<Argument<S>> flagParams,
             int nextIndex,
@@ -359,7 +359,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     private void generatePermutationsForSubset(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> allParameters,
             List<Argument<S>> subset,
             int nextIndex,
@@ -377,7 +377,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     private void generateSmallPermutationsForSubset(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> allParameters,
             List<Argument<S>> subset,
             int nextIndex,
@@ -412,7 +412,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     private void generateLargePermutationsForSubset(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> allParameters,
             List<Argument<S>> subset,
             int nextIndex,
@@ -453,7 +453,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     private void processPermutationPath(
             CommandNode<S, ?> currentNode,
-            CommandUsage<S> usage,
+            CommandPathway<S> usage,
             List<Argument<S>> allParameters,
             List<Argument<S>> permutation,
             int nextIndex,
@@ -680,7 +680,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
         if (!node.isExecutable()) {
             if (node.isLiteral()) {
-                search.setDirectUsage(node.data.asCommand().getDefaultUsage());
+                search.setDirectUsage(node.data.asCommand().getDefaultPathway());
                 search.setResult(result);
             }
             return search;
@@ -927,7 +927,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
     /**
      * Searches for closest usage to a context entered.
-     * returns an ORDERED/SORTED set of unique {@link CommandUsage} , ordered by
+     * returns an ORDERED/SORTED set of unique {@link CommandPathway} , ordered by
      * how close they are to the context entered, the closest usage to the context entered shall be
      * placed on top of this ordered set of closest usages.
      *
@@ -935,14 +935,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * @return the closest usages ordered by how close they are to a {@link Context}
      */
     @Override
-    public Set<CommandUsage<S>> getClosestUsages(Context<S> context) {
+    public Set<CommandPathway<S>> getClosestUsages(Context<S> context) {
         final var queue = context.arguments();
         final String firstArg = queue.getOr(0, null);
 
         final var startingNode = (firstArg == null) ? root : findStartingNode(context, root);
 
         return (startingNode == null)
-                       ? Set.of(rootCommand.getDefaultUsage())
+                       ? Set.of(rootCommand.getDefaultPathway())
                        : getClosestUsagesRecursively(new LinkedHashSet<>(), startingNode, context);
     }
 
@@ -955,8 +955,8 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         return null;
     }
 
-    private Set<CommandUsage<S>> getClosestUsagesRecursively(
-            Set<CommandUsage<S>> currentUsages,
+    private Set<CommandPathway<S>> getClosestUsagesRecursively(
+            Set<CommandPathway<S>> currentUsages,
             CommandNode<S, ?> node,
             Context<S> context
     ) {
@@ -986,7 +986,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     private void addPermittedUsages(
-            Set<CommandUsage<S>> currentUsages,
+            Set<CommandPathway<S>> currentUsages,
             CommandNode<S, ?> child,
             Context<S> context
     ) {

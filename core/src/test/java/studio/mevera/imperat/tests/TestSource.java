@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public final class TestSource implements Source {
+public class TestSource implements Source {
 
     private final PrintStream origin;
     private final List<String> permissions = new ArrayList<>();
@@ -85,7 +85,6 @@ public final class TestSource implements Source {
         return "TestSource[" +
                        "origin=" + origin + ']';
     }
-
 
     public void debugPerms() {
         StringBuilder builder = new StringBuilder();

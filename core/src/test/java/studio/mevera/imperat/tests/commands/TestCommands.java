@@ -2,7 +2,7 @@ package studio.mevera.imperat.tests.commands;
 
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
@@ -15,7 +15,7 @@ public final class TestCommands {
                                                                 .defaultExecution((source, context) -> {
                                                                     source.reply("/group <group>");
                                                                 })
-                                                                .usage(CommandUsage.<TestSource>builder()
+                                                                .usage(CommandPathway.<TestSource>builder()
                                                                                .parameters(Argument.requiredText("group"))
                                                                                .execute((source, context) -> {
                                                                                    source.reply("Executing /group " + context.getArgument("group")
@@ -25,7 +25,7 @@ public final class TestCommands {
                                                                 )
                                                                 .subCommand(
                                                                         Command.create(ImperatTestGlobals.IMPERAT, "setperm")
-                                                                                .usage(CommandUsage.<TestSource>builder()
+                                                                                .usage(CommandPathway.<TestSource>builder()
                                                                                                .parameters(
                                                                                                        Argument.requiredText("permission"),
                                                                                                        Argument.<TestSource>optionalBoolean(
@@ -45,7 +45,7 @@ public final class TestCommands {
                                                                 )
                                                                 .subCommand(Command.create(ImperatTestGlobals.IMPERAT, "setprefix")
                                                                                     .usage(
-                                                                                            CommandUsage.<TestSource>builder()
+                                                                                            CommandPathway.<TestSource>builder()
                                                                                                     .parameters(
                                                                                                             Argument.requiredText("prefix")
                                                                                                     )
@@ -61,7 +61,7 @@ public final class TestCommands {
                                                                 )
                                                                 .subCommand(Command.create(ImperatTestGlobals.IMPERAT, "help")
                                                                                     .usage(
-                                                                                            CommandUsage.<TestSource>builder()
+                                                                                            CommandPathway.<TestSource>builder()
                                                                                                     .parameters(
                                                                                                             Argument.<TestSource>optionalInt(
                                                                                                                     "page").defaultValue(1)
@@ -89,7 +89,7 @@ public final class TestCommands {
                                     .defaultExecution((source, context) -> {
                                         source.reply("FIRST, DEF EXEC");
                                     })
-                                    .usage(CommandUsage.<TestSource>builder()
+                                    .usage(CommandPathway.<TestSource>builder()
                                                    .parameters(Argument.requiredText("arg1"))
                                                    .execute((source, context) -> source.reply("Arg1= " + context.getArgument("arg1")))
 
@@ -97,7 +97,7 @@ public final class TestCommands {
                                     .subCommand(
                                             Command.create(ImperatTestGlobals.IMPERAT, "second")
                                                     .defaultExecution((source, context) -> source.reply("SECOND, DEF EXEC"))
-                                                    .usage(CommandUsage.<TestSource>builder()
+                                                    .usage(CommandPathway.<TestSource>builder()
                                                                    .parameters(Argument.requiredText("arg2"))
                                                                    .execute((source, ctx) -> source.reply(
                                                                            "Arg1= " + ctx.getArgument("arg1") + ", Arg2= " + ctx.getArgument("arg2")))
@@ -105,7 +105,7 @@ public final class TestCommands {
                                                     .subCommand(
                                                             Command.create(ImperatTestGlobals.IMPERAT, "third")
                                                                     .defaultExecution((source, context) -> source.reply("THIRD, DEF EXEC"))
-                                                                    .usage(CommandUsage.<TestSource>builder()
+                                                                    .usage(CommandPathway.<TestSource>builder()
                                                                                    .parameters(Argument.requiredText("arg3"))
                                                                                    .execute((source, ctx) -> source.reply(
                                                                                            "Arg1= " + ctx.getArgument("arg1") + ", " +
@@ -124,7 +124,7 @@ public final class TestCommands {
     public final static Command<TestSource> MULTIPLE_OPTIONAL_CMD =
             Command.create(ImperatTestGlobals.IMPERAT, "ot")
                     .usage(
-                            CommandUsage.<TestSource>builder()
+                            CommandPathway.<TestSource>builder()
                                     .parameters(
                                             Argument.requiredText("r1"),
                                             Argument.optionalText("o1"),
@@ -142,7 +142,7 @@ public final class TestCommands {
                                                                   )
                                                                   .description("Main command for banning players")
                                                                   .usage(
-                                                                          CommandUsage.<TestSource>builder()
+                                                                          CommandPathway.<TestSource>builder()
                                                                                   .parameters(
                                                                                           Argument.requiredText("player"),
                                                                                           Argument.<TestSource>flagSwitch("silent")

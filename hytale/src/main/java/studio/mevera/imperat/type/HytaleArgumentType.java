@@ -10,8 +10,8 @@ import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.ParseException;
 import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.responses.ResponseKey;
 
 public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
 
@@ -78,10 +78,29 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
     @FunctionalInterface
     public interface ExceptionProvider {
 
-        ExceptionProvider DEFAULT = (in) -> new ParseException(in) {
-        };
+        ExceptionProvider DEFAULT = (in) -> new CommandException()
+                                                    .withPlaceholder("input", in);
 
         CommandException fetch(String input);
+    }
+
+    /**
+     * Wrapper for ExceptionProvider that uses a ResponseKey.
+     * This allows centralized error message management through the response system.
+     */
+    public static class ResponseKeyExceptionProvider implements ExceptionProvider {
+
+        private final ResponseKey responseKey;
+
+        public ResponseKeyExceptionProvider(ResponseKey responseKey) {
+            this.responseKey = responseKey;
+        }
+
+        @Override
+        public CommandException fetch(String input) {
+            return new CommandException(responseKey)
+                           .withPlaceholder("input", input);
+        }
     }
 
     public record Data<T>(Class<T> type, com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType<T> argumentType, ExceptionProvider provider) {

@@ -7,6 +7,7 @@ public class UnknownCommandException extends RuntimeException {
     private final String command;
 
     public UnknownCommandException(String command) {
+        super("No command named '" + command + "' is registered");
         this.command = command;
     }
 
@@ -15,3 +16,4 @@ public class UnknownCommandException extends RuntimeException {
         return command;
     }
 }
+

@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.tree;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandUsage;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.Source;
 
 import java.util.LinkedList;
@@ -16,7 +16,7 @@ public final class CommandPathSearch<S extends Source> {
     private @NotNull CommandNode<S, ?> lastNode;
     private @NotNull CommandNode<S, ?> lastCommandNode;
 
-    private CommandUsage<S> directUsage, closestUsage;
+    private CommandPathway<S> directUsage, closestUsage;
 
     private Result result;
 
@@ -27,7 +27,8 @@ public final class CommandPathSearch<S extends Source> {
         this.result = result;
     }
 
-    private CommandPathSearch(Result result, @NotNull LiteralCommandNode<S> root, @NotNull CommandNode<S, ?> lastNode, CommandUsage<S> directUsage) {
+    private CommandPathSearch(Result result, @NotNull LiteralCommandNode<S> root, @NotNull CommandNode<S, ?> lastNode,
+            CommandPathway<S> directUsage) {
         this.root = root;
         this.result = result;
         this.lastNode = lastNode;
@@ -46,7 +47,7 @@ public final class CommandPathSearch<S extends Source> {
     public static <S extends Source> CommandPathSearch<S> freshlyNew(Command<S> command) {
         CommandPathSearch<S> dispatch = of(command.tree().rootNode(), Result.UNKNOWN);
         dispatch.append(command.tree().rootNode());
-        dispatch.setDirectUsage(command.getDefaultUsage());
+        dispatch.setDirectUsage(command.getDefaultPathway());
         return dispatch;
     }
 
@@ -70,7 +71,7 @@ public final class CommandPathSearch<S extends Source> {
         }
         if (target != null) {
             dispatch.append(target.tree().rootNode());
-            dispatch.setDirectUsage(target.getDefaultUsage());
+            dispatch.setDirectUsage(target.getDefaultPathway());
         }
 
         return dispatch;
@@ -90,7 +91,7 @@ public final class CommandPathSearch<S extends Source> {
         return lastNode;
     }
 
-    public @Nullable CommandUsage<S> getFoundUsage() {
+    public @Nullable CommandPathway<S> getFoundUsage() {
         return directUsage;
     }
 
@@ -102,7 +103,7 @@ public final class CommandPathSearch<S extends Source> {
         this.result = result;
     }
 
-    public CommandUsage<S> getClosestUsage() {
+    public CommandPathway<S> getClosestUsage() {
         if (closestUsage == null) {
             //lazy computation, only when demanded for better performance :D
             closestUsage = computeClosestUsage();
@@ -111,11 +112,11 @@ public final class CommandPathSearch<S extends Source> {
         return closestUsage;
     }
 
-    public void setDirectUsage(CommandUsage<S> directUsage) {
+    public void setDirectUsage(CommandPathway<S> directUsage) {
         this.directUsage = directUsage;
     }
 
-    private CommandUsage<S> computeClosestUsage() {
+    private CommandPathway<S> computeClosestUsage() {
         if (directUsage != null && lastNode.isLast()) {
             return directUsage;
         }
@@ -123,8 +124,8 @@ public final class CommandPathSearch<S extends Source> {
         return (closestUsage = closestUsageLookup());
     }
 
-    private CommandUsage<S> closestUsageLookup() {
-        CommandUsage<S> closestUsage = null;
+    private CommandPathway<S> closestUsageLookup() {
+        CommandPathway<S> closestUsage = null;
 
         Queue<CommandNode<S, ?>> nodes = new LinkedList<>();
         nodes.add(lastNode);
@@ -148,7 +149,7 @@ public final class CommandPathSearch<S extends Source> {
             if (lastCommandNode.isExecutable()) {
                 closestUsage = lastCommandNode.getExecutableUsage();
             } else {
-                closestUsage = ((LiteralCommandNode<S>) lastCommandNode).getData().getDefaultUsage();
+                closestUsage = ((LiteralCommandNode<S>) lastCommandNode).getData().getDefaultPathway();
             }
         }
 
@@ -177,7 +178,7 @@ public final class CommandPathSearch<S extends Source> {
 
         /**
          * Defines a complete dispatch of the command,
-         * {@link CommandUsage} cannot be null unless the {@link StandardCommandTree} has issues
+         * {@link CommandPathway} cannot be null unless the {@link StandardCommandTree} has issues
          */
         COMPLETE,
 
