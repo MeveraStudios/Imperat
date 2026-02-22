@@ -28,6 +28,7 @@ import studio.mevera.imperat.resolvers.SuggestionResolver;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A generic abstract builder class for configuring instances of ImperatConfig and creating
@@ -510,6 +511,12 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     public B instanceFactory(InstanceFactory<S> instanceFactory) {
         config.setInstanceFactory(instanceFactory);
+        return (B) this;
+    }
+
+    public <T> B visit(Function<ImperatConfig<S>, T> function, Consumer<T> consumer) {
+        T result = function.apply(config);
+        consumer.accept(result);
         return (B) this;
     }
 
