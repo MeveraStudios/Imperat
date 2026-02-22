@@ -126,6 +126,13 @@ public final class ArgumentTypeRegistry<S extends Source> {
         SimpleTypeResolver<S, T> resolver = new SimpleTypeResolver<>(type, supplier, priority);
         handlers.add(priority, resolver);
         publishResolver(resolver);
+
+        if (TypeUtility.isPrimitive(type)) {
+            // Also register the boxed type for primitive types
+            Type boxedType = TypeUtility.primitiveToBoxed(type);
+            SimpleTypeResolver<S, T> boxedResolver = new SimpleTypeResolver<>(boxedType, supplier, priority);
+            handlers.add(priority, boxedResolver);
+        }
     }
 
     /**
