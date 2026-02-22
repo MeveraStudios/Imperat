@@ -8,6 +8,7 @@ public interface ResponseKey extends Keyed<String> {
     ResponseKey INVALID_BOOLEAN = () -> "args.parsing.invalid-boolean";
     ResponseKey INVALID_ENUM = () -> "args.parsing.invalid-enum";
     ResponseKey INVALID_NUMBER_FORMAT = () -> "args.parsing.invalid-number-format";
+    ResponseKey INVALID_CHARACTER = () -> "args.parsing.invalid-character";
     ResponseKey INVALID_MAP_ENTRY_FORMAT = () -> "args.parsing.invalid-map-entry-format";
     ResponseKey INVALID_UUID = () -> "args.parsing.invalid-uuid";
     ResponseKey WORD_OUT_OF_RESTRICTIONS = () -> "args.parsing.word-out-of-restrictions";

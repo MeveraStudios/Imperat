@@ -4,9 +4,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
+import studio.mevera.imperat.command.parameters.type.ArgumentTypeLookup;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.command.parameters.type.SimpleTypeResolver;
-import studio.mevera.imperat.command.parameters.type.ArgumentTypeLookup;
 import studio.mevera.imperat.command.parameters.type.handlers.ArrayArgumentTypeHandler;
 import studio.mevera.imperat.command.parameters.type.handlers.CollectionArgumentTypeHandler;
 import studio.mevera.imperat.command.parameters.type.handlers.CompletableFutureArgumentTypeHandler;
@@ -55,8 +55,9 @@ public final class ArgumentTypeRegistry<S extends Source> {
     private ArgumentTypeRegistry() {
         // Register simple type resolvers (highest priority for exact matches)
         registerResolver(Boolean.class, ArgumentTypes::bool, Priority.HIGH);
-        registerResolver(String.class, ArgumentTypes::string, Priority.HIGH);
         registerResolver(UUID.class, ArgumentTypes::uuid, Priority.HIGH);
+        registerResolver(String.class, ArgumentTypes::string, Priority.LOW);
+        registerResolver(char.class, ArgumentTypes::character, Priority.LOW.plus(1));
 
         // Register built-in handlers for complex types
         registerHandler(arrayHandler);

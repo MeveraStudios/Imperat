@@ -23,6 +23,10 @@ public final class ArgumentTypes {
         return new StringArgument<>();
     }
 
+    public static <S extends Source> CharacterArgument<S> character() {
+        return new CharacterArgument<>();
+    }
+
     public static <S extends Source, N extends Number> NumberArgument<S, N> numeric(Class<N> numType) {
         return NumberArgument.from(numType);
     }

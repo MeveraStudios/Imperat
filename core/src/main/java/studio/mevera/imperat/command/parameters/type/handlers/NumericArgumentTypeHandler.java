@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
-import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypeLookup;
+import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeUtility;
@@ -22,7 +22,7 @@ import java.lang.reflect.Type;
  *
  * @param <S> the source type
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"unchecked"})
 public final class NumericArgumentTypeHandler<S extends Source> implements ArgumentTypeHandler<S> {
 
     @Override

@@ -28,6 +28,14 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
             return (NumberArgument<S, N>) new FloatArgument<>();
         } else if (TypeUtility.matches(numType, Double.class)) {
             return (NumberArgument<S, N>) new DoubleArgument<>();
+        } else if (TypeUtility.matches(numType, Byte.class)) {
+            return (NumberArgument<S, N>) new ByteArgument<>();
+        } else if (TypeUtility.matches(numType, Short.class)) {
+            return (NumberArgument<S, N>) new ShortArgument<>();
+        } else if (TypeUtility.matches(numType, java.math.BigInteger.class)) {
+            return (NumberArgument<S, N>) new BigIntegerArgument<>();
+        } else if (TypeUtility.matches(numType, java.math.BigDecimal.class)) {
+            return (NumberArgument<S, N>) new BigDecimalArgument<>();
         } else {
             throw new IllegalArgumentException("Unsupported number type: " + numType.getTypeName());
         }
@@ -149,4 +157,89 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
+    //create for Byte, Short, BigInteger, BigDecimal
+    //do it for me
+    static class ByteArgument<S extends Source> extends NumberArgument<S, Byte> {
+
+        protected ByteArgument() {
+            super();
+        }
+
+        @Override
+        public String display() {
+            return "byte";
+        }
+
+        @Override
+        public Byte parse(String input) throws NumberFormatException {
+            return Byte.parseByte(input);
+        }
+
+        public Priority priority() {
+            return Priority.NORMAL;
+        }
+    }
+
+    static class ShortArgument<S extends Source> extends NumberArgument<S, Short> {
+
+        protected ShortArgument() {
+            super();
+        }
+
+        @Override
+        public String display() {
+            return "short";
+        }
+
+        @Override
+        public Short parse(String input) throws NumberFormatException {
+            return Short.parseShort(input);
+        }
+
+        public Priority priority() {
+            return Priority.NORMAL;
+        }
+    }
+
+    static class BigIntegerArgument<S extends Source> extends NumberArgument<S, java.math.BigInteger> {
+
+        protected BigIntegerArgument() {
+            super();
+        }
+
+        @Override
+        public String display() {
+            return "big integer";
+        }
+
+        @Override
+        public java.math.BigInteger parse(String input) throws NumberFormatException {
+            return new java.math.BigInteger(input);
+        }
+
+        public Priority priority() {
+            return Priority.NORMAL;
+        }
+    }
+
+    static class BigDecimalArgument<S extends Source> extends NumberArgument<S, java.math.BigDecimal> {
+
+        protected BigDecimalArgument() {
+            super();
+        }
+
+        @Override
+        public String display() {
+            return "big decimal";
+        }
+
+        @Override
+        public java.math.BigDecimal parse(String input) throws NumberFormatException {
+            return new java.math.BigDecimal(input);
+        }
+
+        public Priority priority() {
+            return Priority.HIGH.plus(1);
+        }
+    }
 }

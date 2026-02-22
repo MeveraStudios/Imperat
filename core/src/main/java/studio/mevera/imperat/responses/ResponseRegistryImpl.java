@@ -38,6 +38,12 @@ final class ResponseRegistryImpl implements ResponseRegistry {
                         .addContextPlaceholders()
         );
 
+        registerResponse(
+                new Response(ResponseKey.INVALID_CHARACTER, () -> "Invalid input '%input%', expected a single character")
+                        .addPlaceholder("input")
+                        .addContextPlaceholders()
+        );
+
         // InvalidMapEntryFormatException: String input, String requiredSeparator, Reason reason
         registerResponse(
                 new Response(ResponseKey.INVALID_MAP_ENTRY_FORMAT, () -> "Invalid map entry '%input%'%extra_msg%")
