@@ -2,8 +2,8 @@ package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.command.parameters.FlagArgument;
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -184,11 +184,11 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
      */
     @SuppressWarnings("unchecked")
     private <T> T getDefaultValue(ExecutionContext<S> context, Cursor<S> stream, Argument<S> parameter) throws CommandException {
-        OptionalValueSupplier optionalSupplier = parameter.getDefaultValueSupplier();
+        DefaultValueProvider optionalSupplier = parameter.getDefaultValueSupplier();
         if (optionalSupplier.isEmpty()) {
             return null;
         }
-        String value = optionalSupplier.supply(context, parameter);
+        String value = optionalSupplier.provide(context, parameter);
 
         if (value != null) {
             return (T) parameter.type().parse(context, stream, value);

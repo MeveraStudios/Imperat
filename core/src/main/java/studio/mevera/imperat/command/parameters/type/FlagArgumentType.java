@@ -56,7 +56,7 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, ParsedFl
                 assert inputType != null;
                 objInput = inputType.parse(context, cursor, rawInput);
                 if (objInput == null && !flagArgument.getDefaultValueSupplier().isEmpty()) {
-                    String defValue = flagArgument.getDefaultValueSupplier().supply(context, flagArgument);
+                    String defValue = flagArgument.getDefaultValueSupplier().provide(context, flagArgument);
                     if (defValue != null) {
                         objInput = inputType.parse(context, cursor, defValue);
                     }

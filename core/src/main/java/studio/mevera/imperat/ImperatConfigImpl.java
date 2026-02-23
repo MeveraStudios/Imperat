@@ -76,7 +76,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private String commandPrefix = "/";
     private CommandPathway.Builder<S> globalDefaultUsage = CommandPathway.<S>builder()
                                                                  .execute((src, ctx) -> {
-                                                                     StringBuilder invalidUsage = new StringBuilder("/" + ctx.label());
+                                                                     StringBuilder invalidUsage =
+                                                                             new StringBuilder("/" + ctx.getRootCommandLabelUsed());
                                                                      var args = ctx.arguments();
                                                                      if (!args.isEmpty()) {
                                                                          invalidUsage.append(" ")
@@ -86,7 +87,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                                                                                    .withContextPlaceholders(ctx)
                                                                                    .withPlaceholder("invalid_usage", invalidUsage.toString())
                                                                                    .withPlaceholder("closest_usage",
-                                                                                           "/" + ctx.label() + " " + ctx.getPathwaySearch()
+                                                                                           "/" + ctx.getRootCommandLabelUsed() + " "
+                                                                                                   + ctx.getPathwaySearch()
                                                                                                                              .getClosestUsage()
                                                                                                                              .formatted());
                                                                  });

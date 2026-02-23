@@ -38,8 +38,8 @@ import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.command.parameters.NumericRange;
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.command.parameters.StrictParameterList;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
@@ -686,12 +686,12 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
             );
         }
 
-        OptionalValueSupplier optionalValueSupplier = OptionalValueSupplier.empty();
+        DefaultValueProvider defaultValueProvider = DefaultValueProvider.empty();
         if (optional) {
             Default defaultAnnotation = parameter.getAnnotation(Default.class);
             DefaultProvider provider = parameter.getAnnotation(DefaultProvider.class);
             try {
-                optionalValueSupplier = AnnotationHelper.deduceOptionalValueSupplier(parameter, defaultAnnotation, provider, optionalValueSupplier);
+                defaultValueProvider = AnnotationHelper.deduceOptionalValueSupplier(parameter, defaultAnnotation, provider, defaultValueProvider);
             } catch (CommandException e) {
                 ImperatDebugger.error(AnnotationHelper.class, "deduceOptionalValueSupplier", e);
             }
@@ -707,7 +707,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                     Argument.flag(name, type)
                             .suggestForInputValue(suggestionResolver)
                             .aliases(getAllExceptFirst(flagAliases))
-                            .flagDefaultInputValue(optionalValueSupplier)
+                            .flagDefaultInputValue(defaultValueProvider)
                             .description(desc)
                             .permission(permissionsData)
                             .build(),
@@ -757,7 +757,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
 
         Argument<S> delegate = Argument.of(
                 name, type, permissionsData, desc,
-                optional, greedy, optionalValueSupplier, suggestionResolver,
+                optional, greedy, defaultValueProvider, suggestionResolver,
                 validators
         );
 

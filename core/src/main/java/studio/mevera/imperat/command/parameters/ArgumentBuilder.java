@@ -24,7 +24,7 @@ public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
     private final boolean greedy;
     protected PermissionsData permission = PermissionsData.empty();
     protected Description description = Description.EMPTY;
-    private @NotNull OptionalValueSupplier valueSupplier;
+    private @NotNull DefaultValueProvider valueSupplier;
     private SuggestionResolver<S> suggestionResolver = null;
 
     ArgumentBuilder(String name, ArgumentType<S, T> type, boolean optional, boolean greedy) {
@@ -32,7 +32,7 @@ public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
         this.type = type;
         this.optional = optional;
         this.greedy = greedy;
-        this.valueSupplier = type == null ? OptionalValueSupplier.empty() : type.supplyDefaultValue();
+        this.valueSupplier = type == null ? DefaultValueProvider.empty() : type.getDefaultValueProvider();
     }
 
     ArgumentBuilder(String name, ArgumentType<S, T> type, boolean optional) {
@@ -58,13 +58,13 @@ public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
         return description(Description.of(descValue));
     }
 
-    public ArgumentBuilder<S, T> defaultValue(@NotNull OptionalValueSupplier defaultValueSupplier) {
+    public ArgumentBuilder<S, T> defaultValue(@NotNull DefaultValueProvider defaultValueSupplier) {
         this.valueSupplier = defaultValueSupplier;
         return this;
     }
 
     public ArgumentBuilder<S, T> defaultValue(@Nullable T value) {
-        return defaultValue(value == null ? OptionalValueSupplier.empty() : OptionalValueSupplier.of(String.valueOf(value)));
+        return defaultValue(value == null ? DefaultValueProvider.empty() : DefaultValueProvider.of(String.valueOf(value)));
     }
 
     public ArgumentBuilder<S, T> suggest(SuggestionResolver<S> suggestionResolver) {

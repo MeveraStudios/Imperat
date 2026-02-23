@@ -52,7 +52,7 @@ class ContextImpl<S extends Source> implements Context<S> {
      * @return the root command entered by the {@link Source}
      */
     @Override
-    public @NotNull String label() {
+    public @NotNull String getRootCommandLabelUsed() {
         return label;
     }
 

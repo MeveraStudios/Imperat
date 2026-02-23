@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.parameters.type;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -44,8 +44,8 @@ public final class OptionalArgument<S extends Source, T> extends ArgumentType<S,
     }
 
     @Override
-    public OptionalValueSupplier supplyDefaultValue() {
-        return typeResolver.supplyDefaultValue();
+    public DefaultValueProvider getDefaultValueProvider() {
+        return typeResolver.getDefaultValueProvider();
     }
 
     @Override

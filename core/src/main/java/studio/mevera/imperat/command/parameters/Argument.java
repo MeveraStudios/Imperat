@@ -40,7 +40,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
             Description description,
             boolean optional,
             boolean greedy,
-            @NotNull OptionalValueSupplier valueSupplier,
+            @NotNull DefaultValueProvider valueSupplier,
             @Nullable SuggestionResolver<S> suggestionResolver,
             List<ArgValidator<S>> validators
     ) {
@@ -149,7 +149,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
                 Description.EMPTY,
                 false,
                 false,
-                OptionalValueSupplier.empty(),
+                DefaultValueProvider.empty(),
                 null,
                 Collections.emptyList()
         );
@@ -212,7 +212,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
      * in case of the parameter being optional
      */
     @NotNull
-    OptionalValueSupplier getDefaultValueSupplier();
+    DefaultValueProvider getDefaultValueSupplier();
 
     /**
      * @return whether this is an optional argument

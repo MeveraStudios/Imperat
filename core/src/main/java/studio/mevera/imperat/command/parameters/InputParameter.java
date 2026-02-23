@@ -29,7 +29,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
     protected final String name;
     protected final ArgumentType<S, ?> type;
     protected final boolean optional, flag, greedy;
-    protected final OptionalValueSupplier optionalValueSupplier;
+    protected final DefaultValueProvider defaultValueProvider;
     protected final SuggestionResolver<S> suggestionResolver;
     private final PriorityList<ArgValidator<S>> validators = new PriorityList<>();
     protected Command<S> parentCommand;
@@ -44,7 +44,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
             @NotNull PermissionsData permissionsData,
             Description description,
             boolean optional, boolean flag, boolean greedy,
-            @NotNull OptionalValueSupplier optionalValueSupplier,
+            @NotNull DefaultValueProvider defaultValueProvider,
             @Nullable SuggestionResolver<S> suggestionResolver
     ) {
         this.name = name;
@@ -55,7 +55,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
         this.optional = optional;
         this.flag = flag;
         this.greedy = greedy;
-        this.optionalValueSupplier = optionalValueSupplier;
+        this.defaultValueProvider = defaultValueProvider;
         this.suggestionResolver = suggestionResolver;
     }
 
@@ -133,8 +133,8 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
      * in case of the parameter being optional
      */
     @Override
-    public @NotNull OptionalValueSupplier getDefaultValueSupplier() {
-        return optionalValueSupplier.isEmpty() ? type.supplyDefaultValue() : optionalValueSupplier;
+    public @NotNull DefaultValueProvider getDefaultValueSupplier() {
+        return defaultValueProvider.isEmpty() ? type.getDefaultValueProvider() : defaultValueProvider;
     }
 
     /**

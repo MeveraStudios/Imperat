@@ -45,7 +45,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
             Context<S> context,
             CommandPathSearch<S> pathSearch
     ) {
-        super(context.imperat(), context.command(), context.source(), context.label(), context.arguments());
+        super(context.imperat(), context.command(), context.source(), context.getRootCommandLabelUsed(), context.arguments());
         this.pathSearch = pathSearch;
         var lastCmdNode = pathSearch.getLastCommandNode();
         this.lastCommand = lastCmdNode.getData();

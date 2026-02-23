@@ -131,7 +131,7 @@ public class ParameterChain<S extends Source> {
             return;
         }
 
-        String defValue = flagArgument.getDefaultValueSupplier().supply(context, flagArgument);
+        String defValue = flagArgument.getDefaultValueSupplier().provide(context, flagArgument);
         if (defValue != null) {
             Object flagValueResolved = flagArgument.getDefaultValueSupplier().isEmpty() ? null :
                                                Objects.requireNonNull(flagArgument.flagData().inputType()).parse(

@@ -17,7 +17,7 @@ class NormalArgument<S extends Source> extends InputParameter<S> {
             Description description,
             boolean optional,
             boolean greedy,
-            @NotNull OptionalValueSupplier valueSupplier,
+            @NotNull DefaultValueProvider valueSupplier,
             @Nullable SuggestionResolver<S> suggestionResolver) {
         super(
                 name, type, permission, description, optional,
@@ -59,7 +59,7 @@ class NormalArgument<S extends Source> extends InputParameter<S> {
                 this.description,
                 this.optional,
                 this.greedy,
-                this.optionalValueSupplier,
+                this.defaultValueProvider,
                 this.suggestionResolver
         );
         copy.position(newPosition);

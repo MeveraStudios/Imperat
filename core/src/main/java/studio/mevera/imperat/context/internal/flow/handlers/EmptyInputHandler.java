@@ -3,8 +3,8 @@ package studio.mevera.imperat.context.internal.flow.handlers;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.command.parameters.FlagArgument;
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.ParsedArgument;
@@ -67,7 +67,7 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
                 assert flagInputType != null;
 
                 String defaultStrValue = flagArgument.getDefaultValueSupplier()
-                                                 .supply(context, flagArgument);
+                                                 .provide(context, flagArgument);
                 if (defaultStrValue != null) {
                     java.lang.Object flagInputValue = flagInputType.parse(context, Cursor.subStream(stream, defaultStrValue), defaultStrValue);
                     parsedFlagArgument = ParsedFlagArgument.forDefaultFlag(flagArgument, defaultStrValue, flagInputValue);
@@ -91,11 +91,11 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
 
     @SuppressWarnings("unchecked")
     private <T> T getDefaultValue(ExecutionContext<S> context, Cursor<S> stream, Argument<S> parameter) throws CommandException {
-        OptionalValueSupplier optionalSupplier = parameter.getDefaultValueSupplier();
+        DefaultValueProvider optionalSupplier = parameter.getDefaultValueSupplier();
         if (optionalSupplier.isEmpty()) {
             return null;
         }
-        String value = optionalSupplier.supply(context, parameter);
+        String value = optionalSupplier.provide(context, parameter);
 
         if (value != null) {
             return (T) parameter.type().parse(context, stream, value);

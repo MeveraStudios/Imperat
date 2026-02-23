@@ -4,7 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Context;
@@ -17,6 +17,7 @@ import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeCapturer;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -123,11 +124,11 @@ public abstract class ArgumentType<S extends Source, T>
      * Returns the default value supplier for the given source and command parameter.
      * By default, this returns an empty supplier, indicating no default value.
      *
-     * @return an {@link OptionalValueSupplier} providing the default value, or empty if none.
+     * @return an {@link DefaultValueProvider} providing the default value, or empty if none.
      */
     @ApiStatus.AvailableSince("1.9.1")
-    public OptionalValueSupplier supplyDefaultValue() {
-        return OptionalValueSupplier.empty();
+    public DefaultValueProvider getDefaultValueProvider() {
+        return DefaultValueProvider.empty();
     }
 
     /**
@@ -136,7 +137,7 @@ public abstract class ArgumentType<S extends Source, T>
      * @param type the type to check.
      * @return {@code true} if the types are related, {@code false} otherwise.
      */
-    public boolean isRelatedToType(Type type) {
+    public final boolean isRelatedToType(Type type) {
         return TypeUtility.areRelatedTypes(type, this.type());
     }
 
@@ -146,7 +147,7 @@ public abstract class ArgumentType<S extends Source, T>
      * @param type the type to check.
      * @return {@code true} if the types match exactly, {@code false} otherwise.
      */
-    public boolean equalsExactly(Type type) {
+    public final boolean equalsExactly(Type type) {
         return TypeUtility.matches(type, type());
     }
 

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleSource;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
@@ -22,7 +22,7 @@ import java.util.List;
 public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
 
     private final PlayerSuggestionResolver SUGGESTION_RESOLVER = new PlayerSuggestionResolver();
-    private final OptionalValueSupplier DEFAULT_VALUE_SUPPLIER = OptionalValueSupplier.of("~");
+    private final DefaultValueProvider DEFAULT_VALUE_SUPPLIER = DefaultValueProvider.of("~");
 
     public PlayerArgument() {
         super(PlayerRef.class, ArgTypes.PLAYER_REF, UnknownPlayerException::new);
@@ -63,10 +63,10 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
      * Returns the default value supplier for the given source and command parameter.
      * By default, this returns an empty supplier, indicating no default value.
      *
-     * @return an {@link OptionalValueSupplier} providing the default value, or empty if none.
+     * @return an {@link DefaultValueProvider} providing the default value, or empty if none.
      */
     @Override
-    public OptionalValueSupplier supplyDefaultValue() {
+    public DefaultValueProvider getDefaultValueProvider() {
         return DEFAULT_VALUE_SUPPLIER;
     }
 

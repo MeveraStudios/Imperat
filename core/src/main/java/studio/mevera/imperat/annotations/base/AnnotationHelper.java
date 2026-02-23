@@ -14,7 +14,7 @@ import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
@@ -153,8 +153,8 @@ public final class AnnotationHelper {
                 parameter.getAnnotation(Switch.class));
     }
 
-    public static @NotNull OptionalValueSupplier getOptionalValueSupplier(
-            Class<? extends OptionalValueSupplier> supplierClass
+    public static @NotNull DefaultValueProvider getOptionalValueSupplier(
+            Class<? extends DefaultValueProvider> supplierClass
     ) throws NoSuchMethodException, InstantiationException,
                      IllegalAccessException, InvocationTargetException {
 
@@ -164,18 +164,18 @@ public final class AnnotationHelper {
         return emptyConstructor.newInstance();
     }
 
-    public static @NotNull OptionalValueSupplier deduceOptionalValueSupplier(
+    public static @NotNull DefaultValueProvider deduceOptionalValueSupplier(
             ParameterElement parameter,
             Default defaultAnnotation,
             DefaultProvider provider,
-            OptionalValueSupplier fallback
+            DefaultValueProvider fallback
     ) throws CommandException {
 
         if (defaultAnnotation != null) {
             String def = defaultAnnotation.value();
-            return OptionalValueSupplier.of(def);
+            return DefaultValueProvider.of(def);
         } else if (provider != null) {
-            Class<? extends OptionalValueSupplier> supplierClass = provider.value();
+            Class<? extends DefaultValueProvider> supplierClass = provider.value();
             try {
                 return getOptionalValueSupplier(supplierClass);
             } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |

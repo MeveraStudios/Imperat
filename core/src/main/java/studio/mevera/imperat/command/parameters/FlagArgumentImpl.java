@@ -16,21 +16,21 @@ import java.util.Objects;
 public final class FlagArgumentImpl<S extends Source> extends InputParameter<S> implements FlagArgument<S> {
 
     private final FlagData<S> flag;
-    private final OptionalValueSupplier inputValueSupplier;
+    private final DefaultValueProvider inputValueSupplier;
     private final SuggestionResolver<S> inputValueSuggestionResolver;
 
     FlagArgumentImpl(
             FlagData<S> flag,
             PermissionsData permission,
             Description description,
-            OptionalValueSupplier inputValueSupplier,
+            DefaultValueProvider inputValueSupplier,
             SuggestionResolver<S> inputValueSuggestionResolver
     ) {
         super(
                 flag.name(), ArgumentTypes.flag(flag),
                 permission, description,
                 true, true, false,
-                OptionalValueSupplier.empty(),
+                DefaultValueProvider.empty(),
                 null
         );
         this.flag = flag;
@@ -59,7 +59,7 @@ public final class FlagArgumentImpl<S extends Source> extends InputParameter<S> 
      * in case of the parameter being optional
      */
     @Override
-    public @NotNull OptionalValueSupplier getDefaultValueSupplier() {
+    public @NotNull DefaultValueProvider getDefaultValueSupplier() {
         return inputValueSupplier;
     }
 

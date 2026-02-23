@@ -9,7 +9,7 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.annotations.parameters.AnnotatedArgument;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
@@ -197,8 +197,8 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      * in case of the parameter being optional
      */
     @Override
-    default @NotNull OptionalValueSupplier getDefaultValueSupplier() {
-        return OptionalValueSupplier.of(name());
+    default @NotNull DefaultValueProvider getDefaultValueSupplier() {
+        return DefaultValueProvider.of(name());
     }
 
     /**

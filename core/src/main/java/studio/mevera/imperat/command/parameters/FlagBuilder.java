@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.parameters;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
 
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
@@ -15,13 +15,13 @@ public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, P
 
     private final ArgumentType<S, T> inputType;
     private final List<String> aliases = new ArrayList<>();
-    private OptionalValueSupplier defaultValueSupplier;
+    private DefaultValueProvider defaultValueSupplier;
     private SuggestionResolver<S> suggestionResolver;
 
     private FlagBuilder(String name, @Nullable ArgumentType<S, T> inputType) {
         super(name, ArgumentTypes.flag(FlagData.create(name, List.of(), inputType)), true, false);
         this.inputType = inputType;
-        this.defaultValueSupplier = inputType == null ? OptionalValueSupplier.of("false") : inputType.supplyDefaultValue();
+        this.defaultValueSupplier = inputType == null ? DefaultValueProvider.of("false") : inputType.getDefaultValueProvider();
     }
 
     //for switches
@@ -47,7 +47,7 @@ public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, P
         return this;
     }
 
-    public FlagBuilder<S, T> flagDefaultInputValue(OptionalValueSupplier valueSupplier) {
+    public FlagBuilder<S, T> flagDefaultInputValue(DefaultValueProvider valueSupplier) {
         if (inputType == null) {
             throw new IllegalArgumentException("Flag of valueType switches, cannot have a default value supplier !");
         }
@@ -68,7 +68,7 @@ public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, P
     public FlagArgument<S> build() {
         FlagData<S> flag = FlagData.create(name, aliases, inputType);
         if (inputType == null) {
-            defaultValueSupplier = OptionalValueSupplier.of("false");
+            defaultValueSupplier = DefaultValueProvider.of("false");
         }
         return new FlagArgumentImpl<>(flag, permission, description, defaultValueSupplier, suggestionResolver);
     }

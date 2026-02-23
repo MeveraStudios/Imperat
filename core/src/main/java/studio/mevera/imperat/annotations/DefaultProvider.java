@@ -1,6 +1,6 @@
 package studio.mevera.imperat.annotations;
 
-import studio.mevera.imperat.command.parameters.OptionalValueSupplier;
+import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -15,5 +15,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.PARAMETER})
 public @interface DefaultProvider {
 
-    Class<? extends OptionalValueSupplier> value();
+    Class<? extends DefaultValueProvider> value();
 }

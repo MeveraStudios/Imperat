@@ -40,7 +40,7 @@ public interface Context<S extends Source> {
      * @return the root command entered by the {@link Source}
      */
     @NotNull
-    String label();
+    String getRootCommandLabelUsed();
 
     /**
      * @return the arguments entered by the {@link Source}
