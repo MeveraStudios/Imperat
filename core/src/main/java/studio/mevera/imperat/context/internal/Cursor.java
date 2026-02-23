@@ -602,6 +602,16 @@ public interface Cursor<S extends Source> {
     }
 
     /**
+     * Collects and returns the remaining raw input strings from the current cursor position
+     * to the end of the input queue. The raw input cursor is advanced to the end of the queue
+     * after this operation.
+     *
+     * @return a string containing all remaining raw inputs concatenated with spaces,
+     *         or an empty string if no remaining input exists
+     */
+    String collectRemainingRaw();
+
+    /**
      * Marks the specified parameter as exempt from normal processing.
      * Exempt parameters are typically flag parameters that have been
      * handled separately from the main argument processing flow.

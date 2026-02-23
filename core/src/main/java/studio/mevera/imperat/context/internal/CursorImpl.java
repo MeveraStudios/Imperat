@@ -288,6 +288,19 @@ final class CursorImpl<S extends Source> implements Cursor<S> {
     }
 
     @Override
+    public String collectRemainingRaw() {
+        if (streamPosition.raw >= queue.size()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder(this.currentRaw().orElseThrow());
+        while (this.hasNextRaw()) {
+            this.popRaw()
+                    .ifPresent(next -> sb.append(" ").append(next));
+        }
+        return sb.toString();
+    }
+
+    @Override
     public @NotNull List<Argument<S>> getParametersList() {
         return parametersList;
     }
