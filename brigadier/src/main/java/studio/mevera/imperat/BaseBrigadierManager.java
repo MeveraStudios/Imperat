@@ -136,7 +136,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
             SuggestionContext<S> ctx = dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
             CompletionArg arg = ctx.getArgToComplete();
 
-            return dispatcher.config().getParameterSuggestionResolver(parameter).asyncAutoComplete(ctx, parameter)
+            return dispatcher.config().getParameterSuggestionResolver(parameter).provideAsynchronously(ctx, parameter)
                            .thenCompose((results) -> {
                                results
                                        .stream()

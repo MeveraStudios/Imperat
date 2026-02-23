@@ -647,7 +647,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
+    public void validate(ExecutionContext<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
         throw new UnsupportedOperationException("A command does not have argument validators !");
     }
 

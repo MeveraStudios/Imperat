@@ -30,7 +30,9 @@ public interface ArgValidator<S extends Source> extends Comparable<ArgValidator<
         };
     }
 
-    @NotNull Priority priority();
+    default @NotNull Priority priority() {
+        return Priority.NORMAL;
+    }
 
     void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException;
 
