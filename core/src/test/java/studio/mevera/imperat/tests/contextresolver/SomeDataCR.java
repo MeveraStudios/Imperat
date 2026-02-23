@@ -5,10 +5,10 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.ContextResolver;
+import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.tests.TestSource;
 
-public class SomeDataCR implements ContextResolver<TestSource, SomeData> {
+public class SomeDataCR implements ContextArgumentProvider<TestSource, SomeData> {
 
     @Override
     public @Nullable SomeData resolve(

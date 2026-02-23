@@ -6,7 +6,7 @@ import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.ContextResolverFactory;
+import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
@@ -20,10 +20,10 @@ import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
-import studio.mevera.imperat.resolvers.ContextResolver;
-import studio.mevera.imperat.resolvers.DependencySupplier;
-import studio.mevera.imperat.resolvers.SourceResolver;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.ContextArgumentProvider;
+import studio.mevera.imperat.providers.DependencySupplier;
+import studio.mevera.imperat.providers.SourceProvider;
+import studio.mevera.imperat.providers.SuggestionProvider;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -214,7 +214,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return this builder instance for method chaining
      *
      * @see ImperatConfig#isOptionalParameterSuggestionOverlappingEnabled()
-     * @see SuggestionResolver
+     * @see SuggestionProvider
      */
     public B overlapOptionalParameterSuggestions(boolean overlap) {
         config.setOptionalParameterSuggestionOverlap(overlap);
@@ -228,7 +228,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      *
      * <p>The default suggestion resolver is invoked when:
      * <ul>
-     *   <li>A parameter has no specific {@link SuggestionResolver} defined</li>
+     *   <li>A parameter has no specific {@link SuggestionProvider} defined</li>
      *   <li>A command argument requires suggestions but no custom logic exists</li>
      *   <li>Fallback suggestions are needed during error recovery</li>
      * </ul>
@@ -248,10 +248,10 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      *                to disable default suggestions
      * @return this builder instance for method chaining
      *
-     * @see SuggestionResolver
+     * @see SuggestionProvider
      * @see ImperatConfig#getDefaultSuggestionResolver()
      */
-    public B setDefaultSuggestionResolver(SuggestionResolver<S> resolver) {
+    public B setDefaultSuggestionResolver(SuggestionProvider<S> resolver) {
         config.setDefaultSuggestionResolver(resolver);
         return (B) this;
     }
@@ -338,7 +338,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return this ConfigBuilder instance for method chaining
      */
     // Context Resolver Factory
-    public <T> B contextResolverFactory(Type type, ContextResolverFactory<S, T> factory) {
+    public <T> B contextResolverFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
         config.registerContextResolverFactory(type, factory);
         return (B) this;
     }
@@ -354,7 +354,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return the updated instance of {@code ConfigBuilder}, enabling fluent configuration
      */
     // Context Resolver
-    public <T> B contextResolver(Type type, ContextResolver<S, T> resolver) {
+    public <T> B contextResolver(Type type, ContextArgumentProvider<S, T> resolver) {
         config.registerContextResolver(type, resolver);
         return (B) this;
     }
@@ -399,43 +399,29 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
     }
 
     /**
-     * Registers a named suggestion resolver for providing autocomplete suggestions
-     * for command arguments or parameters.
-     *
-     * @param name               the unique name to identify the suggestion resolver
-     * @param suggestionResolver the suggestion resolver to be registered
-     * @return the current instance of {@code ConfigBuilder} for method chaining
-     */
-    // Named Suggestion Resolver
-    public B namedSuggestionResolver(String name, SuggestionResolver<S> suggestionResolver) {
-        config.registerNamedSuggestionResolver(name, suggestionResolver);
-        return (B) this;
-    }
-
-    /**
      * Sets the default suggestion resolver for providing autocomplete suggestions
      * for command arguments or parameters in the configuration.
      *
-     * @param suggestionResolver the {@link SuggestionResolver} implementation to be
+     * @param suggestionProvider the {@link SuggestionProvider} implementation to be
      *                           used as the default resolver for suggestions
      * @return the current {@link ConfigBuilder} instance for method chaining
      */
-    public B defaultSuggestionResolver(@NotNull SuggestionResolver<S> suggestionResolver) {
-        config.setDefaultSuggestionResolver(suggestionResolver);
+    public B defaultSuggestionResolver(@NotNull SuggestionProvider<S> suggestionProvider) {
+        config.setDefaultSuggestionResolver(suggestionProvider);
         return (B) this;
     }
 
     /**
-     * Registers a {@link SourceResolver} for a specific type to resolve command sources.
+     * Registers a {@link SourceProvider} for a specific type to resolve command sources.
      *
      * @param <R>            the resulting type resolved by the source resolver
      * @param type           the type of the source to be resolved
-     * @param sourceResolver the source resolver instance that converts the source
+     * @param sourceProvider the source resolver instance that converts the source
      * @return the current {@link ConfigBuilder} instance for method chaining
      */
     // Source Resolver
-    public <R> B sourceResolver(Type type, SourceResolver<S, R> sourceResolver) {
-        config.registerSourceResolver(type, sourceResolver);
+    public <R> B sourceProvider(Type type, SourceProvider<S, R> sourceProvider) {
+        config.registerSourceProvider(type, sourceProvider);
         return (B) this;
     }
 

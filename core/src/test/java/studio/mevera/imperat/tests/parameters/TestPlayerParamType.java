@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 
@@ -52,7 +52,7 @@ public final class TestPlayerParamType extends ArgumentType<TestSource, TestPlay
     }
 
     @Override
-    public SuggestionResolver<TestSource> getSuggestionResolver() {
+    public SuggestionProvider<TestSource> getSuggestionProvider() {
         return (ctx, p) -> {
             return List.of("MQZEN", "MOHAMED");
         };

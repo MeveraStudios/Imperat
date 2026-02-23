@@ -1,4 +1,4 @@
-package studio.mevera.imperat.resolvers;
+package studio.mevera.imperat.providers;
 
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.command.Command;
@@ -19,17 +19,17 @@ import java.util.concurrent.CompletableFuture;
  * @see Argument
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface SuggestionResolver<S extends Source> {
+public interface SuggestionProvider<S extends Source> {
 
-    static <S extends Source> SuggestionResolver<S> staticSuggestions(List<String> results) {
-        return new StaticSuggestionResolver<>(results);
+    static <S extends Source> SuggestionProvider<S> staticSuggestions(List<String> results) {
+        return new StaticSuggestionProvider<>(results);
     }
 
-    static <S extends Source> SuggestionResolver<S> staticSuggestions(String... results) {
+    static <S extends Source> SuggestionProvider<S> staticSuggestions(String... results) {
         return staticSuggestions(Arrays.asList(results));
     }
 
-    static <S extends Source> SuggestionResolver<S> forCommand(Command<S> command) {
+    static <S extends Source> SuggestionProvider<S> forCommand(Command<S> command) {
         List<String> list = new ArrayList<>();
         list.add(command.name());
         list.addAll(command.aliases());
@@ -42,9 +42,9 @@ public interface SuggestionResolver<S extends Source> {
      * @param parameter the parameter of the value to complete
      * @return the auto-completed suggestions of the current argument
      */
-    List<String> autoComplete(SuggestionContext<S> context, Argument<S> parameter);
+    List<String> provide(SuggestionContext<S> context, Argument<S> parameter);
 
-    default CompletableFuture<List<String>> asyncAutoComplete(SuggestionContext<S> context, Argument<S> parameter) {
-        return CompletableFuture.supplyAsync(() -> autoComplete(context, parameter));
+    default CompletableFuture<List<String>> provideAsynchronously(SuggestionContext<S> context, Argument<S> parameter) {
+        return CompletableFuture.supplyAsync(() -> provide(context, parameter));
     }
 }

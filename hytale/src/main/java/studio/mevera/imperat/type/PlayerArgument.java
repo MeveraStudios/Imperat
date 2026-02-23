@@ -14,14 +14,14 @@ import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.PlayerUtil;
 
 import java.util.List;
 
 public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
 
-    private final PlayerSuggestionResolver SUGGESTION_RESOLVER = new PlayerSuggestionResolver();
+    private final PlayerSuggestionProvider SUGGESTION_RESOLVER = new PlayerSuggestionProvider();
     private final DefaultValueProvider DEFAULT_VALUE_SUPPLIER = DefaultValueProvider.of("~");
 
     public PlayerArgument() {
@@ -55,7 +55,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionResolver<HytaleSource> getSuggestionResolver() {
+    public SuggestionProvider<HytaleSource> getSuggestionProvider() {
         return SUGGESTION_RESOLVER;
     }
 
@@ -80,7 +80,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
         return PlayerUtil.getPlayerRefByName(input) != null;
     }
 
-    private final static class PlayerSuggestionResolver implements SuggestionResolver<HytaleSource> {
+    private final static class PlayerSuggestionProvider implements SuggestionProvider<HytaleSource> {
 
         /**
          * @param context   the context for suggestions
@@ -88,7 +88,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> autoComplete(SuggestionContext<HytaleSource> context, Argument<HytaleSource> parameter) {
+        public List<String> provide(SuggestionContext<HytaleSource> context, Argument<HytaleSource> parameter) {
             return Universe.get().getPlayers().stream().map(PlayerRef::getUsername).toList();
         }
     }

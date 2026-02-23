@@ -1,4 +1,4 @@
-package studio.mevera.imperat.resolvers;
+package studio.mevera.imperat.providers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.Context;
@@ -12,7 +12,7 @@ import studio.mevera.imperat.exception.CommandException;
  * @param <S> the default platform source
  * @param <R> the resulting source
  */
-public interface SourceResolver<S extends Source, R> {
+public interface SourceProvider<S extends Source, R> {
 
     /**
      * Resolves {@link S} into {@link R}

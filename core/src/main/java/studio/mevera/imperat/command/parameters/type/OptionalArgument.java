@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Optional;
@@ -34,8 +34,8 @@ public final class OptionalArgument<S extends Source, T> extends ArgumentType<S,
     }
 
     @Override
-    public SuggestionResolver<S> getSuggestionResolver() {
-        return typeResolver.getSuggestionResolver();
+    public SuggestionProvider<S> getSuggestionProvider() {
+        return typeResolver.getSuggestionProvider();
     }
 
     @Override

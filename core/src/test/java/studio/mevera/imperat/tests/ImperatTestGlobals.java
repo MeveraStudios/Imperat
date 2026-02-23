@@ -47,7 +47,7 @@ import studio.mevera.imperat.tests.commands.realworld.groupcommand.AnnotatedGrou
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.GroupArgument;
 import studio.mevera.imperat.tests.contextresolver.PlayerData;
-import studio.mevera.imperat.tests.contextresolver.PlayerDataContextResolver;
+import studio.mevera.imperat.tests.contextresolver.PlayerDataContextArgumentResolver;
 import studio.mevera.imperat.tests.contextresolver.SomeData;
 import studio.mevera.imperat.tests.contextresolver.SomeDataCR;
 import studio.mevera.imperat.tests.errors.CustomException;
@@ -82,7 +82,7 @@ public class ImperatTestGlobals {
                                                       }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
                                                       .contextResolver(new TypeWrap<Context<TestSource>>() {
                                                       }.getType(), (ctx, pe) -> ctx)
-                                                      .contextResolver(PlayerData.class, new PlayerDataContextResolver())
+                                                      .contextResolver(PlayerData.class, new PlayerDataContextArgumentResolver())
                                                       .contextResolver(SomeData.class, new SomeDataCR())
                                                       .handleMiddleOptionalArgSkipping(true)
                                                       .overlapOptionalParameterSuggestions(true)

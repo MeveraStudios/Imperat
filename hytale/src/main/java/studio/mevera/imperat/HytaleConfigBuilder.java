@@ -182,23 +182,23 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
      * This enables automatic casting and validation of command sources.
      */
     private void registerDefaultSourceResolvers() {
-        config.registerSourceResolver(CommandSender.class, (hytaleSource, ctx) -> hytaleSource.origin());
+        config.registerSourceProvider(CommandSender.class, (hytaleSource, ctx) -> hytaleSource.origin());
 
-        config.registerSourceResolver(ConsoleSender.class, (hytaleSource, ctx) -> {
+        config.registerSourceProvider(ConsoleSender.class, (hytaleSource, ctx) -> {
             if (!hytaleSource.isConsole()) {
                 throw new CommandException(HytaleResponseKey.ONLY_CONSOLE);
             }
             return (ConsoleSender) hytaleSource.origin();
         });
 
-        config.registerSourceResolver(Player.class, (source, ctx) -> {
+        config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new CommandException(HytaleResponseKey.ONLY_PLAYER);
             }
             return source.as(Player.class);
         });
 
-        config.registerSourceResolver(PlayerRef.class, (source, ctx) -> {
+        config.registerSourceProvider(PlayerRef.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new CommandException(HytaleResponseKey.ONLY_PLAYER);
             }

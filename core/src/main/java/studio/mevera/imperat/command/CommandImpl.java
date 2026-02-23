@@ -24,7 +24,7 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionsData;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.PriorityList;
 
@@ -52,7 +52,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final @Nullable CommandTree<S> tree;
     private final @NotNull CommandTreeVisualizer<S> visualizer;
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
-    private final @NotNull SuggestionResolver<S> suggestionResolver;
+    private final @NotNull SuggestionProvider<S> suggestionProvider;
     private final CommandPathway<S> emptyPathway;
     private PermissionsData permissions = PermissionsData.empty();
     private Description description = Description.EMPTY;
@@ -89,7 +89,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.autoCompleter = AutoCompleter.createNative(this);
         this.tree = parent != null ? null : CommandTree.create(imperat.config(), this);
         this.visualizer = CommandTreeVisualizer.of(tree);
-        this.suggestionResolver = SuggestionResolver.forCommand(this);
+        this.suggestionProvider = SuggestionProvider.forCommand(this);
         this.annotatedElement = annotatedElement;
     }
 
@@ -260,11 +260,11 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * Fetches the suggestion resolver linked to this
      * command parameter.
      *
-     * @return the {@link SuggestionResolver} for a resolving suggestion
+     * @return the {@link SuggestionProvider} for a resolving suggestion
      */
     @Override
-    public @NotNull SuggestionResolver<S> getSuggestionResolver() {
-        return suggestionResolver;
+    public @NotNull SuggestionProvider<S> getSuggestionResolver() {
+        return suggestionProvider;
     }
 
     @Override

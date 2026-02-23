@@ -11,7 +11,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 
 import java.util.Arrays;
@@ -20,7 +20,7 @@ import java.util.List;
 public class OfflinePlayerArgument extends ArgumentType<BukkitSource, OfflinePlayer> {
 
 
-    private final PlayerSuggestionResolver playerSuggestionResolver = new PlayerSuggestionResolver();
+    private final PlayerSuggestionProvider playerSuggestionResolver = new PlayerSuggestionProvider();
 
     public OfflinePlayerArgument() {
         super();
@@ -41,11 +41,11 @@ public class OfflinePlayerArgument extends ArgumentType<BukkitSource, OfflinePla
     }
 
     @Override
-    public SuggestionResolver<BukkitSource> getSuggestionResolver() {
+    public SuggestionProvider<BukkitSource> getSuggestionProvider() {
         return playerSuggestionResolver;
     }
 
-    private final static class PlayerSuggestionResolver implements SuggestionResolver<BukkitSource> {
+    private final static class PlayerSuggestionProvider implements SuggestionProvider<BukkitSource> {
 
         /**
          * @param context   the context for suggestions
@@ -53,7 +53,7 @@ public class OfflinePlayerArgument extends ArgumentType<BukkitSource, OfflinePla
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> autoComplete(SuggestionContext<BukkitSource> context, Argument<BukkitSource> parameter) {
+        public List<String> provide(SuggestionContext<BukkitSource> context, Argument<BukkitSource> parameter) {
             return Arrays.stream(Bukkit.getOfflinePlayers())
                            .map(OfflinePlayer::getName)
                            .toList();

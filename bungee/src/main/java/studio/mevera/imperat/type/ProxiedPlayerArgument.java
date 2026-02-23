@@ -11,14 +11,14 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BungeeResponseKey;
 
 import java.util.List;
 
 public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, ProxiedPlayer> {
 
-    private final ProxiedPlayerSuggestionResolver PROXIED_PLAYER_SUGGESTION_RESOLVER = new ProxiedPlayerSuggestionResolver();
+    private final ProxiedPlayerSuggestionProvider PROXIED_PLAYER_SUGGESTION_RESOLVER = new ProxiedPlayerSuggestionProvider();
 
     public ProxiedPlayerArgument() {
         super();
@@ -62,11 +62,11 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionResolver<BungeeSource> getSuggestionResolver() {
+    public SuggestionProvider<BungeeSource> getSuggestionProvider() {
         return PROXIED_PLAYER_SUGGESTION_RESOLVER;
     }
 
-    private final static class ProxiedPlayerSuggestionResolver implements SuggestionResolver<BungeeSource> {
+    private final static class ProxiedPlayerSuggestionProvider implements SuggestionProvider<BungeeSource> {
 
         /**
          * @param context   the context for suggestions
@@ -74,7 +74,7 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> autoComplete(SuggestionContext<BungeeSource> context, Argument<BungeeSource> parameter) {
+        public List<String> provide(SuggestionContext<BungeeSource> context, Argument<BungeeSource> parameter) {
             return ProxyServer.getInstance().getPlayers().stream()
                            .map(ProxiedPlayer::getName)
                            .toList();

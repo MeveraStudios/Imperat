@@ -11,7 +11,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseKey;
 
 import java.util.Collections;
@@ -111,7 +111,7 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, ParsedFl
     }
 
     @Override
-    public SuggestionResolver<S> getSuggestionResolver() {
+    public SuggestionProvider<S> getSuggestionProvider() {
         return (ctx, param) -> {
             if (!param.isFlag()) {
                 return Collections.emptyList();
@@ -127,11 +127,11 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, ParsedFl
             //flag is a true flag AND the next position is its value
             var specificParamType = FlagArgument.inputSuggestionResolver();
             if (specificParamType != null) {
-                return specificParamType.autoComplete(ctx, param);
+                return specificParamType.provide(ctx, param);
             }
             ArgumentType<S, ?> flagInputValueType = ctx.imperatConfig().getArgumentType(FlagArgument.inputValueType());
             if (flagInputValueType != null) {
-                return flagInputValueType.getSuggestionResolver().autoComplete(ctx, param);
+                return flagInputValueType.getSuggestionProvider().provide(ctx, param);
             }
             return Collections.emptyList();
         };

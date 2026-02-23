@@ -9,7 +9,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.concurrent.CompletableFuture;
@@ -48,8 +48,8 @@ public final class CompletableFutureArgument<S extends Source, T> extends Argume
     }
 
     @Override
-    public SuggestionResolver<S> getSuggestionResolver() {
-        return typeResolver.getSuggestionResolver();
+    public SuggestionProvider<S> getSuggestionProvider() {
+        return typeResolver.getSuggestionProvider();
     }
 
     @Override

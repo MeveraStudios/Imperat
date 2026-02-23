@@ -16,7 +16,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.permissions.PermissionsData;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.PriorityList;
 import studio.mevera.imperat.util.TypeWrap;
@@ -41,7 +41,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
             boolean optional,
             boolean greedy,
             @NotNull DefaultValueProvider valueSupplier,
-            @Nullable SuggestionResolver<S> suggestionResolver,
+            @Nullable SuggestionProvider<S> suggestionProvider,
             List<ArgValidator<S>> validators
     ) {
         Preconditions.notNull(name, "name");
@@ -50,7 +50,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
 
         var param = new NormalArgument<>(
                 name, type, permission, description, optional,
-                greedy, valueSupplier, suggestionResolver
+                greedy, valueSupplier, suggestionProvider
         );
         for (ArgValidator<S> validator : validators) {
             param.addValidator(validator);
@@ -275,10 +275,10 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
      * Fetches the suggestion resolver linked to this
      * command parameter.
      *
-     * @return the {@link SuggestionResolver} for a resolving suggestion
+     * @return the {@link SuggestionProvider} for a resolving suggestion
      */
     @Nullable
-    SuggestionResolver<S> getSuggestionResolver();
+    SuggestionProvider<S> getSuggestionResolver();
 
     /**
      * Formats the usage parameter, the default value is the name of the parameter

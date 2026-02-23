@@ -10,20 +10,20 @@ import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseKey;
 
 public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
 
     private final com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType<T> hytaleArgType;
     private final ExceptionProvider exceptionProvider;
-    private final SuggestionResolver<HytaleSource> suggestionResolver;
+    private final SuggestionProvider<HytaleSource> suggestionProvider;
 
     public HytaleArgumentType(Class<T> type, com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType<T> hytaleArgType, ExceptionProvider provider) {
         super(type);
         this.hytaleArgType = hytaleArgType;
         this.exceptionProvider = provider;
-        this.suggestionResolver = (ctx, Argument) -> {
+        this.suggestionProvider = (ctx, Argument) -> {
             SuggestionResult result = new SuggestionResult();
             hytaleArgType.suggest(ctx.source().origin(), ctx.getArgToComplete().value(), ctx.arguments().size(), result);
             return result.getSuggestions();
@@ -62,8 +62,8 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
     }
 
     @Override
-    public SuggestionResolver<HytaleSource> getSuggestionResolver() {
-        return suggestionResolver;
+    public SuggestionProvider<HytaleSource> getSuggestionProvider() {
+        return suggestionProvider;
     }
 
     public com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType<T> getHytaleArgType() {

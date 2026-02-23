@@ -2,16 +2,16 @@ package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.tests.TestSource;
 
 import java.util.List;
 
-public class GroupSuggestionResolver implements SuggestionResolver<TestSource> {
+public class GroupSuggestionProvider implements SuggestionProvider<TestSource> {
 
 
     @Override
-    public List<String> autoComplete(
+    public List<String> provide(
             SuggestionContext<TestSource> context,
             Argument<TestSource> parameter
     ) {

@@ -9,12 +9,12 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.tests.TestSource;
 
 public final class GroupArgument extends ArgumentType<TestSource, Group> {
 
-    private final GroupSuggestionResolver suggestionResolver = new GroupSuggestionResolver();
+    private final GroupSuggestionProvider suggestionResolver = new GroupSuggestionProvider();
 
     public GroupArgument() {
         super();
@@ -44,7 +44,7 @@ public final class GroupArgument extends ArgumentType<TestSource, Group> {
     }
 
     @Override
-    public SuggestionResolver<TestSource> getSuggestionResolver() {
+    public SuggestionProvider<TestSource> getSuggestionProvider() {
         return suggestionResolver;
     }
 

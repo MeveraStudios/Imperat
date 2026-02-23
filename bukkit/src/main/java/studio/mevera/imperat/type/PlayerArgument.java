@@ -14,14 +14,14 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 
 import java.util.List;
 
 public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
 
-    private final PlayerSuggestionResolver SUGGESTION_RESOLVER = new PlayerSuggestionResolver();
+    private final PlayerSuggestionProvider SUGGESTION_RESOLVER = new PlayerSuggestionProvider();
     private final DefaultValueProvider DEFAULT_VALUE_SUPPLIER = DefaultValueProvider.of("~");
 
     public PlayerArgument() {
@@ -58,7 +58,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionResolver<BukkitSource> getSuggestionResolver() {
+    public SuggestionProvider<BukkitSource> getSuggestionProvider() {
         return SUGGESTION_RESOLVER;
     }
 
@@ -84,7 +84,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
                        && Bukkit.getPlayer(input) != null;
     }
 
-    private final static class PlayerSuggestionResolver implements SuggestionResolver<BukkitSource> {
+    private final static class PlayerSuggestionProvider implements SuggestionProvider<BukkitSource> {
 
         /**
          * @param context   the context for suggestions
@@ -92,7 +92,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> autoComplete(SuggestionContext<BukkitSource> context, Argument<BukkitSource> parameter) {
+        public List<String> provide(SuggestionContext<BukkitSource> context, Argument<BukkitSource> parameter) {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         }
     }

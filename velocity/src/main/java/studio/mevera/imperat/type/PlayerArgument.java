@@ -11,7 +11,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.VelocityResponseKey;
 
 import java.util.List;
@@ -19,12 +19,12 @@ import java.util.List;
 public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
 
     private final ProxyServer proxyServer;
-    private final PlayerSuggestionResolver playerSuggestionResolver;
+    private final PlayerSuggestionProvider playerSuggestionResolver;
 
     public PlayerArgument(ProxyServer server) {
         super();
         this.proxyServer = server;
-        this.playerSuggestionResolver = new PlayerSuggestionResolver(server);
+        this.playerSuggestionResolver = new PlayerSuggestionProvider(server);
     }
 
     @Override
@@ -65,15 +65,15 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionResolver<VelocitySource> getSuggestionResolver() {
+    public SuggestionProvider<VelocitySource> getSuggestionProvider() {
         return playerSuggestionResolver;
     }
 
-    private final static class PlayerSuggestionResolver implements SuggestionResolver<VelocitySource> {
+    private final static class PlayerSuggestionProvider implements SuggestionProvider<VelocitySource> {
 
         private final ProxyServer proxyServer;
 
-        PlayerSuggestionResolver(ProxyServer server) {
+        PlayerSuggestionProvider(ProxyServer server) {
             this.proxyServer = server;
         }
 
@@ -83,7 +83,7 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> autoComplete(SuggestionContext<VelocitySource> context, Argument<VelocitySource> parameter) {
+        public List<String> provide(SuggestionContext<VelocitySource> context, Argument<VelocitySource> parameter) {
             return proxyServer.getAllPlayers().stream().map(Player::getUsername).toList();
         }
     }

@@ -91,7 +91,7 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
         config.registerArgType(Player.class, new PlayerArgument(proxyServer));
 
         // Register source resolver for Player
-        config.registerSourceResolver(Player.class, (source, ctx) -> {
+        config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
             }

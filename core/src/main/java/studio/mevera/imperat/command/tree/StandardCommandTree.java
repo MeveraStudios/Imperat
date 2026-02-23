@@ -14,7 +14,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.permissions.PermissionChecker;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.TypeUtility;
 
 import java.lang.reflect.Type;
@@ -835,7 +835,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
 
         if (inputDepth == lastIndex) {
-            results.addAll(getResolverCached(node.data).autoComplete(context, node.data));
+            results.addAll(getResolverCached(node.data).provide(context, node.data));
             if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional() && !(node.isTrueFlag())) {
                 collectOverlappingSuggestions(node, node, context, results);
             }
@@ -890,7 +890,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             // Collect suggestions from this node
             //System.out.println("Getting from node " + nextNode.format() + "'s overlap:");
             final var resolver = getResolverCached(nextNode.data);
-            final var suggestions = resolver.autoComplete(context, nextNode.data);
+            final var suggestions = resolver.provide(context, nextNode.data);
             if (suggestions != null && !suggestions.isEmpty()) {
                 results.addAll(suggestions);
                 //System.out.println("Fetched '" + String.join(",", suggestions)  +"'");
@@ -921,7 +921,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     /**
      * CACHED resolver lookup - Eliminates config lookups
      */
-    private SuggestionResolver<S> getResolverCached(Argument<S> param) {
+    private SuggestionProvider<S> getResolverCached(Argument<S> param) {
         return imperatConfig.getParameterSuggestionResolver(param);
     }
 

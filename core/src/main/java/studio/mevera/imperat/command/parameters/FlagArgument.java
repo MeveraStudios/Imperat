@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 
 import java.lang.reflect.Type;
 
@@ -28,11 +28,11 @@ public interface FlagArgument<S extends Source> extends Argument<S> {
     }
 
     /**
-     * @return the {@link SuggestionResolver} for input value of this flag
+     * @return the {@link SuggestionProvider} for input value of this flag
      * null if the flag is switch, check using {@link FlagArgument#isSwitch()}
      */
     @Nullable
-    SuggestionResolver<S> inputSuggestionResolver();
+    SuggestionProvider<S> inputSuggestionResolver();
 
     /**
      * @return checks whether this parameter is a flag

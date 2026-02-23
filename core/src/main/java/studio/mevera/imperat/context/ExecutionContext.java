@@ -12,7 +12,7 @@ import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.ContextResolver;
+import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.lang.reflect.Type;
@@ -124,7 +124,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param type the target type class
      * @return the resolved source, never {@code null}
      * @throws CommandException if resolution fails
-     * @see ImperatConfig#getSourceResolver(Type) (Type)
+     * @see ImperatConfig#getSourceProviderFor(Type) (Type)
      */
     <R> @NotNull R getResolvedSource(Type type) throws CommandException;
 
@@ -135,7 +135,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param type the class of the argument type
      * @return the resolved argument value, or {@code null} if not resolvable
      * @throws CommandException if resolution fails
-     * @see ContextResolver
+     * @see ContextArgumentProvider
      */
     <T> @Nullable T getContextResolvedArgument(Class<T> type) throws CommandException;
 

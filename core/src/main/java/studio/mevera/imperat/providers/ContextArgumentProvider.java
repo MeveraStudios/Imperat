@@ -1,4 +1,4 @@
-package studio.mevera.imperat.resolvers;
+package studio.mevera.imperat.providers;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,14 +16,14 @@ import java.util.function.Supplier;
  * @param <T> the valueType of resolver's parameter
  */
 @FunctionalInterface
-public interface ContextResolver<S extends Source, T> {
+public interface ContextArgumentProvider<S extends Source, T> {
 
 
-    static <S extends Source, T> ContextResolver<S, T> of(T value) {
+    static <S extends Source, T> ContextArgumentProvider<S, T> of(T value) {
         return (c, p) -> value;
     }
 
-    static <S extends Source, T> ContextResolver<S, T> of(Supplier<T> supplier) {
+    static <S extends Source, T> ContextArgumentProvider<S, T> of(Supplier<T> supplier) {
         return of(supplier.get());
     }
 

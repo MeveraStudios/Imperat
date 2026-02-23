@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, P
     private final ArgumentType<S, T> inputType;
     private final List<String> aliases = new ArrayList<>();
     private DefaultValueProvider defaultValueSupplier;
-    private SuggestionResolver<S> suggestionResolver;
+    private SuggestionProvider<S> suggestionProvider;
 
     private FlagBuilder(String name, @Nullable ArgumentType<S, T> inputType) {
         super(name, ArgumentTypes.flag(FlagData.create(name, List.of(), inputType)), true, false);
@@ -55,11 +55,11 @@ public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, P
         return this;
     }
 
-    public FlagBuilder<S, T> suggestForInputValue(SuggestionResolver<S> suggestionResolver) {
+    public FlagBuilder<S, T> suggestForInputValue(SuggestionProvider<S> suggestionProvider) {
         if (inputType == null) {
             throw new IllegalArgumentException("Flag of valueType switches, cannot have a default value supplier !");
         }
-        this.suggestionResolver = suggestionResolver;
+        this.suggestionProvider = suggestionProvider;
         return this;
     }
 
@@ -70,7 +70,7 @@ public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, P
         if (inputType == null) {
             defaultValueSupplier = DefaultValueProvider.of("false");
         }
-        return new FlagArgumentImpl<>(flag, permission, description, defaultValueSupplier, suggestionResolver);
+        return new FlagArgumentImpl<>(flag, permission, description, defaultValueSupplier, suggestionProvider);
     }
 
 }

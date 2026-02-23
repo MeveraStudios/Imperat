@@ -43,14 +43,14 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceResolver(Member.class, (source, ctx) -> {
+        config.registerSourceProvider(Member.class, (source, ctx) -> {
             Member member = source.member();
             if (member == null) {
                 throw new NoDMSException();
             }
             return member;
         });
-        config.registerSourceResolver(User.class, (source, ctx) -> source.user());
+        config.registerSourceProvider(User.class, (source, ctx) -> source.user());
     }
 
     private void registerArgumentTypes() {

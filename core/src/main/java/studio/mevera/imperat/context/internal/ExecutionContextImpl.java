@@ -13,7 +13,7 @@ import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.ContextResolver;
+import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Registry;
 
@@ -113,9 +113,9 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @SuppressWarnings("unchecked")
     public <R> @NotNull R getResolvedSource(Type type) throws CommandException {
         if (!imperatConfig.hasSourceResolver(type)) {
-            throw new IllegalArgumentException("Found no SourceResolver for valueType `" + type.getTypeName() + "`");
+            throw new IllegalArgumentException("Found no SourceProvider for valueType `" + type.getTypeName() + "`");
         }
-        var sourceResolver = imperatConfig.getSourceResolver(type);
+        var sourceResolver = imperatConfig.getSourceProviderFor(type);
         assert sourceResolver != null;
 
         return (R) sourceResolver.resolve(this.source(), this);
@@ -123,7 +123,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
 
     /**
      * Fetches the argument/input resolved by the context
-     * using {@link ContextResolver}
+     * using {@link ContextArgumentProvider}
      *
      * @param type valueType of argument to return
      * @return the argument/input resolved by the context

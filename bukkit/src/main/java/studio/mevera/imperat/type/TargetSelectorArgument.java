@@ -13,7 +13,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.selector.SelectionParameterInput;
@@ -30,7 +30,7 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
     private final static char PARAMETER_START = '[';
     private final static char PARAMETER_END = ']';
 
-    private final SuggestionResolver<BukkitSource> suggestionResolver;
+    private final SuggestionProvider<BukkitSource> suggestionProvider;
 
     public TargetSelectorArgument() {
         super();
@@ -38,7 +38,7 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
                 .filter(type -> type != SelectionType.UNKNOWN)
                 .map(SelectionType::id)
                 .forEach((id) -> suggestions.add(SelectionType.MENTION_CHARACTER + id));
-        suggestionResolver = new TargetSelectorSuggestionResolver();
+        suggestionProvider = new TargetSelectorSuggestionProvider();
     }
 
     @SuppressWarnings("unchecked")
@@ -137,11 +137,11 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionResolver<BukkitSource> getSuggestionResolver() {
-        return suggestionResolver;
+    public SuggestionProvider<BukkitSource> getSuggestionProvider() {
+        return suggestionProvider;
     }
 
-    private final class TargetSelectorSuggestionResolver implements SuggestionResolver<BukkitSource> {
+    private final class TargetSelectorSuggestionProvider implements SuggestionProvider<BukkitSource> {
 
         /**
          * @param context   the context for suggestions
@@ -149,7 +149,7 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> autoComplete(
+        public List<String> provide(
                 SuggestionContext<BukkitSource> context,
                 Argument<BukkitSource> parameter
         ) {

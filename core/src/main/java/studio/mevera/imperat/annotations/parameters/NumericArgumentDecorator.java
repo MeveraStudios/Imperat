@@ -8,7 +8,7 @@ import studio.mevera.imperat.command.parameters.NumericParameter;
 import studio.mevera.imperat.command.parameters.NumericRange;
 import studio.mevera.imperat.command.parameters.validator.RangeValidator;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 
 public final class NumericArgumentDecorator<S extends Source> extends InputParameter<S> implements NumericParameter<S> {
 
@@ -35,7 +35,7 @@ public final class NumericArgumentDecorator<S extends Source> extends InputParam
         return new NumericArgumentDecorator<>(parameter, range);
     }
 
-    private static <S extends Source> SuggestionResolver<S> loadSuggestionResolver(Argument<S> parameter, NumericRange range) {
+    private static <S extends Source> SuggestionProvider<S> loadSuggestionResolver(Argument<S> parameter, NumericRange range) {
         var def = parameter.getSuggestionResolver();
         if (parameter.getSuggestionResolver() != null || (range.getMin() == Double.MIN_VALUE && range.getMax() == Double.MAX_VALUE)) {
             return def;
@@ -49,7 +49,7 @@ public final class NumericArgumentDecorator<S extends Source> extends InputParam
         } else {
             suggestion = range.getMin() + "-" + range.getMax();
         }
-        return SuggestionResolver.staticSuggestions(suggestion);
+        return SuggestionProvider.staticSuggestions(suggestion);
     }
 
     /**

@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.tests.TestSource;
 
 public final class CurrencyParamType extends ArgumentType<TestSource, Currency> {
@@ -37,7 +37,7 @@ public final class CurrencyParamType extends ArgumentType<TestSource, Currency> 
     }
 
     @Override
-    public SuggestionResolver<TestSource> getSuggestionResolver() {
+    public SuggestionProvider<TestSource> getSuggestionProvider() {
         return (ctx, parameter) ->
                        CurrencyManager.getInstance().getAllCurrencies()
                                .stream()

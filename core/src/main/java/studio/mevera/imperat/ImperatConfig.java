@@ -10,7 +10,7 @@ import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.ContextResolverFactory;
+import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
@@ -25,8 +25,8 @@ import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
-import studio.mevera.imperat.resolvers.ContextResolver;
-import studio.mevera.imperat.resolvers.DependencySupplier;
+import studio.mevera.imperat.providers.ContextArgumentProvider;
+import studio.mevera.imperat.providers.DependencySupplier;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -184,44 +184,44 @@ public sealed interface ImperatConfig<S extends Source> extends
     boolean hasContextResolver(Type type);
 
     /**
-     * Fetches {@link ContextResolver} for a certain valueType
+     * Fetches {@link ContextArgumentProvider} for a certain valueType
      *
      * @param resolvingContextType the valueType for this resolver
      * @param <T>                  the valueType of class
      * @return the context resolver
      */
     @Nullable
-    <T> ContextResolver<S, T> getContextResolver(Type resolvingContextType);
+    <T> ContextArgumentProvider<S, T> getContextResolver(Type resolvingContextType);
 
     /**
      * Fetches the context resolver for {@link ParameterElement} of a method
      *
      * @param element the element
      * @param <T>     the valueType of value this parameter should be resolved into
-     * @return the {@link ContextResolver} for this element
+     * @return the {@link ContextArgumentProvider} for this element
      */
     @Nullable
-    <T> ContextResolver<S, T> getMethodParamContextResolver(@NotNull ParameterElement element);
+    <T> ContextArgumentProvider<S, T> getMethodParamContextResolver(@NotNull ParameterElement element);
 
     /**
-     * Fetches the {@link ContextResolver} suitable for the {@link Argument}
+     * Fetches the {@link ContextArgumentProvider} suitable for the {@link Argument}
      *
      * @param Argument the parameter of a command's usage
      * @param <T>              the valueType of value that will be resolved by
      * {@link ArgumentType#parse(ExecutionContext, Cursor, String)}
      * @return the context resolver for this parameter's value valueType
      */
-    default <T> ContextResolver<S, T> getContextResolver(Argument<S> Argument) {
+    default <T> ContextArgumentProvider<S, T> getContextResolver(Argument<S> Argument) {
         return getContextResolver(Argument.valueType());
     }
 
     /**
      * @param resolvingContextType the valueType the factory is registered to
      * @return returns the factory for creation of
-     * {@link ContextResolver}
+     * {@link ContextArgumentProvider}
      */
     @Nullable
-    <T> ContextResolverFactory<S, T> getContextResolverFactory(Type resolvingContextType);
+    <T> ContextArgumentProviderFactory<S, T> getContextResolverFactory(Type resolvingContextType);
 
     /**
      * @return {@link PermissionChecker} for the dispatcher
@@ -291,7 +291,7 @@ public sealed interface ImperatConfig<S extends Source> extends
     <T> @Nullable T resolveDependency(Type type);
 
     default boolean hasSourceResolver(Type wrap) {
-        return getSourceResolver(wrap) != null;
+        return getSourceProviderFor(wrap) != null;
     }
 
     /**

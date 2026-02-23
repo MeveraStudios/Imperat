@@ -1,4 +1,4 @@
-package studio.mevera.imperat.resolvers;
+package studio.mevera.imperat.providers;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -8,7 +8,7 @@ import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionsData;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 
 import java.util.Objects;
 
@@ -17,14 +17,14 @@ public final class FlagArgumentImpl<S extends Source> extends InputParameter<S> 
 
     private final FlagData<S> flag;
     private final DefaultValueProvider inputValueSupplier;
-    private final SuggestionResolver<S> inputValueSuggestionResolver;
+    private final SuggestionProvider<S> inputValueSuggestionProvider;
 
     FlagArgumentImpl(
             FlagData<S> flag,
             PermissionsData permission,
             Description description,
             DefaultValueProvider inputValueSupplier,
-            SuggestionResolver<S> inputValueSuggestionResolver
+            SuggestionProvider<S> inputValueSuggestionProvider
     ) {
         super(
                 flag.name(), ArgumentTypes.flag(flag),
@@ -35,7 +35,7 @@ public final class FlagArgumentImpl<S extends Source> extends InputParameter<S> 
         );
         this.flag = flag;
         this.inputValueSupplier = inputValueSupplier;
-        this.inputValueSuggestionResolver = inputValueSuggestionResolver;
+        this.inputValueSuggestionProvider = inputValueSuggestionProvider;
     }
 
     @Override
@@ -64,11 +64,11 @@ public final class FlagArgumentImpl<S extends Source> extends InputParameter<S> 
     }
 
     @Override
-    public @Nullable SuggestionResolver<S> inputSuggestionResolver() {
+    public @Nullable SuggestionProvider<S> inputSuggestionResolver() {
         if (isSwitch()) {
             return null;
         } else {
-            return inputValueSuggestionResolver;
+            return inputValueSuggestionProvider;
         }
     }
 
@@ -86,7 +86,7 @@ public final class FlagArgumentImpl<S extends Source> extends InputParameter<S> 
                 this.permissionsData,
                 this.description,
                 this.inputValueSupplier,
-                this.inputValueSuggestionResolver
+                this.inputValueSuggestionProvider
         );
         copy.position(newPosition);
         copy.setFormat(this.format);

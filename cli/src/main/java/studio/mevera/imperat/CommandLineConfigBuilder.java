@@ -51,7 +51,7 @@ public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleSource,
      * For CLI applications, this sets up PrintStream source resolution.
      */
     private void registerSourceResolvers() {
-        config.registerSourceResolver(PrintStream.class, (consoleSource, ctx) -> consoleSource.origin());
+        config.registerSourceProvider(PrintStream.class, (consoleSource, ctx) -> consoleSource.origin());
     }
 
     /**

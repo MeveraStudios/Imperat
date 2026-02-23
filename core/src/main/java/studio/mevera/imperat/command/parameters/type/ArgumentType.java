@@ -12,7 +12,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeCapturer;
 import studio.mevera.imperat.util.TypeUtility;
@@ -103,8 +103,8 @@ public abstract class ArgumentType<S extends Source, T>
      *
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
-    public SuggestionResolver<S> getSuggestionResolver() {
-        return suggestions.isEmpty() ? null : SuggestionResolver.staticSuggestions(suggestions);
+    public SuggestionProvider<S> getSuggestionProvider() {
+        return suggestions.isEmpty() ? null : SuggestionProvider.staticSuggestions(suggestions);
     }
 
     /**

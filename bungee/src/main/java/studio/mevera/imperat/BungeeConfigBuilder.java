@@ -14,7 +14,7 @@ import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.resolvers.BungeePermissionChecker;
+import studio.mevera.imperat.providers.BungeePermissionChecker;
 import studio.mevera.imperat.responses.BungeeResponseKey;
 import studio.mevera.imperat.type.ProxiedPlayerArgument;
 import studio.mevera.imperat.type.ServerInfoArgument;
@@ -100,9 +100,9 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceResolver(AdventureSource.class, (bungeeSource, ctx) -> bungeeSource);
-        config.registerSourceResolver(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
-        config.registerSourceResolver(ProxiedPlayer.class, (source, ctx) -> {
+        config.registerSourceProvider(AdventureSource.class, (bungeeSource, ctx) -> bungeeSource);
+        config.registerSourceProvider(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
+        config.registerSourceProvider(ProxiedPlayer.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new CommandException(BungeeResponseKey.ONLY_PLAYER);
             }

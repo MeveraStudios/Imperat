@@ -1,4 +1,4 @@
-package studio.mevera.imperat.resolvers;
+package studio.mevera.imperat.providers;
 
 import java.util.function.Supplier;
 

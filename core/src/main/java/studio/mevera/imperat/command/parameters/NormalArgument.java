@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionsData;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.StringUtils;
 
 class NormalArgument<S extends Source> extends InputParameter<S> {
@@ -18,10 +18,10 @@ class NormalArgument<S extends Source> extends InputParameter<S> {
             boolean optional,
             boolean greedy,
             @NotNull DefaultValueProvider valueSupplier,
-            @Nullable SuggestionResolver<S> suggestionResolver) {
+            @Nullable SuggestionProvider<S> suggestionProvider) {
         super(
                 name, type, permission, description, optional,
-                false, greedy, valueSupplier, suggestionResolver
+                false, greedy, valueSupplier, suggestionProvider
         );
     }
 
@@ -60,7 +60,7 @@ class NormalArgument<S extends Source> extends InputParameter<S> {
                 this.optional,
                 this.greedy,
                 this.defaultValueProvider,
-                this.suggestionResolver
+                this.suggestionProvider
         );
         copy.position(newPosition);
         copy.setFormat(this.format);

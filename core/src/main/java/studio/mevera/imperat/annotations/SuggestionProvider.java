@@ -13,6 +13,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 public @interface SuggestionProvider {
 
-    String value();
+    Class<? extends studio.mevera.imperat.providers.SuggestionProvider<?>> value();
 
 }

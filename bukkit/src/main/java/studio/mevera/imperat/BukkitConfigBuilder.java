@@ -90,9 +90,9 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceResolver(AdventureSource.class, (bukkitSource, ctx) -> bukkitSource);
-        config.registerSourceResolver(CommandSender.class, (bukkitSource, ctx) -> bukkitSource.origin());
-        config.registerSourceResolver(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
+        config.registerSourceProvider(AdventureSource.class, (bukkitSource, ctx) -> bukkitSource);
+        config.registerSourceProvider(CommandSender.class, (bukkitSource, ctx) -> bukkitSource.origin());
+        config.registerSourceProvider(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
             var origin = bukkitSource.origin();
             if (!(origin instanceof ConsoleCommandSender console)) {
                 throw new CommandException(BukkitResponseKey.ONLY_CONSOLE);
@@ -100,7 +100,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
             return console;
         });
 
-        config.registerSourceResolver(Player.class, (source, ctx) -> {
+        config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new CommandException(BukkitResponseKey.ONLY_PLAYER);
             }

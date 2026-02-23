@@ -9,10 +9,10 @@ import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.ContextResolverFactory;
-import studio.mevera.imperat.command.ContextResolverRegistry;
+import studio.mevera.imperat.command.ContextArgumentProviderFactory;
+import studio.mevera.imperat.command.ContextArgumentProviderRegistry;
 import studio.mevera.imperat.command.ReturnResolverRegistry;
-import studio.mevera.imperat.command.SourceResolverRegistry;
+import studio.mevera.imperat.command.SourceProviderRegistry;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
@@ -20,7 +20,6 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.processors.impl.DefaultProcessors;
 import studio.mevera.imperat.command.returns.ReturnResolver;
-import studio.mevera.imperat.command.suggestions.SuggestionResolverRegistry;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.Context;
@@ -35,10 +34,10 @@ import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
-import studio.mevera.imperat.resolvers.ContextResolver;
-import studio.mevera.imperat.resolvers.DependencySupplier;
-import studio.mevera.imperat.resolvers.SourceResolver;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.ContextArgumentProvider;
+import studio.mevera.imperat.providers.DependencySupplier;
+import studio.mevera.imperat.providers.SourceProvider;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.Preconditions;
@@ -56,15 +55,14 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private EventBus eventBus;
     private CommandParsingMode parsingMode = CommandParsingMode.JAVA;
     private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
-    private final ContextResolverRegistry<S> contextResolverRegistry;
+    private final ContextArgumentProviderRegistry<S> contextArgumentProviderRegistry;
     private final ArgumentTypeRegistry<S> argumentTypeRegistry;
-    private final SuggestionResolverRegistry<S> suggestionResolverRegistry;
-    private final SourceResolverRegistry<S> sourceResolverRegistry;
+    private final SourceProviderRegistry<S> sourceProviderRegistry;
     private final ReturnResolverRegistry<S> returnResolverRegistry;
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
     private final Map<Class<?>, AnnotationReplacer<?>> annotationReplacerMap = new HashMap<>();
     private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
-    private @NotNull SuggestionResolver<S> defaultSuggestionResolver =
+    private @NotNull SuggestionProvider<S> defaultSuggestionProvider =
             (context, input) ->
                     Collections.emptyList();
     private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
@@ -119,10 +117,9 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     ImperatConfigImpl() {
-        contextResolverRegistry = ContextResolverRegistry.createDefault();
+        contextArgumentProviderRegistry = ContextArgumentProviderRegistry.createDefault();
         argumentTypeRegistry = ArgumentTypeRegistry.createDefault();
-        suggestionResolverRegistry = SuggestionResolverRegistry.createDefault(this);
-        sourceResolverRegistry = SourceResolverRegistry.createDefault();
+        sourceProviderRegistry = SourceProviderRegistry.createDefault();
         returnResolverRegistry = ReturnResolverRegistry.createDefault();
         contextFactory = ContextFactory.defaultFactory();
 
@@ -135,7 +132,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
         // register some defaults:
         this.regDefThrowableResolvers();
-        this.registerSourceResolver(Source.class, (source, ctx) -> source);
+        this.registerSourceProvider(Source.class, (source, ctx) -> source);
 
         this.eventBus = EventBus.createDummy();
     }
@@ -275,52 +272,52 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * @param factory the factory to register
      */
     @Override
-    public <T> void registerContextResolverFactory(Type type, ContextResolverFactory<S, T> factory) {
-        contextResolverRegistry.registerFactory(type, factory);
+    public <T> void registerContextResolverFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
+        contextArgumentProviderRegistry.registerFactory(type, factory);
     }
 
     /**
      * @return returns the factory for creation of
-     * {@link ContextResolver}
+     * {@link ContextArgumentProvider}
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> @Nullable ContextResolverFactory<S, T> getContextResolverFactory(Type type) {
-        return (ContextResolverFactory<S, T>) contextResolverRegistry.getFactoryFor(type).orElse(null);
+    public <T> @Nullable ContextArgumentProviderFactory<S, T> getContextResolverFactory(Type type) {
+        return (ContextArgumentProviderFactory<S, T>) contextArgumentProviderRegistry.getFactoryFor(type).orElse(null);
     }
 
     /**
-     * Fetches {@link ContextResolver} for a certain valueType
+     * Fetches {@link ContextArgumentProvider} for a certain valueType
      *
      * @param resolvingContextType the valueType for this resolver
      * @return the context resolver
      */
     @Override
-    public <T> @Nullable ContextResolver<S, T> getContextResolver(Type resolvingContextType) {
-        return contextResolverRegistry.getResolverWithoutParameterElement(resolvingContextType);
+    public <T> @Nullable ContextArgumentProvider<S, T> getContextResolver(Type resolvingContextType) {
+        return contextArgumentProviderRegistry.getResolverWithoutParameterElement(resolvingContextType);
     }
 
     /**
      * Fetches the context resolver for {@link ParameterElement} of a method
      *
      * @param element the element
-     * @return the {@link ContextResolver} for this element
+     * @return the {@link ContextArgumentProvider} for this element
      */
     @Override
-    public <T> @Nullable ContextResolver<S, T> getMethodParamContextResolver(@NotNull ParameterElement element) {
+    public <T> @Nullable ContextArgumentProvider<S, T> getMethodParamContextResolver(@NotNull ParameterElement element) {
         Preconditions.notNull(element, "element");
-        return contextResolverRegistry.getContextResolver(element.getType(), element);
+        return contextArgumentProviderRegistry.getContextResolver(element.getType(), element);
     }
 
     /**
-     * Registers {@link ContextResolver}
+     * Registers {@link ContextArgumentProvider}
      *
      * @param type     the class-valueType of value being resolved from context
      * @param resolver the resolver for this value
      */
     @Override
-    public <T> void registerContextResolver(Type type, @NotNull ContextResolver<S, T> resolver) {
-        contextResolverRegistry.registerResolver(type, resolver);
+    public <T> void registerContextResolver(Type type, @NotNull ContextArgumentProvider<S, T> resolver) {
+        contextArgumentProviderRegistry.registerResolver(type, resolver);
     }
 
     @Override
@@ -358,11 +355,11 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     /**
      * Retrieves the default suggestion resolver associated with this registrar.
      *
-     * @return the {@link SuggestionResolver} instance used as the default resolver
+     * @return the {@link SuggestionProvider} instance used as the default resolver
      */
     @Override
-    public @NotNull SuggestionResolver<S> getDefaultSuggestionResolver() {
-        return defaultSuggestionResolver;
+    public @NotNull SuggestionProvider<S> getDefaultSuggestionResolver() {
+        return defaultSuggestionProvider;
     }
 
     /**
@@ -370,11 +367,11 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * suggestion resolver is provided. The default suggestion resolver
      * handles the auto-completion of arguments/parameters for commands.
      *
-     * @param defaultSuggestionResolver the {@link SuggestionResolver} to be set as default
+     * @param defaultSuggestionProvider the {@link SuggestionProvider} to be set as default
      */
     @Override
-    public void setDefaultSuggestionResolver(@NotNull SuggestionResolver<S> defaultSuggestionResolver) {
-        this.defaultSuggestionResolver = defaultSuggestionResolver;
+    public void setDefaultSuggestionResolver(@NotNull SuggestionProvider<S> defaultSuggestionProvider) {
+        this.defaultSuggestionProvider = defaultSuggestionProvider;
     }
 
 
@@ -477,36 +474,13 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * argument or parameter.
      *
      * @param type the valueType
-     * @return the {@link SuggestionResolver} instance for that valueType
+     * @return the {@link SuggestionProvider} instance for that valueType
      */
     @Override
-    public @Nullable SuggestionResolver<S> getSuggestionResolverByType(Type type) {
+    public @Nullable SuggestionProvider<S> getSuggestionProviderForType(Type type) {
         return argumentTypeRegistry.getResolver(type)
-                       .map(ArgumentType::getSuggestionResolver)
+                       .map(ArgumentType::getSuggestionProvider)
                        .orElse(null);
-    }
-
-
-    /**
-     * Fetches the suggestion provider/resolver for a specific argument
-     *
-     * @param name the name of the argument
-     * @return the {@link SuggestionResolver} instance for that argument
-     */
-    public @Nullable SuggestionResolver<S> getNamedSuggestionResolver(String name) {
-        return suggestionResolverRegistry.getResolverByName(name);
-    }
-
-    /**
-     * Registers a suggestion resolver linked
-     * directly to a unique name
-     *
-     * @param name               the unique name/id of the suggestion resolver
-     * @param suggestionResolver the suggestion resolver to register
-     */
-    @Override
-    public void registerNamedSuggestionResolver(String name, SuggestionResolver<S> suggestionResolver) {
-        suggestionResolverRegistry.registerNamedResolver(name.toLowerCase(), suggestionResolver);
     }
 
     /**
@@ -555,13 +529,13 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public @Nullable <R> SourceResolver<S, R> getSourceResolver(Type type) {
-        return (SourceResolver<S, R>) sourceResolverRegistry.getData(type).orElse(null);
+    public @Nullable <R> SourceProvider<S, R> getSourceProviderFor(Type type) {
+        return (SourceProvider<S, R>) sourceProviderRegistry.getData(type).orElse(null);
     }
 
     @Override
-    public <R> void registerSourceResolver(Type type, SourceResolver<S, R> sourceResolver) {
-        sourceResolverRegistry.setData(type, sourceResolver);
+    public <R> void registerSourceProvider(Type type, SourceProvider<S, R> sourceProvider) {
+        sourceProviderRegistry.setData(type, sourceProvider);
     }
 
     @Override

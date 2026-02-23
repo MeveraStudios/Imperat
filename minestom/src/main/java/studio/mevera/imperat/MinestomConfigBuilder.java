@@ -78,18 +78,18 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
      * This enables automatic casting and validation of command sources.
      */
     private void registerDefaultResolvers() {
-        config.registerSourceResolver(CommandSender.class, (minestomSource, ctx) -> minestomSource.origin());
+        config.registerSourceProvider(CommandSender.class, (minestomSource, ctx) -> minestomSource.origin());
 
         // Enhanced source resolver for console similar to Velocity
-        config.registerSourceResolver(AdventureSource.class, (minestomSource, ctx) -> minestomSource);
-        config.registerSourceResolver(ConsoleSender.class, (minestomSource, ctx) -> {
+        config.registerSourceProvider(AdventureSource.class, (minestomSource, ctx) -> minestomSource);
+        config.registerSourceProvider(ConsoleSender.class, (minestomSource, ctx) -> {
             if (!minestomSource.isConsole()) {
                 throw new CommandException(MinestomResponseKey.ONLY_CONSOLE);
             }
             return (ConsoleSender) minestomSource.origin();
         });
 
-        config.registerSourceResolver(Player.class, (source, ctx) -> {
+        config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new CommandException(MinestomResponseKey.ONLY_PLAYER);
             }

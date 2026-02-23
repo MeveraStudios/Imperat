@@ -9,7 +9,7 @@ import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionsData;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.Preconditions;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
     protected PermissionsData permission = PermissionsData.empty();
     protected Description description = Description.EMPTY;
     private @NotNull DefaultValueProvider valueSupplier;
-    private SuggestionResolver<S> suggestionResolver = null;
+    private SuggestionProvider<S> suggestionProvider = null;
 
     ArgumentBuilder(String name, ArgumentType<S, T> type, boolean optional, boolean greedy) {
         this.name = name;
@@ -67,13 +67,13 @@ public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
         return defaultValue(value == null ? DefaultValueProvider.empty() : DefaultValueProvider.of(String.valueOf(value)));
     }
 
-    public ArgumentBuilder<S, T> suggest(SuggestionResolver<S> suggestionResolver) {
-        this.suggestionResolver = suggestionResolver;
+    public ArgumentBuilder<S, T> suggest(SuggestionProvider<S> suggestionProvider) {
+        this.suggestionProvider = suggestionProvider;
         return this;
     }
 
     public ArgumentBuilder<S, T> suggest(String... suggestions) {
-        return suggest(SuggestionResolver.staticSuggestions(suggestions));
+        return suggest(SuggestionProvider.staticSuggestions(suggestions));
     }
 
     public ArgumentBuilder<S, T> validate(ArgValidator<S> validator) {
@@ -86,7 +86,7 @@ public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
         return Argument.of(
                 name, type, permission, description,
                 optional, greedy, valueSupplier,
-                suggestionResolver, validators
+                suggestionProvider, validators
         );
     }
 

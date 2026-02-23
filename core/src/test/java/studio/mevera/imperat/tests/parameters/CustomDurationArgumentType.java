@@ -8,11 +8,11 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 
 public class CustomDurationArgumentType<S extends Source> extends ArgumentType<S, CustomDuration> {
 
-    private final SuggestionResolver<S> resolver = SuggestionResolver.staticSuggestions(
+    private final SuggestionProvider<S> resolver = SuggestionProvider.staticSuggestions(
             "permanent", "30d", "1y", "5y"
     );
 
@@ -34,7 +34,7 @@ public class CustomDurationArgumentType<S extends Source> extends ArgumentType<S
     }
 
     @Override
-    public SuggestionResolver<S> getSuggestionResolver() {
+    public SuggestionProvider<S> getSuggestionProvider() {
         return resolver;
     }
 

@@ -107,17 +107,17 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      * This enables automatic casting and validation of command sources.
      */
     private void registerSourceResolvers() {
-        config.registerSourceResolver(AdventureSource.class, (velocitySource, ctx) -> velocitySource);
-        config.registerSourceResolver(ConsoleCommandSource.class, (velocitySource, ctx) -> {
+        config.registerSourceProvider(AdventureSource.class, (velocitySource, ctx) -> velocitySource);
+        config.registerSourceProvider(ConsoleCommandSource.class, (velocitySource, ctx) -> {
             if (!velocitySource.isConsole()) {
                 throw new CommandException(VelocityResponseKey.ONLY_CONSOLE);
             }
             return velocitySource.asConsole();
         });
 
-        config.registerSourceResolver(CommandSource.class, (velocitySource, ctx) -> velocitySource.origin());
+        config.registerSourceProvider(CommandSource.class, (velocitySource, ctx) -> velocitySource.origin());
 
-        config.registerSourceResolver(Player.class, (source, ctx) -> {
+        config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
                 throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
             }

@@ -16,7 +16,7 @@ import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.PriorityList;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
@@ -30,7 +30,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
     protected final ArgumentType<S, ?> type;
     protected final boolean optional, flag, greedy;
     protected final DefaultValueProvider defaultValueProvider;
-    protected final SuggestionResolver<S> suggestionResolver;
+    protected final SuggestionProvider<S> suggestionProvider;
     private final PriorityList<ArgValidator<S>> validators = new PriorityList<>();
     protected Command<S> parentCommand;
     protected String format;
@@ -45,7 +45,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
             Description description,
             boolean optional, boolean flag, boolean greedy,
             @NotNull DefaultValueProvider defaultValueProvider,
-            @Nullable SuggestionResolver<S> suggestionResolver
+            @Nullable SuggestionProvider<S> suggestionProvider
     ) {
         this.name = name;
         this.format = name;
@@ -56,7 +56,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
         this.flag = flag;
         this.greedy = greedy;
         this.defaultValueProvider = defaultValueProvider;
-        this.suggestionResolver = suggestionResolver;
+        this.suggestionProvider = suggestionProvider;
     }
 
 
@@ -199,11 +199,11 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
      * Fetches the suggestion resolver linked to this
      * command parameter.
      *
-     * @return the {@link SuggestionResolver} for a resolving suggestion
+     * @return the {@link SuggestionProvider} for a resolving suggestion
      */
     @Override
-    public @Nullable SuggestionResolver<S> getSuggestionResolver() {
-        return suggestionResolver;
+    public @Nullable SuggestionProvider<S> getSuggestionResolver() {
+        return suggestionProvider;
     }
 
     @Override

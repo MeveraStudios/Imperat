@@ -23,7 +23,6 @@ import studio.mevera.imperat.annotations.Range;
 import studio.mevera.imperat.annotations.Shortcut;
 import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Suggest;
-import studio.mevera.imperat.annotations.SuggestionProvider;
 import studio.mevera.imperat.annotations.Switch;
 import studio.mevera.imperat.annotations.Validators;
 import studio.mevera.imperat.annotations.Values;
@@ -49,7 +48,7 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
-import studio.mevera.imperat.resolvers.SuggestionResolver;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
@@ -638,23 +637,22 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         //element.debug();
 
         Suggest suggestAnnotation = parameter.getAnnotation(Suggest.class);
-        SuggestionProvider suggestionProvider = parameter.getAnnotation(SuggestionProvider.class);
+        studio.mevera.imperat.annotations.SuggestionProvider
+                suggestionProvider = parameter.getAnnotation(studio.mevera.imperat.annotations.SuggestionProvider.class);
 
-        SuggestionResolver<S> suggestionResolver = null;
+        SuggestionProvider<S> suggestionProviderFunction = null;
 
         if (suggestAnnotation != null) {
-            suggestionResolver = SuggestionResolver.staticSuggestions(
+            suggestionProviderFunction = SuggestionProvider.staticSuggestions(
                     config.replacePlaceholders(suggestAnnotation.value())
             );
         } else if (suggestionProvider != null) {
-            String suggestionResolverName = config.replacePlaceholders(suggestionProvider.value().toLowerCase());
-            var namedResolver = config.getNamedSuggestionResolver(
-                    suggestionResolverName
-            );
-            if (namedResolver != null) {
-                suggestionResolver = namedResolver;
-            } else {
-                throw new IllegalStateException("Unregistered named suggestion resolver : " + suggestionResolverName);
+            try {
+                suggestionProviderFunction = (SuggestionProvider<S>) config.getInstanceFactory().createInstance(config, suggestionProvider.value());
+            } catch (Exception exception) {
+                throw new IllegalStateException(
+                        "Failed to instantiate suggestion provider '" + suggestionProvider.value().getName() + "' for parameter '"
+                                + parameter.getName() + "'", exception);
             }
         }
 
@@ -700,12 +698,12 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         if (flag != null) {
             String[] flagAliases = flag.value();
             if (suggestAnnotation != null) {
-                suggestionResolver = SuggestionResolver.staticSuggestions(config.replacePlaceholders(suggestAnnotation.value()));
+                suggestionProviderFunction = SuggestionProvider.staticSuggestions(config.replacePlaceholders(suggestAnnotation.value()));
             }
 
             return AnnotationArgumentDecorator.decorate(
                     Argument.flag(name, type)
-                            .suggestForInputValue(suggestionResolver)
+                            .suggestForInputValue(suggestionProviderFunction)
                             .aliases(getAllExceptFirst(flagAliases))
                             .flagDefaultInputValue(defaultValueProvider)
                             .description(desc)
@@ -757,7 +755,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
 
         Argument<S> delegate = Argument.of(
                 name, type, permissionsData, desc,
-                optional, greedy, defaultValueProvider, suggestionResolver,
+                optional, greedy, defaultValueProvider, suggestionProviderFunction,
                 validators
         );
 
