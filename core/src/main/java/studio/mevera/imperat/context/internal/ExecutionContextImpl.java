@@ -131,8 +131,8 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     @Override
     @SuppressWarnings("unchecked")
     public <T> @Nullable T getContextResolvedArgument(Class<T> type) throws CommandException {
-        var resolver = imperatConfig.getContextResolver(type);
-        return resolver == null ? null : (T) resolver.resolve(this, null);
+        var resolver = imperatConfig.getContextArgumentProvider(type);
+        return resolver == null ? null : (T) resolver.provide(this, null);
     }
 
     /**

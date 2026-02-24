@@ -42,7 +42,7 @@ public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfi
      *
      * @param factory the factory to register
      */
-    <T> void registerContextResolverFactory(Type type, ContextArgumentProviderFactory<S, T> factory);
+    <T> void registerContextArgumentProviderFactory(Type type, ContextArgumentProviderFactory<S, T> factory);
 
 
     /**
@@ -52,7 +52,7 @@ public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfi
      * @param resolver the resolver for this value
      * @param <T>      the valueType of value being resolved from context
      */
-    <T> void registerContextResolver(Type type, @NotNull ContextArgumentProvider<S, T> resolver);
+    <T> void registerContextArgumentProvider(Type type, @NotNull ContextArgumentProvider<S, T> resolver);
 
 
     /**

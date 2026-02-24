@@ -33,13 +33,13 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
     }
 
     private void registerContextResolvers() {
-        config.registerContextResolver(new TypeWrap<ExecutionContext<JdaSource>>() {
+        config.registerContextArgumentProvider(new TypeWrap<ExecutionContext<JdaSource>>() {
         }.getType(), (ctx, param) -> ctx);
-        config.registerContextResolver(new TypeWrap<CommandHelp<JdaSource>>() {
+        config.registerContextArgumentProvider(new TypeWrap<CommandHelp<JdaSource>>() {
         }.getType(), (ctx, param) -> CommandHelp.create(ctx));
-        config.registerContextResolver(SlashCommandInteractionEvent.class, (ctx, param) -> ctx.source().origin());
-        config.registerContextResolver(JDA.class, (ctx, param) -> jda);
-        config.registerContextResolver(Guild.class, (ctx, param) -> ctx.source().origin().getGuild());
+        config.registerContextArgumentProvider(SlashCommandInteractionEvent.class, (ctx, param) -> ctx.source().origin());
+        config.registerContextArgumentProvider(JDA.class, (ctx, param) -> jda);
+        config.registerContextArgumentProvider(Guild.class, (ctx, param) -> ctx.source().origin().getGuild());
     }
 
     private void registerSourceResolvers() {

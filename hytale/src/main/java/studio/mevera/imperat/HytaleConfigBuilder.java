@@ -163,18 +163,18 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
      * This allows command methods to receive Minestom-specific objects as parameters.
      */
     private void registerContextResolvers() {
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<ExecutionContext<HytaleSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<CommandHelp<HytaleSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 
-        config.registerContextResolver(JavaPlugin.class, (ctx, paramElement) -> plugin);
+        config.registerContextArgumentProvider(JavaPlugin.class, (ctx, paramElement) -> plugin);
     }
 
     /**

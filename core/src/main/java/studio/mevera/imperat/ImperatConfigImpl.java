@@ -255,7 +255,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      */
     @Override
     public boolean hasContextResolver(Type type) {
-        return getContextResolver(type) != null;
+        return getContextArgumentProvider(type) != null;
     }
 
     /**
@@ -272,7 +272,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * @param factory the factory to register
      */
     @Override
-    public <T> void registerContextResolverFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
+    public <T> void registerContextArgumentProviderFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
         contextArgumentProviderRegistry.registerFactory(type, factory);
     }
 
@@ -293,8 +293,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * @return the context resolver
      */
     @Override
-    public <T> @Nullable ContextArgumentProvider<S, T> getContextResolver(Type resolvingContextType) {
-        return contextArgumentProviderRegistry.getResolverWithoutParameterElement(resolvingContextType);
+    public <T> @Nullable ContextArgumentProvider<S, T> getContextArgumentProvider(Type resolvingContextType) {
+        return contextArgumentProviderRegistry.getContextArgumentWithoutParameterElement(resolvingContextType);
     }
 
     /**
@@ -304,9 +304,9 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * @return the {@link ContextArgumentProvider} for this element
      */
     @Override
-    public <T> @Nullable ContextArgumentProvider<S, T> getMethodParamContextResolver(@NotNull ParameterElement element) {
+    public <T> @Nullable ContextArgumentProvider<S, T> getContextArgumentProviderFor(@NotNull ParameterElement element) {
         Preconditions.notNull(element, "element");
-        return contextArgumentProviderRegistry.getContextResolver(element.getType(), element);
+        return contextArgumentProviderRegistry.getContextArgumentProvider(element.getType(), element);
     }
 
     /**
@@ -316,8 +316,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * @param resolver the resolver for this value
      */
     @Override
-    public <T> void registerContextResolver(Type type, @NotNull ContextArgumentProvider<S, T> resolver) {
-        contextArgumentProviderRegistry.registerResolver(type, resolver);
+    public <T> void registerContextArgumentProvider(Type type, @NotNull ContextArgumentProvider<S, T> resolver) {
+        contextArgumentProviderRegistry.registerProvider(type, resolver);
     }
 
     @Override

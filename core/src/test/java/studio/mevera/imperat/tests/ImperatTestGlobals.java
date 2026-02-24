@@ -78,12 +78,12 @@ public class ImperatTestGlobals {
                                                       .argType(BigDecimal.class, new BigDecimalParamType())
                                                       .argType(Currency.class, new CurrencyParamType())
                                                       .handleMiddleOptionalArgSkipping(true)
-                                                      .contextResolver(new TypeWrap<CommandHelp<TestSource>>() {
+                                                      .contextArgumentProvider(new TypeWrap<CommandHelp<TestSource>>() {
                                                       }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
-                                                      .contextResolver(new TypeWrap<Context<TestSource>>() {
+                                                      .contextArgumentProvider(new TypeWrap<Context<TestSource>>() {
                                                       }.getType(), (ctx, pe) -> ctx)
-                                                      .contextResolver(PlayerData.class, new PlayerDataContextArgumentResolver())
-                                                      .contextResolver(SomeData.class, new SomeDataCR())
+                                                      .contextArgumentProvider(PlayerData.class, new PlayerDataContextArgumentResolver())
+                                                      .contextArgumentProvider(SomeData.class, new SomeDataCR())
                                                       .handleMiddleOptionalArgSkipping(true)
                                                       .overlapOptionalParameterSuggestions(true)
                                                       .throwableResolver(CustomException.class, (exc, ctx) -> {

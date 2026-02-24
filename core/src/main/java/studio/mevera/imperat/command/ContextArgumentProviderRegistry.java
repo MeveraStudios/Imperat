@@ -21,9 +21,9 @@ public final class ContextArgumentProviderRegistry<S extends Source> extends Reg
     private ContextArgumentProviderRegistry() {
         super();
         //this.registerResolver(TypeWrap.of(CommandHelp.class).getType(), (ctx, param) -> new CommandHelp(config, ctx));
-        this.registerResolver(new TypeWrap<ExecutionContext<S>>() {
+        this.registerProvider(new TypeWrap<ExecutionContext<S>>() {
         }.getType(), (ctx, param) -> ctx);
-        this.registerResolver(new TypeWrap<ArgumentInput>() {
+        this.registerProvider(new TypeWrap<ArgumentInput>() {
         }.getType(), (ctx, param) -> ctx.arguments());
     }
 
@@ -31,7 +31,7 @@ public final class ContextArgumentProviderRegistry<S extends Source> extends Reg
         return new ContextArgumentProviderRegistry<>();
     }
 
-    public <T> void registerResolver(Type type, ContextArgumentProvider<S, T> resolver) {
+    public <T> void registerProvider(Type type, ContextArgumentProvider<S, T> resolver) {
         setData(type, resolver);
     }
 
@@ -44,7 +44,7 @@ public final class ContextArgumentProviderRegistry<S extends Source> extends Reg
     }
 
     @SuppressWarnings("unchecked")
-    public <T> @Nullable ContextArgumentProvider<S, T> getContextResolver(Type type, @Nullable ParameterElement element) {
+    public <T> @Nullable ContextArgumentProvider<S, T> getContextArgumentProvider(Type type, @Nullable ParameterElement element) {
         //we search for factories mainly
         ContextArgumentProviderFactory<S, T> factory = (ContextArgumentProviderFactory<S, T>) getFactoryFor(type).orElse(null);
         if (factory == null) {
@@ -55,8 +55,8 @@ public final class ContextArgumentProviderRegistry<S extends Source> extends Reg
         return factory.create(type, element);
     }
 
-    public <T> @Nullable ContextArgumentProvider<S, T> getResolverWithoutParameterElement(Type type) {
-        return getContextResolver(type, null);
+    public <T> @Nullable ContextArgumentProvider<S, T> getContextArgumentWithoutParameterElement(Type type) {
+        return getContextArgumentProvider(type, null);
     }
 
 }

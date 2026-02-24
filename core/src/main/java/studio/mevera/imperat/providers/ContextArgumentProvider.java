@@ -37,7 +37,7 @@ public interface ContextArgumentProvider<S extends Source, T> {
      * @return the resolved default-value
      */
     @Nullable
-    T resolve(
+    T provide(
             @NotNull ExecutionContext<S> context,
             @Nullable ParameterElement parameter
     ) throws CommandException;

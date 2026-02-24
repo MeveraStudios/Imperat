@@ -64,21 +64,21 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void registerContextResolvers() {
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<ExecutionContext<BungeeSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<CommandHelp<BungeeSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 
         // Enhanced context resolvers similar to Velocity
-        config.registerContextResolver(Plugin.class, (ctx, paramElement) -> plugin);
-        config.registerContextResolver(ProxyServer.class, (ctx, paramElement) -> ProxyServer.getInstance());
-        config.registerContextResolver(ServerInfo.class, (ctx, paramElement) -> {
+        config.registerContextArgumentProvider(Plugin.class, (ctx, paramElement) -> plugin);
+        config.registerContextArgumentProvider(ProxyServer.class, (ctx, paramElement) -> ProxyServer.getInstance());
+        config.registerContextArgumentProvider(ServerInfo.class, (ctx, paramElement) -> {
             BungeeSource source = ctx.source();
             if (source.isConsole()) {
                 throw new CommandException(BungeeResponseKey.ONLY_PLAYER);

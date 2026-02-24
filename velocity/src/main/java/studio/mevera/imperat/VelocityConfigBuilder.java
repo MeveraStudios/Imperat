@@ -75,20 +75,20 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      * This allows command methods to receive Velocity-specific objects as parameters.
      */
     private void registerContextResolvers() {
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<ExecutionContext<VelocitySource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<CommandHelp<VelocitySource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 
-        config.registerContextResolver(ProxyConfig.class, (ctx, paramElement) -> proxyServer.getConfiguration());
-        config.registerContextResolver(ProxyVersion.class, (ctx, paramElement) -> proxyServer.getVersion());
-        config.registerContextResolver(ServerInfo.class, (ctx, paramElement) -> {
+        config.registerContextArgumentProvider(ProxyConfig.class, (ctx, paramElement) -> proxyServer.getConfiguration());
+        config.registerContextArgumentProvider(ProxyVersion.class, (ctx, paramElement) -> proxyServer.getVersion());
+        config.registerContextArgumentProvider(ServerInfo.class, (ctx, paramElement) -> {
             VelocitySource source = ctx.source();
             if (source.isConsole()) {
                 throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
@@ -98,7 +98,8 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
                            .map(serverConnection -> serverConnection.getServer().getServerInfo())
                            .orElseThrow(() -> new IllegalStateException("Source is not connected to any server"));
         });
-        config.registerContextResolver(PluginContainer.class, (ctx, paramElement) -> proxyServer.getPluginManager().fromInstance(plugin).orElseThrow(
+        config.registerContextArgumentProvider(PluginContainer.class,
+                (ctx, paramElement) -> proxyServer.getPluginManager().fromInstance(plugin).orElseThrow(
                 () -> new IllegalStateException("Cannot get plugin container")));
     }
 

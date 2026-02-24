@@ -221,40 +221,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         return (B) this;
     }
 
-    /**
-     * Sets the default suggestion resolver to be used when no specific resolver
-     * is defined for a parameter or command context. This resolver acts as a
-     * fallback mechanism for tab completion suggestions.
-     *
-     * <p>The default suggestion resolver is invoked when:
-     * <ul>
-     *   <li>A parameter has no specific {@link SuggestionProvider} defined</li>
-     *   <li>A command argument requires suggestions but no custom logic exists</li>
-     *   <li>Fallback suggestions are needed during error recovery</li>
-     * </ul>
-     *
-     * <p><strong>Example usage:</strong>
-     * <pre>{@code
-     * builder.setDefaultSuggestionResolver((source, context, input) -> {
-     *     // Provide generic suggestions like player names, common values, etc.
-     *     return Arrays.asList("player1", "player2", "default_value");
-     * });
-     * }</pre>
-     *
-     * <p><strong>Note:</strong> Setting this to {@code null} will disable default
-     * suggestions, potentially leaving some parameters without tab completion support.
-     *
-     * @param resolver the default suggestion resolver implementation, or {@code null}
-     *                to disable default suggestions
-     * @return this builder instance for method chaining
-     *
-     * @see SuggestionProvider
-     * @see ImperatConfig#getDefaultSuggestionResolver()
-     */
-    public B setDefaultSuggestionResolver(SuggestionProvider<S> resolver) {
-        config.setDefaultSuggestionResolver(resolver);
-        return (B) this;
-    }
 
     /**
      * Registers a throwable resolver for a specific exception type.
@@ -338,8 +304,8 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return this ConfigBuilder instance for method chaining
      */
     // Context Resolver Factory
-    public <T> B contextResolverFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
-        config.registerContextResolverFactory(type, factory);
+    public <T> B contextArgumentProviderFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
+        config.registerContextArgumentProviderFactory(type, factory);
         return (B) this;
     }
 
@@ -354,8 +320,8 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @return the updated instance of {@code ConfigBuilder}, enabling fluent configuration
      */
     // Context Resolver
-    public <T> B contextResolver(Type type, ContextArgumentProvider<S, T> resolver) {
-        config.registerContextResolver(type, resolver);
+    public <T> B contextArgumentProvider(Type type, ContextArgumentProvider<S, T> resolver) {
+        config.registerContextArgumentProvider(type, resolver);
         return (B) this;
     }
 

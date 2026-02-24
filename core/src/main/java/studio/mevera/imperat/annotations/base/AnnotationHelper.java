@@ -70,10 +70,10 @@ public final class AnnotationHelper {
             assert actualParameter != null;
 
             if (actualParameter.isContextResolved()) {
-                var contextResolver = dispatcher.config().getMethodParamContextResolver(actualParameter);
+                var contextResolver = dispatcher.config().getContextArgumentProviderFor(actualParameter);
 
                 if (contextResolver != null) {
-                    paramsInstances[i] = contextResolver.resolve(context, actualParameter);
+                    paramsInstances[i] = contextResolver.provide(context, actualParameter);
                     p--;
                     continue;
                 } else {

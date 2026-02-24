@@ -11,7 +11,7 @@ import studio.mevera.imperat.tests.TestSource;
 public class SomeDataCR implements ContextArgumentProvider<TestSource, SomeData> {
 
     @Override
-    public @Nullable SomeData resolve(
+    public @Nullable SomeData provide(
             @NotNull ExecutionContext<TestSource> context,
             @Nullable ParameterElement parameter
     ) throws CommandException {

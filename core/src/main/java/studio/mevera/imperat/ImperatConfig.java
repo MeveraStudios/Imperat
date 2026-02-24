@@ -191,7 +191,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @return the context resolver
      */
     @Nullable
-    <T> ContextArgumentProvider<S, T> getContextResolver(Type resolvingContextType);
+    <T> ContextArgumentProvider<S, T> getContextArgumentProvider(Type resolvingContextType);
 
     /**
      * Fetches the context resolver for {@link ParameterElement} of a method
@@ -201,7 +201,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * @return the {@link ContextArgumentProvider} for this element
      */
     @Nullable
-    <T> ContextArgumentProvider<S, T> getMethodParamContextResolver(@NotNull ParameterElement element);
+    <T> ContextArgumentProvider<S, T> getContextArgumentProviderFor(@NotNull ParameterElement element);
 
     /**
      * Fetches the {@link ContextArgumentProvider} suitable for the {@link Argument}
@@ -211,8 +211,8 @@ public sealed interface ImperatConfig<S extends Source> extends
      * {@link ArgumentType#parse(ExecutionContext, Cursor, String)}
      * @return the context resolver for this parameter's value valueType
      */
-    default <T> ContextArgumentProvider<S, T> getContextResolver(Argument<S> Argument) {
-        return getContextResolver(Argument.valueType());
+    default <T> ContextArgumentProvider<S, T> getContextArgumentProvider(Argument<S> Argument) {
+        return getContextArgumentProvider(Argument.valueType());
     }
 
     /**

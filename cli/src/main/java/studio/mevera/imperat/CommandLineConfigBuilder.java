@@ -59,20 +59,20 @@ public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleSource,
      * This allows command methods to receive CLI-specific objects as parameters.
      */
     private void registerContextResolvers() {
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<ExecutionContext<ConsoleSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<CommandHelp<ConsoleSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 
         // Enhanced context resolvers similar to Velocity (limited for CLI)
-        config.registerContextResolver(InputStream.class, (ctx, paramElement) -> inputStream);
-        config.registerContextResolver(PrintStream.class, (ctx, paramElement) -> ctx.source().origin());
+        config.registerContextArgumentProvider(InputStream.class, (ctx, paramElement) -> inputStream);
+        config.registerContextArgumentProvider(PrintStream.class, (ctx, paramElement) -> ctx.source().origin());
     }
 
     /**

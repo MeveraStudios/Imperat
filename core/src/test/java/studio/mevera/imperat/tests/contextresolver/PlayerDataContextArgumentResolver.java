@@ -19,7 +19,7 @@ public class PlayerDataContextArgumentResolver implements ContextArgumentProvide
      * @return the resolved default-value
      */
     @Override
-    public @Nullable PlayerData resolve(
+    public @Nullable PlayerData provide(
             @NotNull ExecutionContext<TestSource> context,
             @Nullable ParameterElement parameter
     ) throws CommandException {

@@ -58,19 +58,19 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
      * This allows command methods to receive Minestom-specific objects as parameters.
      */
     private void registerContextResolvers() {
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<ExecutionContext<MinestomSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<CommandHelp<MinestomSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 
         // Enhanced context resolvers similar to Velocity
-        config.registerContextResolver(ServerProcess.class, (ctx, paramElement) -> serverProcess);
+        config.registerContextArgumentProvider(ServerProcess.class, (ctx, paramElement) -> serverProcess);
     }
 
     /**

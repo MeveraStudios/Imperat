@@ -73,20 +73,20 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
 
     private void registerContextResolvers() {
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<ExecutionContext<BukkitSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
-        config.registerContextResolver(
+        config.registerContextArgumentProvider(
                 new TypeWrap<CommandHelp<BukkitSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
 
         // Enhanced context resolvers similar to Velocity
-        config.registerContextResolver(Plugin.class, (ctx, paramElement) -> plugin);
-        config.registerContextResolver(Server.class, (ctx, paramElement) -> plugin.getServer());
+        config.registerContextArgumentProvider(Plugin.class, (ctx, paramElement) -> plugin);
+        config.registerContextArgumentProvider(Server.class, (ctx, paramElement) -> plugin.getServer());
     }
 
     private void registerSourceResolvers() {
