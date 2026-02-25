@@ -1,12 +1,12 @@
 package studio.mevera.imperat.tests.commands;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Default;
-import studio.mevera.imperat.annotations.Permission;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.Permission;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 
-@Command("testperm")
+@RootCommand("testperm")
 @Permission("testperm.use")
 public class TestPerm {
 

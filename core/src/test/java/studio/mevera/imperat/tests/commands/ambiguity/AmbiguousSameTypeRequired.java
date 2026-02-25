@@ -1,7 +1,7 @@
 package studio.mevera.imperat.tests.commands.ambiguity;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 /**
@@ -9,7 +9,7 @@ import studio.mevera.imperat.tests.TestSource;
  * At the first argument position, the framework cannot distinguish between
  * "name" and "title" since both are required strings at the same level.
  */
-@Command("ambiguous-same-type-required")
+@RootCommand("ambiguous-same-type-required")
 public class AmbiguousSameTypeRequired {
 
     @Execute

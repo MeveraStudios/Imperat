@@ -2,7 +2,7 @@ package studio.mevera.imperat.annotations.base;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.annotations.Command;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 
 import java.lang.annotation.Annotation;
@@ -10,7 +10,7 @@ import java.util.Collection;
 
 /**
  * Replaces a custom annotation made by the user, with annotations
- * made from the basic pre-made annotations such as {@link Command}
+ * made from the basic pre-made annotations such as {@link RootCommand}
  *
  * @param <A> the valueType of annotation to replace with other annotations
  */

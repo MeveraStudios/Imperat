@@ -166,7 +166,7 @@ class EnhancedIntegrationTest extends EnhancedBaseImperatTest {
     }
 
     @Nested
-    @DisplayName("Advanced Command Combinations")
+    @DisplayName("Advanced RootCommand Combinations")
     class AdvancedCommandCombinations {
 
         @Test

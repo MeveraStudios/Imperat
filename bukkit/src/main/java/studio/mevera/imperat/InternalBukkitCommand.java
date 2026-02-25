@@ -24,7 +24,7 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
             final @NotNull Command<BukkitSource> imperatCommand
     ) {
         super(
-                imperatCommand.name(),
+                imperatCommand.getName(),
                 imperatCommand.getDescription().getValueOrElse(""),
                 CommandPathway.format((String) null, imperatCommand.getDefaultPathway()),
                 imperatCommand.aliases()

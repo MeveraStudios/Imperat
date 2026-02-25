@@ -1,6 +1,5 @@
 package studio.mevera.imperat.tests.commands;
 
-import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
@@ -78,7 +77,7 @@ public final class TestCommands {
                                                                                                         source.sendMsg("Help page= " + page);
                                                                                                     })
 
-                                                                                    ).build(), AttachmentMode.MAIN
+                                                                                    ).build()
                                                                 )
                                                                 .build();
 

@@ -158,26 +158,26 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
     /**
      * @return the name of the parameter
      */
-    String name();
+    String getName();
 
 
     /**
      * @return the parent of this parameter
      */
     @Nullable
-    Command<S> parent();
+    Command<S> getParent();
 
     /**
      * Sets parent command for a parameter
      *
      * @param parentCommand the parameter's owning command
      */
-    void parent(Command<S> parentCommand);
+    void setParent(Command<S> parentCommand);
 
     /**
      * @return the index of this parameter
      */
-    int position();
+    int getPosition();
 
     /**
      * Sets the position of this parameter in a syntax
@@ -186,7 +186,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
      * @param position the position to set
      */
     @ApiStatus.Internal
-    void position(int position);
+    void setPosition(int position);
 
     /**
      * @return the value valueType-token of this parameter
@@ -283,7 +283,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
     /**
      * Formats the usage parameter, the default value is the name of the parameter
      *
-     * @see #name()
+     * @see #getName()
      * @return the formatted parameter
      */
     String format();
@@ -292,7 +292,7 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
      * Sets a custom format for this parameter
      * the default value is the name of the parameter
      *
-     * @see #name()
+     * @see #getName()
      * @param format the format to set
      */
     void setFormat(String format);
@@ -319,15 +319,6 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
     default boolean isRequired() {
         return !isOptional();
     }
-
-    /**
-     * Creates a copy of this parameter with a different position.
-     * Useful for commands that have multiple syntaxes.
-     *
-     * @param newPosition the new position to set
-     * @return a copy of this parameter with the new position
-     */
-    Argument<S> copyWithDifferentPosition(int newPosition);
 
     @NotNull PriorityList<ArgValidator<S>> getValidators();
 

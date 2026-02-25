@@ -70,7 +70,7 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, ParsedFl
             } else {
                 //"Please enter the value for flag '%s'"
                 throw new CommandException(ResponseKey.MISSING_FLAG_INPUT)
-                              .withPlaceholder("flags", String.join(",", Set.of(flagArgument.name())));
+                              .withPlaceholder("flags", String.join(",", Set.of(flagArgument.getName())));
             }
         } else {
             return ParsedFlagArgument.forSwitch(flagArgument, correspondingInput, cursor.currentRawPosition());

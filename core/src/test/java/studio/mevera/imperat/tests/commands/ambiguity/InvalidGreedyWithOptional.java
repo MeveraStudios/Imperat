@@ -1,16 +1,16 @@
 package studio.mevera.imperat.tests.commands.ambiguity;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Greedy;
 import studio.mevera.imperat.annotations.Optional;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 /**
  * INVALID: Greedy parameter with another parameter after it.
  * This should throw IllegalStateException.
  */
-@Command("invalid-greedy-with-optional")
+@RootCommand("invalid-greedy-with-optional")
 public class InvalidGreedyWithOptional {
 
     @Execute

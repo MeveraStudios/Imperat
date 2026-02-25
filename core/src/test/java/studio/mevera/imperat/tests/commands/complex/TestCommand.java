@@ -1,15 +1,15 @@
 package studio.mevera.imperat.tests.commands.complex;
 
-import studio.mevera.imperat.annotations.Command;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.ExternalSubCommand;
+import studio.mevera.imperat.annotations.InheritedArg;
 import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Suggest;
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.tests.TestSource;
 
-@Command("test")
+@RootCommand("test")
 @ExternalSubCommand(FirstSub.class)
 public class TestCommand {
 
@@ -29,13 +29,13 @@ public class TestCommand {
         source.reply("Other-text= " + text);
     }
 
-    @SubCommand(value = "help", attachment = AttachmentMode.DEFAULT)
+    @SubCommand(value = "help")
     public void help(TestSource source) {
         //help.display(source);
         source.reply("executed /test help");
     }
 
-    @Command("embedded")
+    @RootCommand("embedded")
     public void embeddedCmd(TestSource source, @Named("value") String arg) {
         source.reply("Embedded command value=" + arg);
     }
@@ -45,12 +45,15 @@ public class TestCommand {
     public static class Sub1 {
 
         @Execute
-        public void defaultUsage(TestSource source, @Named("otherText") String otherText, @Named("otherText2") String otherText2) {
+        public void defaultUsage(TestSource source, @InheritedArg @Named("otherText") String otherText,
+                @InheritedArg @Named("otherText2") String otherText2) {
             source.reply("default sub1");
         }
 
         @Execute
-        public void sub1Main(TestSource source, @Named("otherText") String otherText, @Named("otherText2") String otherText2, @Named("a") String a) {
+        public void sub1Main(TestSource source, @InheritedArg @Named("otherText") String otherText,
+                @InheritedArg @Named("otherText2") String otherText2, @Named(
+                        "a") String a) {
             source.reply("otherText=" + otherText + ", sub1-main a=" + a);
         }
 
@@ -59,14 +62,16 @@ public class TestCommand {
 
 
             @Execute
-            public void defaultUsage(TestSource source, @Named("otherText") String otherText, @Named("otherText2") String otherText2,
-                    @Named("a") String a) {
+            public void defaultUsage(TestSource source, @InheritedArg @Named("otherText") String otherText,
+                    @InheritedArg @Named("otherText2") String otherText2,
+                    @InheritedArg @Named("a") String a) {
                 source.reply("default sub2");
             }
 
             @Execute
-            public void sub2Main(TestSource source, @Named("otherText") String otherText, @Named("otherText2") String otherText2,
-                    @Named("a") String a, @Named("b") String b) {
+            public void sub2Main(TestSource source, @InheritedArg @Named("otherText") String otherText,
+                    @InheritedArg @Named("otherText2") String otherText2,
+                    @InheritedArg @Named("a") String a, @Named("b") String b) {
                 source.reply("sub2-main b=" + b);
             }
 
@@ -74,14 +79,19 @@ public class TestCommand {
             public static class Sub3 {
 
                 @Execute
-                public void defaultUsage(TestSource source, @Named("otherText") String otherText, @Named("otherText2") String otherText2,
-                        @Named("a") String a, @Named("b") String b) {
+                public void defaultUsage(TestSource source, @InheritedArg @Named("otherText") String otherText,
+                        @InheritedArg @Named("otherText2") String otherText2,
+                        @InheritedArg @Named("a") String a, @InheritedArg @Named("b") String b) {
                     source.reply("default sub3");
                 }
 
                 @Execute
-                public void sub3Main(TestSource source, @Named("otherText") String otherText, @Named("otherText2") String otherText2,
-                        @Named("a") String a, @Named("b") String b, @Named("c") String c) {
+                public void sub3Main(TestSource source,
+                        @InheritedArg @Named("otherText") String otherText,
+                        @InheritedArg @Named("otherText2") String otherText2,
+                        @InheritedArg @Named("a") String a,
+                        @InheritedArg @Named("b") String b,
+                        @Named("c") String c) {
                     source.reply("sub3 c=" + c);
                 }
 
@@ -95,12 +105,19 @@ public class TestCommand {
     public static class Sub4 {
 
         @Execute
-        public void defaultUsage(TestSource source, @Named("otherText") String otherText, @Named("otherText2") String otherText2) {
+        public void defaultUsage(TestSource source,
+                @InheritedArg @Named("otherText") String otherText,
+                @InheritedArg @Named("otherText2") String otherText2
+        ) {
             source.reply("default sub4");
         }
 
         @Execute
-        public void sub4Main(TestSource source, @Named("othertext") String otherText, @Named("otherText2") String otherText2, @Named("a") String a) {
+        public void sub4Main(TestSource source,
+                @InheritedArg @Named("othertext") String otherText,
+                @InheritedArg @Named("otherText2") String otherText2,
+                @Named("a") String a
+        ) {
             source.reply("sub4 a=" + a);
         }
 
@@ -108,14 +125,18 @@ public class TestCommand {
         public static class Sub5 {
 
             @Execute
-            public void defaultUsage(TestSource source, @Named("otherText") String otherText, @Named("otherText2") String otherText2,
-                    @Named("a") String a) {
+            public void defaultUsage(TestSource source,
+                    @InheritedArg @Named("otherText") String otherText,
+                    @InheritedArg @Named("otherText2") String otherText2,
+                    @InheritedArg @Named("a") String a) {
                 source.reply("default sub5");
             }
 
             @Execute
-            public void sub5Main(TestSource source, @Named("othertext") String otherText, @Named("otherText2") String otherText2,
-                    @Named("a") String a, @Named("b") String b) {
+            public void sub5Main(TestSource source,
+                    @InheritedArg @Named("othertext") String otherText,
+                    @InheritedArg @Named("otherText2") String otherText2,
+                    @InheritedArg @Named("a") String a, @Named("b") String b) {
                 source.reply("sub4 a= " + a + ", sub5 b=" + b);
             }
 
@@ -123,14 +144,24 @@ public class TestCommand {
             public static class Sub6 {
 
                 @Execute
-                public void defaultUsage(TestSource source, @Named("othertext") String otherText, @Named("otherText2") String otherText2,
-                        @Named("a") String a, @Named("b") String b) {
+                public void defaultUsage(TestSource source,
+
+                        @InheritedArg @Named("othertext") String otherText,
+                        @InheritedArg @Named("otherText2") String otherText2,
+                        @InheritedArg @Named("a") String a,
+                        @InheritedArg @Named("b") String b) {
                     source.reply("default sub6");
                 }
 
                 @Execute
-                public void sub6Main(TestSource source, @Named("othertext") String otherText, @Named("otherText2") String otherText2,
-                        @Named("a") String a, @Named("b") String b, @Named("c") String c) {
+                public void sub6Main(
+                        TestSource source,
+                        @InheritedArg @Named("othertext") String otherText,
+                        @InheritedArg @Named("otherText2") String otherText2,
+                        @InheritedArg @Named("a") String a,
+                        @InheritedArg @Named("b") String b,
+                        @Named("c") String c
+                ) {
                     source.reply("sub4 a= " + a + ", sub5b= " + b + ", sub6 c=" + c);
                 }
 

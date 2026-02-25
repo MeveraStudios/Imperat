@@ -67,10 +67,19 @@ public class ParameterChain<S extends Source> {
             //all flags here must be resolved inside the context
             for (var flagParam : extracted) {
 
-                if (!lastCmd.getMainPathway().getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
+                var lastCmdPathways = lastCmd.getDedicatedPathways();
+                boolean foundOutsideScope = true;
+                for (var pathway : lastCmdPathways) {
+                    if (pathway.getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
+                        foundOutsideScope = false;
+                        break;
+                    }
+
+                }
+                if (foundOutsideScope) {
                     throw new CommandException(ResponseKey.FLAG_OUTSIDE_SCOPE)
                                   .withPlaceholder("flag_input", raw)
-                                  .withPlaceholder("wrong_cmd", lastCmd.name());
+                                  .withPlaceholder("wrong_cmd", lastCmd.getName());
                 }
                 context.resolveFlag(
                         ParsedFlagArgument.forFlag(
@@ -114,7 +123,7 @@ public class ParameterChain<S extends Source> {
         String inputRaw = areAllSwitches ? currentRaw : nextRaw;
         if (!areAllSwitches && inputRaw == null) {
             throw new CommandException(ResponseKey.MISSING_FLAG_INPUT)
-                          .withPlaceholder("flags", extracted.stream().map(FlagArgument::name).collect(Collectors.joining(",")));
+                          .withPlaceholder("flags", extracted.stream().map(FlagArgument::getName).collect(Collectors.joining(",")));
         }
         return inputRaw;
     }

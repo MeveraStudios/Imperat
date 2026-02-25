@@ -369,7 +369,7 @@ class ResponseSystemTest {
     void testCommandExceptionWithContextPlaceholders() throws Exception {
         // This would require a real command context, so we'll test the mechanism
         ResponseKey errorKey = () -> "error.context";
-        Response response = new TestResponse(errorKey, () -> "Command '%command%' failed")
+        Response response = new TestResponse(errorKey, () -> "RootCommand '%command%' failed")
                                     .addPlaceholder("command");
 
         responseRegistry.registerResponse(response);
@@ -385,7 +385,7 @@ class ResponseSystemTest {
         assertThat(capturedMessages)
                 .hasSize(1)
                 .first()
-                .isEqualTo("Command 'test' failed");
+                .isEqualTo("RootCommand 'test' failed");
     }
 
     @Test

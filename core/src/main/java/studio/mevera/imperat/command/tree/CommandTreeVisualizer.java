@@ -171,7 +171,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         if (useColors) {
             result.append(BOLD);
         }
-        result.append("Command Tree Structure\n");
+        result.append("RootCommand Tree Structure\n");
         if (useColors) {
             result.append(RESET);
         }
@@ -359,7 +359,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.append("\n==== Command Tree ====\n\n");
+        builder.append("\n==== RootCommand Tree ====\n\n");
 
         visualizeSimpleNode(tree.rootNode(), builder, 0, new ArrayList<>(), true);
 
@@ -375,7 +375,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.append("\n==== Command Tree ====\n\n");
+        builder.append("\n==== RootCommand Tree ====\n\n");
 
         visualizeSimpleNode(tree.uniqueVersionedTree(), builder, 0, new ArrayList<>(), true);
 
@@ -388,7 +388,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         }
 
         StringBuilder builder = new StringBuilder();
-        builder.append("\n==== Command Tree (Unflagged) ====\n\n");
+        builder.append("\n==== RootCommand Tree (Unflagged) ====\n\n");
 
         visualizeSimpleNode(tree.unflaggedUniqueVersionedTree(), builder, 0, new ArrayList<>(), true);
 

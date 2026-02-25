@@ -9,6 +9,7 @@ import studio.mevera.imperat.brigadier.BukkitBrigadierManager;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -149,9 +150,9 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
 
         //let's make a safety check for the plugin.yml
         if (!paperPlugin && plugin instanceof JavaPlugin javaPlugin) {
-            var existingPluginYamlCmd = javaPlugin.getCommand(command.name().toLowerCase());
+            var existingPluginYamlCmd = javaPlugin.getCommand(command.getName().toLowerCase());
             if (existingPluginYamlCmd != null) {
-                throw new IllegalArgumentException("Command with name '" + command.name() + "' already exists in plugin.yml!");
+                throw new IllegalArgumentException("RootCommand with name '" + command.getName() + "' already exists in plugin.yml!");
             }
         }
 

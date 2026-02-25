@@ -27,12 +27,6 @@ public interface CommandTree<S extends Source> {
         return new StandardCommandTree<>(imperatConfig, command);
     }
 
-    static <S extends Source> CommandTree<S> parsed(ImperatConfig<S> imperatConfig, Command<S> command) {
-        var tree = new StandardCommandTree<>(imperatConfig, command);
-        tree.parseCommandUsages();
-        return tree;
-    }
-
     /**
      * Gets the root command of this command tree.
      *
@@ -86,6 +80,12 @@ public interface CommandTree<S extends Source> {
      * @param usage the command usage to parse, must not be null
      */
     void parseUsage(@NotNull CommandPathway<S> usage);
+
+    void parseSubTree(@NotNull CommandTree<S> subTree);
+
+    default void parseSubCommand(@NotNull Command<S> subCommand) {
+        parseSubTree(subCommand.tree());
+    }
 
     /**
      * Matches the given input against this command tree and returns a dispatch context.

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
+import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
 import studio.mevera.imperat.command.flags.FlagExtractor;
@@ -33,7 +34,6 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
 
     private final List<Argument<S>> parameters = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
     private final @NotNull CommandExecution<S> execution;
-    private final boolean help;
     private final FlagExtractor<S> flagExtractor;
     private final List<String> examples = new ArrayList<>(2);
     private PermissionsData permissionsData = PermissionsData.empty();
@@ -41,19 +41,32 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
     private @NotNull CooldownHandler<S> cooldownHandler;
     private @Nullable UsageCooldown cooldown = null;
     private CommandCoordinator<S> commandCoordinator;
+    private final @Nullable MethodElement methodElement;
+    private @Nullable CommandPathway<S> inheritedPathway = null;
 
-    CommandPathwayImpl(@NotNull CommandExecution<S> execution) {
-        this(execution, false);
-    }
 
-    CommandPathwayImpl(@NotNull CommandExecution<S> execution, boolean help) {
+    CommandPathwayImpl(@Nullable MethodElement methodElement, @NotNull CommandExecution<S> execution) {
+        this.methodElement = methodElement;
         this.execution = execution;
         this.cooldownHandler = CooldownHandler.createDefault(this);
         this.commandCoordinator = null;
-        this.help = help;
         this.flagExtractor = FlagExtractor.createNative(this);
     }
 
+    @Override
+    public @Nullable MethodElement getMethodElement() {
+        return methodElement;
+    }
+
+    @Override
+    public @Nullable CommandPathway<S> getInheritedPathway() {
+        return inheritedPathway;
+    }
+
+    @Override
+    public void setInheritedPathway(@Nullable CommandPathway<S> inheritedPathway) {
+        this.inheritedPathway = inheritedPathway;
+    }
 
     /**
      * @return the description for the
@@ -161,7 +174,7 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
      * @see Argument
      */
     @Override
-    public List<Argument<S>> getParameters() {
+    public List<Argument<S>> getArguments() {
         return parameters;
     }
 
@@ -179,7 +192,7 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
     }
 
     @Override
-    public @Nullable Argument<S> getParameter(int index) {
+    public @Nullable Argument<S> getArgumentAt(int index) {
         if (index < 0 || index >= parameters.size()) {
             return null;
         }
@@ -200,7 +213,7 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
      */
     @Override
     public boolean hasParamType(Class<?> clazz) {
-        return getParameters()
+        return getArguments()
                        .stream()
                        .anyMatch((param) -> param.valueType().equals(clazz));
     }
@@ -212,7 +225,7 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
      */
     @Override
     public int getMinLength() {
-        return (int) getParameters().stream()
+        return (int) getArguments().stream()
                              .filter((param) -> !param.isFlag())
                              .filter((param) -> !param.isOptional())
                              .count();
@@ -237,7 +250,7 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
      */
     @Override
     public boolean hasParameters(Predicate<Argument<S>> parameterPredicate) {
-        for (Argument<S> parameter : getParameters()) {
+        for (Argument<S> parameter : getArguments()) {
             if (parameterPredicate.test(parameter)) {
                 return true;
             }
@@ -251,8 +264,8 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
      * @return the parameter to get using a condition
      */
     @Override
-    public @Nullable Argument<S> getParameter(Predicate<Argument<S>> parameterPredicate) {
-        for (Argument<S> parameter : getParameters()) {
+    public @Nullable Argument<S> getArgumentAt(Predicate<Argument<S>> parameterPredicate) {
+        for (Argument<S> parameter : getArguments()) {
             if (parameterPredicate.test(parameter)) {
                 return parameter;
             }
@@ -333,11 +346,6 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
     }
 
     @Override
-    public boolean isHelp() {
-        return help;
-    }
-
-    @Override
     public boolean hasParameters(List<Argument<S>> parameters) {
 
         if (this.parameters.size() != parameters.size()) {
@@ -365,7 +373,7 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
         }
 
         for (var flagParam : flagExtractor.getRegisteredFlags()) {
-            flagParam.position(start);
+            flagParam.setPosition(start);
             combinedParameters.add(start, flagParam);
             start++;
         }
@@ -400,8 +408,8 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
             return false;
         }
         for (int i = 0; i < this.size(); i++) {
-            var thisP = this.getParameter(i);
-            var thatP = that.getParameter(i);
+            var thisP = this.getArgumentAt(i);
+            var thatP = that.getArgumentAt(i);
             assert thisP != null;
             if (!thisP.similarTo(thatP)) {
                 return false;

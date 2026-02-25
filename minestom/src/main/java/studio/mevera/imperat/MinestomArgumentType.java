@@ -56,7 +56,7 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomSource, 
 
         try {
             return (T) getMinestomType(
-                    Objects.requireNonNull(cursor.currentParameterIfPresent()).name()
+                    Objects.requireNonNull(cursor.currentParameterIfPresent()).getName()
             ).parse(
                     context.source().origin(),
                     input.toString()
@@ -86,7 +86,7 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomSource, 
             input.append(arg);
         }
         try {
-            getMinestomType(parameter.name()).parse(context.source().origin(), input.toString());
+            getMinestomType(parameter.getName()).parse(context.source().origin(), input.toString());
             return true;
         }catch (ArgumentSyntaxException ex) {
             return false;

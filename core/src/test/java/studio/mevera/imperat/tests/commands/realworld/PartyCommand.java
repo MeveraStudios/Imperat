@@ -1,21 +1,20 @@
 package studio.mevera.imperat.tests.commands.realworld;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.Description;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.Shortcut;
 import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.tests.TestSource;
 
-@Command({"party", "p"})
+@RootCommand({"party", "p"})
 //@Permission("voxy.party")
 public class PartyCommand {
 
     @Execute
-    @SubCommand(value = "help", attachment = AttachmentMode.EMPTY)
+    @SubCommand(value = "help")
     @Description("Sends a help message")
     public void help(
             final TestSource player,
@@ -23,34 +22,34 @@ public class PartyCommand {
     ) {
     }
 
-    @SubCommand(value = "list", attachment = AttachmentMode.EMPTY)
+    @SubCommand(value = "list")
     @Description("List of all players in your party")
     public void list(final TestSource player) {
     }
 
-    @SubCommand(value = "invite", attachment = AttachmentMode.EMPTY)
+    @SubCommand(value = "invite")
     @Description("Invites a player to your party")
     @Shortcut("pinvite")
     public void invite(final TestSource sender, @Named("receiver") final String receiver) {
         System.out.println("Inviting " + receiver + " to " + sender.name() + "'s party");
     }
 
-    @SubCommand(value = "accept", attachment = AttachmentMode.EMPTY)
+    @SubCommand(value = "accept")
     @Description("Accepts a party invite")
     public void accept(final TestSource receiver, @Named("sender") final String sender) {
     }
 
-    @SubCommand(value = "deny", attachment = AttachmentMode.EMPTY)
+    @SubCommand(value = "deny")
     @Description("Denies a party invite")
     public void deny(final TestSource receiver, @Named("sender") final String sender) {
     }
 
-    @SubCommand(value = "leave", attachment = AttachmentMode.EMPTY)
+    @SubCommand(value = "leave")
     @Description("Leave your current party")
     public void leave(final TestSource player) {
     }
 
-    @SubCommand(value = "disband", attachment = AttachmentMode.EMPTY)
+    @SubCommand(value = "disband")
     @Description("Disband a party")
     public void disband(final TestSource owner) {
     }

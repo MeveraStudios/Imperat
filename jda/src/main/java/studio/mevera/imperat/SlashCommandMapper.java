@@ -33,7 +33,7 @@ final class SlashCommandMapper {
     }
 
     SlashMapping mapCommand(Command<JdaSource> command) {
-        String commandName = command.name().toLowerCase();
+        String commandName = command.getName().toLowerCase();
 
         SlashCommandData data = Commands.slash(commandName, command.getDescription().getValueOrElse("N/A"));
         List<UsagePath> usagePaths = collectUsagePaths(command, List.of(), List.of());
@@ -110,16 +110,18 @@ final class SlashCommandMapper {
         List<UsagePath> paths = new ArrayList<>();
         List<Argument<JdaSource>> inheritedForChildren = new ArrayList<>(inherited);
 
-        for (Argument<JdaSource> parameter : command.getMainPathway().getParameters()) {
-            if (!parameter.isCommand()) {
-                inheritedForChildren.add(parameter);
+        for (var mainPathway : command.getDedicatedPathways()) {
+            for (Argument<JdaSource> parameter : mainPathway.getArguments()) {
+                if (!parameter.isCommand()) {
+                    inheritedForChildren.add(parameter);
+                }
             }
         }
 
         if (command.getSubCommands().isEmpty()) {
             for (CommandPathway<JdaSource> usage : command.getAllPossiblePathways()) {
                 List<Argument<JdaSource>> parameters = new ArrayList<>(inherited);
-                for (Argument<JdaSource> parameter : usage.getParameters()) {
+                for (Argument<JdaSource> parameter : usage.getArguments()) {
                     if (!parameter.isCommand()) {
                         parameters.add(parameter);
                     }
@@ -131,7 +133,7 @@ final class SlashCommandMapper {
 
         for (Command<JdaSource> sub : command.getSubCommands()) {
             List<String> childPath = new ArrayList<>(path);
-            childPath.add(sub.name().toLowerCase());
+            childPath.add(sub.getName().toLowerCase());
             paths.addAll(collectUsagePaths(sub, childPath, inheritedForChildren));
         }
         return paths;
@@ -253,7 +255,7 @@ final class SlashCommandMapper {
         void includeUsage(List<Argument<JdaSource>> parameters) {
             Set<String> seen = new LinkedHashSet<>();
             for (Argument<JdaSource> parameter : parameters) {
-                String optionName = parameter.name().toLowerCase();
+                String optionName = parameter.getName().toLowerCase();
                 options.compute(optionName, (key, existing) -> {
                     if (existing == null) {
                         return OptionSpec.from(optionName, parameter, mapOptionType(parameter));

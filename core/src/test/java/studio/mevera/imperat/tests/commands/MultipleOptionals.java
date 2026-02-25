@@ -1,12 +1,12 @@
 package studio.mevera.imperat.tests.commands;
 
-import studio.mevera.imperat.annotations.Command;
-import studio.mevera.imperat.annotations.Optional;
-import studio.mevera.imperat.annotations.Suggest;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.Optional;
+import studio.mevera.imperat.annotations.RootCommand;
+import studio.mevera.imperat.annotations.Suggest;
 import studio.mevera.imperat.tests.TestSource;
 
-@Command("multopts")
+@RootCommand("multopts")
 public class MultipleOptionals {
 
     @Execute
@@ -17,14 +17,14 @@ public class MultipleOptionals {
 
     }
 
-    @Command("sametype")
+    @RootCommand("sametype")
     public void sametype(TestSource source,
             @Optional @Suggest({"option1", "option2"}) String opt1,
             @Optional @Suggest({"option3", "option4"}) String opt2,
             @Suggest("final") String required) {
     }
 
-    @Command("chain")
+    @RootCommand("chain")
     public void chain(TestSource source,
             @Optional @Suggest({"text1", "text2"}) String opt1,
             @Optional @Suggest({"100", "200"}) Integer opt2,
@@ -32,21 +32,21 @@ public class MultipleOptionals {
             @Suggest("final") String required) {
     }
 
-    @Command("optreq")
+    @RootCommand("optreq")
     public void optreq(TestSource source,
             @Optional @Suggest("opt1-value") String optional1,
             @Suggest("required-value") String required,
             @Optional @Suggest("opt2-value") String optional2) {
     }
 
-    @Command("mixedcmd")
+    @RootCommand("mixedcmd")
     public void mixedcmd(TestSource source,
             @Optional @Suggest({"first", "second"}) String optional1,
             @Suggest("999") Integer required,
             @Optional @Suggest("3.5") Double optional2) {
     }
 
-    @Command("deep")
+    @RootCommand("deep")
     public void deep(TestSource source,
             @Suggest("req1") String required1,
             @Optional @Suggest({"opt1-a", "opt1-b"}) String optional1,
@@ -54,13 +54,13 @@ public class MultipleOptionals {
             @Suggest({"end1", "end2"}) String required2) {
     }
 
-    @Command("simple")
+    @RootCommand("simple")
     public void simple(TestSource source,
             @Optional @Suggest({"Player1", "Player2"}) String player,
             @Suggest({"50", "100", "200"}) Integer amount) {
     }
 
-    @Command("branch")
+    @RootCommand("branch")
     public void branch(TestSource source,
             @Suggest("item1") String item,
             @Optional @Suggest({"path1", "path2"}) String path,
@@ -68,7 +68,7 @@ public class MultipleOptionals {
             @Suggest("end") String destination) {
     }
 
-    @Command("allopts")
+    @RootCommand("allopts")
     public void allopts(TestSource source,
             @Optional @Suggest({"str1", "str2"}) String stringOpt,
             @Optional @Suggest({"1", "2"}) Integer intOpt,
@@ -76,7 +76,7 @@ public class MultipleOptionals {
             @Optional @Suggest({"true", "false"}) Boolean boolOpt) {
     }
 
-    @Command("empty")
+    @RootCommand("empty")
     public void empty(TestSource source,
             @Suggest("val1") String value1,
             @Suggest("val2") String value2,

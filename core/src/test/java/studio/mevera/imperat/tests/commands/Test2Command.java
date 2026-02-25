@@ -1,15 +1,15 @@
 package studio.mevera.imperat.tests.commands;
 
-import studio.mevera.imperat.annotations.Command;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.RootCommand;
+import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 import java.util.List;
 import java.util.Map;
 
-@Command("test2")
+@RootCommand("test2")
 public class Test2Command {
 
     @Execute

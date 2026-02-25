@@ -13,7 +13,7 @@ public class StandardTreeHelpVisitor<S extends Source> implements TreeHelpVisito
     @Override
     public HelpEntryList<S> visit(Command<S> command, HelpQuery<S> query) {
         // Just retrieves data, no rendering logic
-        if (command.parent() != null) {
+        if (command.getParent() != null) {
             return HelpEntryList.empty();
         }
         return Objects.requireNonNull(command.tree()).queryHelp(query);

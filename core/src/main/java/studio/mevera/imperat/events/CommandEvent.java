@@ -26,7 +26,7 @@ import studio.mevera.imperat.context.Source;
  * public class CommandExecutionEvent<S extends Source> extends CommandEvent<S> {
  *     private final ExecutionContext<S> context;
  *
- *     public CommandExecutionEvent(Command<S> command, ExecutionContext<S> context) {
+ *     public CommandExecutionEvent(RootCommand<S> command, ExecutionContext<S> context) {
  *         super(command);
  *         this.context = context;
  *     }
@@ -38,8 +38,8 @@ import studio.mevera.imperat.context.Source;
  *
  * // Register a handler that works with any command event
  * eventBus.register(CommandEvent.class, event -> {
- *     Command<?> command = event.getCommand();
- *     logger.info("Command event fired for: " + command.getName());
+ *     RootCommand<?> command = event.getCommand();
+ *     logger.info("RootCommand event fired for: " + command.getName());
  * });
  * }</pre>
  *

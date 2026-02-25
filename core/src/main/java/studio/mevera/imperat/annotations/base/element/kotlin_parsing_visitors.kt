@@ -121,7 +121,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         )
 
         return Argument.of(
-            argument.name(),
+            argument.getName(),
             argument.type(),
             argument.permissionsData,
             argument.description,
@@ -169,8 +169,8 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
             if (isSuspend) (imperat.config().coroutineScope as? CoroutineScope) else null
         )
 
-        return CommandPathway.builder<S>()
-            .parameters(usage.parameters)
+        return CommandPathway.builder<S>(method)
+            .parameters(usage.arguments)
             .execute(wrappedExecutor)
             .permission(usage.permissionsData)
             .description(usage.description)
@@ -183,7 +183,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
                     coordinator(CoroutineCommandCoordinator(imperat.config().coroutineScope as CoroutineScope))
                 }
             }
-            .build(loadedCmd, usage.isHelp)
+            .build(loadedCmd)
     }
 
     /**
@@ -213,7 +213,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         }
 
         private fun handleReturnValue(context: ExecutionContext<S>, returned: Any?) {
-            val method = getMethodElement()
+            val method = methodElement
             if (method.returnType == Void.TYPE) {
                 return
             }

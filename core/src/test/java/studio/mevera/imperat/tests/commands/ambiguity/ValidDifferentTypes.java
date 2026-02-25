@@ -1,14 +1,14 @@
 package studio.mevera.imperat.tests.commands.ambiguity;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 /**
  * VALID: Two execute methods with different types at the first parameter is NOT ambiguous.
  * The framework can distinguish between String and int types.
  */
-@Command("valid-different-types")
+@RootCommand("valid-different-types")
 public class ValidDifferentTypes {
 
     @Execute

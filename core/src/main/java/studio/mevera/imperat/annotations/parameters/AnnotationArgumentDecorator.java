@@ -21,7 +21,7 @@ public final class AnnotationArgumentDecorator<S extends Source> extends InputPa
 
     AnnotationArgumentDecorator(Argument<S> parameter, ParameterElement element) {
         super(
-                parameter.name(), parameter.type(), parameter.getPermissionsData(),
+                parameter.getName(), parameter.type(), parameter.getPermissionsData(),
                 parameter.getDescription(), parameter.isOptional(),
                 parameter.isFlag(), parameter.isGreedy(),
                 parameter.getDefaultValueSupplier(), parameter.getSuggestionResolver()
@@ -88,24 +88,6 @@ public final class AnnotationArgumentDecorator<S extends Source> extends InputPa
     @Override
     public boolean isFlag() {
         return parameter.isFlag();
-    }
-
-    /**
-     * Creates a copy of this parameter with a different position.
-     * Useful for commands that have multiple syntaxes.
-     *
-     * @param newPosition the new position to set
-     * @return a copy of this parameter with the new position
-     */
-    @Override
-    public Argument<S> copyWithDifferentPosition(int newPosition) {
-        Argument<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
-        AnnotationArgumentDecorator<S> copy = new AnnotationArgumentDecorator<>(
-                copiedParameter,
-                this.element
-        );
-        copy.setFormat(this.format);
-        return copy;
     }
 
 }

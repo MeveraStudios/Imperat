@@ -157,7 +157,7 @@ final class SyntaxDataLoader {
             CommandPathway<MinestomSource> usage
     ) {
         Argument<?>[] args = new Argument[usage.size()];
-        List<studio.mevera.imperat.command.parameters.Argument<MinestomSource>> parameters = usage.getParameters();
+        List<studio.mevera.imperat.command.parameters.Argument<MinestomSource>> parameters = usage.getArguments();
         for (int i = 0; i < parameters.size(); i++) {
             studio.mevera.imperat.command.parameters.Argument<MinestomSource> parameter = parameters.get(i);
             Argument<T> minestomArg = (Argument<T>) argFromParameter(imperat, parameter);
@@ -179,7 +179,7 @@ final class SyntaxDataLoader {
     private static Argument<?> argFromParameter(MinestomImperat imperat,
             studio.mevera.imperat.command.parameters.Argument<MinestomSource> parameter) {
         var type = parameter.valueType();
-        var id = parameter.name();
+        var id = parameter.getName();
 
         if (parameter.isCommand()) {
             return net.minestom.server.command.builder.arguments.ArgumentType.Literal(id);
@@ -212,7 +212,7 @@ final class SyntaxDataLoader {
         }
 
         if(parameter.type() instanceof MinestomArgumentType<?>) {
-            return ((MinestomArgumentType<?>) parameter.type()).getMinestomType(parameter.name());
+            return ((MinestomArgumentType<?>) parameter.type()).getMinestomType(parameter.getName());
         }
 
         return net.minestom.server.command.builder.arguments.ArgumentType.String(id);

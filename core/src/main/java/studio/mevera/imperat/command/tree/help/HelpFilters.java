@@ -105,7 +105,7 @@ public final class HelpFilters {
      */
     public static <S extends Source> HelpFilter<S> nameMatches(String pattern) {
         Pattern regex = Pattern.compile(pattern);
-        return node -> regex.matcher(node.getData().name()).matches();
+        return node -> regex.matcher(node.getData().getName()).matches();
     }
 
     /**
@@ -115,7 +115,7 @@ public final class HelpFilters {
      */
     public static <S extends Source> HelpFilter<S> nameContains(String substring) {
         String lower = substring.toLowerCase();
-        return node -> node.getData().name().toLowerCase().contains(lower);
+        return node -> node.getData().getName().toLowerCase().contains(lower);
     }
 
     /**

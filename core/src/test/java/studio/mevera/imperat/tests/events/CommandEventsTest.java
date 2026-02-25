@@ -1,5 +1,11 @@
 package studio.mevera.imperat.tests.events;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,12 +23,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * Tests command-specific events (PreRegistration and PostRegistration).
  */
-@DisplayName("EventBus - Command Events Tests")
+@DisplayName("EventBus - RootCommand Events Tests")
 public class CommandEventsTest {
 
     private EventBus eventBus;
@@ -199,7 +203,7 @@ public class CommandEventsTest {
 
         eventBus.register(CommandPreRegistrationEvent.class, event -> {
             lifecycle.add("pre-registration");
-            if (event.getCommand().name().equals("testcommand")) {
+            if (event.getCommand().getName().equals("testcommand")) {
                 event.setCancelled(true);
                 lifecycle.add("cancelled");
             }
@@ -264,9 +268,9 @@ public class CommandEventsTest {
 
         eventBus.register(CommandPostRegistrationEvent.class, event -> {
             if (event.isSuccessful()) {
-                logs.add("SUCCESS: " + event.getCommand().name());
+                logs.add("SUCCESS: " + event.getCommand().getName());
             } else {
-                logs.add("FAILURE: " + event.getCommand().name() +
+                logs.add("FAILURE: " + event.getCommand().getName() +
                         " - " + event.getFailureCause().getMessage());
             }
         });
@@ -317,7 +321,7 @@ public class CommandEventsTest {
 
         eventBus.register(CommandPreRegistrationEvent.class, event -> {
             Command<?> cmd = event.getCommand();
-            if (cmd.name().startsWith("admin")) {
+            if (cmd.getName().startsWith("admin")) {
                 // Simulate permission check
                 event.setCancelled(true);
             }
@@ -325,7 +329,7 @@ public class CommandEventsTest {
 
         eventBus.register(CommandPostRegistrationEvent.class, event -> {
             if (event.isSuccessful()) {
-                registeredCommands.add(event.getCommand().name());
+                registeredCommands.add(event.getCommand().getName());
             }
         });
 

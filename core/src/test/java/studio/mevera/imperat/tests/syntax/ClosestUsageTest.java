@@ -26,7 +26,7 @@ public class ClosestUsageTest extends BaseImperatTest {
     @Test
     @DisplayName("Should suggest correct usage when first required argument is missing")
     void testMissingFirstRequiredArgument() {
-        // Command: /usagetest simple <name> <age>
+        // RootCommand: /usagetest simple <name> <age>
         // Input: /usagetest simple
         // Expected: Should suggest proper usage
 

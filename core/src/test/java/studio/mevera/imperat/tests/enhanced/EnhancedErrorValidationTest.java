@@ -17,7 +17,7 @@ import studio.mevera.imperat.tests.TestSource;
 class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
 
     @Nested
-    @DisplayName("Command Structure Errors")
+    @DisplayName("RootCommand Structure Errors")
     class CommandStructureErrors {
 
         @Test

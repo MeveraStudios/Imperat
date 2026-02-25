@@ -1,7 +1,7 @@
 package studio.mevera.imperat.tests.commands.ambiguity;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 /**
@@ -9,7 +9,7 @@ import studio.mevera.imperat.tests.TestSource;
  * At the first argument position, the framework cannot distinguish between
  * "count" and "limit" since both are required integers at the same level.
  */
-@Command("ambiguous-same-type-int")
+@RootCommand("ambiguous-same-type-int")
 public class AmbiguousSameTypeInt {
 
     @Execute

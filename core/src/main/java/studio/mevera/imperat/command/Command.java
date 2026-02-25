@@ -88,7 +88,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     /**
      * @return The name of the command
      */
-    String name();
+    String getName();
 
     /**
      * @return The aliases for this commands
@@ -135,7 +135,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      * @return Whether this command has this name/alias
      */
     default boolean hasName(String name) {
-        return this.name().equalsIgnoreCase(name) || this.aliases().contains(name.toLowerCase());
+        return this.getName().equalsIgnoreCase(name) || this.aliases().contains(name.toLowerCase());
     }
 
 
@@ -177,7 +177,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     @Override
     default @NotNull ArgumentType<S, ?> type() {
-        return ArgumentTypes.command(name(), aliases());
+        return ArgumentTypes.command(getName(), aliases());
     }
 
     /**
@@ -187,7 +187,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      * @param position the position to set
      */
     @ApiStatus.Internal
-    default void position(int position) {
+    default void setPosition(int position) {
         throw new UnsupportedOperationException("You can't modify the position of a command");
     }
 
@@ -198,7 +198,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     @Override
     default @NotNull DefaultValueProvider getDefaultValueSupplier() {
-        return DefaultValueProvider.of(name());
+        return DefaultValueProvider.of(getName());
     }
 
     /**
@@ -234,14 +234,6 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandPathway<S> usage) throws CommandException;
 
     /**
-     * Retrieves a usage with no args for this command
-     * @return A usage with empty parameters.
-     */
-    @NotNull
-    @ApiStatus.AvailableSince("1.9.0")
-    CommandPathway<S> getEmptyPathway();
-
-    /**
      * @return the default usage of the command
      * without any args
      */
@@ -266,12 +258,8 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     void addPathway(CommandPathway<S> usage);
 
-    default void addPathway(CommandPathway.Builder<S> builder, boolean help) {
-        addPathway(builder.build(this, help));
-    }
-
     default void addPathway(CommandPathway.Builder<S> builder) {
-        addPathway(builder, false);
+        addPathway(builder.build(this));
     }
 
     /**
@@ -281,11 +269,10 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     Collection<? extends CommandPathway<S>> getAllPossiblePathways();
 
     /**
-     * @return the usage that doesn't include any subcommands, only
-     * required parameters
+     * @return the pathways that are directly attached to this command
+     * without being inherited from a parent command
      */
-    @NotNull
-    CommandPathway<S> getMainPathway();
+    Collection<? extends CommandPathway<S>> getDedicatedPathways();
 
     /**
      * @return Returns {@link AutoCompleter}
@@ -296,46 +283,28 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     /**
      * Injects a created-subcommand directly into the parent's command usages.
      *
-     * @param command        the subcommand to inject
-     * @param attachmentMode see {@link AttachmentMode}
+     * @param command the subcommand to inject
      */
-    void addSubCommand(Command<S> command, AttachmentMode attachmentMode);
-
-    /**
-     * Creates and adds a new sub-command (if it doesn't exist) then add
-     * the {@link CommandPathway} to the sub-command
-     *
-     * @param subCommand     the sub-command's unique name
-     * @param aliases        of the subcommand
-     * @param usage          the usage
-     * @param attachmentMode see {@link AttachmentMode}
-     */
-    void addSubCommandUsage(String subCommand,
-            List<String> aliases,
-            CommandPathway.Builder<S> usage,
-            AttachmentMode attachmentMode);
-
-    default void addSubCommandUsage(String subCommand,
-            List<String> aliases,
-            CommandPathway.Builder<S> usage) {
-        addSubCommandUsage(subCommand, aliases, usage, imperat().config().getDefaultAttachmentMode());
-    }
-
-    default void addSubCommandUsage(String subCommand,
-            CommandPathway.Builder<S> usage,
-            AttachmentMode attachmentMode) {
-        addSubCommandUsage(subCommand, Collections.emptyList(), usage, attachmentMode);
-    }
+    void addSubCommand(Command<S> command);
 
     /**
      * Creates and adds a new sub-command (if it doesn't exist) then add
      * the {@link CommandPathway} to the sub-command
      *
      * @param subCommand the sub-command's unique name
+     * @param aliases    of the subcommand
      * @param usage      the usage
      */
-    default void addSubCommandUsage(String subCommand, CommandPathway.Builder<S> usage) {
-        addSubCommandUsage(subCommand, usage, imperat().config().getDefaultAttachmentMode());
+    void addSubCommandUsage(
+            String subCommand,
+            List<String> aliases,
+            CommandPathway.Builder<S> usage);
+
+    default void addSubCommandUsage(
+            String subCommand,
+            CommandPathway.Builder<S> usage
+    ) {
+        addSubCommandUsage(subCommand, Collections.emptyList(), usage);
     }
 
     /**
@@ -352,7 +321,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     Collection<? extends Command<S>> getSubCommands();
 
     default @Nullable CommandPathway<S> getUsage(Predicate<CommandPathway<S>> usagePredicate) {
-        for (var usage : getAllPossiblePathways()) {
+        for (var usage : getDedicatedPathways()) {
             if (usagePredicate.test(usage)) {
                 return usage;
             }
@@ -361,7 +330,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     }
 
     default boolean hasParent() {
-        return parent() != null;
+        return getParent() != null;
     }
 
     default boolean isSubCommand() {
@@ -381,7 +350,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     /**
      * Adds a shortcut to this command. Shortcuts are alternative names for the same command, allowing users to execute the command using different aliases.
      *
-     * @param shortcut the Command instance representing the shortcut to be added
+     * @param shortcut the RootCommand instance representing the shortcut to be added
      */
     void addShortcut(Command<S> shortcut);
 
@@ -431,7 +400,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     @Override
     default String format() {
-        return name();
+        return getName();
     }
 
     /**
@@ -454,10 +423,6 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     void setIgnoreACPermissions(boolean ignore);
 
-    @ApiStatus.Internal
-    @ApiStatus.AvailableSince("1.9.0")
-    void registerSubCommand(Command<S> subCommand);
-
     CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors();
 
     CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors();
@@ -470,11 +435,9 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
 
     class Builder<S extends Source> {
 
-        private final Imperat<S> imperat;
         private final Command<S> cmd;
 
         Builder(@NotNull Imperat<S> imperat, @Nullable Command<S> parent, int position, String name, ParseElement<?> parseElement) {
-            this.imperat = imperat;
             this.cmd = new CommandImpl<>(imperat, parent, position, name, parseElement);
         }
 
@@ -521,41 +484,11 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
             return this;
         }
 
-        public Builder<S> subCommand(Command<S> subCommand, AttachmentMode attachmentMode) {
-            cmd.addSubCommand(subCommand, attachmentMode);
+        public Builder<S> subCommand(Command<S> subCommand) {
+            cmd.addSubCommand(subCommand);
             return this;
         }
 
-        public Builder<S> subCommand(Command<S> subCommand) {
-            return subCommand(subCommand, AttachmentMode.DEFAULT);
-        }
-
-        public Builder<S> subCommand(String name, CommandPathway.Builder<S> mainUsage, AttachmentMode attachmentMode) {
-            return subCommand(
-                    Command.create(imperat, name)
-                            .usage(mainUsage)
-                            .build(),
-                    attachmentMode
-            );
-        }
-
-        public Builder<S> subCommand(String name, CommandPathway.Builder<S> mainUsage, AttachmentMode attachmentMode,
-                @Nullable ParseElement<?> annotatedElement) {
-            return subCommand(
-                    Command.create(imperat, name, annotatedElement)
-                            .usage(mainUsage)
-                            .build(),
-                    attachmentMode
-            );
-        }
-
-        public Builder<S> subCommand(String name, CommandPathway.Builder<S> mainUsage) {
-            return subCommand(name, mainUsage, cmd.imperat().config().getDefaultAttachmentMode());
-        }
-
-        public Builder<S> subCommand(String name, CommandPathway.Builder<S> mainUsage, @Nullable ParseElement<?> annotatedElement) {
-            return subCommand(name, mainUsage, cmd.imperat().config().getDefaultAttachmentMode(), annotatedElement);
-        }
 
         public Builder<S> preProcessor(CommandPreProcessor<S> preProcessor) {
             cmd.addPreProcessor(preProcessor);
@@ -568,7 +501,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
         }
 
         public Builder<S> parent(@Nullable Command<S> parentCmd) {
-            cmd.parent(parentCmd);
+            cmd.setParent(parentCmd);
             return this;
         }
 

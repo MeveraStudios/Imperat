@@ -6,7 +6,7 @@ package studio.mevera.imperat.exception;
 public class NoDMSException extends CommandException {
 
     public NoDMSException() {
-        super("Command is only available in the dedicated discord server, not DMs");
+        super("RootCommand is only available in the dedicated discord server, not DMs");
     }
 
 }

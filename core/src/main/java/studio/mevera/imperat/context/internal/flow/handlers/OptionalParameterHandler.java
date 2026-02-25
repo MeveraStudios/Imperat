@@ -153,7 +153,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
      */
     private boolean hasRequiredParametersBetween(Cursor<S> stream, Argument<S> targetParam) {
         int currentParamPos = stream.currentParameterPosition();
-        int targetParamPos = targetParam.position();
+        int targetParamPos = targetParam.getPosition();
 
         for (int i = currentParamPos + 1; i < targetParamPos; i++) {
             Argument<S> param = stream.getParametersList().get(i);

@@ -155,14 +155,14 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         }
         else {
             //debug cancelled command registration
-            ImperatDebugger.debug("Registration of command '%s' was cancelled by an CommandPreRegistrationEvent.", command.name());
+            ImperatDebugger.debug("Registration of command '%s' was cancelled by an CommandPreRegistrationEvent.", command.getName());
         }
 
     }
 
     private void checkAmbiguity(Command<S> command) {
         //check if cmd exists
-        var other = getCommand(command.name());
+        var other = getCommand(command.getName());
         if(other != null) {
             if (other == command) {
                 return;
@@ -177,13 +177,13 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
     private void registerCmd(@NotNull Command<S> command) {
 
-        this.commands.put(command.name().trim().toLowerCase(), command);
+        this.commands.put(command.getName().trim().toLowerCase(), command);
         for (var aliases : command.aliases()) {
             this.commands.put(aliases.trim().toLowerCase(), command);
         }
 
         for(var shortcut : command.getAllShortcuts()) {
-            this.commands.put(shortcut.name(), shortcut);
+            this.commands.put(shortcut.getName(), shortcut);
         }
     }
 
@@ -207,7 +207,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         if (commandInstance instanceof Command<?> command) {
             registerSimpleCommand((Command<S>) command);
         } else {
-            // For non-Command, non-Class instances, parse as annotated instance
+            // For non-RootCommand, non-Class instances, parse as annotated instance
             annotationParser.parseCommandClass(
                     Objects.requireNonNull(commandInstance)
             );
@@ -328,7 +328,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
         if (!config.getPermissionChecker().hasPermission(source, command)) {
             throw new CommandException(ResponseKey.PERMISSION_DENIED)
-                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("command", command.getName())
                           .withPlaceholder("usage", CommandPathway.format(command, command.getDefaultPathway()));
         }
 
@@ -337,11 +337,11 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
         if (searchResult.getResult() == CommandPathSearch.Result.PAUSE) {
             throw new CommandException(ResponseKey.PERMISSION_DENIED)
-                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("command", command.getName())
                           .withPlaceholder("usage", CommandPathway.format(command, searchResult.getClosestUsage()));
         }
 
-        CommandPathway<S> usage = searchResult.getFoundUsage();
+        CommandPathway<S> usage = searchResult.getFoundPath();
         if (usage == null || searchResult.getResult() != CommandPathSearch.Result.COMPLETE) {
             ImperatDebugger.debug("Usage not found !");
             var closestUsage = searchResult.getClosestUsage();
@@ -353,7 +353,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         if (!usageAccessCheckResult) {
             ImperatDebugger.debug("Failed usage permission check !");
             throw new CommandException(ResponseKey.PERMISSION_DENIED)
-                          .withPlaceholder("command", command.name())
+                          .withPlaceholder("command", command.getName())
                           .withPlaceholder("usage", CommandPathway.format(command, usage));
         }
         ImperatDebugger.debug("Usage Found Format: '" + CommandPathway.formatWithTypes(command, usage) + "'");
@@ -421,7 +421,9 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             return handleExecution(context);
         } catch (Exception ex) {
             //handle here
+            System.out.println("Handling execution throwable: " + ex.getClass().getName() + " with message: " + ex.getMessage());
             this.config().handleExecutionThrowable(ex, context, BaseImperat.class, "execute(Context<S> context)");
+            System.out.println("FINISHED HANDLING");
             return ExecutionResult.failure(ex, context);
         }
     }
@@ -525,16 +527,9 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
 
     @Override
-    public void debug(boolean treeVisualizing) {
+    public void debug() {
         for (var cmd : commands.values()) {
-            if (treeVisualizing) {
-                cmd.visualizeTree();
-            } else {
-                ImperatDebugger.debug("Debugging command '%s'", cmd.name());
-                for (CommandPathway<S> usage : cmd.getAllPossiblePathways()) {
-                    ImperatDebugger.debug("   - '%s'", CommandPathway.format(cmd, usage));
-                }
-            }
+            cmd.visualizeTree();
         }
     }
 

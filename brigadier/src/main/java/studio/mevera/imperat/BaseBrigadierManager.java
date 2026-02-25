@@ -39,7 +39,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
     @SuppressWarnings("unchecked")
     private <T> LiteralArgumentBuilder<T> convertRoot(LiteralCommandNode<S> root) {
         LiteralArgumentBuilder<T> builder = (LiteralArgumentBuilder<T>)
-                  literal(root.getData().name())
+                                                    literal(root.getData().getName())
                     .requires((obj) -> {
                         var source = wrapCommandSource(obj);
                         return root.getData().isIgnoringACPerms()
@@ -61,8 +61,8 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
         var argType = getArgumentType(node.getData());
 
         ArgumentBuilder<T, ?> childBuilder = node instanceof LiteralCommandNode<?> ?
-                                                     LiteralArgumentBuilder.literal(node.getData().name())
-                                                     : RequiredArgumentBuilder.argument(node.getData().name(), argType);
+                                                     LiteralArgumentBuilder.literal(node.getData().getName())
+                                                     : RequiredArgumentBuilder.argument(node.getData().getName(), argType);
 
         childBuilder.requires((obj) -> {
             var permissionResolver = dispatcher.config().getPermissionChecker();
@@ -84,7 +84,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
         }
 
         if (node.isTrueFlag()) {
-            String name = node.getData().name() + "_value";
+            String name = node.getData().getName() + "_value";
             ArgumentNode<S> flagValueNode =
                     studio.mevera.imperat.command.tree.CommandNode.createArgumentNode(
                             node,

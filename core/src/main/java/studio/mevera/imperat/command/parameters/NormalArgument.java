@@ -36,34 +36,11 @@ class NormalArgument<S extends Source> extends InputParameter<S> {
             return super.format();
         }
 
-        var content = name();
+        var content = getName();
         if (isGreedy()) {
             content += "...";
         }
         return StringUtils.normalizedParameterFormatting(content, isOptional());
     }
 
-    /**
-     * Creates a copy of this parameter with a different position.
-     * Useful for commands that have multiple syntaxes.
-     *
-     * @param newPosition the new position to set
-     * @return a copy of this parameter with the new position
-     */
-    @Override
-    public Argument<S> copyWithDifferentPosition(int newPosition) {
-        NormalArgument<S> copy = new NormalArgument<>(
-                this.name,
-                this.type,
-                this.permissionsData,
-                this.description,
-                this.optional,
-                this.greedy,
-                this.defaultValueProvider,
-                this.suggestionProvider
-        );
-        copy.position(newPosition);
-        copy.setFormat(this.format);
-        return copy;
-    }
 }

@@ -1,12 +1,12 @@
 package studio.mevera.imperat.tests.commands;
 
-import studio.mevera.imperat.annotations.Command;
-import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.parameters.CustomEnum;
 
-@Command("customenum")
+@RootCommand("customenum")
 public class CustomEnumCommand {
 
     @Execute

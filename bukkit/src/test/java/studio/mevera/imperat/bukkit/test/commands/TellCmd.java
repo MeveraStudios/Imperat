@@ -1,16 +1,16 @@
 package studio.mevera.imperat.bukkit.test.commands;
 
 import org.bukkit.entity.Player;
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Greedy;
 import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.Suggest;
 
 /**
  * A simple test command: /greet [name]
  */
-@Command({"tell", "msg", "t", "w", "whisper", "pm"})
+@RootCommand({"tell", "msg", "t", "w", "whisper", "pm"})
 public class TellCmd {
 
     @Execute

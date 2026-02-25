@@ -64,7 +64,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
      * @return the name of the parameter
      */
     @Override
-    public String name() {
+    public String getName() {
         return name;
     }
 
@@ -79,12 +79,12 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
     }
 
     @Override
-    public @Nullable Command<S> parent() {
+    public @Nullable Command<S> getParent() {
         return parentCommand;
     }
 
     @Override
-    public void parent(@NotNull Command<S> parentCommand) {
+    public void setParent(@NotNull Command<S> parentCommand) {
         this.parentCommand = parentCommand;
     }
 
@@ -93,7 +93,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
      * @return the index of this parameter
      */
     @Override
-    public int position() {
+    public int getPosition() {
         return index;
     }
 
@@ -104,7 +104,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
      * @param position the position to set
      */
     @Override
-    public void position(int position) {
+    public void setPosition(int position) {
         this.index = position;
     }
 
@@ -235,7 +235,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
 
     @Override
     public boolean similarTo(Argument<?> parameter) {
-        return this.name.equalsIgnoreCase(parameter.name())
+        return this.name.equalsIgnoreCase(parameter.getName())
                        && type.equalsExactly(parameter.wrappedType().getType());
     }
 

@@ -41,7 +41,7 @@ class BukkitImperatTest {
     @Test
     void testCommandRegistered() {
         // Verify the "greet" command was registered in Imperat
-        assertNotNull(imperat.getCommand("tell"), "Command 'greet' should be registered");
+        assertNotNull(imperat.getCommand("tell"), "RootCommand 'greet' should be registered");
     }
 
     @Test

@@ -72,27 +72,6 @@ public final class FlagArgumentImpl<S extends Source> extends InputParameter<S> 
         }
     }
 
-    /**
-     * Creates a copy of this parameter with a different position.
-     * Useful for commands that have multiple syntaxes.
-     *
-     * @param newPosition the new position to set
-     * @return a copy of this parameter with the new position
-     */
-    @Override
-    public Argument<S> copyWithDifferentPosition(int newPosition) {
-        FlagArgumentImpl<S> copy = new FlagArgumentImpl<>(
-                this.flag,
-                this.permissionsData,
-                this.description,
-                this.inputValueSupplier,
-                this.inputValueSuggestionProvider
-        );
-        copy.position(newPosition);
-        copy.setFormat(this.format);
-        return copy;
-    }
-
     @Override public boolean equals(Object o) {
         if (!(o instanceof FlagArgumentImpl<?> that)) {
             return false;

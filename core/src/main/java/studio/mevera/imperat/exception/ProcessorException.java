@@ -14,7 +14,7 @@ public final class ProcessorException extends CommandException {
             @Nullable Command<?> owningCommand,
             Throwable cause
     ) {
-        super((owningCommand == null ? "A Global" : "Preprocessor of command '" + owningCommand.name() + "'"), cause);
+        super((owningCommand == null ? "A Global" : "Preprocessor of command '" + owningCommand.getName() + "'"), cause);
         this.processorType = type;
         this.owningCommand = owningCommand;
     }

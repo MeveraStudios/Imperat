@@ -36,7 +36,7 @@ import studio.mevera.imperat.events.CommandEvent;
  * <h2>Example: Blocking Specific Commands</h2>
  * <pre>{@code
  * eventBus.register(CommandPreRegistrationEvent.class, event -> {
- *     Command<?> command = event.getCommand();
+ *     RootCommand<?> command = event.getCommand();
  *
  *     // Prevent registration of dangerous commands
  *     if (command.getName().equals("dangerous-command")) {
@@ -49,12 +49,12 @@ import studio.mevera.imperat.events.CommandEvent;
  * <h2>Example: Configuration-Based Filtering</h2>
  * <pre>{@code
  * eventBus.register(CommandPreRegistrationEvent.class, event -> {
- *     Command<?> command = event.getCommand();
+ *     RootCommand<?> command = event.getCommand();
  *
  *     // Only allow commands listed in configuration
  *     if (!config.isCommandEnabled(command.getName())) {
  *         event.setCancelled(true);
- *         logger.info("Command '" + command.getName() + "' is disabled in config");
+ *         logger.info("RootCommand '" + command.getName() + "' is disabled in config");
  *     }
  * }, Priority.HIGH);
  * }</pre>
@@ -62,7 +62,7 @@ import studio.mevera.imperat.events.CommandEvent;
  * <h2>Example: Permission-Based Registration</h2>
  * <pre>{@code
  * eventBus.register(CommandPreRegistrationEvent.class, event -> {
- *     Command<?> command = event.getCommand();
+ *     RootCommand<?> command = event.getCommand();
  *
  *     // Check if the server has permission to register this command
  *     if (command.getPermission() != null && !serverHasPermission(command.getPermission())) {
@@ -75,7 +75,7 @@ import studio.mevera.imperat.events.CommandEvent;
  * <h2>Example: Logging and Monitoring</h2>
  * <pre>{@code
  * eventBus.register(CommandPreRegistrationEvent.class, event -> {
- *     Command<?> command = event.getCommand();
+ *     RootCommand<?> command = event.getCommand();
  *
  *     logger.info("Registering command: " + command.getName());
  *     logger.debug("  Aliases: " + command.getAliases());

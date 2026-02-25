@@ -3,6 +3,7 @@ package studio.mevera.imperat.command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
+import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.UsageCooldown;
 import studio.mevera.imperat.command.flags.FlagExtractor;
@@ -37,7 +38,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
 
     static <S extends Source> String formatWithTypes(Command<S> command, CommandPathway<S> usage) {
         Preconditions.notNull(usage, "usage");
-        StringBuilder builder = new StringBuilder(command.name()).append(' ');
+        StringBuilder builder = new StringBuilder(command.getName()).append(' ');
 
         List<Argument<S>> params = usage.loadCombinedParameters();
         int i = 0;
@@ -71,13 +72,23 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
     }
 
     static <S extends Source> String format(@Nullable Command<S> command, CommandPathway<S> usage) {
-        String label = command == null ? null : command.name();
+        String label = command == null ? null : command.getName();
         return format(label, usage);
     }
 
     static <S extends Source> Builder<S> builder() {
         return new Builder<>();
     }
+
+    static <S extends Source> Builder<S> builder(@Nullable MethodElement methodElement) {
+        return new Builder<>(methodElement);
+    }
+
+    @Nullable MethodElement getMethodElement();
+
+    @Nullable CommandPathway<S> getInheritedPathway();
+
+    void setInheritedPathway(@Nullable CommandPathway<S> inheritedPathway);
 
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
@@ -162,7 +173,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
      * @return the parameters for this usage
      * @see Argument
      */
-    List<Argument<S>> getParameters();
+    List<Argument<S>> getArguments();
 
     /**
      * The pre-defined syntax examples for this usage.
@@ -187,47 +198,13 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
      * @return the parameter at specified index/position
      */
     @Nullable
-    Argument<S> getParameter(int index);
+    Argument<S> getArgumentAt(int index);
 
     /**
      * @return the execution for this usage
      */
     @NotNull
     CommandExecution<S> getExecution();
-
-    /**
-     * Creates a new command usage instance to use it to Merge
-     * this usage with the usage regarding parameters
-     * and takes the targetToLoad's execution as well
-     *
-     * <p>
-     * it also includes the subcommand's parameter itself
-     * into the command's usage !
-     * </p>
-     *
-     * @param subCommand the subcommand owning that usage
-     * @param usage      the usage to merge with
-     * @return the merged command usage!
-     */
-    default CommandPathway<S> mergeWithCommand(Command<S> subCommand, CommandPathway<S> usage) {
-        List<Argument<S>> comboParams = new ArrayList<>(this.getParameters());
-        comboParams.add(subCommand);
-        for (Argument<S> param : usage.loadCombinedParameters()) {
-            if (this.hasParameters((p) -> p.equals(param))) {
-                continue;
-            }
-            comboParams.add(param);
-        }
-        //comboParams.addAll(usage.getParameters());
-
-        return CommandPathway.<S>builder()
-                       .coordinator(usage.getCoordinator())
-                       .description(subCommand.getDescription())
-                       .cooldown(usage.getCooldown())
-                       .parameters(comboParams)
-                       .execute(usage.getExecution())
-                       .build(subCommand, usage.isHelp());
-    }
 
     /**
      * @param clazz the valueType of the parameter to check upon
@@ -263,7 +240,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
      * @return the parameter to get using a condition
      */
     @Nullable
-    Argument<S> getParameter(Predicate<Argument<S>> parameterPredicate);
+    Argument<S> getArgumentAt(Predicate<Argument<S>> parameterPredicate);
 
     /**
      * @return the cool down handler {@link CooldownHandler}
@@ -279,7 +256,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
     void setCooldownHandler(CooldownHandler<S> cooldownHandler);
 
     default boolean isDefault() {
-        return getParameters().isEmpty() || getParameters().stream().noneMatch(Argument::isRequired);
+        return getArguments().isEmpty();
     }
 
     /**
@@ -305,18 +282,13 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
     void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws CommandException;
 
     /**
-     * @return Whether this usage is a help-subcommand usage
-     */
-    boolean isHelp();
-
-    /**
      * @param parameters the parameters
      * @return whether this usage has this sequence of parameters
      */
     boolean hasParameters(List<Argument<S>> parameters);
 
     default int size() {
-        return getParameters().size();
+        return getArguments().size();
     }
 
     default String formatted() {
@@ -324,7 +296,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
     }
 
     default Argument<S> getLastParam() {
-        return getParameter(getParameters().size() - 1);
+        return getArgumentAt(getArguments().size() - 1);
     }
 
     List<Argument<S>> loadCombinedParameters();
@@ -339,11 +311,26 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
         private PermissionsData permission = PermissionsData.empty();
         private UsageCooldown cooldown = null;
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
+        private @Nullable MethodElement methodElement;
+        private @Nullable CommandPathway<S> inheritancePathway = null;
 
-        Builder() {
-
+        Builder(@Nullable MethodElement methodElement) {
+            this.methodElement = methodElement;
         }
 
+        Builder() {
+            this(null);
+        }
+
+        public Builder<S> methodElement(MethodElement methodElement) {
+            this.methodElement = methodElement;
+            return this;
+        }
+
+        public Builder<S> inheritancePathway(CommandPathway<S> inheritancePathway) {
+            this.inheritancePathway = inheritancePathway;
+            return this;
+        }
 
         public Builder<S> coordinator(CommandCoordinator<S> commandCoordinator) {
             this.commandCoordinator = commandCoordinator;
@@ -352,6 +339,11 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
 
         public Builder<S> examples(String... examples) {
             this.examples.addAll(Arrays.asList(examples));
+            return this;
+        }
+
+        public Builder<S> examples(List<String> examples) {
+            this.examples.addAll(examples);
             return this;
         }
 
@@ -408,7 +400,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             for (int i = 0; i < params.size(); i++) {
                 Argument<S> parameter = params.get(i);
                 if (!parameter.isCommand() && !parameter.isFlag()) {
-                    parameter.position(i);
+                    parameter.setPosition(i);
                 }
 
                 this.parameters.add(parameter);
@@ -421,43 +413,21 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             return this;
         }
 
-        public Builder<S> setPropertiesFromCommandMainUsage(Command<S> command) {
-            CommandPathway<S> mainUsage = command.getMainPathway();
-
-            //copy only meta properties
-            this.description = mainUsage.getDescription();
-            this.permission = mainUsage.getPermissionsData();
-
-            this.execution = mainUsage.getExecution();
-            this.cooldown = mainUsage.getCooldown();
-            this.commandCoordinator = mainUsage.getCoordinator();
-            this.execution = mainUsage.getExecution();
-
-            return this;
-        }
-
-        public CommandPathway<S> build(@NotNull Command<S> command, boolean help) {
-            CommandPathwayImpl<S> impl = new CommandPathwayImpl<>(execution, help);
+        public CommandPathway<S> build(@NotNull Command<S> command) {
+            CommandPathwayImpl<S> impl = new CommandPathwayImpl<>(methodElement, execution);
+            impl.setInheritedPathway(inheritancePathway);
             impl.setCoordinator(commandCoordinator);
             impl.setPermissionData(permission);
             impl.describe(description);
             impl.setCooldown(cooldown);
             impl.addParameters(
-                    parameters.stream().peek((p) -> p.parent(command)).toList()
+                    parameters.stream().peek((p) -> p.setParent(command)).toList()
             );
             flagArguments.forEach(impl::addFlag);
             impl.addExamples(this.examples);
             return impl;
         }
 
-
-        public CommandPathway<S> build(@NotNull Command<S> command) {
-            return build(command, false);
-        }
-
-        public CommandPathway<S> buildAsHelp(@NotNull Command<S> command) {
-            return build(command, true);
-        }
     }
 
 

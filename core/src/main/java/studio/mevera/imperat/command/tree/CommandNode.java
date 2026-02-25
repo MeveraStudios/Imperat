@@ -196,14 +196,14 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         if (!(o instanceof CommandNode<?, ?> that)) {
             return false;
         }
-        return Objects.equals(this.parent, that.parent) && Objects.equals(data.name(), that.data.name()) && this.depth == that.depth
+        return Objects.equals(this.parent, that.parent) && Objects.equals(data.getName(), that.data.getName()) && this.depth == that.depth
                        && Objects.equals(
                 children, that.children);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.parent, data.name(), this.depth, children);
+        return Objects.hash(this.parent, data.getName(), this.depth, children);
     }
 
     @Override

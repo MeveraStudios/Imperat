@@ -38,7 +38,7 @@ import studio.mevera.imperat.events.CommandEvent;
  * <h2>Example: Success/Failure Logging</h2>
  * <pre>{@code
  * eventBus.register(CommandPostRegistrationEvent.class, event -> {
- *     Command<?> command = event.getCommand();
+ *     RootCommand<?> command = event.getCommand();
  *
  *     if (event.isSuccessful()) {
  *         logger.info("Successfully registered command: " + command.getName());
@@ -67,7 +67,7 @@ import studio.mevera.imperat.events.CommandEvent;
  * <pre>{@code
  * eventBus.register(CommandPostRegistrationEvent.class, event -> {
  *     if (event.isSuccessful()) {
- *         Command<?> command = event.getCommand();
+ *         RootCommand<?> command = event.getCommand();
  *
  *         // Perform additional setup after successful registration
  *         registerCommandAliases(command);
@@ -81,12 +81,12 @@ import studio.mevera.imperat.events.CommandEvent;
  * <pre>{@code
  * eventBus.register(CommandPostRegistrationEvent.class, event -> {
  *     if (event.isFailed()) {
- *         Command<?> command = event.getCommand();
+ *         RootCommand<?> command = event.getCommand();
  *         Throwable cause = event.getFailureCause();
  *
  *         // Attempt recovery strategies
  *         if (cause instanceof CommandConflictException) {
- *             logger.warn("Command conflict for: " + command.getName() +
+ *             logger.warn("RootCommand conflict for: " + command.getName() +
  *                         ", attempting to register with prefix");
  *             registerWithPrefix(command);
  *         } else {
@@ -100,7 +100,7 @@ import studio.mevera.imperat.events.CommandEvent;
  * <h2>Example: Notification System</h2>
  * <pre>{@code
  * eventBus.register(CommandPostRegistrationEvent.class, event -> {
- *     Command<?> command = event.getCommand();
+ *     RootCommand<?> command = event.getCommand();
  *
  *     if (event.isSuccessful()) {
  *         // Notify monitoring system

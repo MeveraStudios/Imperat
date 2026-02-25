@@ -78,7 +78,7 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
      * <p><strong>Resolution Flow Example:</strong>
      * <pre>{@code
      * try {
-     *     // Command execution
+     *     // RootCommand execution
      * } catch (CommandPermissionException e) {
      *     // 1. Check if CommandPermissionException is SelfHandledException → No
      *     // 2. Look for ThrowableResolver<CommandPermissionException> → Found
@@ -133,7 +133,6 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
                 handler.resolve(current, context);
                 return true;
             }
-
 
             current = current.getCause();
         }

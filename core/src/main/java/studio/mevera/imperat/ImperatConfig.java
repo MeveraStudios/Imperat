@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
-import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
@@ -113,7 +112,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * <p>This setting does not affect:
      * <ul>
      *   <li>Required parameters - they are always suggested</li>
-     *   <li>Command structure - the actual command tree remains unchanged</li>
+     *   <li>RootCommand structure - the actual command tree remains unchanged</li>
      *   <li>Parameter validation - all parameters remain functionally available</li>
      * </ul>
      *
@@ -133,7 +132,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      *
      * <p><strong>Examples:</strong>
      * <pre>{@code
-     * // Command structure: /command [count] [extra]
+     * // RootCommand structure: /command [count] [extra]
      * //                              \[extra]
      *
      * // When enabled (true):
@@ -320,17 +319,6 @@ public sealed interface ImperatConfig<S extends Source> extends
      */
     void setGlobalDefaultUsage(@NotNull CommandPathway.Builder<S> globalDefaultUsage);
 
-
-    /**
-     * @return the default attachment mode {@link AttachmentMode}
-     */
-    @NotNull AttachmentMode getDefaultAttachmentMode();
-
-    /**
-     * Sets the default {@link AttachmentMode}
-     * @param attachmentMode the attachment mode.
-     */
-    void setDefaultAttachmentMode(AttachmentMode attachmentMode);
 
     /**
      * @return the help coordinator that coordinates

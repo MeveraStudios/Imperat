@@ -3,7 +3,6 @@ package studio.mevera.imperat.annotations.base.element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
-import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.Source;
 
 import java.lang.reflect.Method;
@@ -16,7 +15,6 @@ public final class MethodElement extends ParseElement<Method> {
     private final List<ParameterElement> parameters = new ArrayList<>();
     private int inputCount = 0;
     private int optionalCount = 0;
-    private boolean help = false;
 
     public <S extends Source> MethodElement(
             @NotNull AnnotationParser<S> parser,
@@ -37,8 +35,6 @@ public final class MethodElement extends ParseElement<Method> {
                     if (parameterElement.isOptional()) {
                         optionalCount++;
                     }
-                } else if (parameterElement.getElement().getType().equals(CommandHelp.class)) {
-                    help = true;
                 }
 
             }
@@ -89,7 +85,4 @@ public final class MethodElement extends ParseElement<Method> {
         return super.getParent();
     }
 
-    public boolean isHelp() {
-        return help;
-    }
 }

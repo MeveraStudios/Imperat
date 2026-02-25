@@ -49,7 +49,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
         this.pathSearch = pathSearch;
         var lastCmdNode = pathSearch.getLastCommandNode();
         this.lastCommand = lastCmdNode.getData();
-        this.usage = pathSearch.getFoundUsage();
+        this.usage = pathSearch.getFoundPath();
     }
 
     /**
@@ -186,7 +186,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
         var argument = cursor.currentParameterIfPresent();
         if (argument == null) {
             throw new IllegalStateException(
-                    "No argument found at index " + cursor.position().parameter + " for command " + getLastUsedCommand().name());
+                    "No argument found at index " + cursor.position().parameter + " for command " + getLastUsedCommand().getName());
         }
 
         String raw = cursor.currentRawIfPresent();
@@ -207,17 +207,17 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
         argument.validate(this, parsedArgument);
         resolvedArgumentsPerCommand.update(getLastUsedCommand(), (existingResolvedArgs) -> {
             if (existingResolvedArgs != null) {
-                return existingResolvedArgs.setData(argument.name(), parsedArgument);
+                return existingResolvedArgs.setData(argument.getName(), parsedArgument);
             }
-            return new Registry<>(argument.name(), parsedArgument, LinkedHashMap::new);
+            return new Registry<>(argument.getName(), parsedArgument, LinkedHashMap::new);
         });
-        allResolvedArgs.setData(argument.name(), parsedArgument);
+        allResolvedArgs.setData(argument.getName(), parsedArgument);
     }
 
     @Override
     public void resolveFlag(ParsedFlagArgument<S> flag) throws CommandException {
         flag.getOriginalArgument().validate(this, flag);
-        flagRegistry.setData(flag.getOriginalArgument().name(), flag);
+        flagRegistry.setData(flag.getOriginalArgument().getName(), flag);
     }
 
     /**

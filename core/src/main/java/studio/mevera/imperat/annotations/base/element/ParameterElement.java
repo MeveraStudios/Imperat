@@ -14,6 +14,7 @@ import studio.mevera.imperat.util.TypeWrap;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.util.Objects;
 
 public final class ParameterElement extends ParseElement<Parameter> {
 
@@ -83,5 +84,21 @@ public final class ParameterElement extends ParseElement<Parameter> {
         }
 
         return false;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof ParameterElement that)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        return Objects.equals(name, that.name) && Objects.equals(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), name, type);
     }
 }

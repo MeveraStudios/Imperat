@@ -25,7 +25,7 @@ public interface ResponseKey extends Keyed<String> {
     // Permission exceptions
     ResponseKey PERMISSION_DENIED = () -> "permission.denied";
 
-    // Command exceptions
+    // RootCommand exceptions
     ResponseKey INVALID_SYNTAX = () -> "command.invalid-syntax";
     ResponseKey COOLDOWN = () -> "command.cooldown";
 

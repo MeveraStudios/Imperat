@@ -33,7 +33,7 @@ public final class AmbiguousCommandException extends RuntimeException {
     ) {
 
         return String.format(
-                "Root-Command '%s' has node '%s' with ambiguous arguments '%s' !",
+                "Root-RootCommand '%s' has node '%s' with ambiguous arguments '%s' !",
                 rootCmd,
                 node.format(),
                 filteredChildren.stream().map(CommandNode::format).collect(Collectors.joining(","))
@@ -55,7 +55,7 @@ public final class AmbiguousCommandException extends RuntimeException {
     }
     private static <S extends Source> String getDuplicateCmdMsg(Command<S> cmd, Command<S> otherCmd) {
         StringBuilder builder = new StringBuilder();
-        builder.append("Command with name '").append(cmd.format()).append("' already exists !\n");
+        builder.append("RootCommand with name '").append(cmd.format()).append("' already exists !\n");
         if(otherCmd.isAnnotated()) {
             var e = otherCmd.getAnnotatedElement();
             if(e instanceof MethodElement methodElement) {

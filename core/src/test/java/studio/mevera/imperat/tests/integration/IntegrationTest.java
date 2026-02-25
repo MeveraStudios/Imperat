@@ -13,7 +13,7 @@ import java.time.Duration;
 public class IntegrationTest extends BaseImperatTest {
 
     @Nested
-    @DisplayName("Complex Command Scenarios")
+    @DisplayName("Complex RootCommand Scenarios")
     class ComplexCommandScenarios {
 
         @Test
@@ -147,7 +147,7 @@ public class IntegrationTest extends BaseImperatTest {
     }
 
     @Nested
-    @DisplayName("MOTD Command Scenarios")
+    @DisplayName("MOTD RootCommand Scenarios")
     class MOTDCommandScenarios {
 
         @Test
@@ -213,7 +213,7 @@ public class IntegrationTest extends BaseImperatTest {
     }
 
     @Nested
-    @DisplayName("KingdomChat Command Scenarios")
+    @DisplayName("KingdomChat RootCommand Scenarios")
     class KingdomChatScenarios {
 
         @Test

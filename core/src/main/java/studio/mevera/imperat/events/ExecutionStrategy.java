@@ -87,7 +87,7 @@ package studio.mevera.imperat.events;
  * // Low priority async logging
  * eventBus.register(CommandPreRegistrationEvent.class,
  *     event -> {
- *         logger.info("Command registration attempt: {}",
+ *         logger.info("RootCommand registration attempt: {}",
  *                     event.getCommand().getName());
  *     },
  *     Priority.LOW,

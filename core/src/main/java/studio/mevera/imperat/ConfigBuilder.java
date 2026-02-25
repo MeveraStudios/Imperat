@@ -3,7 +3,6 @@ package studio.mevera.imperat;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
-import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextArgumentProviderFactory;
@@ -163,7 +162,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * <p><strong>Example usage:</strong>
      * <pre>{@code
      * builder.annotationReplacer(LegacyCommand.class, (annotation, context) -> {
-     *     return Command.builder()
+     *     return RootCommand.builder()
      *         .name(annotation.value())
      *         .permission(annotation.permission())
      *         .build();
@@ -196,7 +195,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      *
      * <p><strong>Examples:</strong>
      * <pre>{@code
-     * // Command structure: /command [count] [extra]
+     * // RootCommand structure: /command [count] [extra]
      * //                              \[extra]
      *
      * // When enabled (true):
@@ -438,16 +437,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     public B handleMiddleOptionalArgSkipping(boolean toggle) {
         config.setHandleExecutionConsecutiveOptionalArgumentsSkip(toggle);
-        return (B) this;
-    }
-
-    /**
-     * The default attachment mode.
-     * @param attachmentMode the default attachment mode
-     * @return the default value.
-     */
-    public B defaultAttachmentMode(AttachmentMode attachmentMode) {
-        config.setDefaultAttachmentMode(attachmentMode);
         return (B) this;
     }
 

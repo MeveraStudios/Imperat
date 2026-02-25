@@ -1,8 +1,8 @@
 package studio.mevera.imperat.tests.commands.ambiguity;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Optional;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 /**
@@ -10,7 +10,7 @@ import studio.mevera.imperat.tests.TestSource;
  * At the first argument position, the framework cannot distinguish between
  * "flag1", "flag2", "flag3", and "flag4" since all are optional booleans at the same level.
  */
-@Command("ambiguous-four-booleans")
+@RootCommand("ambiguous-four-booleans")
 public class AmbiguousFourOptionalBooleans {
 
     @Execute

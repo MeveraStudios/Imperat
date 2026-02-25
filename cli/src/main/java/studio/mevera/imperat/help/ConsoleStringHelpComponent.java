@@ -5,7 +5,7 @@ import studio.mevera.imperat.ConsoleSource;
 import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
 /**
- * Command-line interface implementation of string-based help components.
+ * RootCommand-line interface implementation of string-based help components.
  * This class provides simple text-based help messages for CLI commands,
  * designed for console applications and command-line tools.
  *

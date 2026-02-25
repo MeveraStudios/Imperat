@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @ApiStatus.Internal
 final class CommandImpl<S extends Source> implements Command<S> {
@@ -47,18 +46,20 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final int position;
     private final List<String> aliases = new ArrayList<>();
     private final Map<String, Command<S>> children = new LinkedHashMap<>();
-    private final CommandPathwaySet<S> usages = new CommandPathwaySet<>();
+    private final CommandPathwaySet<S> allPathways = new CommandPathwaySet<>();
     private final AutoCompleter<S> autoCompleter;
-    private final @Nullable CommandTree<S> tree;
+    private final @NotNull CommandTree<S> tree;
     private final @NotNull CommandTreeVisualizer<S> visualizer;
     private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
     private final @NotNull SuggestionProvider<S> suggestionProvider;
-    private final CommandPathway<S> emptyPathway;
     private PermissionsData permissions = PermissionsData.empty();
     private Description description = Description.EMPTY;
     private boolean suppressACPermissionChecks = false;
-    private CommandPathway<S> mainPathway = null;
+
+    //pathways that are directly linked to this command, meaning that they don't include any sub-command in their allPathways
+    private final CommandPathwaySet<S> dedicatedPathways = new CommandPathwaySet<>();
     private CommandPathway<S> defaultPathway;
+
     private final Map<String, Command<S>> shortcuts = new HashMap<>();
 
     private ParseElement<?> annotatedElement = null;
@@ -84,13 +85,26 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.parent = parent;
         this.position = position;
         this.name = name.toLowerCase();
-        this.emptyPathway = CommandPathway.<S>builder().build(this);
-        this.defaultPathway = imperat.config().getGlobalDefaultPathway().build(this);
+        this.setDefaultPathwayWithValidation(imperat.config().getGlobalDefaultPathway().build(this));
         this.autoCompleter = AutoCompleter.createNative(this);
-        this.tree = parent != null ? null : CommandTree.create(imperat.config(), this);
+        this.tree = CommandTree.create(imperat.config(), this);
         this.visualizer = CommandTreeVisualizer.of(tree);
         this.suggestionProvider = SuggestionProvider.forCommand(this);
         this.annotatedElement = annotatedElement;
+    }
+
+    private void setDefaultPathwayWithValidation(CommandPathway<S> pathway) {
+        if (!pathway.isDefault()) {
+            throw new IllegalArgumentException(
+                    "The provided pathway is not a default pathway, it must be marked as default to be set as the default pathway");
+        }
+        //dedicatedPathways.put(pathway);
+        this.defaultPathway = pathway;
+    }
+
+    @Override
+    public Collection<? extends CommandPathway<S>> getDedicatedPathways() {
+        return dedicatedPathways.asSortedSet();
     }
 
     @Override
@@ -102,7 +116,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @return the name of the command
      */
     @Override
-    public String name() {
+    public String getName() {
         return name;
     }
 
@@ -138,7 +152,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @return the index of this parameter
      */
     @Override
-    public int position() {
+    public int getPosition() {
         return position;
     }
 
@@ -149,19 +163,15 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param position the position to set
      */
     @Override
-    public void position(int position) {
+    public void setPosition(int position) {
         throw new UnsupportedOperationException("You can't modify the position of a command");
     }
 
     @Override
     public @NotNull CommandPathSearch<S> contextMatch(Context<S> context) {
-        if (tree != null) {
-            var copy = context.arguments().copy();
-            copy.removeIf(String::isBlank);
-            return tree.contextMatch(context, copy);
-        } else {
-            throw new IllegalCallerException("Cannot match a sub command in a root's execution !");
-        }
+        var copy = context.arguments().copy();
+        copy.removeIf(String::isBlank);
+        return tree.contextMatch(context, copy);
     }
 
     @Override
@@ -232,16 +242,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     /**
-     * Retrieves a usage with no args for this command
-     *
-     * @return A usage with empty parameters.
-     */
-    @Override
-    public @NotNull CommandPathway<S> getEmptyPathway() {
-        return emptyPathway;
-    }
-
-    /**
      * Casts the parameter to a flag parameter
      *
      * @return the parameter as a flag
@@ -274,7 +274,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
 
     @Override
     public boolean similarTo(Argument<?> parameter) {
-        return this.name.equalsIgnoreCase(parameter.name());
+        return this.name.equalsIgnoreCase(parameter.getName());
     }
 
 
@@ -322,19 +322,24 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void addPathway(CommandPathway<S> usage) {
-        if (tree != null) {
-            tree.parseUsage(usage);
-        }
+
+        tree.parseUsage(usage);
 
         if (usage.isDefault()) {
+            System.out.println("DEFAULT PATHWAY DETECTED FOR COMMAND " + this.name + ", SETTING IT AS THE DEFAULT PATHWAY");
             this.defaultPathway = usage;
         }
 
-        usages.put(usage);
-
-        if (mainPathway == null && !usage.isDefault() && usage.getMaxLength() >= 1 && !usage.hasParamType(Command.class)) {
-            mainPathway = usage;
+        dedicatedPathways.put(usage);
+        System.out.println("INTERNAL FROM DEDICATED ITSELF");
+        for (CommandPathway<S> dedicated : dedicatedPathways) {
+            System.out.println("ADDED-PATHWAY: '" + dedicated.formatted() + "', METHOD: " + (dedicated.getMethodElement() != null ?
+                                                                                                     dedicated.getMethodElement().getName() :
+                                                                                                     "null"));
         }
+
+        System.out.println("Added pathway '" + usage.formatted() + "' to command " + this.name);
+        System.out.println("METHOD: " + (usage.getMethodElement() != null ? usage.getMethodElement().getName() : "null"));
     }
 
     /**
@@ -343,17 +348,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public Collection<? extends CommandPathway<S>> getAllPossiblePathways() {
-        return usages.asSortedSet();
-    }
-
-    /**
-     * @return the usage that doesn't include any subcommands, only
-     * required parameters
-     */
-    @Override
-    public @NotNull CommandPathway<S> getMainPathway() {
-        return Optional.ofNullable(mainPathway)
-                       .orElse(defaultPathway);
+        return allPathways.asSortedSet();
     }
 
     /**
@@ -369,7 +364,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @return Whether this command is a sub command or not
      */
     @Override
-    public @Nullable Command<S> parent() {
+    public @Nullable Command<S> getParent() {
         return parent;
     }
 
@@ -379,13 +374,9 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param parent the parent to set.
      */
     @Override
-    public void parent(@NotNull Command<S> parent) {
+    public void setParent(@NotNull Command<S> parent) {
         this.parent = parent;
-    }
-
-    @Override
-    public void registerSubCommand(Command<S> command) {
-        children.put(command.name(), command);
+        System.out.println("Setting parent of command '" + this.name + "' to '" + parent.getName() + "'");
     }
 
     @Override
@@ -419,64 +410,33 @@ final class CommandImpl<S extends Source> implements Command<S> {
 
 
     /**
-     * Injects a created-subcommand directly into the parent's command usages.
+     * Injects a created-subcommand directly into the parent's command allPathways.
      *
-     * @param subcmd        the subcommand to inject
-     * @param attachmentMode see {@link AttachmentMode}
+     * @param subCommand the subcommand to inject
      */
     @Override
-    public void addSubCommand(Command<S> subcmd, AttachmentMode attachmentMode) {
-        subcmd.parent(this);
-        registerSubCommand(subcmd);
-
-        final CommandPathway<S> prime;
-        switch (attachmentMode) {
-            case EMPTY -> prime = getEmptyPathway();
-            case MAIN, UNSET -> prime = getMainPathway();
-            case DEFAULT -> prime = getDefaultPathway();
-            default -> throw new IllegalArgumentException("Unknown attachment mode: " + attachmentMode);
+    public void addSubCommand(Command<S> subCommand) {
+        subCommand.setParent(this);
+        children.put(subCommand.getName(), subCommand);
+        for (String alias : subCommand.aliases()) {
+            children.put(alias, subCommand);
         }
-        CommandPathway<S> combo = prime.mergeWithCommand(subcmd, subcmd.getMainPathway());
-        //adding the merged command usage
-
-        this.addPathway(combo);
-
-        for (CommandPathway<S> subPathway : subcmd.getAllPossiblePathways()) {
-            if (subPathway.equals(subcmd.getMainPathway())) {
-                continue;
-            }
-            combo = prime.mergeWithCommand(subcmd, subPathway);
-            //adding the merged command usage
-
-            this.addPathway(
-                    combo
-            );
-        }
-
+        this.tree.parseSubCommand(subCommand);
     }
 
     @Override
     public void addSubCommandUsage(
             String subCommand,
             List<String> aliases,
-            CommandPathway.Builder<S> usage,
-            AttachmentMode attachmentMode
+            CommandPathway.Builder<S> usage
     ) {
-        int position;
-        if (attachmentMode == AttachmentMode.EMPTY) {
-            position = position() + 1;
-        } else {
-            CommandPathway<S> main = attachmentMode == AttachmentMode.MAIN ? getMainPathway() : getDefaultPathway();
-            position = this.position() + (main.getMinLength() == 0 ? 1 : main.getMinLength());
-        }
-
         //creating subcommand to modify
         Command<S> subCmd =
-                Command.create(imperat, this, position, subCommand.toLowerCase())
+                Command.create(imperat, this, subCommand.toLowerCase())
                         .aliases(aliases)
                         .usage(usage)
                         .build();
-        addSubCommand(subCmd, attachmentMode);
+        addSubCommand(subCmd);
     }
 
     /**
@@ -523,7 +483,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
 
     @Override
     public void addShortcut(Command<S> shortcut) {
-        shortcuts.put(shortcut.name(), shortcut);
+        shortcuts.put(shortcut.getName(), shortcut);
     }
 
     /**
@@ -543,7 +503,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * on the auto-completion of command and sub commands
      * <p>
      * otherwise, it will perform permission checks and
-     * only tab-completes the usages/subcommands that you have permission for
+     * only tab-completes the allPathways/subcommands that you have permission for
      *
      * @param suppress true if you want to ignore the permission checks on tab completion of args
      */
@@ -589,51 +549,9 @@ final class CommandImpl<S extends Source> implements Command<S> {
         return Objects.hash(name);
     }
 
-    /**
-     * Creates a copy of this command with a different position.
-     * Useful for commands that have multiple syntaxes.
-     *
-     * @param newPosition the new position to set
-     * @return a copy of this command with the new position
-     */
     @Override
-    public Argument<S> copyWithDifferentPosition(int newPosition) {
-        CommandImpl<S> copy = new CommandImpl<>(this.imperat, this.parent, newPosition, this.name, this.annotatedElement);
-
-        // Copy basic properties
-        copy.permissions = this.permissions;
-        copy.description = this.description;
-        copy.suppressACPermissionChecks = this.suppressACPermissionChecks;
-        copy.aliases.addAll(this.aliases);
-
-        // Copy usages
-        for (CommandPathway<S> usage : this.getAllPossiblePathways()) {
-            copy.addPathway(usage);
-        }
-
-        // Copy sub-commands
-        for (Command<S> subCommand : this.getSubCommands()) {
-            copy.registerSubCommand(subCommand);
-        }
-
-        // Copy flags
-        //copy.freeFlags.addAll(this.freeFlags);
-
-        // Copy error handlers
-        copy.errorHandlers.putAll(this.errorHandlers);
-
-        // Copy processors
-        for (CommandPreProcessor<S> processor : this.preProcessors) {
-            copy.addPreProcessor(processor);
-        }
-        for (CommandPostProcessor<S> processor : this.postProcessors) {
-            copy.addPostProcessor(processor);
-        }
-
-        // Set default usage if it was customized
-        copy.setDefaultPathway(this.defaultPathway);
-
-        return copy;
+    public String toString() {
+        return format();
     }
 
     @Override

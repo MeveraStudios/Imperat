@@ -1,15 +1,15 @@
 package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Description;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.Shortcut;
 import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.tests.TestSource;
 
-@Command("group")
+@RootCommand("group")
 public final class AnnotatedGroupCommand {
 
     @Execute

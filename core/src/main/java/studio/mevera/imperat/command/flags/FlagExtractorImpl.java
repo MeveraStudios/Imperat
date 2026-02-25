@@ -32,7 +32,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
     @Override
     public void insertFlag(FlagArgument<S> flagArgumentData) {
         registeredFlagArguments.add(flagArgumentData);
-        flagTrie.insert(flagArgumentData.name(), flagArgumentData);
+        flagTrie.insert(flagArgumentData.getName(), flagArgumentData);
         for (String alias : flagArgumentData.flagData().aliases()) {
             flagTrie.insert(alias, flagArgumentData);
         }
@@ -60,7 +60,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
         FlagTrie<S> trie = new FlagTrie<>();
 
         // Get all flags from CommandPathway and build the trie
-        Set<FlagArgument<S>> allFlagArguments = usage.getParameters()
+        Set<FlagArgument<S>> allFlagArguments = usage.getArguments()
                                                  .stream()
                                                  .filter(Argument::isFlag)
                                                  .map((Argument::asFlagParameter))
@@ -68,7 +68,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
 
         for (FlagArgument<S> flagArgumentData : allFlagArguments) {
             // Add primary flag name
-            trie.insert(flagArgumentData.name(), flagArgumentData);
+            trie.insert(flagArgumentData.getName(), flagArgumentData);
 
             // Add all aliases
             for (String alias : flagArgumentData.flagData().aliases()) {

@@ -33,7 +33,7 @@ public final class RangeValidator<S extends Source> implements ArgValidator<S> {
                               .withPlaceholder("original_input", parsedArgument.getArgumentRawInput())
                               .withPlaceholder("value", String.valueOf(number))
                               .withPlaceholder("parameter", param.format())
-                              .withPlaceholder("parameter_name", param.name())
+                              .withPlaceholder("parameter_name", param.getName())
                               .withPlaceholder("range", rangeBuilder.toString())
                               .withPlaceholder("range_min", String.valueOf(range.getMin()))
                               .withPlaceholder("range_max", String.valueOf(range.getMax()));

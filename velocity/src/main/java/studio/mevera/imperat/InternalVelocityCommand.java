@@ -23,7 +23,7 @@ final class InternalVelocityCommand<P> implements SimpleCommand {
     }
 
     private CommandMeta createMeta(CommandManager commandManager) {
-        var builder = commandManager.metaBuilder(command.name())
+        var builder = commandManager.metaBuilder(command.getName())
                               .plugin(imperat.getPlugin());
         if (command.aliases().isEmpty()) {
             return builder.build();

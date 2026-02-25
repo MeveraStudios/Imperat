@@ -1,18 +1,18 @@
 package studio.mevera.imperat.tests.commands.realworld;
 
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.Description;
+import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Greedy;
 import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.Optional;
 import studio.mevera.imperat.annotations.Range;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.Switch;
-import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.tests.TestSource;
 
-@Command("ban")
+@RootCommand("ban")
 @Description("Main command for banning players")
 public final class BanCommand {
 
@@ -44,7 +44,7 @@ public final class BanCommand {
         }
     }
 
-    @Command("printnum")
+    @RootCommand("printnum")
     public void printNum(TestSource source, @Named("num") @Range(min = 1.0) int num) {
         source.reply("NUM= " + num);
     }

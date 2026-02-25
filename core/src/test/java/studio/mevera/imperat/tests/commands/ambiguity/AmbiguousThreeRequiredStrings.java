@@ -1,7 +1,7 @@
 package studio.mevera.imperat.tests.commands.ambiguity;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 /**
@@ -9,7 +9,7 @@ import studio.mevera.imperat.tests.TestSource;
  * At the first argument position, the framework cannot distinguish between
  * "first", "second", and "third" since all are required strings at the same level.
  */
-@Command("ambiguous-three-required-strings")
+@RootCommand("ambiguous-three-required-strings")
 public class AmbiguousThreeRequiredStrings {
 
     @Execute

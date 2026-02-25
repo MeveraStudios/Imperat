@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
-import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
@@ -90,8 +89,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                                                                                                                              .getClosestUsage()
                                                                                                                              .formatted());
                                                                  });
-
-    private AttachmentMode defaultAttachmentMode = AttachmentMode.UNSET;
 
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
 
@@ -416,7 +413,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      * <p>This setting does not affect:
      * <ul>
      *   <li>Required parameters - they are always suggested</li>
-     *   <li>Command structure - the actual command tree remains unchanged</li>
+     *   <li>RootCommand structure - the actual command tree remains unchanged</li>
      *   <li>Parameter validation - all parameters remain functionally available</li>
      * </ul>
      *
@@ -439,7 +436,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      *
      * <p><strong>Examples:</strong>
      * <pre>{@code
-     * // Command structure: /command [count] [extra]
+     * // RootCommand structure: /command [count] [extra]
      * //                              \[extra]
      *
      * // When enabled (true):
@@ -602,16 +599,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     @Override
-    public @NotNull AttachmentMode getDefaultAttachmentMode() {
-        return defaultAttachmentMode;
-    }
-
-    @Override
-    public void setDefaultAttachmentMode(AttachmentMode attachmentMode) {
-        this.defaultAttachmentMode = attachmentMode;
-    }
-
-    @Override
     public @NotNull HelpCoordinator<S> getHelpCoordinator() {
         return helpCoordinator;
     }
@@ -655,18 +642,20 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @Override
     public <E extends Throwable> boolean handleExecutionThrowable(@NotNull E throwable, Context<S> context, Class<?> owning, String methodName) {
 
-        //First handling the error using the Local(Command's) Error Handler.
-        //if its during execution, then let's use the LAST entered Command (root or sub)
+        //First handling the error using the Local(RootCommand's) Error Handler.
+        //if its during execution, then let's use the LAST entered RootCommand (root or sub)
         //Since subcommands also can have their own error handlers (aka ThrowableResolver)
         Command<S> cmd = context instanceof ExecutionContext<S> executionContext ? executionContext.getLastUsedCommand() : context.command();
         while (cmd != null) {
+            System.out.println("Running handling of errors from cmd '" + cmd.getName() + "'");
             var res = cmd.handleExecutionThrowable(throwable, context, owning, methodName);
             if (res) {
                 return true;
             }
-            cmd = cmd.parent();
+            cmd = cmd.getParent();
         }
 
+        System.out.println("Super handling ...");
         //Trying to handle the error from the Central Throwable Handler.
         var res = ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
         if (!res) {

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -80,15 +81,6 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
         // For longer prefixes, use regionMatches
         return str.regionMatches(true, 0, prefix, 0, prefixLen);
-    }
-
-    // Optimized parsing with reduced allocations
-    public void parseCommandUsages() {
-        final var usages = root.data.getAllPossiblePathways();
-        for (var usage : usages) {
-            parseUsage(usage);
-        }
-        //computePermissions();
     }
 
     @Override
@@ -151,6 +143,33 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         //adding unique versioned tree
         addParametersWithoutOptionalBranchingToTree(uniqueRoot, usage, parameters, 0);
         addParametersUnflaggedWithoutOptionalBranchingToTree(unflaggedUniqueRoot, usage, parameters, 0);
+    }
+
+    @Override
+    public void parseSubTree(@NotNull CommandTree<S> subTree) {
+        var subCmd = subTree.root();
+        //we need to determine where to attach this subtree to what node
+        for (var subPathways : subCmd.getDedicatedPathways()) {
+            var inheritedPathway = subPathways.getInheritedPathway();
+            if (inheritedPathway != null && !inheritedPathway.isDefault()) {
+                System.out.println("Inherited-pathway '" + inheritedPathway.formatted() + "', inherited by subcommand '" + subCmd.getName() + "'");
+                //attach to the node of the inherited pathway
+                var node = root.findNodeForPathway(inheritedPathway);
+                Objects.requireNonNullElse(node, root).addChild(subTree.rootNode());
+
+                var uniqueNode = uniqueRoot.findNodeForPathway(inheritedPathway);
+                Objects.requireNonNullElse(uniqueNode, uniqueRoot).addChild(subTree.uniqueVersionedTree());
+
+                var unflaggedUniqueNode = unflaggedUniqueRoot.findNodeForPathway(inheritedPathway);
+                Objects.requireNonNullElse(unflaggedUniqueNode, unflaggedUniqueRoot).addChild(subTree.unflaggedUniqueVersionedTree());
+
+            } else {
+                //attach to the root of THIS tree
+                root.addChild(subTree.rootNode());
+                uniqueRoot.addChild(subTree.uniqueVersionedTree());
+                unflaggedUniqueRoot.addChild(subTree.unflaggedUniqueVersionedTree());
+            }
+        }
     }
 
     private void addParametersToTree(
@@ -512,11 +531,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private CommandNode<S, ?> getOrCreateChildNode(CommandNode<S, ?> parent, Argument<S> param, boolean onlyUnique, boolean unflagged) {
         // Optimized child lookup with early termination
         final var children = parent.getChildren();
-        final String paramName = param.name();
+        final String paramName = param.getName();
         final Type paramType = param.valueType();
 
         for (var child : children) {
-            if (child.data.name().equalsIgnoreCase(paramName) &&
+            if (child.data.getName().equalsIgnoreCase(paramName) &&
                         TypeUtility.matches(child.data.valueType(), paramType)) {
                 return child;
             }
@@ -553,14 +572,14 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         dispatch.append(root);
         if (!hasPermission(context.source(), root)) {
             dispatch.setResult(CommandPathSearch.Result.PAUSE);
-            dispatch.setDirectUsage(root.getExecutableUsage());
+            dispatch.setFoundPath(root.getExecutableUsage());
             return dispatch;
         }
 
         if (input.isEmpty()) {
             var result = !hasPermission(context.source(), root) ? CommandPathSearch.Result.PAUSE : CommandPathSearch.Result.COMPLETE;
             dispatch.setResult(result);
-            dispatch.setDirectUsage(root.getExecutableUsage());
+            dispatch.setFoundPath(root.getExecutableUsage());
             return dispatch;
         }
 
@@ -611,7 +630,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (!hasPermission(context.source(), currentNode)) {
             commandPathSearch.setResult(CommandPathSearch.Result.PAUSE);
             if (currentNode.isExecutable()) {
-                commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
+                commandPathSearch.setFoundPath(currentNode.getExecutableUsage());
             }
             return commandPathSearch;
         }
@@ -620,7 +639,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (currentNode.isGreedyParam()) {
             commandPathSearch.append(currentNode);
             commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
-            commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
+            //commandPathSearch.setFoundPath(currentNode.getExecutableUsage());
             return commandPathSearch;
         }
 
@@ -637,7 +656,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         // Check if we can execute at this point
         if (currentNode.isExecutable() && depth == inputSize - currentNode.getNumberOfParametersToConsume()) {
             commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
-            commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
+            //commandPathSearch.setFoundPath(currentNode.getExecutableUsage());
             return commandPathSearch;
         }
 
@@ -680,14 +699,15 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
         if (!node.isExecutable()) {
             if (node.isLiteral()) {
-                search.setDirectUsage(node.data.asCommand().getDefaultPathway());
+                search.setFoundPath(node.data.asCommand().getDefaultPathway());
                 search.setResult(result);
             }
             return search;
         }
 
-        search.setDirectUsage(node.getExecutableUsage());
+        //search.setFoundPath(node.getExecutableUsage());
         search.setResult(result);
+        search.visitRemainingOptionalNodes();
 
         return search;
     }
@@ -712,7 +732,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (currentNode.isExecutable()) {
             commandPathSearch.append(currentNode);
             commandPathSearch.setResult(CommandPathSearch.Result.COMPLETE);
-            commandPathSearch.setDirectUsage(currentNode.getExecutableUsage());
+            commandPathSearch.setFoundPath(currentNode.getExecutableUsage());
             return commandPathSearch;
         }
 

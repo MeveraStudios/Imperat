@@ -7,19 +7,19 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.ArgType;
 import studio.mevera.imperat.annotations.Async;
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Cooldown;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.DefaultProvider;
 import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.Flag;
 import studio.mevera.imperat.annotations.Format;
-import studio.mevera.imperat.annotations.GlobalAttachmentMode;
 import studio.mevera.imperat.annotations.Greedy;
+import studio.mevera.imperat.annotations.InheritedArg;
 import studio.mevera.imperat.annotations.Permission;
 import studio.mevera.imperat.annotations.PostProcessor;
 import studio.mevera.imperat.annotations.PreProcessor;
 import studio.mevera.imperat.annotations.Range;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.Shortcut;
 import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Suggest;
@@ -32,14 +32,13 @@ import studio.mevera.imperat.annotations.base.MethodCommandExecutor;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.parameters.AnnotationArgumentDecorator;
 import studio.mevera.imperat.annotations.parameters.NumericArgumentDecorator;
-import studio.mevera.imperat.command.AttachmentMode;
+import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.command.parameters.NumericRange;
-import studio.mevera.imperat.command.parameters.StrictParameterList;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
 import studio.mevera.imperat.command.parameters.validator.ConstrainedValueValidator;
@@ -58,9 +57,11 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -78,50 +79,14 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         this.errorHandlersVisitor = CommandClassVisitor.newThrowableParsingVisitor(imperat, parser);
     }
 
-    private static <S extends Source> boolean doesRequireParameterInheritance(
-            @Nullable studio.mevera.imperat.command.Command<S> parentCmd,
-            @NotNull MethodElement method
-    ) {
-        boolean requiresParameterInheritance = false;
+    private static <S extends Source> @NotNull LinkedList<studio.mevera.imperat.command.Command<S>> getParenteralSequence
+            (@Nullable studio.mevera.imperat.command.Command<S> parentCommand) {
 
-        SubCommand annotation = method.getAnnotation(SubCommand.class);
-        if (annotation != null) {
-            var attachment = annotation.attachment();
-            if (parentCmd == null) {
-                requiresParameterInheritance = attachment.requiresParameterInheritance();
-            } else {
-                if (attachment == AttachmentMode.DEFAULT) {
-                    requiresParameterInheritance = parentCmd.getDefaultPathway().size() > 0;
-                } else {
-                    requiresParameterInheritance = (attachment == AttachmentMode.MAIN || attachment == AttachmentMode.UNSET);
-                }
-            }
-        } else if (method.isAnnotationPresent(Execute.class)) {
-            var ann = method.getParent().getAnnotation(SubCommand.class);
-            if (ann != null) {
-                requiresParameterInheritance = ann.attachment().requiresParameterInheritance();
-            } else if (parentCmd != null) {
-                requiresParameterInheritance = parentCmd.getMainPathway().getParameters().isEmpty();
-            }
-        }
-        return requiresParameterInheritance;
-    }
-
-    private static <S extends Source> @NotNull StringBuilder getMainPathwayParametersCollected(StrictParameterList<S> mainUsageParameters) {
-        StringBuilder builder = new StringBuilder();
-        for (var p : mainUsageParameters) {
-            builder.append(p.format()).append(" ");
-        }
-        return builder;
-    }
-
-    private static <S extends Source> @NotNull LinkedList<studio.mevera.imperat.command.Command<S>> getParenteralSequence(
-            @Nullable studio.mevera.imperat.command.Command<S> parentCmd) {
-        studio.mevera.imperat.command.Command<S> currentParent = parentCmd;
+        studio.mevera.imperat.command.Command<S> currentParent = parentCommand;
         LinkedList<studio.mevera.imperat.command.Command<S>> parenteralSequence = new LinkedList<>();
         while (currentParent != null) {
             parenteralSequence.addFirst(currentParent);
-            currentParent = currentParent.parent();
+            currentParent = currentParent.getParent();
         }
         return parenteralSequence;
     }
@@ -153,9 +118,9 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         } else {
             //no annotation
             for (ParseElement<?> element : clazz.getChildren()) {
-                Command elementCommandAnnotation = element.getAnnotation(Command.class);
-                if (elementCommandAnnotation != null) {
-                    var cmd = loadCommand(null, element, elementCommandAnnotation);
+                RootCommand elementRootCommandAnnotation = element.getAnnotation(RootCommand.class);
+                if (elementRootCommandAnnotation != null) {
+                    var cmd = loadCommand(null, element, elementRootCommandAnnotation);
                     if (cmd != null) {
                         imperat.registerSimpleCommand(cmd);
                     }
@@ -168,9 +133,9 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
     }
 
     private Annotation getCommandAnnotation(ClassElement clazz) {
-        Command commandAnnotation = clazz.getAnnotation(Command.class);
-        if (commandAnnotation != null) {
-            return commandAnnotation;
+        RootCommand rootCommandAnnotation = clazz.getAnnotation(RootCommand.class);
+        if (rootCommandAnnotation != null) {
+            return rootCommandAnnotation;
         }
 
         return clazz.getAnnotation(SubCommand.class);
@@ -178,8 +143,8 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
 
     private void loadCommandMethods(ClassElement clazz) {
         for (ParseElement<?> element : clazz.getChildren()) {
-            if (element instanceof MethodElement method && method.isAnnotationPresent(Command.class)) {
-                var cmdAnn = method.getAnnotation(Command.class);
+            if (element instanceof MethodElement method && method.isAnnotationPresent(RootCommand.class)) {
+                var cmdAnn = method.getAnnotation(RootCommand.class);
                 assert cmdAnn != null;
                 imperat.registerSimpleCommand(loadCommand(null, method, cmdAnn));
             }
@@ -198,7 +163,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         //Help help = element.getAnnotation(Help.class);
 
         studio.mevera.imperat.command.Command.Builder<S> builder;
-        if (cmdAnnotation instanceof Command cmdAnn) {
+        if (cmdAnnotation instanceof RootCommand cmdAnn) {
             final String[] values = config.replacePlaceholders(cmdAnn.value());
             builder = addCommonCommandData(element, preProcessor, postProcessor, permissions, description, values, cmdAnn.skipSuggestionsChecks());
 
@@ -282,12 +247,12 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
 
         final studio.mevera.imperat.command.Command<S> cmd = loadCmdInstance(annotation, parseElement);
         if (parentCmd != null && cmd != null) {
-            cmd.parent(parentCmd);
+            cmd.setParent(parentCmd);
         }
 
         if (parseElement instanceof MethodElement method && cmd != null) {
 
-            //Loading @Command/@SubCommand on methods
+            //Loading @RootCommand/@SubCommand on methods
             if (!methodSelector.canBeSelected(imperat, parser, method, true)) {
                 ImperatDebugger.debugForTesting("Method '%s' has failed verification", method.getName());
                 return cmd;
@@ -296,13 +261,14 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
             var pathway = loadPathway(parentCmd, cmd, method);
 
             if (pathway != null) {
+                System.out.println("Loaded pathway for method '" + method.getName() + "' with parameters " + pathway.formatted());
                 cmd.addPathway(pathway);
             }
 
             return cmd;
 
         } else if (parseElement instanceof ClassElement commandClass) {
-            //Loading @Command/@SubCommand on classes
+            //Loading @RootCommand/@SubCommand on classes
 
             //load command class
             // IMPORTANT: Process @Execute methods FIRST to establish mainUsage,
@@ -321,9 +287,15 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
 
                     // Process @Execute methods first (skip @SubCommand for now)
                     if (method.isAnnotationPresent(Execute.class) && !method.isAnnotationPresent(SubCommand.class)) {
+
                         var pathway = loadPathway(parentCmd, cmd, method);
                         if (pathway != null) {
                             cmd.addPathway(pathway);
+                        }
+                        System.out.println("XXXX- METHOD ELEMENT FOR PATHWAYS OF RootCommand '" + cmd.getName() + "' -XXXX");
+                        for (var path : cmd.getDedicatedPathways()) {
+                            System.out.println(" - " + path.formatted() + " :: " + (path.getMethodElement() == null ? "NO METHOD ELEMENT" :
+                                                                                            path.getMethodElement().getName()));
                         }
                     }
 
@@ -336,7 +308,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                 if (element instanceof MethodElement method) {
                     if (cmd == null) {
                         throw new IllegalStateException(
-                                "Method  '" + method.getElement().getName() + "' Cannot be treated as usage/subcommand, it doesn't have a parent ");
+                                "Method '" + method.getElement().getName() + "' Cannot be treated as usage/subcommand, it doesn't have a parent ");
                     }
 
                     if (!methodSelector.canBeSelected(imperat, parser, method, true)) {
@@ -346,15 +318,15 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                     if (method.isAnnotationPresent(SubCommand.class)) {
                         var subAnn = method.getAnnotation(SubCommand.class);
                         assert subAnn != null;
-                        cmd.addSubCommand(loadCommand(cmd, method, subAnn), extractAttachmentMode(commandClass, subAnn));
+                        cmd.addSubCommand(loadCommand(cmd, method, subAnn));
                     }
 
 
                 } else if (element instanceof ClassElement innerClass) {
 
-                    if (innerClass.isAnnotationPresent(Command.class)) {
+                    if (innerClass.isAnnotationPresent(RootCommand.class)) {
                         //separate embedded command
-                        var innerCmdAnn = innerClass.getAnnotation(Command.class);
+                        var innerCmdAnn = innerClass.getAnnotation(RootCommand.class);
                         assert innerCmdAnn != null;
                         imperat.registerSimpleCommand(
                                 loadCommand(null, innerClass, innerCmdAnn)
@@ -369,7 +341,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                         assert subCommandAnn != null;
 
                         cmd.addSubCommand(
-                                loadCommand(cmd, innerClass, subCommandAnn), extractAttachmentMode(commandClass, subCommandAnn)
+                                loadCommand(cmd, innerClass, subCommandAnn)
                         );
                     }
 
@@ -381,16 +353,6 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         }
 
         return cmd;
-    }
-
-    private AttachmentMode extractAttachmentMode(ClassElement commandClass, SubCommand subCommandAnn) {
-        AttachmentMode attachmentMode =
-                config.getDefaultAttachmentMode() == AttachmentMode.UNSET ? subCommandAnn.attachment() : config.getDefaultAttachmentMode();
-        GlobalAttachmentMode globalAttachmentMode = commandClass.getAnnotation(GlobalAttachmentMode.class);
-        if (globalAttachmentMode != null && attachmentMode == AttachmentMode.UNSET) {
-            attachmentMode = globalAttachmentMode.value();
-        }
-        return attachmentMode;
     }
 
     @SuppressWarnings("unchecked")
@@ -408,7 +370,8 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
             @NotNull studio.mevera.imperat.command.Command<S> loadedCmd,
             MethodElement method
     ) {
-
+        System.out.println("parent='" + (parentCmd == null ? "N/A" : parentCmd.getName()) + "', loaded-cmd='" + loadedCmd.getName() + "', method='"
+                                   + method.getName() + "'");
         MethodUsageData<S> usageData = loadParameters(method, parentCmd);
         var execution = MethodCommandExecutor.of(imperat, method, usageData.inheritedTotalParameters());
 
@@ -417,7 +380,8 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         Cooldown cooldown = method.getAnnotation(Cooldown.class);
         Async async = method.getAnnotation(Async.class);
 
-        var builder = CommandPathway.<S>builder()
+        var builder = CommandPathway.<S>builder(method)
+                              .inheritancePathway(usageData.inheritedPathway())
                               .parameters(usageData.personalParameters())
                               .execute(execution);
 
@@ -457,10 +421,9 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
         if (async != null) {
             builder.coordinator(CommandCoordinator.async());
         }
-        boolean help = method.isHelp();
         var usage = builder
                        //.registerFlags(usageData.freeFlags)
-                       .build(loadedCmd, help);
+                            .build(loadedCmd);
 
         Shortcut shortcutAnn = method.getAnnotation(Shortcut.class);
         if(shortcutAnn != null) {
@@ -483,89 +446,129 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
             @NotNull MethodElement method,
             @Nullable studio.mevera.imperat.command.Command<S> parentCmd
     ) {
+        var parents = getParenteralSequence(parentCmd);
+        Map<ParameterElement, InheritedArgData<S>> inheritedArguments = new LinkedHashMap<>();
 
-        ImperatDebugger.debugForTesting("Loading for method '%s'", method.getName());
-        LinkedList<Argument<S>> personalMethodInputParameters = new LinkedList<>();
+        CommandPathway<S> detectedInheritedPathway = null;
+        Command<S> parent = null;
+        for (var commandParent : parents) {
+            //map<pe, InheritedArgData>
+            for (CommandPathway<S> pathway : commandParent.getDedicatedPathways()) {
+                if (methodParamsMatchesPathwayInSequence(pathway, method)) {
 
-        final StrictParameterList<S> mainUsageParameters = new StrictParameterList<>();
-
-        boolean doesRequireParameterInheritance = doesRequireParameterInheritance(parentCmd, method);
-        ImperatDebugger.debug("Method '%s' Requires inheritance= " + doesRequireParameterInheritance, method.getName());
-
-        if (doesRequireParameterInheritance(parentCmd, method)) {
-            LinkedList<studio.mevera.imperat.command.Command<S>> parenteralSequence = getParenteralSequence(parentCmd);
-            for (studio.mevera.imperat.command.Command<S> parent : parenteralSequence) {
-                parent.getMainPathway().getParameters()
-                        .forEach((param) -> {
-                            if (!param.isFlag()) {
-                                mainUsageParameters.add(param);
-                            }
-                        });
+                    detectedInheritedPathway = pathway;
+                    parent = commandParent;
+                    break;
+                }
             }
-
-        }
-
-        var inheritedParamsFormatted = getMainPathwayParametersCollected(mainUsageParameters);
-        ImperatDebugger.debugForTesting("Main usage params collected '%s'", inheritedParamsFormatted.toString());
-
-        LinkedList<Argument<S>> totalMethodParameters = new LinkedList<>(mainUsageParameters);
-        LinkedList<ParameterElement> originalMethodParameters = new LinkedList<>(method.getParameters());
-
-        ParameterElement senderParam = null;
-
-        if (doesRequireParameterInheritance && originalMethodParameters.size() - 1 == 0 && !mainUsageParameters.isEmpty() && parentCmd != null) {
-            throw new IllegalStateException(
-                    "You have inherited parameters ('%s') that are not declared in the method '%s' in class '%s'".formatted(inheritedParamsFormatted,
-                            method.getName(), method.getParent().getName()));
-        }
-
-        while (!originalMethodParameters.isEmpty()) {
-
-            ParameterElement parameterElement = originalMethodParameters.peek();
-            if (parameterElement == null) {
+            if (detectedInheritedPathway != null) {
                 break;
             }
-            //Type type = parameterElement.getElement().getParameterizedType();
-            if (senderParam == null && isSenderParameter(parameterElement)) {
-                senderParam = originalMethodParameters.remove();
-                continue;
+            /*if (detectedInheritedPathway != null) {
+                List<ParameterElement> methodParams = method.getParameters().stream()
+                                                              .filter(p -> !isSenderParameter(p))
+                                                              .toList();
+
+                MethodElement inheritedPathwayMethod = detectedInheritedPathway.getMethodElement();
+                assert inheritedPathwayMethod != null;
+
+                List<Argument<S>> total = methodParams.stream()
+                                                  .filter(p -> !isSenderParameter(p))
+                                                  .map(this::loadParameter)
+                                                  .toList();
+
+
+                List<Argument<S>> personalParameters = methodParams.stream()
+                                                               .map(this::loadParameter)
+                                                               .filter(arg -> !total.contains(arg))
+                                                               .toList();
+
+                System.out.println("INHERITED-TOTALL= '" + String.join(" ", total.stream().map(Argument::format).toList()) + "'");
+                return new MethodUsageData<>(detectedInheritedPathway, personalParameters, total);
             }
-
-            Argument<S> Argument = loadParameter(parameterElement);
-            if (Argument == null) {
-                originalMethodParameters.remove();
-                continue;
-            }
-
-            Argument<S> mainParameter = mainUsageParameters.peek();
-
-            if (mainParameter == null) {
-                personalMethodInputParameters.add(Argument);
-                totalMethodParameters.add(Argument);
-                originalMethodParameters.remove();
-                continue;
-            }
-
-            if (mainParameter.similarTo(Argument)) {
-                var methodParam = originalMethodParameters.remove();
-                ImperatDebugger.debugForTesting("Removing '%s' from method params", methodParam.getName());
-                var mainUsageParam = mainUsageParameters.remove();
-                ImperatDebugger.debugForTesting("Removing '%s' from main usage params", mainUsageParam.format());
-                continue;
-            }
-
-            personalMethodInputParameters.add(Argument);
-            totalMethodParameters.add(Argument);
-
-            mainUsageParameters.remove();
-            originalMethodParameters.remove();
+*/
         }
-        return new MethodUsageData<>(personalMethodInputParameters, totalMethodParameters);
+
+        List<ParameterElement> personalParameters = new ArrayList<>();
+
+        for (ParameterElement methodParameter : method.getParameters()) {
+            if (isSenderParameter(methodParameter)) {
+                continue;
+            }
+
+            if (methodParameter.isAnnotationPresent(InheritedArg.class)) {
+                //inherited pe
+                if (detectedInheritedPathway == null) {
+                    throw new IllegalStateException("Method '" + method.getName() + "' has @InheritedArg on parameter '" + methodParameter.getName()
+                                                            + "' but no matching pathway for this parameter was found in all parents");
+                }
+                inheritedArguments.put(
+                        methodParameter,
+                        new InheritedArgData<>(
+                                parent,
+                                detectedInheritedPathway,
+                                methodParameter,
+                                loadParameter(methodParameter)
+                        )
+                );
+            } else {
+                //personal pe
+                personalParameters.add(methodParameter);
+            }
+        }
+
+        List<Argument<S>> personalArgs = personalParameters.stream()
+                                                 .map(this::loadParameter)
+                                                 .toList();
+
+        //total = inherited + personal (in order)
+        List<Argument<S>> totalArgs = new ArrayList<>();
+        for (ParameterElement inherited : inheritedArguments.keySet()) {
+            totalArgs.add(loadParameter(inherited));
+        }
+
+        totalArgs.addAll(personalArgs);
+
+
+        return new MethodUsageData<>(null, personalArgs, totalArgs);
     }
 
-    private boolean isSenderParameter(ParameterElement parameter) {
-        Type type = parameter.getElement().getParameterizedType();
-        return imperat.canBeSender(type) || config.hasSourceResolver(type);
+    private boolean methodParamsMatchesPathwayInSequence(CommandPathway<S> pathway, MethodElement methodElement) {
+
+        int methodParamSize = methodElement.getParameters().size() - 1; //excluding sender
+        if (pathway.size() > methodParamSize) {
+            return false;
+        }
+
+        List<ParameterElement> methodArgs = methodElement.getParameters().stream()
+                                                    .filter(p -> !isSenderParameter(p))
+                                                    .toList();
+
+        MethodElement pathwayMethod = pathway.getMethodElement();
+        if (pathwayMethod == null) {
+            throw new IllegalStateException("Pathway method element is null for parent's pathway: '" + pathway.formatted() + "'");
+        }
+
+        List<ParameterElement> pathwayArgs = pathwayMethod.getParameters().stream()
+                                                     .filter(p -> !isSenderParameter(p))
+                                                     .toList();
+
+        for (int i = 0; i < pathwayArgs.size(); i++) {
+            ParameterElement methodArg = methodArgs.get(i);
+            ParameterElement pathwayArg = pathwayArgs.get(i);
+
+            if (notEqual(methodArg, pathwayArg)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean notEqual(ParameterElement element, ParameterElement other) {
+        Type type = element.getElement().getParameterizedType();
+        Type otherType = other.getElement().getParameterizedType();
+        return !element.getName().equals(other.getName()) || !type.equals(otherType);
     }
 
     protected studio.mevera.imperat.command.Command<S> loadPathwayShortcut(
@@ -585,15 +588,29 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
                                                                    .build();
         }
 
-        CommandPathway<S> fabricated = CommandPathway.<S>builder()
+        CommandPathway<S> fabricated = CommandPathway.<S>builder(originalUsage.getMethodElement())
                                            .parameters(methodUsageData.inheritedTotalParameters())
                                            .execute(originalUsage.getExecution())
                                            .permission(originalUsage.getPermissionsData())
                                            .description(originalUsage.getDescription())
-                                           .build(shortcut, originalUsage.isHelp());
+                                               .build(shortcut);
 
         shortcut.addPathway(fabricated);
         return shortcut;
+    }
+
+    private boolean isSenderParameter(ParameterElement parameter) {
+        Type type = parameter.getElement().getParameterizedType();
+        return imperat.canBeSender(type) || config.hasSourceResolver(type);
+    }
+
+    record InheritedArgData<S extends Source>(
+            studio.mevera.imperat.command.Command<S> inheritedFrom,
+            CommandPathway<S> inheritedPathway,
+            ParameterElement parameter,
+            Argument<S> argument
+    ) {
+
     }
 
 
@@ -787,6 +804,7 @@ class CommandParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set
     }
 
     record MethodUsageData<S extends Source>(
+            @Nullable CommandPathway<S> inheritedPathway,
             List<Argument<S>> personalParameters,
             List<Argument<S>> inheritedTotalParameters
     ) {

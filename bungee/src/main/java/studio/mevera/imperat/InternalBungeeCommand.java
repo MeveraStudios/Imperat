@@ -15,7 +15,7 @@ final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command imp
             Command<BungeeSource> bungeeCommand
     ) {
         super(
-                bungeeCommand.name(),
+                bungeeCommand.getName(),
                 bungeeCommand.getPrimaryPermission(),
                 bungeeCommand.aliases().toArray(new String[0])
         );
@@ -27,7 +27,7 @@ final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command imp
     public void execute(CommandSender sender, String[] args) {
         bungeeCommandDispatcher.execute(
                 bungeeCommandDispatcher.wrapSender(sender),
-                bungeeCommand.name(),
+                bungeeCommand.getName(),
                 args
         );
     }
@@ -38,7 +38,7 @@ final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command imp
             CommandSender sender,
             String[] args
     ) {
-        StringBuilder builder = new StringBuilder(this.bungeeCommand.name()).append(" ");
+        StringBuilder builder = new StringBuilder(this.bungeeCommand.getName()).append(" ");
         for (String arg : args) {
             builder.append(arg).append(" ");
         }

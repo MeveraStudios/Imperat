@@ -1,12 +1,11 @@
 package studio.mevera.imperat.tests.syntax.commands;
 
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Named;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.command.AttachmentMode;
 import studio.mevera.imperat.tests.TestSource;
 
-@Command("usagetest")
+@RootCommand("usagetest")
 public class UsageTestCommand {
 
     @SubCommand("simple")
@@ -104,7 +103,7 @@ public class UsageTestCommand {
             source.reply("Nested sub2 executed: param2=" + param2);
         }
 
-        @SubCommand(value = "sub1", attachment = AttachmentMode.EMPTY)
+        @SubCommand(value = "sub1")
         public static class Sub1Deep {
 
             @SubCommand("deep")

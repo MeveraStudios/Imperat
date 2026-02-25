@@ -154,7 +154,7 @@ public final class ExecutionResult<S extends Source> {
      *
      * <p><strong>Use Cases:</strong></p>
      * <ul>
-     *   <li>Command validation failures where the error message is handled elsewhere</li>
+     *   <li>RootCommand validation failures where the error message is handled elsewhere</li>
      *   <li>Permission checks that simply succeed or fail without detailed error info</li>
      *   <li>Generic failure states where the context provides sufficient information</li>
      * </ul>

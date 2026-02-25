@@ -1,16 +1,16 @@
 package studio.mevera.imperat.tests.commands.realworld.economy;
 
 import studio.mevera.imperat.annotations.Async;
-import studio.mevera.imperat.annotations.Command;
 import studio.mevera.imperat.annotations.Default;
-import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.RootCommand;
+import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 
 import java.math.BigDecimal;
 
-@Command("eco")
+@RootCommand("eco")
 public class EconomyCommand {
 
     @Execute

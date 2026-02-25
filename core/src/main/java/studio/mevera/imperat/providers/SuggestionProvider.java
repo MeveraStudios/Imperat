@@ -31,7 +31,7 @@ public interface SuggestionProvider<S extends Source> {
 
     static <S extends Source> SuggestionProvider<S> forCommand(Command<S> command) {
         List<String> list = new ArrayList<>();
-        list.add(command.name());
+        list.add(command.getName());
         list.addAll(command.aliases());
         return staticSuggestions(list);
     }

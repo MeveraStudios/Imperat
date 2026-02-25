@@ -17,7 +17,7 @@ public final class NumericArgumentDecorator<S extends Source> extends InputParam
 
     NumericArgumentDecorator(Argument<S> parameter, NumericRange range) {
         super(
-                parameter.name(), parameter.type(), parameter.getPermissionsData(),
+                parameter.getName(), parameter.type(), parameter.getPermissionsData(),
                 parameter.getDescription(), parameter.isOptional(), parameter.isFlag(),
                 parameter.isFlag(), parameter.getDefaultValueSupplier(),
                 loadSuggestionResolver(parameter, range)
@@ -70,22 +70,6 @@ public final class NumericArgumentDecorator<S extends Source> extends InputParam
     @Override
     public @Nullable NumericRange getRange() {
         return range;
-    }
-
-    /**
-     * Creates a copy of this parameter with a different position.
-     * Useful for commands that have multiple syntaxes.
-     *
-     * @param newPosition the new position to set
-     * @return a copy of this parameter with the new position
-     */
-    @Override
-    public Argument<S> copyWithDifferentPosition(int newPosition) {
-        Argument<S> copiedParameter = parameter.copyWithDifferentPosition(newPosition);
-        return new NumericArgumentDecorator<>(
-                copiedParameter,
-                this.range
-        );
     }
 
 }

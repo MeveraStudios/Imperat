@@ -103,9 +103,7 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
 
     /**
      * Debugs all registered commands and their usages.
-     *
-     * @param treeVisualizing whether to display them in the form of tree
      */
-    void debug(boolean treeVisualizing);
+    void debug();
 
 }

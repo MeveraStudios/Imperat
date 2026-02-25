@@ -10,7 +10,7 @@ import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.TestSource;
 
-@DisplayName("Basic Command Execution Tests")
+@DisplayName("Basic RootCommand Execution Tests")
 public class BasicCommandExecutionTest extends BaseImperatTest {
 
     @Test

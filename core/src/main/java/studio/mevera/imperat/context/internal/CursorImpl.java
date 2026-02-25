@@ -27,7 +27,7 @@ final class CursorImpl<S extends Source> implements Cursor<S> {
     boolean cacheValid = false;
 
     CursorImpl(ArgumentInput queue, CommandPathway<S> usage) {
-        this(queue, usage.getParameters());
+        this(queue, usage.getArguments());
     }
 
 

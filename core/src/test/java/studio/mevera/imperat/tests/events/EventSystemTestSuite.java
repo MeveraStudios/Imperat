@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
  *     <li>Priority-based handler execution</li>
  *     <li>Synchronous and asynchronous execution strategies</li>
  *     <li>Exception handling and isolation</li>
- *     <li>Command-specific events (PreRegistration, PostRegistration)</li>
+ *     <li>RootCommand-specific events (PreRegistration, PostRegistration)</li>
  *     <li>Complex integration scenarios</li>
  * </ul>
  *
@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
  *     <li>{@link EventPriorityTest} - Priority ordering and execution</li>
  *     <li>{@link ExecutionStrategyTest} - Sync/Async execution strategies</li>
  *     <li>{@link EventExceptionHandlingTest} - Exception handling and recovery</li>
- *     <li>{@link CommandEventsTest} - Command lifecycle events</li>
+ *     <li>{@link CommandEventsTest} - RootCommand lifecycle events</li>
  *     <li>{@link EventBusIntegrationTest} - Complex integration scenarios</li>
  * </ul>
  *
@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
  *     <li>EventBus.create() should be EventBus.createDummy() or EventBus.builder().build()</li>
  *     <li>Priority.HIGHEST/LOWEST should be Priority.MAXIMUM/MINIMUM</li>
  *     <li>EventBus.register() returns EventSubscription&lt;T&gt;, not UUID</li>
- *     <li>Command creation requires Imperat instance (use mock/stub for tests)</li>
+ *     <li>RootCommand creation requires Imperat instance (use mock/stub for tests)</li>
  * </ol>
  *
  * @author Imperat Framework

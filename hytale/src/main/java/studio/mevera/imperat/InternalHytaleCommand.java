@@ -28,12 +28,12 @@ final class InternalHytaleCommand extends CommandBase {
         super("");
         this.imperat = imperat;
         for (var p : variant) {
-            withRequiredArg(p.name(), p.getDescription().getValueOrElse(""), loadArgType(p));
+            withRequiredArg(p.getName(), p.getDescription().getValueOrElse(""), loadArgType(p));
         }
     }
 
     InternalHytaleCommand(HytaleImperat imperat, Command<HytaleSource> imperatCmd) {
-        super(imperatCmd.name().toLowerCase(), imperatCmd.getDescription().getValueOrElse(""), requiresConfirmation(imperatCmd));
+        super(imperatCmd.getName().toLowerCase(), imperatCmd.getDescription().getValueOrElse(""), requiresConfirmation(imperatCmd));
         this.imperat = imperat;
         setAllowsExtraArguments(true); //TODO IN THE FUTURE , WE MAY NOT ACTUALLY NEED THIS UNLESS THERE'S A GREEDY ARG IN ANY TYPE OF USAGE
         addAliases(imperatCmd.aliases().toArray(String[]::new));
@@ -99,41 +99,44 @@ final class InternalHytaleCommand extends CommandBase {
     //we split each usage INTO variants
     //the main usage will be split into multiple usages
     private void deduceVariants(Command<HytaleSource> imperatCmd) {
-        CommandPathway<HytaleSource> mainUsage = imperatCmd.getMainPathway();
-        Map<Integer, Argument<HytaleSource>> optionals = new HashMap<>();
-        for (int i = 0; i < mainUsage.size(); i++) {
-            var parameter = mainUsage.getParameter(i);
-            assert parameter != null;
-            if (parameter.isOptional() && i != mainUsage.size() - 1) {
-                optionals.put(i, parameter);
-            } else if (parameter.isOptional()) {
-                //last optional
-                withOptionalArg(parameter.name(), parameter.getDescription().getValueOrElse(""), loadArgType(parameter));
-                break;
-            }
-            withRequiredArg(parameter.name(), parameter.getDescription().getValueOrElse(""), loadArgType(parameter));
-        }
-
-        List<List<Argument<HytaleSource>>> parameterVariants = new ArrayList<>();
-        for (int i = 0; i < mainUsage.size(); i++) {
-            var parameter = mainUsage.getParameter(i);
-            assert parameter != null;
-            if (optionals.get(i) != null) {
-                //add to a new variant , then remove and skip
-                List<Argument<HytaleSource>> variant = new ArrayList<>();
-                for (int j = 0; j < mainUsage.size(); j++) {
-                    var p = mainUsage.getParameter(j);
-                    if (j != i) {
-                        variant.add(p);
-                    }
+        for (CommandPathway<HytaleSource> mainUsage : imperatCmd.getDedicatedPathways()) {
+            Map<Integer, Argument<HytaleSource>> optionals = new HashMap<>();
+            for (int i = 0; i < mainUsage.size(); i++) {
+                var parameter = mainUsage.getArgumentAt(i);
+                assert parameter != null;
+                if (parameter.isOptional() && i != mainUsage.size() - 1) {
+                    optionals.put(i, parameter);
+                } else if (parameter.isOptional()) {
+                    //last optional
+                    withOptionalArg(parameter.getName(), parameter.getDescription().getValueOrElse(""), loadArgType(parameter));
+                    break;
                 }
-                parameterVariants.add(variant);
-                optionals.remove(i);
+                withRequiredArg(parameter.getName(), parameter.getDescription().getValueOrElse(""), loadArgType(parameter));
             }
-        }
 
-        for (var variant : parameterVariants) {
-            addUsageVariant(new InternalHytaleCommand(imperat, variant));
+
+            List<List<Argument<HytaleSource>>> parameterVariants = new ArrayList<>();
+            for (int i = 0; i < mainUsage.size(); i++) {
+                var parameter = mainUsage.getArgumentAt(i);
+                assert parameter != null;
+                if (optionals.get(i) != null) {
+                    //add to a new variant , then remove and skip
+                    List<Argument<HytaleSource>> variant = new ArrayList<>();
+                    for (int j = 0; j < mainUsage.size(); j++) {
+                        var p = mainUsage.getArgumentAt(j);
+                        if (j != i) {
+                            variant.add(p);
+                        }
+                    }
+                    parameterVariants.add(variant);
+                    optionals.remove(i);
+                }
+            }
+
+
+            for (var variant : parameterVariants) {
+                addUsageVariant(new InternalHytaleCommand(imperat, variant));
+            }
         }
     }
 

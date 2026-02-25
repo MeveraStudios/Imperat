@@ -12,7 +12,7 @@ final class InternalMinestomCommand extends Command {
     studio.mevera.imperat.command.Command<MinestomSource> imperatCommand;
 
     InternalMinestomCommand(MinestomImperat imperat, studio.mevera.imperat.command.Command<MinestomSource> imperatCommand) {
-        super(imperatCommand.name(), imperatCommand.aliases().toArray(new String[0]));
+        super(imperatCommand.getName(), imperatCommand.aliases().toArray(new String[0]));
         this.imperat = imperat;
         this.imperatCommand = imperatCommand;
 

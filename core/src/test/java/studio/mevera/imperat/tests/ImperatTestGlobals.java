@@ -3,7 +3,7 @@ package studio.mevera.imperat.tests;
 import static studio.mevera.imperat.tests.commands.TestCommands.CHAINED_SUBCOMMANDS_CMD;
 import static studio.mevera.imperat.tests.commands.TestCommands.MULTIPLE_OPTIONAL_CMD;
 
-import studio.mevera.imperat.annotations.Command;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.Context;
@@ -94,11 +94,13 @@ public class ImperatTestGlobals {
 
     static {
         System.out.println("=== ImperatTestGlobals static initializer START ===");
+
         IMPERAT.registerAnnotationReplacer(MyCustomAnnotation.class, (element, ann) -> {
-            Command cmdAnn = AnnotationFactory.create(Command.class, "value",
+            RootCommand cmdAnn = AnnotationFactory.create(RootCommand.class, "value",
                     new String[]{ann.name()});
             return List.of(cmdAnn);
         });
+        IMPERAT.registerCommands(TestCommand.class, Test2Command.class, Test3Command.class, TestCustomAnnotationCmd.class);
         IMPERAT.registerCommand(BuyCommand.class);
         IMPERAT.registerCommand(ReqCmd.class);
         IMPERAT.registerCommand(MultipleVariantsCmd.class);
@@ -112,7 +114,6 @@ public class ImperatTestGlobals {
         //IMPERAT.registerCommand(EmptyCmd.class);
         IMPERAT.registerCommand(KitCommand.class);
 
-        IMPERAT.registerCommands(TestCommand.class, Test2Command.class, Test3Command.class, TestCustomAnnotationCmd.class);
 
         IMPERAT.registerCommand(GiveCmd.class);
         IMPERAT.registerCommand(BanCommand.class);
@@ -145,7 +146,7 @@ public class ImperatTestGlobals {
 
 
         ImperatDebugger.setEnabled(true);
-        IMPERAT.debug(false);
+        IMPERAT.debug();
         System.out.println("=== ImperatTestGlobals static initializer END ===");
     }
 

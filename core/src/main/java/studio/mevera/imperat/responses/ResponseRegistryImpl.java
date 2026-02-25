@@ -91,7 +91,7 @@ final class ResponseRegistryImpl implements ResponseRegistry {
                         .addContextPlaceholders()
         );
 
-        // FlagOutsideCommandScopeException: Command<?> wrongCmd, String flagInput
+        // FlagOutsideCommandScopeException: RootCommand<?> wrongCmd, String flagInput
         // wrongCmd has: name(), aliases(), description(), etc.
         registerResponse(
                 new Response(ResponseKey.FLAG_OUTSIDE_SCOPE,
@@ -130,7 +130,7 @@ final class ResponseRegistryImpl implements ResponseRegistry {
                         .addPlaceholder("parameter")
         );
 
-        // Command exceptions
+        // RootCommand exceptions
 
         // InvalidSyntaxException: CommandPathSearch<?> result
         // CommandPathSearch has: getClosestUsage(), getFoundUsage(), getLastCommandNode()

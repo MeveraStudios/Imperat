@@ -20,7 +20,7 @@ public final class ParsedFlagArgument<S extends Source> extends ParsedArgument<S
             int inputPosition,
             Object inputValue
     ) {
-        super(flagRaw, flag, flag.position(), inputValue);
+        super(flagRaw, flag, flag.getPosition(), inputValue);
         this.flagRawInput = flagRawInput;
         this.flagPosition = flagPosition;
         this.inputPosition = inputPosition;

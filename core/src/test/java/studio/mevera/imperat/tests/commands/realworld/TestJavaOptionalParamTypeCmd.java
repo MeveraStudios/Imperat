@@ -1,13 +1,13 @@
 package studio.mevera.imperat.tests.commands.realworld;
 
-import studio.mevera.imperat.annotations.Command;
-import studio.mevera.imperat.annotations.Greedy;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.Greedy;
+import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 import java.util.Optional;
 
-@Command("testoptional")
+@RootCommand("testoptional")
 public class TestJavaOptionalParamTypeCmd {
 
     @Execute

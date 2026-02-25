@@ -97,7 +97,7 @@ public final class AnnotationHelper {
                 continue;
             }
 
-            String name = parameter.name();
+            String name = parameter.getName();
 
             if (parameter.isFlag()) {
                 var flagValue = context.getFlagValue(name);

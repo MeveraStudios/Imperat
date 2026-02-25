@@ -55,7 +55,7 @@ public abstract class BaseImperatTest {
         assertFalse(result.hasFailed(),
                 "Expected successful execution but got failure: " + (result.getError() != null ? result.getError().getMessage() : "Unknown error"));
         assertNotNull(result.getExecutionContext(), "Execution context should not be null for successful execution");
-        assertNotNull(result.getSearch(), "Command path search should not be null for successful execution");
+        assertNotNull(result.getSearch(), "RootCommand path search should not be null for successful execution");
     }
 
     /**

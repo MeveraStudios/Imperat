@@ -104,7 +104,7 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
 
         // Render each subcommand level
         for (int pos : subcommandPositions) {
-            var parameter = usage.getParameter(pos);
+            var parameter = usage.getArgumentAt(pos);
 
             String pathUpToPos = buildSubcommandPath(usage, pos);
 
@@ -152,10 +152,10 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
     private List<Integer> getSubcommandPositions(CommandPathway<S> usage) {
         List<Integer> positions = new ArrayList<>();
         for (int i = 0; i < usage.size(); i++) {
-            var parameter = usage.getParameter(i);
+            var parameter = usage.getArgumentAt(i);
             assert parameter != null;
             if (parameter.isCommand()) {
-                positions.add(parameter.position());
+                positions.add(parameter.getPosition());
             }
         }
         Collections.sort(positions);
@@ -170,13 +170,13 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
         boolean first = true;
 
         for (int i = 0; i < usage.size(); i++) {
-            var parameter = usage.getParameter(i);
+            var parameter = usage.getArgumentAt(i);
             assert parameter != null;
-            if (parameter.isCommand() && parameter.position() <= upToPosition) {
+            if (parameter.isCommand() && parameter.getPosition() <= upToPosition) {
                 if (!first) {
                     path.append("/");
                 }
-                path.append(parameter.name());
+                path.append(parameter.getName());
                 first = false;
             }
         }
@@ -194,9 +194,9 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
 
             // Look for entries that extend our path with more subcommands
             for (int i = 0; i < otherUsage.size(); i++) {
-                var parameter = otherUsage.getParameter(i);
+                var parameter = otherUsage.getArgumentAt(i);
                 assert parameter != null;
-                if (parameter.isCommand() && parameter.position() > position) {
+                if (parameter.isCommand() && parameter.getPosition() > position) {
                     String otherPath = buildSubcommandPath(otherUsage, position);
                     if (currentPath.equals(otherPath)) {
                         return true; // Found a child subcommand
@@ -212,20 +212,20 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
      */
     private boolean isLastSiblingAtPosition(List<HelpEntry<S>> allEntries, HelpEntry<S> currentEntry, int position) {
         CommandPathway<S> currentUsage = currentEntry.getPathway();
-        var currentParameter = currentUsage.getParameter(position);
+        var currentParameter = currentUsage.getArgumentAt(position);
 
         if (position == 0) {
             // Check if this is the last root-level subcommand
             assert currentParameter != null;
-            String currentSubcommand = currentParameter.name();
+            String currentSubcommand = currentParameter.getName();
 
             for (HelpEntry<S> otherEntry : allEntries) {
                 CommandPathway<S> otherUsage = otherEntry.getPathway();
                 for (int i = 0; i < otherUsage.size(); i++) {
-                    var otherParameter = otherUsage.getParameter(i);
+                    var otherParameter = otherUsage.getArgumentAt(i);
                     assert otherParameter != null;
-                    if (otherParameter.isCommand() && otherParameter.position() == 0) {
-                        String otherSubcommand = otherParameter.name();
+                    if (otherParameter.isCommand() && otherParameter.getPosition() == 0) {
+                        String otherSubcommand = otherParameter.getName();
                         if (otherSubcommand.compareTo(currentSubcommand) > 0) {
                             return false;
                         }
@@ -237,17 +237,17 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
             // Check siblings at this position with same parent path
             String parentPath = buildSubcommandPath(currentUsage, position - 1);
             assert currentParameter != null;
-            String currentSubcommand = currentParameter.name();
+            String currentSubcommand = currentParameter.getName();
 
             for (HelpEntry<S> otherEntry : allEntries) {
                 CommandPathway<S> otherUsage = otherEntry.getPathway();
                 for (int i = 0; i < otherUsage.size(); i++) {
-                    var otherParameter = otherUsage.getParameter(i);
+                    var otherParameter = otherUsage.getArgumentAt(i);
                     assert otherParameter != null;
-                    if (otherParameter.isCommand() && otherParameter.position() == position) {
+                    if (otherParameter.isCommand() && otherParameter.getPosition() == position) {
                         String otherParentPath = buildSubcommandPath(otherUsage, position - 1);
                         if (parentPath.equals(otherParentPath)) {
-                            String otherSubcommand = otherParameter.name();
+                            String otherSubcommand = otherParameter.getName();
                             if (otherSubcommand.compareTo(currentSubcommand) > 0) {
                                 return false; // Found a later sibling
                             }
@@ -307,8 +307,8 @@ public final class StandardHelpRenderer<S extends Source, C> implements HelpLayo
                 int posA = positionsA.get(i);
                 int posB = positionsB.get(i);
 
-                String commandA = Objects.requireNonNull(pathA.getParameter(posA)).name();
-                String commandB = Objects.requireNonNull(pathB.getParameter(posB)).name();
+                String commandA = Objects.requireNonNull(pathA.getArgumentAt(posA)).getName();
+                String commandB = Objects.requireNonNull(pathB.getArgumentAt(posB)).getName();
                 int cmp = commandA.compareTo(commandB);
                 if (cmp != 0) {
                     return cmp;

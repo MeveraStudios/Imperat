@@ -156,7 +156,7 @@ final class ReflectionCommodore extends AbstractCommodore {
             SuggestionProvider<?> wrapper = (SuggestionProvider<?>) COMMAND_WRAPPER_CONSTRUCTOR.newInstance(this.plugin.getServer(), command);
             setRequiredHackyFieldsRecursively(node, wrapper);
         } catch (Throwable ex) {
-            ImperatDebugger.error(ReflectionCommodore.class, "register(Command, LiteralCommandNode<?>, Predicate<? super Player>", ex);
+            ImperatDebugger.error(ReflectionCommodore.class, "register(RootCommand, LiteralCommandNode<?>, Predicate<? super Player>", ex);
         }
 
         Collection<String> aliases = getAliases(command);

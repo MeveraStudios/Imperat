@@ -68,7 +68,7 @@ public class CommandException extends Exception {
 
     public <S extends Source> CommandException withContextPlaceholders(Context<S> ctx) {
         // e.g: %command%, %arguments%, etc.
-        return withPlaceholder("command", ctx.command().name())
+        return withPlaceholder("command", ctx.command().getName())
                        .withPlaceholder("arguments", String.join(" ", ctx.arguments()))
                        .withPlaceholder("source", ctx.source().name());
     }

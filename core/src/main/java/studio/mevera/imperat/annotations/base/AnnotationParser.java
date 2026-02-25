@@ -3,9 +3,9 @@ package studio.mevera.imperat.annotations.base;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
-import studio.mevera.imperat.annotations.Command;
-import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.RootCommand;
+import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ThrowableResolver;
@@ -97,7 +97,7 @@ public abstract class AnnotationParser<S extends Source> {
     public abstract <A extends Annotation> @Nullable AnnotationReplacer<A> getAnnotationReplacer(Class<A> type);
 
     public final boolean isEntryPointAnnotation(Class<? extends Annotation> annotation) {
-        return annotation == Command.class || annotation == Execute.class || annotation == SubCommand.class;
+        return annotation == RootCommand.class || annotation == Execute.class || annotation == SubCommand.class;
     }
 
     public Imperat<S> getImperat() {

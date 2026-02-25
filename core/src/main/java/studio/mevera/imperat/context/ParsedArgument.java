@@ -36,7 +36,7 @@ public class ParsedArgument<S extends Source> {
     }
 
     public String getArgumentName() {
-        return originalArgument.name();
+        return originalArgument.getName();
     }
 
     public <T> @Nullable T getArgumentParsedValue() {
