@@ -90,6 +90,10 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
 
     void setInheritedPathway(@Nullable CommandPathway<S> inheritedPathway);
 
+    void setInheritedParameters(List<Argument<S>> inherited);
+
+    void setPersonalParameters(List<Argument<S>> personal);
+
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
      *
@@ -304,6 +308,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
     class Builder<S extends Source> {
 
         private final List<Argument<S>> parameters = new ArrayList<>();
+        private final List<Argument<S>> inheritedParameters = new ArrayList<>(); // NEW
         private final Set<FlagArgument<S>> flagArguments = new HashSet<>();
         private final List<String> examples = new ArrayList<>(3);
         private CommandExecution<S> execution = CommandExecution.empty();
@@ -408,6 +413,13 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             return this;
         }
 
+        // NEW: Method to set inherited parameters
+        public Builder<S> inheritedParameters(List<Argument<S>> params) {
+            this.inheritedParameters.clear();
+            this.inheritedParameters.addAll(params);
+            return this;
+        }
+
         public Builder<S> registerFlags(Set<FlagArgument<S>> flagArguments) {
             this.flagArguments.addAll(flagArguments);
             return this;
@@ -420,15 +432,21 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             impl.setPermissionData(permission);
             impl.describe(description);
             impl.setCooldown(cooldown);
-            impl.addParameters(
-                    parameters.stream().peek((p) -> p.setParent(command)).toList()
+
+            // CRITICAL: Set inherited parameters FIRST
+            impl.setInheritedParameters(inheritedParameters);
+
+            // Then set personal parameters (these are used for tree building)
+            impl.setPersonalParameters(
+                    parameters.stream()
+                            .peek((p) -> p.setParent(command))
+                            .toList()
             );
+
             flagArguments.forEach(impl::addFlag);
             impl.addExamples(this.examples);
             return impl;
         }
-
     }
-
 
 }

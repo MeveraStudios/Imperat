@@ -6,6 +6,7 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.Dependency;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
+import studio.mevera.imperat.annotations.base.system.parsers.CommandClassVisitor;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownDependencyException;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -21,7 +22,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public final class ClassElement extends ParseElement<Class<?>> {
+public non-sealed class ClassElement extends ParseElement<Class<?>> {
 
     private final Set<ParseElement<?>> children = new LinkedHashSet<>();
     private final Object instance;

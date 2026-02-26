@@ -32,7 +32,10 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
 
     private final static int EXPECTED_PARAMETERS_CAPACITY = 8;
 
-    private final List<Argument<S>> parameters = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
+    private final List<Argument<S>> personalParameters = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
+    private final List<Argument<S>> allParametersView = new ArrayList<>(EXPECTED_PARAMETERS_CAPACITY);
+    private List<Argument<S>> inheritedParameters = new ArrayList<>();
+
     private final @NotNull CommandExecution<S> execution;
     private final FlagExtractor<S> flagExtractor;
     private final List<String> examples = new ArrayList<>(2);
@@ -69,9 +72,30 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
     }
 
     /**
-     * @return the description for the
-     * command usage
+     * Sets inherited parameters separately. These are NOT part of the tree structure.
      */
+    @Override
+    public void setInheritedParameters(List<Argument<S>> inherited) {
+        this.inheritedParameters = new ArrayList<>(inherited);
+        rebuildAllParametersView();
+    }
+
+    /**
+     * Sets personal parameters (parsed from user input). These ARE part of the tree structure.
+     */
+    @Override
+    public void setPersonalParameters(List<Argument<S>> personal) {
+        this.personalParameters.clear();
+        this.personalParameters.addAll(personal);
+        rebuildAllParametersView();
+    }
+
+    private void rebuildAllParametersView() {
+        this.allParametersView.clear();
+        this.allParametersView.addAll(inheritedParameters);
+        this.allParametersView.addAll(personalParameters);
+    }
+
     @Override
     public Description getDescription() {
         return description;
@@ -87,27 +111,13 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
         return flagExtractor;
     }
 
-    /**
-     * Checks whether the raw input is a flag
-     * registered by this usage
-     *
-     * @param input the raw input
-     * @return Whether the input is a flag and is registered in the usage
-     */
     @Override
     public boolean hasFlag(String input) {
         return getFlagParameterFromRaw(input) != null;
     }
 
-    /**
-     * Fetches the flag from the input
-     *
-     * @param rawInput the input
-     * @return the flag from the raw input, null if it cannot be a flag
-     */
     @Override
     public @Nullable FlagData<S> getFlagParameterFromRaw(String rawInput) {
-
         String raw = rawInput;
         if (Patterns.isInputFlag(rawInput)) {
             boolean isSingle = SINGLE_FLAG.matcher(rawInput).matches();
@@ -121,7 +131,7 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
             raw = rawInput.substring(offset);
         }
 
-        for (var param : parameters) {
+        for (var param : personalParameters) {
             if (!param.isFlag()) {
                 continue;
             }
@@ -138,44 +148,55 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
         flagExtractor.insertFlag(flagArgumentData);
     }
 
-
-    /**
-     * Adds parameters to the usage
-     *
-     * @param params the parameters to add
-     */
     @SafeVarargs
     @Override
     public final void addParameters(Argument<S>... params) {
         addParameters(Arrays.asList(params));
     }
 
-    /**
-     * Adds parameters to the usage
-     *
-     * @param params the parameters to add
-     */
     @Override
     public void addParameters(List<Argument<S>> params) {
         for (var param : params) {
             if (param.isFlag()) {
                 addFlag(param.asFlagParameter());
             } else {
-                parameters.add(param);
+                personalParameters.add(param);
                 if (param.isRequired()) {
                     this.permissionsData.append(param.getPermissionsData());
                 }
             }
         }
+        rebuildAllParametersView();
     }
 
     /**
-     * @return the parameters for this usage
-     * @see Argument
+     * Returns PERSONAL parameters only - for TREE BUILDING.
+     * Inherited parameters are resolved at execution time, not parsed from input.
      */
     @Override
     public List<Argument<S>> getArguments() {
-        return parameters;
+        return personalParameters;
+    }
+
+    /**
+     * Returns ALL parameters including inherited - for EXECUTION.
+     */
+    @Override
+    public List<Argument<S>> loadCombinedParameters() {
+        var combined = new ArrayList<>(allParametersView);
+
+        int start = allParametersView.size();
+        var lastParam = allParametersView.isEmpty() ? null : allParametersView.get(allParametersView.size() - 1);
+        if (lastParam != null && lastParam.isGreedy()) {
+            start = allParametersView.size() - 1;
+        }
+
+        for (var flagParam : flagExtractor.getRegisteredFlags()) {
+            flagParam.setPosition(start);
+            combined.add(start, flagParam);
+            start++;
+        }
+        return combined;
     }
 
     @Override
@@ -193,79 +214,49 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
 
     @Override
     public @Nullable Argument<S> getArgumentAt(int index) {
-        if (index < 0 || index >= parameters.size()) {
+        if (index < 0 || index >= personalParameters.size()) {
             return null;
         }
-        return parameters.get(index);
+        return personalParameters.get(index);
     }
 
-    /**
-     * @return the execution for this command
-     */
     @Override
     public @NotNull CommandExecution<S> getExecution() {
         return execution;
     }
 
-    /**
-     * @param clazz the valueType of the parameter to check upon
-     * @return Whether the usage has a specific valueType of parameter
-     */
     @Override
     public boolean hasParamType(Class<?> clazz) {
-        return getArguments()
-                       .stream()
+        return personalParameters.stream()
                        .anyMatch((param) -> param.valueType().equals(clazz));
     }
 
-    /**
-     * @return Gets the minimal possible number
-     * of parameters that are acceptable to initiate this
-     * usage of a command.
-     */
     @Override
     public int getMinLength() {
-        return (int) getArguments().stream()
+        return (int) personalParameters.stream()
                              .filter((param) -> !param.isFlag())
                              .filter((param) -> !param.isOptional())
                              .count();
     }
 
-    /**
-     * @return Gets the maximum possible number
-     * of parameters that are acceptable to initiate this
-     * usage of a command.
-     */
     @Override
     public int getMaxLength() {
-        return parameters.size() + flagExtractor.getRegisteredFlags().size();
+        return personalParameters.size() + flagExtractor.getRegisteredFlags().size();
     }
 
-    /**
-     * Searches for a parameter with specific valueType
-     *
-     * @param parameterPredicate the parameter condition
-     * @return whether this usage has atLeast on {@link Argument} with specific condition
-     * or not
-     */
     @Override
     public boolean hasParameters(Predicate<Argument<S>> parameterPredicate) {
-        for (Argument<S> parameter : getArguments()) {
+        for (Argument<S> parameter : personalParameters) {
             if (parameterPredicate.test(parameter)) {
                 return true;
             }
         }
-
         return false;
     }
 
-    /**
-     * @param parameterPredicate the condition
-     * @return the parameter to get using a condition
-     */
     @Override
     public @Nullable Argument<S> getArgumentAt(Predicate<Argument<S>> parameterPredicate) {
-        for (Argument<S> parameter : getArguments()) {
+        for (Argument<S> parameter : personalParameters) {
             if (parameterPredicate.test(parameter)) {
                 return parameter;
             }
@@ -273,69 +264,36 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
         return null;
     }
 
-    /**
-     * @return The cooldown for this usage {@link UsageCooldown}
-     * returns null if no cooldown has been set
-     */
     @Override
     public @Nullable UsageCooldown getCooldown() {
         return cooldown;
     }
 
-    /**
-     * Sets the command usage's cooldown {@link UsageCooldown}
-     *
-     * @param usageCooldown the cool down for this usage
-     */
     @Override
     public void setCooldown(@Nullable UsageCooldown usageCooldown) {
         this.cooldown = usageCooldown;
     }
 
-    /**
-     * @return the cool down handler {@link CooldownHandler}
-     */
     @Override
     public @NotNull CooldownHandler<S> getCooldownHandler() {
         return cooldownHandler;
     }
 
-    /**
-     * Sets the cooldown handler {@link CooldownHandler}
-     *
-     * @param cooldownHandler the cool down handler to set
-     */
     @Override
     public void setCooldownHandler(@NotNull CooldownHandler<S> cooldownHandler) {
         this.cooldownHandler = cooldownHandler;
     }
 
-    /**
-     * @return the coordinator for execution of the command
-     */
     @Override
     public CommandCoordinator<S> getCoordinator() {
         return commandCoordinator;
     }
 
-    /**
-     * Sets the command coordinator
-     *
-     * @param commandCoordinator the coordinator to set
-     */
     @Override
     public void setCoordinator(CommandCoordinator<S> commandCoordinator) {
         this.commandCoordinator = commandCoordinator;
     }
 
-    /**
-     * Executes the usage's actions
-     * using the supplied {@link CommandCoordinator}
-     *
-     * @param imperat the api
-     * @param source  the command source/sender
-     * @param context the context of the command
-     */
     @Override
     public void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws CommandException {
         CommandCoordinator<S> coordinator = commandCoordinator;
@@ -347,37 +305,18 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
 
     @Override
     public boolean hasParameters(List<Argument<S>> parameters) {
-
-        if (this.parameters.size() != parameters.size()) {
+        if (this.personalParameters.size() != parameters.size()) {
             return false;
         }
 
         for (int i = 0; i < parameters.size(); i++) {
-            Argument<S> thisParam = this.parameters.get(i);
+            Argument<S> thisParam = this.personalParameters.get(i);
             Argument<S> otherParam = parameters.get(i);
             if (!thisParam.similarTo(otherParam)) {
                 return false;
             }
         }
         return true;
-    }
-
-    @Override
-    public @NotNull List<Argument<S>> loadCombinedParameters() {
-
-        var combinedParameters = new ArrayList<>(parameters);
-        int start = parameters.size();
-        var lastParam = getLastParam();
-        if (lastParam != null && lastParam.isGreedy()) {
-            start = parameters.size() - 1;
-        }
-
-        for (var flagParam : flagExtractor.getRegisteredFlags()) {
-            flagParam.setPosition(start);
-            combinedParameters.add(start, flagParam);
-            start++;
-        }
-        return combinedParameters;
     }
 
     @Override
@@ -392,7 +331,7 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
 
     @Override
     public @NotNull Iterator<Argument<S>> iterator() {
-        return parameters.iterator();
+        return personalParameters.iterator();
     }
 
     @Override
@@ -404,12 +343,12 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
             return false;
         }
         CommandPathwayImpl<?> that = (CommandPathwayImpl<?>) o;
-        if (this.size() != that.size()) {
+        if (this.personalParameters.size() != that.personalParameters.size()) {
             return false;
         }
-        for (int i = 0; i < this.size(); i++) {
-            var thisP = this.getArgumentAt(i);
-            var thatP = that.getArgumentAt(i);
+        for (int i = 0; i < this.personalParameters.size(); i++) {
+            var thisP = this.personalParameters.get(i);
+            var thatP = that.personalParameters.get(i);
             assert thisP != null;
             if (!thisP.similarTo(thatP)) {
                 return false;
@@ -420,7 +359,6 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(parameters);
+        return Objects.hash(personalParameters);
     }
-
 }

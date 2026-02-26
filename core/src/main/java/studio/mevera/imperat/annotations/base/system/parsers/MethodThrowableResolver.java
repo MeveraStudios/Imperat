@@ -1,4 +1,4 @@
-package studio.mevera.imperat.annotations.base.element;
+package studio.mevera.imperat.annotations.base.system.parsers;
 
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;

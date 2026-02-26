@@ -33,10 +33,11 @@ public final class AmbiguousCommandException extends RuntimeException {
     ) {
 
         return String.format(
-                "Root-RootCommand '%s' has node '%s' with ambiguous arguments '%s' !",
+                "Root-RootCommand '%s' has node '%s' with ambiguous arguments '%s' \n Tree >>\n %s !",
                 rootCmd,
                 node.format(),
-                filteredChildren.stream().map(CommandNode::format).collect(Collectors.joining(","))
+                filteredChildren.stream().map(CommandNode::format).collect(Collectors.joining(",")),
+                rootCmd.getVisualizer().getVisualizationString()
         );
     }
 

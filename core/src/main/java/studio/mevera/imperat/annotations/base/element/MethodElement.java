@@ -80,9 +80,9 @@ public final class MethodElement extends ParseElement<Method> {
     }
 
     @Override
-    public @NotNull ParseElement<?> getParent() {
+    public @NotNull ClassElement getParent() {
         assert super.getParent() != null;
-        return super.getParent();
+        return (ClassElement) super.getParent();
     }
 
 }

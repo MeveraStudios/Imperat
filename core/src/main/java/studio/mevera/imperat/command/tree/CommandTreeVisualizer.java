@@ -366,6 +366,19 @@ public final class CommandTreeVisualizer<S extends Source> {
         ImperatDebugger.debug(builder.toString());
     }
 
+    public String getVisualizationString() {
+        if (tree == null) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("\n==== RootCommand Tree ====\n\n");
+
+        visualizeSimpleNode(tree.rootNode(), builder, 0, new ArrayList<>(), true);
+
+        return builder.toString();
+    }
+
     /**
      * Alternative visualization using a simpler node representation
      */

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.BaseThrowableHandler;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
+import studio.mevera.imperat.annotations.base.system.ParameterInheritanceChain;
 import studio.mevera.imperat.annotations.parameters.AnnotatedArgument;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.DefaultValueProvider;
@@ -18,6 +19,7 @@ import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.command.tree.CommandTree;
+import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -268,6 +270,10 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     Collection<? extends CommandPathway<S>> getAllPossiblePathways();
 
+    void registerInheritance(CommandPathway<S> pathway, ParameterInheritanceChain<S> chain);
+
+    ParameterInheritanceChain<S> getInheritanceChain(CommandPathway<S> pathway);
+
     /**
      * @return the pathways that are directly attached to this command
      * without being inherited from a parent command
@@ -432,6 +438,8 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain);
 
     Collection<? extends Command<S>> getAllShortcuts();
+
+    CommandTreeVisualizer<S> getVisualizer();
 
     class Builder<S extends Source> {
 

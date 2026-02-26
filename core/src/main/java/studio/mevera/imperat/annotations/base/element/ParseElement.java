@@ -18,7 +18,7 @@ import java.util.Objects;
 public sealed abstract class ParseElement<E extends AnnotatedElement> implements AnnotatedElement, Iterable<Annotation>
         permits ClassElement, MethodElement, ParameterElement {
 
-    protected final AnnotationParser<?> parser;
+    public final AnnotationParser<?> parser;
     protected final @NotNull AnnotationMap annotations = new AnnotationMap();
     protected final @Nullable ParseElement<?> parent;
     protected final @NotNull E element;

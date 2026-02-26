@@ -1,10 +1,11 @@
-package studio.mevera.imperat.annotations.base.element;
+package studio.mevera.imperat.annotations.base.system.parsers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.CommandParsingMode;
 import studio.mevera.imperat.Imperat;
-import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
+import studio.mevera.imperat.annotations.base.element.ClassElement;
+import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
 import studio.mevera.imperat.command.Command;
@@ -67,10 +68,6 @@ public abstract class CommandClassVisitor<S extends Source, R> {
         );
     }
 
-    public abstract R visitCommandClass(
-            @NotNull ClassElement clazz
-    );
-
     @SuppressWarnings("unchecked")
     private static <S extends Source> CommandClassVisitor<S, Set<Command<S>>> createKotlinVisitorReflectively(
         Imperat<S> imperat,
@@ -80,7 +77,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
             Class.forName("kotlin.coroutines.Continuation");
             Class.forName("kotlin.reflect.KFunction");
             Class<?> factory = Class.forName(
-                "studio.mevera.imperat.annotations.base.element.KotlinCommandParsingVisitorFactory"
+                    "studio.mevera.imperat.annotations.base.system.parsers.KotlinCommandParsingVisitorFactory"
             );
             return (CommandClassVisitor<S, Set<Command<S>>>)
                 factory
@@ -93,5 +90,9 @@ public abstract class CommandClassVisitor<S extends Source, R> {
             );
         }
     }
+
+    public abstract R visitCommandClass(
+            @NotNull ClassElement clazz
+    ) throws Exception;
 
 }

@@ -1,15 +1,16 @@
-package studio.mevera.imperat.annotations.base.element
+package studio.mevera.imperat.annotations.base.system.parsers
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.NotNull
-import org.jetbrains.annotations.Nullable
 import studio.mevera.imperat.Imperat
 import studio.mevera.imperat.annotations.Default
 import studio.mevera.imperat.annotations.base.AnnotationParser
 import studio.mevera.imperat.annotations.base.MethodCommandExecutor
+import studio.mevera.imperat.annotations.base.element.MethodElement
+import studio.mevera.imperat.annotations.base.element.ParameterElement
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules
+import studio.mevera.imperat.annotations.base.element.selector.Rule
 import studio.mevera.imperat.command.Command
 import studio.mevera.imperat.command.CommandPathway
 import studio.mevera.imperat.command.CoroutineCommandCoordinator
@@ -31,6 +32,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
     parser: AnnotationParser<S>,
     methodSelector: ElementSelector<MethodElement>
 ) : CommandParsingVisitor<S>(imperat, parser, methodSelector) {
+
     protected fun isSuspendFunction(method: MethodElement): Boolean =
         method.element.parameters.isNotEmpty() &&
                 method.element.parameters.last().type == Continuation::class.java
@@ -95,31 +97,36 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T> loadParameter(parameter: ParameterElement): Argument<S>? {
-        if (isContinuationParameter(parameter)) {
+    /**
+     * Override parseParameter to handle Kotlin-specific parameter features
+     */
+    override fun parseParameter(param: ParameterElement): Argument<S>? {
+        // Skip continuation parameters
+        if (isContinuationParameter(param)) {
             return null
         }
 
-        val argument = super.loadParameter<T>(parameter) ?: return null
+        // Call parent to create base argument
+        val argument = super.parseParameter(param) ?: return null
 
         // Don't override Java @Default
-        if (parameter.isAnnotationPresent(Default::class.java)) {
+        if (param.isAnnotationPresent(Default::class.java)) {
             return argument
         }
 
-        val hasKotlinDefault = hasKotlinDefault(parameter)
-
-        val isNullable = isKotlinNullable(parameter)
+        val hasKotlinDefault = hasKotlinDefault(param)
+        val isNullable = isKotlinNullable(param)
 
         if (!hasKotlinDefault && !isNullable) {
             return argument
         }
 
         ImperatDebugger.debug(
-            "Parameter '${parameter.name}' has Kotlin default=$hasKotlinDefault, nullable=$isNullable"
+            "Parameter '${param.name}' has Kotlin default=$hasKotlinDefault, nullable=$isNullable"
         )
 
+        // Create new argument with optional=true if it has Kotlin default or is nullable
+        @Suppress("UNCHECKED_CAST")
         return Argument.of(
             argument.getName(),
             argument.type(),
@@ -133,63 +140,100 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         ) as Argument<S>
     }
 
-    protected abstract fun handleSuspendFunction(
-        @Nullable parentCmd: Command<S>?,
-        @NotNull loadedCmd: Command<S>,
-        method: MethodElement,
-        usage: CommandPathway<S>
-    ): CommandPathway<S>?
+    /**
+     * Override parsePathway to handle suspend functions and Kotlin defaults
+     */
+    override fun parsePathway(
+        cmd: Command<S>,
+        method: MethodElement
+    ): CommandPathway<S>? {
+        // Call parent to create base pathway
+        val basePathway = super.parsePathway(cmd, method) ?: return null
 
-    override fun loadPathway(parentCmd: Command<S>?, loadedCmd: Command<S>, method: MethodElement): CommandPathway<S>? {
-        val usage = super.loadPathway(parentCmd, loadedCmd, method) ?: return null
-        val kFunction = method.element.kotlinFunction ?: return usage
+        val kFunction = method.element.kotlinFunction ?: return basePathway
 
         val hasDefaults = kFunction.parameters.any { it.kind == KParameter.Kind.VALUE && it.isOptional }
+        val isSuspend = isSuspendFunction(method)
 
         return when {
-            isSuspendFunction(method) -> handleSuspendFunction(parentCmd, loadedCmd, method, usage)
-            hasDefaults -> wrapWithKotlinHandling(loadedCmd, method, usage, false)
-            else -> usage  // Plain Kotlin function, no wrapping needed
+            isSuspend -> handleSuspendFunction(cmd, method, basePathway)
+            hasDefaults -> wrapWithKotlinDefaults(cmd, method, basePathway)
+            else -> basePathway
         }
     }
 
-    protected fun wrapWithKotlinHandling(
-        loadedCmd: Command<S>,
+    protected abstract fun handleSuspendFunction(
+        cmd: Command<S>,
         method: MethodElement,
-        usage: CommandPathway<S>,
-        isSuspend: Boolean
-    ): CommandPathway<S> {
-        val originalExecutor = usage.execution as MethodCommandExecutor<S>
-        val kFunction = method.element.kotlinFunction ?: return usage
+        basePathway: CommandPathway<S>
+    ): CommandPathway<S>
 
-        val wrappedExecutor = KotlinAwareExecutor(
+    protected fun wrapWithKotlinDefaults(
+        cmd: Command<S>,
+        method: MethodElement,
+        basePathway: CommandPathway<S>
+    ): CommandPathway<S> {
+        val originalExecutor = basePathway.execution as MethodCommandExecutor<S>
+        val kFunction = method.element.kotlinFunction ?: return basePathway
+
+        val wrappedExecutor = KotlinDefaultsAwareExecutor(
             originalExecutor,
             kFunction,
-            isSuspend,
-            if (isSuspend) (imperat.config().coroutineScope as? CoroutineScope) else null
+            false,
+            null
         )
 
         return CommandPathway.builder<S>(method)
-            .parameters(usage.arguments)
+            .parameters(basePathway.arguments)
             .execute(wrappedExecutor)
-            .permission(usage.permissionsData)
-            .description(usage.description)
-            .examples(*usage.examples.toTypedArray())
+            .permission(basePathway.permissionsData)
+            .description(basePathway.description)
+            .examples(*basePathway.examples.toTypedArray())
             .apply {
-                usage.cooldown?.let { cd ->
+                basePathway.cooldown?.let { cd ->
                     cooldown(cd.value(), cd.unit(), cd.permission())
                 }
-                if (isSuspend) {
-                    coordinator(CoroutineCommandCoordinator(imperat.config().coroutineScope as CoroutineScope))
-                }
             }
-            .build(loadedCmd)
+            .build(cmd)
+    }
+
+    protected fun wrapWithCoroutineSupport(
+        cmd: Command<S>,
+        method: MethodElement,
+        basePathway: CommandPathway<S>
+    ): CommandPathway<S> {
+        val originalExecutor = basePathway.execution as MethodCommandExecutor<S>
+        val kFunction = method.element.kotlinFunction ?: return basePathway
+
+        val coroutineScope = imperat.config().coroutineScope as? CoroutineScope
+            ?: throw IllegalStateException("CoroutineScope not available")
+
+        val wrappedExecutor = KotlinDefaultsAwareExecutor(
+            originalExecutor,
+            kFunction,
+            true,
+            coroutineScope
+        )
+
+        return CommandPathway.builder<S>(method)
+            .parameters(basePathway.arguments)
+            .execute(wrappedExecutor)
+            .permission(basePathway.permissionsData)
+            .description(basePathway.description)
+            .examples(*basePathway.examples.toTypedArray())
+            .apply {
+                basePathway.cooldown?.let { cd ->
+                    cooldown(cd.value(), cd.unit(), cd.permission())
+                }
+                coordinator(CoroutineCommandCoordinator(coroutineScope))
+            }
+            .build(cmd)
     }
 
     /**
-     * Executor that handles Kotlin defaults by omitting null parameters that have defaults
+     * Executor that handles Kotlin defaults and coroutines
      */
-    private class KotlinAwareExecutor<S : Source>(
+    private class KotlinDefaultsAwareExecutor<S : Source>(
         originalExecutor: MethodCommandExecutor<S>,
         private val kFunction: KFunction<*>,
         private val isSuspend: Boolean,
@@ -199,6 +243,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         override fun execute(source: S, context: ExecutionContext<S>) {
             val args = super.prepareArguments(context)
             val paramMap = buildParamMap(args)
+
             if (isSuspend) {
                 val scope = coroutineScope
                     ?: throw IllegalStateException("Suspend function found but no coroutine scope")
@@ -219,7 +264,7 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
             }
             @Suppress("UNCHECKED_CAST")
             val returnResolver = context.imperatConfig()
-                    .getReturnResolver<Any>(method.returnType)
+                .getReturnResolver<Any>(method.returnType)
                 ?: return
 
             returnResolver.handle(context, method, returned)
@@ -259,12 +304,11 @@ internal class KotlinCoroutineCommandParsingVisitor<S : Source>(
 ) : AbstractKotlinCommandParsingVisitor<S>(imperat, parser, methodSelector) {
 
     override fun handleSuspendFunction(
-        @Nullable parentCmd: Command<S>?,
-        @NotNull loadedCmd: Command<S>,
+        cmd: Command<S>,
         method: MethodElement,
-        usage: CommandPathway<S>
+        basePathway: CommandPathway<S>
     ): CommandPathway<S> {
-        return wrapWithKotlinHandling(loadedCmd, method, usage, true)
+        return wrapWithCoroutineSupport(cmd, method, basePathway)
     }
 }
 
@@ -278,10 +322,9 @@ internal class KotlinBasicCommandParsingVisitor<S : Source>(
 ) : AbstractKotlinCommandParsingVisitor<S>(imperat, parser, methodSelector) {
 
     override fun handleSuspendFunction(
-        @Nullable parentCmd: Command<S>?,
-        @NotNull loadedCmd: Command<S>,
+        cmd: Command<S>,
         method: MethodElement,
-        usage: CommandPathway<S>
+        basePathway: CommandPathway<S>
     ): CommandPathway<S> {
         throw IllegalStateException(
             "Suspend function '${method.name}' requires kotlinx-coroutines-core dependency"
@@ -309,7 +352,7 @@ internal object KotlinCommandParsingVisitorFactory {
                 method.element.parameters.last().type == Continuation::class.java
 
     @JvmStatic
-    private val suspendFunctionRule = studio.mevera.imperat.annotations.base.element.selector.Rule.buildForMethod()
+    private val suspendFunctionRule = Rule.buildForMethod()
         .condition { _: Imperat<*>, _: AnnotationParser<*>, method: MethodElement ->
             !isSuspendFunctionStatic(method) || COROUTINES_AVAILABLE
         }
