@@ -6,7 +6,6 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.CommandExecution;
-import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -14,30 +13,24 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.asm.DefaultMethodCallerFactory;
 import studio.mevera.imperat.util.asm.MethodCaller;
 
-import java.util.List;
-
 @ApiStatus.Internal
 public class MethodCommandExecutor<S extends Source> implements CommandExecution<S> {
 
     private final Imperat<S> dispatcher;
     private final MethodElement method;
     private final MethodCaller.BoundMethodCaller boundMethodCaller;
-    private final List<Argument<S>> fullParameters;
 
     private MethodCommandExecutor(
             Imperat<S> dispatcher,
-            MethodElement method,
-            List<Argument<S>> fullParameters
+            MethodElement method
     ) {
 
         try {
             this.dispatcher = dispatcher;
             this.method = method;
 
-            ClassElement methodOwner = (ClassElement) method.getParent();
+            ClassElement methodOwner = method.getParent();
             boundMethodCaller = DefaultMethodCallerFactory.INSTANCE.createFor(method.getElement()).bindTo(methodOwner.getObjectInstance());
-
-            this.fullParameters = fullParameters;
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -47,15 +40,14 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
     public MethodCommandExecutor(
             MethodCommandExecutor<S> executor
     ) {
-        this(executor.dispatcher, executor.method, executor.fullParameters);
+        this(executor.dispatcher, executor.method);
     }
 
     public static <S extends Source> MethodCommandExecutor<S> of(
             Imperat<S> imperat,
-            MethodElement method,
-            List<Argument<S>> fullParameters
+            MethodElement method
     ) {
-        return new MethodCommandExecutor<>(imperat, method, fullParameters);
+        return new MethodCommandExecutor<>(imperat, method);
     }
 
 
@@ -83,7 +75,7 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
     }
 
     public Object[] prepareArguments(@NotNull ExecutionContext<@NotNull S> context) throws CommandException {
-        return AnnotationHelper.loadParameterInstances(dispatcher, fullParameters, context.source(), context, method);
+        return AnnotationHelper.loadParameterInstances(dispatcher, context.source(), context, method);
     }
 
     public MethodElement getMethodElement() {

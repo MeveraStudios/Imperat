@@ -18,7 +18,7 @@ import java.util.Set;
  *
  * @param <S> the command source
  */
-public abstract class CommandClassVisitor<S extends Source, R> {
+public abstract class CommandClassParser<S extends Source, R> {
 
     public final static ElementSelector<MethodElement> ERROR_HANDLING_METHOD_SELECTOR =
             ElementSelector.<MethodElement>create()
@@ -29,7 +29,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
     protected final AnnotationParser<S> parser;
     protected final ElementSelector<MethodElement> methodSelector;
 
-    protected CommandClassVisitor(
+    protected CommandClassParser(
             Imperat<S> imperat,
             AnnotationParser<S> parser,
             ElementSelector<MethodElement> methodSelector
@@ -39,7 +39,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
         this.methodSelector = methodSelector;
     }
 
-    public static <S extends Source> CommandClassVisitor<S, Set<Command<S>>> newCommandParsingVisitor(
+    public static <S extends Source> CommandClassParser<S, Set<Command<S>>> newCommandParsingVisitor(
         Imperat<S> imperat,
         AnnotationParser<S> parser
     ) {
@@ -47,7 +47,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
 
         return switch (mode) {
             case KOTLIN -> createKotlinVisitorReflectively(imperat, parser);
-            case JAVA -> new CommandParsingVisitor<>(
+            case JAVA -> new CommandElementParser<>(
                 imperat,
                 parser,
                 ElementSelector.<MethodElement>create()
@@ -57,7 +57,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
         };
     }
 
-    public static <S extends Source> CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> newThrowableParsingVisitor(
+    public static <S extends Source> CommandClassParser<S, Set<MethodThrowableResolver<?, S>>> newThrowableParsingVisitor(
             Imperat<S> imperat,
             AnnotationParser<S> parser
     ) {
@@ -69,7 +69,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <S extends Source> CommandClassVisitor<S, Set<Command<S>>> createKotlinVisitorReflectively(
+    private static <S extends Source> CommandClassParser<S, Set<Command<S>>> createKotlinVisitorReflectively(
         Imperat<S> imperat,
         AnnotationParser<S> parser
     ) {
@@ -79,7 +79,7 @@ public abstract class CommandClassVisitor<S extends Source, R> {
             Class<?> factory = Class.forName(
                     "studio.mevera.imperat.annotations.base.system.parsers.KotlinCommandParsingVisitorFactory"
             );
-            return (CommandClassVisitor<S, Set<Command<S>>>)
+            return (CommandClassParser<S, Set<Command<S>>>)
                 factory
                     .getMethod("create", Imperat.class, AnnotationParser.class)
                     .invoke(null, imperat, parser);

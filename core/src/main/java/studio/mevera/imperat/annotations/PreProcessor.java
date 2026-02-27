@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * before a command method executes.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ElementType.TYPE})
 public @interface PreProcessor {
 
     Class<? extends CommandPreProcessor<?>>[] value();

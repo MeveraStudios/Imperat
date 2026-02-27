@@ -6,7 +6,7 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
-import studio.mevera.imperat.annotations.base.system.parsers.CommandClassVisitor;
+import studio.mevera.imperat.annotations.base.system.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.system.parsers.MethodThrowableResolver;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.parameters.Argument;
@@ -20,8 +20,8 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
 
     final AnnotationRegistry annotationRegistry;
     private final ElementSelector<MethodElement> methodSelector;
-    private final CommandClassVisitor<S, Set<Command<S>>> commandParsingVisitor;
-    private final CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> throwableHandlerVisitor;
+    private final CommandClassParser<S, Set<Command<S>>> commandParsingVisitor;
+    private final CommandClassParser<S, Set<MethodThrowableResolver<?, S>>> throwableHandlerVisitor;
 
     AnnotationParserImpl(Imperat<S> dispatcher) {
         super(dispatcher);
@@ -32,8 +32,8 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
                 MethodRules.IS_PUBLIC/*.and(MethodRules.RETURNS_VOID)*/.and(MethodRules.HAS_A_MAIN_ANNOTATION)
         );
 
-        this.commandParsingVisitor = CommandClassVisitor.newCommandParsingVisitor(dispatcher, this);
-        this.throwableHandlerVisitor = CommandClassVisitor.newThrowableParsingVisitor(dispatcher, this);
+        this.commandParsingVisitor = CommandClassParser.newCommandParsingVisitor(dispatcher, this);
+        this.throwableHandlerVisitor = CommandClassParser.newThrowableParsingVisitor(dispatcher, this);
     }
 
 
@@ -46,7 +46,7 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
 
     @Override
     public <T> void parseThrowableHandlerClass(T instance) {
-        AnnotationReader<S> reader = AnnotationReader.read(imperat, CommandClassVisitor.ERROR_HANDLING_METHOD_SELECTOR, this, instance);
+        AnnotationReader<S> reader = AnnotationReader.read(imperat, CommandClassParser.ERROR_HANDLING_METHOD_SELECTOR, this, instance);
         reader.acceptThrowableResolversParsing(throwableHandlerVisitor);
     }
 

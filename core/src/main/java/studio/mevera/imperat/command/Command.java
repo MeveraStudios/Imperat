@@ -453,7 +453,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
             this(imperat, parent, position, name, null);
         }
 
-        public Builder<S> ignoreACPermissions(boolean ignore) {
+        public Builder<S> supressPermissionsForAutoCompletion(boolean ignore) {
             this.cmd.setIgnoreACPermissions(ignore);
             return this;
         }
@@ -483,11 +483,11 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
         }
 
         public Builder<S> defaultExecution(CommandExecution<S> defaultExec) {
-            return usage(CommandPathway.<S>builder()
+            return pathway(CommandPathway.<S>builder()
                                  .execute(defaultExec));
         }
 
-        public Builder<S> usage(CommandPathway.Builder<S> usage) {
+        public Builder<S> pathway(CommandPathway.Builder<S> usage) {
             cmd.addPathway(usage);
             return this;
         }

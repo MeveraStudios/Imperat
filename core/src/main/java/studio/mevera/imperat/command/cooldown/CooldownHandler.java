@@ -35,7 +35,7 @@ public interface CooldownHandler<S extends Source> {
      *
      * @return the container of usage's cooldown, the container may be empty
      */
-    Optional<UsageCooldown> getUsageCooldown();
+    Optional<CooldownRecord> getUsageCooldown();
 
     /**
      * Checks if there's a cooldown on
@@ -46,7 +46,7 @@ public interface CooldownHandler<S extends Source> {
      * on the usage for the command sender
      */
     default boolean hasCooldown(S source) {
-        UsageCooldown usageCooldown = getUsageCooldown().orElse(null);
+        CooldownRecord usageCooldown = getUsageCooldown().orElse(null);
         if (usageCooldown == null) {
             return false;
         }

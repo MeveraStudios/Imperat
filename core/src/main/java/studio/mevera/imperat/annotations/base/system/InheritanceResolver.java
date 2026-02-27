@@ -158,7 +158,7 @@ public final class InheritanceResolver<S extends Source> {
     ) {
         List<MatchedParam<S>> matches = new ArrayList<>();
         // CRITICAL: Use loadCombinedParameters() to include inherited params from ancestors
-        List<Argument<S>> params = pathway.loadCombinedParameters();
+        List<Argument<S>> params = pathway.getParametersWithFlags();
 
         for (InheritanceRequest request : requests) {
             for (int i = 0; i < params.size(); i++) {

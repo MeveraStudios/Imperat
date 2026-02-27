@@ -16,7 +16,7 @@ import studio.mevera.imperat.util.asm.MethodCaller;
 import java.util.HashSet;
 import java.util.Set;
 
-final class ThrowableParsingVisitor<S extends Source> extends CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> {
+final class ThrowableParsingVisitor<S extends Source> extends CommandClassParser<S, Set<MethodThrowableResolver<?, S>>> {
 
     ThrowableParsingVisitor(
             Imperat<S> imperat,

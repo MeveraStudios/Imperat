@@ -6,7 +6,7 @@ import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.RootCommandClass;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
-import studio.mevera.imperat.annotations.base.system.parsers.CommandClassVisitor;
+import studio.mevera.imperat.annotations.base.system.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.system.parsers.MethodThrowableResolver;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
@@ -35,8 +35,8 @@ public interface AnnotationReader<S extends Source> {
 
     ClassElement getParsedClass();
 
-    void acceptCommandsParsing(CommandClassVisitor<S, Set<Command<S>>> visitor);
+    void acceptCommandsParsing(CommandClassParser<S, Set<Command<S>>> visitor);
 
-    <E extends Throwable> void acceptThrowableResolversParsing(CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> visitor);
+    <E extends Throwable> void acceptThrowableResolversParsing(CommandClassParser<S, Set<MethodThrowableResolver<?, S>>> visitor);
 
 }

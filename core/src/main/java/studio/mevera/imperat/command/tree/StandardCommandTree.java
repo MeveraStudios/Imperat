@@ -1,6 +1,7 @@
 package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
@@ -21,8 +22,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -48,7 +49,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
     private final HelpEntryFactory<S> helpEntryFactory = HelpEntryFactory.defaultFactory();
-    private int size, uniqueSize, unflaggedUniqueSize;
+    int size;
+    int uniqueSize;
+    int unflaggedUniqueSize;
 
 
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
@@ -122,7 +125,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     public void parseUsage(@NotNull CommandPathway<S> usage) {
         // Register flags once
 
-        final var parameters = usage.loadCombinedParameters();
+        final var parameters = usage.getParametersWithFlags();
         if (usage.isDefault()) {
             root.setExecutableUsage(usage);
             uniqueRoot.setExecutableUsage(usage);
@@ -148,28 +151,75 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     @Override
     public void parseSubTree(@NotNull CommandTree<S> subTree) {
         var subCmd = subTree.root();
-        //we need to determine where to attach this subtree to what node
-        for (var subPathways : subCmd.getDedicatedPathways()) {
-            var inheritedPathway = subPathways.getInheritedPathway();
-            if (inheritedPathway != null && !inheritedPathway.isDefault()) {
-                System.out.println("Inherited-pathway '" + inheritedPathway.formatted() + "', inherited by subcommand '" + subCmd.getName() + "'");
-                //attach to the node of the inherited pathway
-                var node = root.findNodeForPathway(inheritedPathway);
-                Objects.requireNonNullElse(node, root).addChild(subTree.rootNode());
 
-                var uniqueNode = uniqueRoot.findNodeForPathway(inheritedPathway);
-                Objects.requireNonNullElse(uniqueNode, uniqueRoot).addChild(subTree.uniqueVersionedTree());
+        for (var subPathway : subCmd.getDedicatedPathways()) {
 
-                var unflaggedUniqueNode = unflaggedUniqueRoot.findNodeForPathway(inheritedPathway);
-                Objects.requireNonNullElse(unflaggedUniqueNode, unflaggedUniqueRoot).addChild(subTree.unflaggedUniqueVersionedTree());
+            CommandPathway<S> inheritedPathway = null;
+            var inheritedPaths = new LinkedList<>(subPathway.getPathwaysOfInheritedArguments());
+            while (!inheritedPaths.isEmpty()) {
+                var candidate = inheritedPaths.poll();
+                if (!candidate.isDefault()) {
+                    inheritedPathway = candidate;
+                    break;
+                }
 
-            } else {
-                //attach to the root of THIS tree
-                root.addChild(subTree.rootNode());
-                uniqueRoot.addChild(subTree.uniqueVersionedTree());
-                unflaggedUniqueRoot.addChild(subTree.unflaggedUniqueVersionedTree());
             }
+
+            if (inheritedPathway != null && !inheritedPathway.isDefault()) {
+                // Find the node representing the LAST parameter of the inherited pathway
+                // This is where the subcommand should attach
+                var targetNode = findLastParamNodeOfPathway(root, inheritedPathway);
+                var targetUnique = findLastParamNodeOfPathway(uniqueRoot, inheritedPathway);
+                var targetUnflagged = findLastParamNodeOfPathway(unflaggedUniqueRoot, inheritedPathway);
+
+                if (targetNode != null) {
+                    targetNode.addChild(subTree.rootNode());
+                    assert targetUnique != null;
+                    targetUnique.addChild(subTree.uniqueVersionedTree());
+                    assert targetUnflagged != null;
+                    targetUnflagged.addChild(subTree.unflaggedUniqueVersionedTree());
+                    continue;
+                }
+            }
+
+            // Fallback: attach to root
+            root.addChild(subTree.rootNode());
+            uniqueRoot.addChild(subTree.uniqueVersionedTree());
+            unflaggedUniqueRoot.addChild(subTree.unflaggedUniqueVersionedTree());
         }
+    }
+
+    /**
+     * Finds the node representing the last parameter of a pathway.
+     * This is where subcommands should attach.
+     */
+    private @Nullable CommandNode<S, ?> findLastParamNodeOfPathway(
+            LiteralCommandNode<S> root,
+            CommandPathway<S> pathway
+    ) {
+        // Get the inherited params from the pathway
+        List<Argument<S>> params = pathway.getParametersWithFlags();
+        if (params.isEmpty()) {
+            return root;
+        }
+
+        // Navigate to the last param
+        CommandNode<S, ?> current = root;
+        for (Argument<S> param : params) {
+            CommandNode<S, ?> next = null;
+            for (var child : current.getChildren()) {
+                if (!child.isLiteral() && child.getData().getName().equals(param.getName())) {
+                    next = child;
+                    break;
+                }
+            }
+            if (next == null) {
+                return null; // Pathway not fully built yet
+            }
+            current = next;
+        }
+
+        return current;
     }
 
     private void addParametersToTree(

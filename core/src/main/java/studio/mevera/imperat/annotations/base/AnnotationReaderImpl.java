@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.RootCommandClass;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
-import studio.mevera.imperat.annotations.base.system.parsers.CommandClassVisitor;
+import studio.mevera.imperat.annotations.base.system.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.system.parsers.MethodThrowableResolver;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
@@ -126,7 +126,7 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
     }
 
     @Override
-    public void acceptCommandsParsing(CommandClassVisitor<S, Set<Command<S>>> visitor) {
+    public void acceptCommandsParsing(CommandClassParser<S, Set<Command<S>>> visitor) {
         var collectedCommands = classElement.accept(visitor);
         if (collectedCommands == null) {
             return;
@@ -139,7 +139,7 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
 
     @Override
     @SuppressWarnings("unchecked")
-    public <E extends Throwable> void acceptThrowableResolversParsing(CommandClassVisitor<S, Set<MethodThrowableResolver<?, S>>> visitor) {
+    public <E extends Throwable> void acceptThrowableResolversParsing(CommandClassParser<S, Set<MethodThrowableResolver<?, S>>> visitor) {
         Set<MethodThrowableResolver<?, S>> collectedErrorHandlers = classElement.accept(visitor);
         if (collectedErrorHandlers == null) {
             return;

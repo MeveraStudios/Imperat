@@ -27,11 +27,11 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.kotlinFunction
 
-internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
+internal abstract class AbstractKotlinCommandClassParser<S : Source>(
     imperat: Imperat<S>,
     parser: AnnotationParser<S>,
     methodSelector: ElementSelector<MethodElement>
-) : CommandParsingVisitor<S>(imperat, parser, methodSelector) {
+) : CommandElementParser<S>(imperat, parser, methodSelector) {
 
     protected fun isSuspendFunction(method: MethodElement): Boolean =
         method.element.parameters.isNotEmpty() &&
@@ -100,14 +100,14 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
     /**
      * Override parseParameter to handle Kotlin-specific parameter features
      */
-    override fun parseParameter(param: ParameterElement): Argument<S>? {
+    override fun parseMethodParameter(method: MethodElement, param: ParameterElement): Argument<S>? {
         // Skip continuation parameters
         if (isContinuationParameter(param)) {
             return null
         }
 
         // Call parent to create base argument
-        val argument = super.parseParameter(param) ?: return null
+        val argument = super.parseMethodParameter(method, param) ?: return null
 
         // Don't override Java @Default
         if (param.isAnnotationPresent(Default::class.java)) {
@@ -143,12 +143,12 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
     /**
      * Override parsePathway to handle suspend functions and Kotlin defaults
      */
-    override fun parsePathway(
-        cmd: Command<S>,
+    override fun parsePathwayMethod(
+        command: Command<S>,
         method: MethodElement
-    ): CommandPathway<S>? {
+    ): CommandPathway.Builder<S>? {
         // Call parent to create base pathway
-        val basePathway = super.parsePathway(cmd, method) ?: return null
+        val basePathway = super.parsePathwayMethod(command, method) ?: return null
 
         val kFunction = method.element.kotlinFunction ?: return basePathway
 
@@ -156,23 +156,21 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         val isSuspend = isSuspendFunction(method)
 
         return when {
-            isSuspend -> handleSuspendFunction(cmd, method, basePathway)
-            hasDefaults -> wrapWithKotlinDefaults(cmd, method, basePathway)
+            isSuspend -> handleSuspendFunction(method, basePathway)
+            hasDefaults -> wrapWithKotlinDefaults(method, basePathway)
             else -> basePathway
         }
     }
 
     protected abstract fun handleSuspendFunction(
-        cmd: Command<S>,
         method: MethodElement,
-        basePathway: CommandPathway<S>
-    ): CommandPathway<S>
+        basePathway: CommandPathway.Builder<S>
+    ): CommandPathway.Builder<S>
 
     protected fun wrapWithKotlinDefaults(
-        cmd: Command<S>,
         method: MethodElement,
-        basePathway: CommandPathway<S>
-    ): CommandPathway<S> {
+        basePathway: CommandPathway.Builder<S>
+    ): CommandPathway.Builder<S> {
         val originalExecutor = basePathway.execution as MethodCommandExecutor<S>
         val kFunction = method.element.kotlinFunction ?: return basePathway
 
@@ -184,9 +182,9 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         )
 
         return CommandPathway.builder<S>(method)
-            .parameters(basePathway.arguments)
+            .parameters(basePathway.parameters)
             .execute(wrappedExecutor)
-            .permission(basePathway.permissionsData)
+            .permission(basePathway.permission)
             .description(basePathway.description)
             .examples(*basePathway.examples.toTypedArray())
             .apply {
@@ -194,14 +192,13 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
                     cooldown(cd.value(), cd.unit(), cd.permission())
                 }
             }
-            .build(cmd)
+
     }
 
     protected fun wrapWithCoroutineSupport(
-        cmd: Command<S>,
         method: MethodElement,
-        basePathway: CommandPathway<S>
-    ): CommandPathway<S> {
+        basePathway: CommandPathway.Builder<S>
+    ): CommandPathway.Builder<S> {
         val originalExecutor = basePathway.execution as MethodCommandExecutor<S>
         val kFunction = method.element.kotlinFunction ?: return basePathway
 
@@ -216,9 +213,9 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
         )
 
         return CommandPathway.builder<S>(method)
-            .parameters(basePathway.arguments)
+            .parameters(basePathway.parameters)
             .execute(wrappedExecutor)
-            .permission(basePathway.permissionsData)
+            .permission(basePathway.permission)
             .description(basePathway.description)
             .examples(*basePathway.examples.toTypedArray())
             .apply {
@@ -227,7 +224,6 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
                 }
                 coordinator(CoroutineCommandCoordinator(coroutineScope))
             }
-            .build(cmd)
     }
 
     /**
@@ -297,35 +293,33 @@ internal abstract class AbstractKotlinCommandParsingVisitor<S : Source>(
     }
 }
 
-internal class KotlinCoroutineCommandParsingVisitor<S : Source>(
+internal class KotlinCoroutineCommandClassParser<S : Source>(
     imperat: Imperat<S>,
     parser: AnnotationParser<S>,
     methodSelector: ElementSelector<MethodElement>
-) : AbstractKotlinCommandParsingVisitor<S>(imperat, parser, methodSelector) {
+) : AbstractKotlinCommandClassParser<S>(imperat, parser, methodSelector) {
 
     override fun handleSuspendFunction(
-        cmd: Command<S>,
         method: MethodElement,
-        basePathway: CommandPathway<S>
-    ): CommandPathway<S> {
-        return wrapWithCoroutineSupport(cmd, method, basePathway)
+        basePathway: CommandPathway.Builder<S>
+    ): CommandPathway.Builder<S> {
+        return wrapWithCoroutineSupport(method, basePathway)
     }
 }
 
 /**
  * Basic visitor without coroutines
  */
-internal class KotlinBasicCommandParsingVisitor<S : Source>(
+internal class KotlinBasicCommandClassParser<S : Source>(
     imperat: Imperat<S>,
     parser: AnnotationParser<S>,
     methodSelector: ElementSelector<MethodElement>
-) : AbstractKotlinCommandParsingVisitor<S>(imperat, parser, methodSelector) {
+) : AbstractKotlinCommandClassParser<S>(imperat, parser, methodSelector) {
 
     override fun handleSuspendFunction(
-        cmd: Command<S>,
         method: MethodElement,
-        basePathway: CommandPathway<S>
-    ): CommandPathway<S> {
+        basePathway: CommandPathway.Builder<S>
+    ): CommandPathway.Builder<S> {
         throw IllegalStateException(
             "Suspend function '${method.name}' requires kotlinx-coroutines-core dependency"
         )
@@ -365,17 +359,17 @@ internal object KotlinCommandParsingVisitorFactory {
     fun <S : Source> create(
         imperat: Imperat<S>,
         parser: AnnotationParser<S>
-    ): CommandClassVisitor<S, Set<Command<S>>> {
+    ): CommandClassParser<S, Set<Command<S>>> {
         val selector = ElementSelector.create<MethodElement>()
             .addRule(MethodRules.HAS_KNOWN_SENDER)
             .addRule(suspendFunctionRule)
 
         return if (COROUTINES_AVAILABLE) {
             ImperatDebugger.debug("Kotlin coroutines ENABLED")
-            KotlinCoroutineCommandParsingVisitor(imperat, parser, selector)
+            KotlinCoroutineCommandClassParser(imperat, parser, selector)
         } else {
             ImperatDebugger.debug("Kotlin coroutines DISABLED")
-            KotlinBasicCommandParsingVisitor(imperat, parser, selector)
+            KotlinBasicCommandClassParser(imperat, parser, selector)
         }
     }
 }

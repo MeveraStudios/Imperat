@@ -35,7 +35,7 @@ final class DefaultCooldownHandler<S extends Source> implements CooldownHandler<
      * @return the container of usage's cooldown, the container may be empty
      */
     @Override
-    public Optional<UsageCooldown> getUsageCooldown() {
+    public Optional<CooldownRecord> getUsageCooldown() {
         return Optional.ofNullable(usage.getCooldown());
     }
 

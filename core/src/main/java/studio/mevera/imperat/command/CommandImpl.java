@@ -48,7 +48,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final int position;
     private final List<String> aliases = new ArrayList<>();
     private final Map<String, Command<S>> children = new LinkedHashMap<>();
-    private final CommandPathwaySet<S> allPathways = new CommandPathwaySet<>();
     private final AutoCompleter<S> autoCompleter;
     private final @NotNull CommandTree<S> tree;
     private final @NotNull CommandTreeVisualizer<S> visualizer;
@@ -338,24 +337,12 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void addPathway(CommandPathway<S> usage) {
-
         tree.parseUsage(usage);
-
         if (usage.isDefault()) {
-            System.out.println("DEFAULT PATHWAY DETECTED FOR COMMAND " + this.name + ", SETTING IT AS THE DEFAULT PATHWAY");
             this.defaultPathway = usage;
         }
 
         dedicatedPathways.put(usage);
-        System.out.println("INTERNAL FROM DEDICATED ITSELF");
-        for (CommandPathway<S> dedicated : dedicatedPathways) {
-            System.out.println("ADDED-PATHWAY: '" + dedicated.formatted() + "', METHOD: " + (dedicated.getMethodElement() != null ?
-                                                                                                     dedicated.getMethodElement().getName() :
-                                                                                                     "null"));
-        }
-
-        System.out.println("Added pathway '" + usage.formatted() + "' to command " + this.name);
-        System.out.println("METHOD: " + (usage.getMethodElement() != null ? usage.getMethodElement().getName() : "null"));
     }
 
     /**
@@ -364,7 +351,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public Collection<? extends CommandPathway<S>> getAllPossiblePathways() {
-        return allPathways.asSortedSet();
+        return Collections.emptyList();
     }
 
     /**
@@ -391,6 +378,9 @@ final class CommandImpl<S extends Source> implements Command<S> {
      */
     @Override
     public void setParent(@NotNull Command<S> parent) {
+        if (parent == this) {
+            return;
+        }
         this.parent = parent;
         System.out.println("Setting parent of command '" + this.name + "' to '" + parent.getName() + "'");
     }
@@ -455,7 +445,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
         Command<S> subCmd =
                 Command.create(imperat, this, subCommand.toLowerCase())
                         .aliases(aliases)
-                        .usage(usage)
+                        .pathway(usage)
                         .build();
         addSubCommand(subCmd);
     }

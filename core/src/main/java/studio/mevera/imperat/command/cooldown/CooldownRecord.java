@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @see Duration
  */
 @ApiStatus.AvailableSince("1.0.0")
-public final class UsageCooldown {
+public final class CooldownRecord {
 
     private final Duration duration;
     private final long value;
@@ -27,7 +27,7 @@ public final class UsageCooldown {
      * @param unit  the unit for the time
      *
      */
-    public UsageCooldown(long value, TimeUnit unit, @Nullable String permission) {
+    public CooldownRecord(long value, TimeUnit unit, @Nullable String permission) {
         this.value = value;
         this.unit = unit;
         this.permission = permission;
@@ -58,7 +58,7 @@ public final class UsageCooldown {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        var that = (UsageCooldown) obj;
+        var that = (CooldownRecord) obj;
         return this.value == that.value &&
                        Objects.equals(this.unit, that.unit) &&
                        Objects.equals(this.permission, that.permission);

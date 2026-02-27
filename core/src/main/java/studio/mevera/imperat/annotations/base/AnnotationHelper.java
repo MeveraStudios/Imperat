@@ -29,7 +29,6 @@ public final class AnnotationHelper {
      * <p>
      * Checks arguments and resolves their context, if the parameter or type contains ContextResolved then it will get the context resolver from the imperat's config instance.
      * @param dispatcher the imperat instance
-     * @param fullParameters the full list of parameters
      * @param source the source of the command
      * @param context the execution context for a command, responsible for resolving and managing command arguments, flags, and their values during command execution.
      * @param method the method we're operating on
@@ -39,7 +38,6 @@ public final class AnnotationHelper {
      */
     public static <S extends Source> Object[] loadParameterInstances(
             Imperat<S> dispatcher,
-            List<Argument<S>> fullParameters,
             S source,
             ExecutionContext<S> context,
             MethodElement method
@@ -76,39 +74,43 @@ public final class AnnotationHelper {
                     paramsInstances[i] = contextResolver.provide(context, actualParameter);
                     p--;
                     continue;
-                } else {
-
-                    throw new IllegalStateException(
-                            ("In class '%s', In method '%s', The parameter '%s' is set to be context resolved while not having a context resolver "
-                                     + "for its type '%s'")
-                                    .formatted(method.getParent().getName(), method.getName(), actualParameter.getName(),
-                                            actualParameter.getType().getTypeName())
-                    );
                 }
-            }
 
-            Argument<S> parameter = getUsageParam(fullParameters, p);
-            if (parameter == null) {
-                Flag flag = actualParameter.getAnnotation(Flag.class);
-                if (flag != null) {
-                    paramsInstances[i] = context.getFlagValue(flag.value()[0]);
-                }
-                p--;
-                continue;
-            }
-
-            String name = parameter.getName();
-
-            if (parameter.isFlag()) {
-                var flagValue = context.getFlagValue(name);
-                if (flagValue == null && parameter.asFlagParameter().isSwitch()) {
-                    paramsInstances[i] = false;
-                } else {
-                    paramsInstances[i] = flagValue;
-                }
+                throw new IllegalStateException(
+                        ("In class '%s', In method '%s', The parameter '%s' is set to be context resolved while not having a context resolver "
+                                 + "for its type '%s'")
+                                .formatted(method.getParent().getName(), method.getName(), actualParameter.getName(),
+                                        actualParameter.getType().getTypeName())
+                );
             } else {
-                var ctxArg = context.getArgument(name);
-                paramsInstances[i] = ctxArg;
+                // not context resolved
+                if (actualParameter.isAnnotationPresent(Flag.class) || actualParameter.isAnnotationPresent(Switch.class)) {
+                    //flag parameters
+                    Flag flag = actualParameter.getAnnotation(Flag.class);
+                    Switch switchAnnotation = actualParameter.getAnnotation(Switch.class);
+
+                    if (flag != null) {
+                        paramsInstances[i] = context.getFlagValue(flag.value()[0]);
+                    } else if (switchAnnotation != null) {
+                        var switchParsedValue = context.getFlagValue(switchAnnotation.value()[0]);
+                        if (switchParsedValue == null) {
+                            throw new IllegalStateException(
+                                    ("In class '%s', In method '%s', The parameter '%s' is annotated with @Switch but the switch '%s' is not "
+                                             + "present in the command context")
+                                            .formatted(method.getParent().getName(), method.getName(), actualParameter.getName(),
+                                                    switchAnnotation.value()[0])
+                            );
+                        }
+                        paramsInstances[i] = switchParsedValue;
+                    }
+                    p--;
+                } else {
+                    var argumentValue = context.getArgument(actualParameter.getName());
+                    if (argumentValue != null) {
+                        paramsInstances[i] = argumentValue;
+                        continue;
+                    }
+                }
             }
 
         }

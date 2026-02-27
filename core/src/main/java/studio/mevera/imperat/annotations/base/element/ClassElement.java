@@ -6,7 +6,7 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.Dependency;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
-import studio.mevera.imperat.annotations.base.system.parsers.CommandClassVisitor;
+import studio.mevera.imperat.annotations.base.system.parsers.CommandClassParser;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.UnknownDependencyException;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -155,7 +155,7 @@ public non-sealed class ClassElement extends ParseElement<Class<?>> {
         return instance;
     }
 
-    public <S extends Source, R> R accept(CommandClassVisitor<S, R> visitor) {
+    public <S extends Source, R> R accept(CommandClassParser<S, R> visitor) {
         try {
             return visitor.visitCommandClass(this);
         } catch (Throwable ex) {

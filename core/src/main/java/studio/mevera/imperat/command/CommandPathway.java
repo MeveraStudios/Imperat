@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
-import studio.mevera.imperat.command.cooldown.UsageCooldown;
+import studio.mevera.imperat.command.cooldown.CooldownRecord;
 import studio.mevera.imperat.command.flags.FlagExtractor;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.ArgumentBuilder;
@@ -21,7 +21,9 @@ import studio.mevera.imperat.util.Preconditions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -40,7 +42,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
         Preconditions.notNull(usage, "usage");
         StringBuilder builder = new StringBuilder(command.getName()).append(' ');
 
-        List<Argument<S>> params = usage.loadCombinedParameters();
+        List<Argument<S>> params = usage.getParametersWithFlags();
         int i = 0;
         for (Argument<S> parameter : params) {
             builder.append(parameter.format()).append(":").append(parameter.type().getClass().getSimpleName());
@@ -59,7 +61,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             builder.append(' ');
         }
 
-        List<Argument<S>> params = usage.loadCombinedParameters();
+        List<Argument<S>> params = usage.getParametersWithFlags();
         int i = 0;
         for (Argument<S> parameter : params) {
             builder.append(parameter.format());
@@ -86,13 +88,9 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
 
     @Nullable MethodElement getMethodElement();
 
-    @Nullable CommandPathway<S> getInheritedPathway();
+    Queue<CommandPathway<S>> getPathwaysOfInheritedArguments();
 
     void setInheritedPathway(@Nullable CommandPathway<S> inheritedPathway);
-
-    void setInheritedParameters(List<Argument<S>> inherited);
-
-    void setPersonalParameters(List<Argument<S>> personal);
 
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
@@ -164,14 +162,14 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
      *
      * @param params the parameters to add
      */
-    void addParameters(Argument<S>... params);
+    void addArguments(Argument<S>... params);
 
     /**
      * Adds parameters to the usage
      *
      * @param params the parameters to add
      */
-    void addParameters(List<Argument<S>> params);
+    void addArguments(List<Argument<S>> params);
 
     /**
      * @return the parameters for this usage
@@ -303,21 +301,22 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
         return getArgumentAt(getArguments().size() - 1);
     }
 
-    List<Argument<S>> loadCombinedParameters();
+    List<Argument<S>> getParametersWithFlags();
+
+    boolean hasMatchingPartialSequence(List<Argument<S>> inheritedArgs);
 
     class Builder<S extends Source> {
 
         private final List<Argument<S>> parameters = new ArrayList<>();
-        private final List<Argument<S>> inheritedParameters = new ArrayList<>(); // NEW
         private final Set<FlagArgument<S>> flagArguments = new HashSet<>();
         private final List<String> examples = new ArrayList<>(3);
         private CommandExecution<S> execution = CommandExecution.empty();
         private Description description = Description.EMPTY;
         private PermissionsData permission = PermissionsData.empty();
-        private UsageCooldown cooldown = null;
+        private final @NotNull Queue<CommandPathway<S>> pathwaysOfInheritedArguments = new LinkedList<>();
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
         private @Nullable MethodElement methodElement;
-        private @Nullable CommandPathway<S> inheritancePathway = null;
+        private CooldownRecord cooldown = null;
 
         Builder(@Nullable MethodElement methodElement) {
             this.methodElement = methodElement;
@@ -332,8 +331,8 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             return this;
         }
 
-        public Builder<S> inheritancePathway(CommandPathway<S> inheritancePathway) {
-            this.inheritancePathway = inheritancePathway;
+        public Builder<S> inheritancePathways(Queue<CommandPathway<S>> inheritedPathways) {
+            this.pathwaysOfInheritedArguments.addAll(inheritedPathways);
             return this;
         }
 
@@ -367,11 +366,11 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
         }
 
         public Builder<S> cooldown(long value, TimeUnit unit, @Nullable String permission) {
-            this.cooldown = new UsageCooldown(value, unit, permission);
+            this.cooldown = new CooldownRecord(value, unit, permission);
             return this;
         }
 
-        public Builder<S> cooldown(@Nullable UsageCooldown cooldown) {
+        public Builder<S> cooldown(@Nullable CooldownRecord cooldown) {
             this.cooldown = cooldown;
             return this;
         }
@@ -413,12 +412,6 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             return this;
         }
 
-        // NEW: Method to set inherited parameters
-        public Builder<S> inheritedParameters(List<Argument<S>> params) {
-            this.inheritedParameters.clear();
-            this.inheritedParameters.addAll(params);
-            return this;
-        }
 
         public Builder<S> registerFlags(Set<FlagArgument<S>> flagArguments) {
             this.flagArguments.addAll(flagArguments);
@@ -427,17 +420,17 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
 
         public CommandPathway<S> build(@NotNull Command<S> command) {
             CommandPathwayImpl<S> impl = new CommandPathwayImpl<>(methodElement, execution);
-            impl.setInheritedPathway(inheritancePathway);
+            for (var inheritedPathway : pathwaysOfInheritedArguments) {
+                impl.setInheritedPathway(inheritedPathway);
+            }
+
             impl.setCoordinator(commandCoordinator);
             impl.setPermissionData(permission);
             impl.describe(description);
             impl.setCooldown(cooldown);
 
-            // CRITICAL: Set inherited parameters FIRST
-            impl.setInheritedParameters(inheritedParameters);
-
             // Then set personal parameters (these are used for tree building)
-            impl.setPersonalParameters(
+            impl.addArguments(
                     parameters.stream()
                             .peek((p) -> p.setParent(command))
                             .toList()
@@ -447,6 +440,48 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             impl.addExamples(this.examples);
             return impl;
         }
+
+        public CommandCoordinator<S> getCommandCoordinator() {
+            return commandCoordinator;
+        }
+
+        public CommandExecution<S> getExecution() {
+            return execution;
+        }
+
+        public CooldownRecord getCooldown() {
+            return cooldown;
+        }
+
+        public Description getDescription() {
+            return description;
+        }
+
+        public List<Argument<S>> getParameters() {
+            return parameters;
+        }
+
+        public List<String> getExamples() {
+            return examples;
+        }
+
+        public PermissionsData getPermission() {
+            return permission;
+        }
+
+        public Set<FlagArgument<S>> getFlagArguments() {
+            return flagArguments;
+        }
+
+        public @NotNull Queue<CommandPathway<S>> getPathwaysOfInheritedArguments() {
+            return pathwaysOfInheritedArguments;
+        }
+
+
+        public @Nullable MethodElement getMethodElement() {
+            return methodElement;
+        }
+
     }
 
 }
