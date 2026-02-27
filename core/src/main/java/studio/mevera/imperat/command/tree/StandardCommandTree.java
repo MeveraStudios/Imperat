@@ -22,7 +22,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -149,77 +148,39 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     }
 
     @Override
-    public void parseSubTree(@NotNull CommandTree<S> subTree) {
+    public void parseSubTree(@NotNull CommandTree<S> subTree, String attachmentNode) {
         var subCmd = subTree.root();
 
-        for (var subPathway : subCmd.getDedicatedPathways()) {
-
-            CommandPathway<S> inheritedPathway = null;
-            var inheritedPaths = new LinkedList<>(subPathway.getPathwaysOfInheritedArguments());
-            while (!inheritedPaths.isEmpty()) {
-                var candidate = inheritedPaths.poll();
-                if (!candidate.isDefault()) {
-                    inheritedPathway = candidate;
-                    break;
-                }
-
-            }
-
-            if (inheritedPathway != null && !inheritedPathway.isDefault()) {
-                // Find the node representing the LAST parameter of the inherited pathway
-                // This is where the subcommand should attach
-                var targetNode = findLastParamNodeOfPathway(root, inheritedPathway);
-                var targetUnique = findLastParamNodeOfPathway(uniqueRoot, inheritedPathway);
-                var targetUnflagged = findLastParamNodeOfPathway(unflaggedUniqueRoot, inheritedPathway);
-
-                if (targetNode != null) {
-                    targetNode.addChild(subTree.rootNode());
-                    assert targetUnique != null;
-                    targetUnique.addChild(subTree.uniqueVersionedTree());
-                    assert targetUnflagged != null;
-                    targetUnflagged.addChild(subTree.unflaggedUniqueVersionedTree());
-                    continue;
-                }
-            }
-
-            // Fallback: attach to root
+        if (attachmentNode.isBlank()) {
             root.addChild(subTree.rootNode());
             uniqueRoot.addChild(subTree.uniqueVersionedTree());
             unflaggedUniqueRoot.addChild(subTree.unflaggedUniqueVersionedTree());
+            return;
         }
+
+        // Find the node representing the LAST parameter of the inherited pathway
+        // This is where the subcommand should attach
+        var targetNode = findMatchingNode(root, attachmentNode);
+        var targetUnique = findMatchingNode(uniqueRoot, attachmentNode);
+        var targetUnflagged = findMatchingNode(unflaggedUniqueRoot, attachmentNode);
+
+        if (targetNode != null && targetUnique != null && targetUnflagged != null) {
+            targetNode.addChild(subTree.rootNode());
+            targetUnique.addChild(subTree.uniqueVersionedTree());
+            targetUnflagged.addChild(subTree.unflaggedUniqueVersionedTree());
+        }
+
     }
 
     /**
      * Finds the node representing the last parameter of a pathway.
      * This is where subcommands should attach.
      */
-    private @Nullable CommandNode<S, ?> findLastParamNodeOfPathway(
+    private @Nullable CommandNode<S, ?> findMatchingNode(
             LiteralCommandNode<S> root,
-            CommandPathway<S> pathway
+            String attachmentNode
     ) {
-        // Get the inherited params from the pathway
-        List<Argument<S>> params = pathway.getParametersWithFlags();
-        if (params.isEmpty()) {
-            return root;
-        }
-
-        // Navigate to the last param
-        CommandNode<S, ?> current = root;
-        for (Argument<S> param : params) {
-            CommandNode<S, ?> next = null;
-            for (var child : current.getChildren()) {
-                if (!child.isLiteral() && child.getData().getName().equals(param.getName())) {
-                    next = child;
-                    break;
-                }
-            }
-            if (next == null) {
-                return null; // Pathway not fully built yet
-            }
-            current = next;
-        }
-
-        return current;
+        return root.findNode((n) -> n.format().equals(attachmentNode));
     }
 
     private void addParametersToTree(

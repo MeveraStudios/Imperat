@@ -23,4 +23,9 @@ public @interface SubCommand {
      */
     boolean skipSuggestionsChecks() default false;
 
+    /**
+     * The format of the node/argument to attach this subcommand to. If empty, attaches to the parent command.
+     * @return the format of the node/argument to attach this subcommand to, or empty to attach to the parent command
+     */
+    String attachTo() default "";
 }

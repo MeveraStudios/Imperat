@@ -211,4 +211,17 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         //the highest priority comes first
         return this.priority().compareTo(o.priority());
     }
+
+    public @Nullable CommandNode<S, ?> findNode(Predicate<CommandNode<S, ?>> predicate) {
+        if (predicate.test(this)) {
+            return this;
+        }
+        for (var child : getChildren()) {
+            var found = child.findNode(predicate);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
 }

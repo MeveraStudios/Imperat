@@ -81,10 +81,10 @@ public interface CommandTree<S extends Source> {
      */
     void parseUsage(@NotNull CommandPathway<S> usage);
 
-    void parseSubTree(@NotNull CommandTree<S> subTree);
+    void parseSubTree(@NotNull CommandTree<S> subTree, String attachmentNode);
 
-    default void parseSubCommand(@NotNull Command<S> subCommand) {
-        parseSubTree(subCommand.tree());
+    default void parseSubCommand(@NotNull Command<S> subCommand, String attachmentNode) {
+        parseSubTree(subCommand.tree(), attachmentNode);
     }
 
     /**

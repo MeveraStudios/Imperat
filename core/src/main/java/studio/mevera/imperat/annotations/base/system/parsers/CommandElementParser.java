@@ -32,12 +32,9 @@ import studio.mevera.imperat.permissions.PermissionsData;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 
 public class CommandElementParser<S extends Source> extends CommandClassParser<S, Set<Command<S>>> {
@@ -65,7 +62,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         //core
         //two possibilities, either this class is a root command, or it's not. If it is, we parse it as a root command,
         // if it's not, we parse it as a regular class and look for methods and inner classes inside of it.
-
+        System.out.println("Parsing class: " + clazz.getElement().getName() + " with parent: " + (parent != null ? parent.getName() : "null"));
         Command<S> currentCommand;
         if (clazz.isAnnotationPresent(RootCommand.class)) {
             //umm
@@ -97,6 +94,9 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                 );
             }
 
+            //verify that attachnode exists in parent command if it's not blank
+            verifyAttachmentNodeExistsInParent(parent, ann.attachTo(), clazz.getElement().getName());
+
             String[] values = config.replacePlaceholders(ann.value());
             currentCommand = Command.create(imperat, parent, 0, values[0])
                                      .aliases(Arrays.asList(values).subList(1, values.length))
@@ -121,13 +121,24 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                         currentCommand,
                         parsePathwayMethod(currentCommand, method)
                 ).build(currentCommand);
+                System.out.println("==> Adding pathway '" + pathway.formatted() + "' from method: " + method.getName() + " to command: "
+                                           + currentCommand.getName());
                 currentCommand.addPathway(pathway);
             }
 
             if (method.isAnnotationPresent(SubCommand.class)) {
-                currentCommand.addSubCommand(
-                        parseCommandMethod(currentCommand, method)
-                );
+                var sub = parseCommandMethod(currentCommand, method);
+                System.out.println("==> Adding subcommand '" + sub.getName() + "' from method: " + method.getName() + " to command: "
+                                           + currentCommand.getName());
+                System.out.println("  ==> Subcommand '" + sub.getName() + "' has pathways: ");
+
+                SubCommand ann = method.isAnnotationPresent(SubCommand.class) ? method.getAnnotation(SubCommand.class) :
+                                         method.getParent().getAnnotation(SubCommand.class);
+                assert ann != null;
+
+                String attachmentNodeFormat = ann.attachTo();
+                verifyAttachmentNodeExistsInParent(parent, attachmentNodeFormat, currentCommand.getName());
+                currentCommand.addSubCommand(sub, attachmentNodeFormat);
             }
         }
 
@@ -143,11 +154,44 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         for (ClassElement inner : innerClasses) {
             Command<S> subCommand = parseSpecificClass(currentCommand, inner);
             if (subCommand != null) {
-                currentCommand.addSubCommand(subCommand);
+                System.out.println(
+                        "==> Adding subcommand '" + subCommand.getName() + "' from inner class: " + inner.getElement().getName() + " to command: "
+                                + currentCommand.getName());
+                SubCommand ann = inner.getAnnotation(SubCommand.class);
+                assert ann != null;
+                String attachmentNodeFormat = ann.attachTo();
+                currentCommand.addSubCommand(subCommand, attachmentNodeFormat);
             }
         }
 
         return currentCommand;
+    }
+
+    private void verifyAttachmentNodeExistsInParent(@Nullable Command<S> parent, String attachmentNode, String commandName) {
+        if (attachmentNode.isBlank()) {
+            return;
+        }
+
+        if (parent == null) {
+            throw new IllegalStateException(
+                    "Command '" + commandName + "' specifies an attachment node format of '" + attachmentNode
+                            + "' but does not have a parent command to "
+                            + "attach to."
+                            + " Only subcommands can specify attachment nodes."
+            );
+        }
+
+        boolean found = parent.getDedicatedPathways().stream()
+                                .flatMap((path) -> path.getArguments().stream())
+                                .anyMatch((arg) -> arg.format().equals(attachmentNode));
+        if (!found) {
+            throw new IllegalStateException(
+                    "Command '" + commandName + "' specifies an attachment node format of '" + attachmentNode
+                            + "' but no argument with that format was found"
+                            + " in the parent command '"
+                            + parent.getName() + "'."
+            );
+        }
     }
 
     protected Command<S> parseCommandMethod(@Nullable Command<S> parent, MethodElement method) {
@@ -206,7 +250,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
 
         List<Argument<S>> personalParams = new ArrayList<>();
         for (ParameterElement param : method.getParameters()) {
-            if (isSenderParameter(param)) {
+            if (isSenderParameter(param) || param.isAnnotationPresent(InheritedArg.class)) {
                 continue;
             }
 
@@ -215,33 +259,6 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                 personalParams.add(argument);
             } else {
                 throw new IllegalArgumentException("Failed to parse parameter '" + param.getName() + "' in method '" + method.getName() + "'");
-            }
-        }
-        //We need to find/deduce which pathway, this SUB-PATHWAY is inheriting from if any.
-        Queue<CommandPathway<S>> inheritedPathways = new LinkedList<>();
-        if (method.isAnnotationPresent(SubCommand.class) || method.getParent().isAnnotationPresent(SubCommand.class)) {
-            List<Argument<S>> inheritedArgs = new ArrayList<>(
-                    method.getParameters()
-                            .stream()
-                            .filter((p) -> p.isAnnotationPresent(InheritedArg.class))
-                            .filter((p) -> !isSenderParameter(p))
-                            .map((p) -> parseMethodParameter(method, p))
-                            .filter(Objects::nonNull)
-                            .toList()
-            );
-            Collections.reverse(inheritedArgs);
-
-            Command<S> curr = owningCommand.getParent();
-            while (curr != null) {
-
-                for (var parenteralPathway : curr.getDedicatedPathways()) {
-                    if (parenteralPathway.hasMatchingPartialSequence(inheritedArgs)) {
-                        inheritedPathways.add(parenteralPathway);
-                        break;
-                    }
-                }
-
-                curr = curr.getParent();
             }
         }
 
@@ -254,7 +271,6 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                                          config.replacePlaceholders(Objects.requireNonNull(method.getAnnotation(Execute.class)).examples()) :
                                          new String[0])
                         )
-                        .inheritancePathways(inheritedPathways)
                         .execute(MethodCommandExecutor.of(imperat, method))
         );
 

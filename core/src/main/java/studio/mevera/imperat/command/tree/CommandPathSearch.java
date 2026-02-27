@@ -127,7 +127,6 @@ public final class CommandPathSearch<S extends Source> {
             }
 
             return CommandPathway.<S>builder(executableUsage.getMethodElement())
-                           .inheritancePathways(executableUsage.getPathwaysOfInheritedArguments())
                            .parameters(args)
                            .execute(executableUsage.getExecution())
                            .cooldown(executableUsage.getCooldown())

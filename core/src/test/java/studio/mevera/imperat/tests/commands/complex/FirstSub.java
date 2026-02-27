@@ -8,8 +8,8 @@ import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.annotations.Suggest;
 import studio.mevera.imperat.tests.TestSource;
 
-@SubCommand("first")
-@ExternalSubCommand(SecondSub.class)
+@SubCommand(value = "first", attachTo = "<otherText2>")
+@ExternalSubCommand({SecondSub.class})
 public final class FirstSub {
 
     @Execute

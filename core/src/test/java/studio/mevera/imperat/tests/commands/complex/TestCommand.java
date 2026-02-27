@@ -45,19 +45,25 @@ public class TestCommand {
     public static class Sub1 {
 
         @Execute
-        public void defaultUsage(TestSource source, @InheritedArg @Named("otherText") String otherText,
-                @InheritedArg @Named("otherText2") String otherText2) {
+        public void defaultUsage(
+                TestSource source,
+                @InheritedArg @Named("otherText") String otherText,
+                @InheritedArg @Named("otherText2") String otherText2
+        ) {
             source.reply("default sub1");
         }
 
         @Execute
-        public void sub1Main(TestSource source, @InheritedArg @Named("otherText") String otherText,
-                @InheritedArg @Named("otherText2") String otherText2, @Named(
-                        "a") String a) {
+        public void sub1Main(
+                TestSource source,
+                @InheritedArg @Named("otherText") String otherText,
+                @InheritedArg @Named("otherText2") String otherText2,
+                @Named("a") String a
+        ) {
             source.reply("otherText=" + otherText + ", sub1-main a=" + a);
         }
 
-        @SubCommand("sub2")
+        @SubCommand(value = "sub2", attachTo = "<a>")
         public static class Sub2 {
 
 
@@ -75,7 +81,7 @@ public class TestCommand {
                 source.reply("sub2-main b=" + b);
             }
 
-            @SubCommand("sub3")
+            @SubCommand(value = "sub3", attachTo = "<b>")
             public static class Sub3 {
 
                 @Execute
@@ -121,7 +127,7 @@ public class TestCommand {
             source.reply("sub4 a=" + a);
         }
 
-        @SubCommand("sub5")
+        @SubCommand(value = "sub5", attachTo = "<a>")
         public static class Sub5 {
 
             @Execute
@@ -140,7 +146,7 @@ public class TestCommand {
                 source.reply("sub4 a= " + a + ", sub5 b=" + b);
             }
 
-            @SubCommand("sub6")
+            @SubCommand(value = "sub6", attachTo = "<b>")
             public static class Sub6 {
 
                 @Execute

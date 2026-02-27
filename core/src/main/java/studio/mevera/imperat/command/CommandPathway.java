@@ -21,9 +21,7 @@ import studio.mevera.imperat.util.Preconditions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -87,10 +85,6 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
     }
 
     @Nullable MethodElement getMethodElement();
-
-    Queue<CommandPathway<S>> getPathwaysOfInheritedArguments();
-
-    void setInheritedPathway(@Nullable CommandPathway<S> inheritedPathway);
 
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
@@ -313,7 +307,6 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
         private CommandExecution<S> execution = CommandExecution.empty();
         private Description description = Description.EMPTY;
         private PermissionsData permission = PermissionsData.empty();
-        private final @NotNull Queue<CommandPathway<S>> pathwaysOfInheritedArguments = new LinkedList<>();
         private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
         private @Nullable MethodElement methodElement;
         private CooldownRecord cooldown = null;
@@ -331,10 +324,6 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
             return this;
         }
 
-        public Builder<S> inheritancePathways(Queue<CommandPathway<S>> inheritedPathways) {
-            this.pathwaysOfInheritedArguments.addAll(inheritedPathways);
-            return this;
-        }
 
         public Builder<S> coordinator(CommandCoordinator<S> commandCoordinator) {
             this.commandCoordinator = commandCoordinator;
@@ -420,9 +409,6 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
 
         public CommandPathway<S> build(@NotNull Command<S> command) {
             CommandPathwayImpl<S> impl = new CommandPathwayImpl<>(methodElement, execution);
-            for (var inheritedPathway : pathwaysOfInheritedArguments) {
-                impl.setInheritedPathway(inheritedPathway);
-            }
 
             impl.setCoordinator(commandCoordinator);
             impl.setPermissionData(permission);
@@ -472,11 +458,6 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
         public Set<FlagArgument<S>> getFlagArguments() {
             return flagArguments;
         }
-
-        public @NotNull Queue<CommandPathway<S>> getPathwaysOfInheritedArguments() {
-            return pathwaysOfInheritedArguments;
-        }
-
 
         public @Nullable MethodElement getMethodElement() {
             return methodElement;

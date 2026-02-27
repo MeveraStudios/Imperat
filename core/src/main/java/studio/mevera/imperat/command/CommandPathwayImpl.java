@@ -23,10 +23,8 @@ import studio.mevera.imperat.util.Patterns;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.function.Predicate;
 
 @ApiStatus.Internal
@@ -42,7 +40,6 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
     private PermissionsData permissionsData = PermissionsData.empty();
     private Description description = Description.of("N/A");
     private @NotNull CooldownHandler<S> cooldownHandler;
-    private final @NotNull Queue<CommandPathway<S>> pathwaysOfInheritedArguments = new LinkedList<>();
     private CommandCoordinator<S> commandCoordinator;
     private final @Nullable MethodElement methodElement;
     private @Nullable CooldownRecord cooldown = null;
@@ -59,16 +56,6 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
     @Override
     public @Nullable MethodElement getMethodElement() {
         return methodElement;
-    }
-
-    @Override
-    public @NotNull Queue<CommandPathway<S>> getPathwaysOfInheritedArguments() {
-        return pathwaysOfInheritedArguments;
-    }
-
-    @Override
-    public void setInheritedPathway(@Nullable CommandPathway<S> inheritedPathway) {
-        pathwaysOfInheritedArguments.add(inheritedPathway);
     }
 
     @Override

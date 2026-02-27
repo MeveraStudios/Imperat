@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
-import studio.mevera.imperat.annotations.base.system.ParameterInheritanceChain;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
@@ -33,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,8 +72,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
                     .build();
     private @Nullable Command<S> parent;
 
-    private final Map<CommandPathway<S>, ParameterInheritanceChain<S>> inheritanceChains = new IdentityHashMap<>();
-
 
     CommandImpl(
             Imperat<S> imperat,
@@ -104,17 +100,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
         }
         //dedicatedPathways.put(pathway);
         this.defaultPathway = pathway;
-    }
-    // Add to CommandImpl class:
-
-    @Override
-    public void registerInheritance(CommandPathway<S> pathway, ParameterInheritanceChain<S> chain) {
-        inheritanceChains.put(pathway, chain);
-    }
-
-    @Override
-    public ParameterInheritanceChain<S> getInheritanceChain(CommandPathway<S> pathway) {
-        return inheritanceChains.getOrDefault(pathway, ParameterInheritanceChain.empty());
     }
 
     @Override
@@ -426,28 +411,13 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param subCommand the subcommand to inject
      */
     @Override
-    public void addSubCommand(Command<S> subCommand) {
+    public void addSubCommand(Command<S> subCommand, String attachmentNode) {
         subCommand.setParent(this);
         children.put(subCommand.getName(), subCommand);
         for (String alias : subCommand.aliases()) {
             children.put(alias, subCommand);
         }
-        this.tree.parseSubCommand(subCommand);
-    }
-
-    @Override
-    public void addSubCommandUsage(
-            String subCommand,
-            List<String> aliases,
-            CommandPathway.Builder<S> usage
-    ) {
-        //creating subcommand to modify
-        Command<S> subCmd =
-                Command.create(imperat, this, subCommand.toLowerCase())
-                        .aliases(aliases)
-                        .pathway(usage)
-                        .build();
-        addSubCommand(subCmd);
+        this.tree.parseSubCommand(subCommand, attachmentNode);
     }
 
     /**

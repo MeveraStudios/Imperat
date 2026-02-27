@@ -6,7 +6,7 @@ import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.SubCommand;
 import studio.mevera.imperat.tests.TestSource;
 
-@SubCommand("second")
+@SubCommand(value = "second", attachTo = "<arg1>")
 public class SecondSub {
 
     @Execute

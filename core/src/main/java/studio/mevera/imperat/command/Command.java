@@ -7,7 +7,6 @@ import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.BaseThrowableHandler;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
-import studio.mevera.imperat.annotations.base.system.ParameterInheritanceChain;
 import studio.mevera.imperat.annotations.parameters.AnnotatedArgument;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.DefaultValueProvider;
@@ -28,7 +27,6 @@ import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -270,10 +268,6 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     Collection<? extends CommandPathway<S>> getAllPossiblePathways();
 
-    void registerInheritance(CommandPathway<S> pathway, ParameterInheritanceChain<S> chain);
-
-    ParameterInheritanceChain<S> getInheritanceChain(CommandPathway<S> pathway);
-
     /**
      * @return the pathways that are directly attached to this command
      * without being inherited from a parent command
@@ -291,27 +285,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      *
      * @param command the subcommand to inject
      */
-    void addSubCommand(Command<S> command);
-
-    /**
-     * Creates and adds a new sub-command (if it doesn't exist) then add
-     * the {@link CommandPathway} to the sub-command
-     *
-     * @param subCommand the sub-command's unique name
-     * @param aliases    of the subcommand
-     * @param usage      the usage
-     */
-    void addSubCommandUsage(
-            String subCommand,
-            List<String> aliases,
-            CommandPathway.Builder<S> usage);
-
-    default void addSubCommandUsage(
-            String subCommand,
-            CommandPathway.Builder<S> usage
-    ) {
-        addSubCommandUsage(subCommand, Collections.emptyList(), usage);
-    }
+    void addSubCommand(Command<S> command, String attachTo);
 
     /**
      * @param name the name of the wanted sub-command
@@ -492,9 +466,13 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
             return this;
         }
 
-        public Builder<S> subCommand(Command<S> subCommand) {
-            cmd.addSubCommand(subCommand);
+        public Builder<S> subCommand(Command<S> subCommand, String attachTo) {
+            cmd.addSubCommand(subCommand, attachTo);
             return this;
+        }
+
+        public Builder<S> subCommand(Command<S> subCommand) {
+            return subCommand(subCommand, "");
         }
 
 
