@@ -45,7 +45,6 @@ final class ParameterParser<S extends Source> {
 
     private static final String VALUES_SEPARATION_CHAR = "\\|";
 
-
     private final ImperatConfig<S> config;
 
     ParameterParser(ImperatConfig<S> config) {
@@ -143,13 +142,6 @@ final class ParameterParser<S extends Source> {
         );
     }
 
-    private List<String> getAllExceptFirst(String[] flagAliases) {
-        if (flagAliases.length <= 1) {
-            return List.of();
-        }
-        return Arrays.asList(Arrays.copyOfRange(flagAliases, 1, flagAliases.length));
-    }
-
     @SuppressWarnings("unchecked")
     private <T> ArgumentType<S, T> resolveArgumentType(ParameterElement param) {
         ArgType argTypeAnn = param.getAnnotation(ArgType.class);
@@ -171,7 +163,6 @@ final class ParameterParser<S extends Source> {
 
         return type;
     }
-
 
     // ==================== Parameter Parsing Helpers ====================
 
@@ -267,4 +258,10 @@ final class ParameterParser<S extends Source> {
         return validators;
     }
 
+    private List<String> getAllExceptFirst(String[] flagAliases) {
+        if (flagAliases.length <= 1) {
+            return List.of();
+        }
+        return Arrays.asList(Arrays.copyOfRange(flagAliases, 1, flagAliases.length));
+    }
 }

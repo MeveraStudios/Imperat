@@ -52,7 +52,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
     }
 
     @Override
-    public Set<Command<S>> visitCommandClass(@NotNull ClassElement clazz) throws Exception {
+    public Set<Command<S>> visitCommandClass(@NotNull ClassElement clazz) {
         Set<Command<S>> commands = new LinkedHashSet<>();
         commands.add(parseSpecificClass(null, clazz));
         commands.addAll(parseEmbeddedRoots(clazz));
@@ -346,7 +346,6 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
 
         return builder;
     }
-
 
     protected Argument<S> parseMethodParameter(MethodElement method, ParameterElement parameter) {
         return parameterParser.parseParameter(parameter);
