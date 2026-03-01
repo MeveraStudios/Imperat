@@ -2,8 +2,8 @@ package studio.mevera.imperat.annotations.base;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
+import studio.mevera.imperat.annotations.types.RootCommand;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;

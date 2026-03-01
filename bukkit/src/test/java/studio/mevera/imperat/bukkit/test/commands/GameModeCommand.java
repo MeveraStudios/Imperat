@@ -3,11 +3,11 @@ package studio.mevera.imperat.bukkit.test.commands;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.annotations.Default;
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.Permission;
-import studio.mevera.imperat.annotations.RootCommand;
+import studio.mevera.imperat.annotations.types.Default;
+import studio.mevera.imperat.annotations.types.Execute;
+import studio.mevera.imperat.annotations.types.Named;
+import studio.mevera.imperat.annotations.types.Permission;
+import studio.mevera.imperat.annotations.types.RootCommand;
 
 @RootCommand({"gamemode", "gm"})
 @Permission("lobby.gamemode")

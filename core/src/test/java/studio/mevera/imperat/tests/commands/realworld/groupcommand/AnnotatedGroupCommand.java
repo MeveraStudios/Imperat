@@ -1,13 +1,13 @@
 package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
-import studio.mevera.imperat.annotations.Context;
-import studio.mevera.imperat.annotations.Description;
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.annotations.InheritedArg;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.RootCommand;
-import studio.mevera.imperat.annotations.Shortcut;
-import studio.mevera.imperat.annotations.SubCommand;
+import studio.mevera.imperat.annotations.types.Context;
+import studio.mevera.imperat.annotations.types.Description;
+import studio.mevera.imperat.annotations.types.Execute;
+import studio.mevera.imperat.annotations.types.InheritedArg;
+import studio.mevera.imperat.annotations.types.Named;
+import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.Shortcut;
+import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.tests.TestSource;
 

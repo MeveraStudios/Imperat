@@ -1,12 +1,12 @@
 package studio.mevera.imperat.tests.commands.realworld;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.annotations.Default;
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.Optional;
-import studio.mevera.imperat.annotations.RootCommand;
-import studio.mevera.imperat.annotations.Suggest;
+import studio.mevera.imperat.annotations.types.Default;
+import studio.mevera.imperat.annotations.types.Execute;
+import studio.mevera.imperat.annotations.types.Named;
+import studio.mevera.imperat.annotations.types.Optional;
+import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.Suggest;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 

@@ -54,6 +54,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private PermissionsData permissions = PermissionsData.empty();
     private Description description = Description.EMPTY;
     private boolean suppressACPermissionChecks = false;
+    private boolean secret = false;
 
     //pathways that are directly linked to this command, meaning that they don't include any sub-command in their allPathways
     private final CommandPathwaySet<S> dedicatedPathways = new CommandPathwaySet<>();
@@ -401,6 +402,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
 
+
     /**
      * Injects a created-subcommand directly into the parent's command allPathways.
      *
@@ -463,6 +465,15 @@ final class CommandImpl<S extends Source> implements Command<S> {
         shortcuts.put(shortcut.getName(), shortcut);
     }
 
+    @Override
+    public boolean isSecret() {
+        return secret;
+    }
+
+    @Override
+    public void setSecret(boolean secret) {
+        this.secret = secret;
+    }
     /**
      * whether to ignore permission checks on the auto-completion of command and
      * sub commands or not

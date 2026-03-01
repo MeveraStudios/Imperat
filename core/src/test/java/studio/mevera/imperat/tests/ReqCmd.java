@@ -1,7 +1,7 @@
 package studio.mevera.imperat.tests;
 
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.annotations.RootCommand;
+import studio.mevera.imperat.annotations.types.Execute;
+import studio.mevera.imperat.annotations.types.RootCommand;
 
 @RootCommand("req")
 public class ReqCmd {

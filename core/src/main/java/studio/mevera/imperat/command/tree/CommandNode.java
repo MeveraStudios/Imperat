@@ -170,6 +170,14 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         return this.data.isFlag();
     }
 
+    /**
+     * Whether this node represents a secret command.
+     * Only meaningful for literal (command) nodes.
+     */
+    public boolean isSecret() {
+        return isLiteral() && data.asCommand().isSecret();
+    }
+
     public @Nullable CommandNode<S, ?> getParent() {
         return parent;
     }
@@ -223,4 +231,5 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         }
         return null;
     }
+
 }

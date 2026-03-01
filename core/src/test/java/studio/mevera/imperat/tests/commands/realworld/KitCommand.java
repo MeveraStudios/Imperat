@@ -1,10 +1,10 @@
 package studio.mevera.imperat.tests.commands.realworld;
 
-import studio.mevera.imperat.annotations.Default;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.Optional;
-import studio.mevera.imperat.annotations.RootCommand;
-import studio.mevera.imperat.annotations.SubCommand;
+import studio.mevera.imperat.annotations.types.Default;
+import studio.mevera.imperat.annotations.types.Named;
+import studio.mevera.imperat.annotations.types.Optional;
+import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.util.ImperatDebugger;
 

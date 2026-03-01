@@ -369,6 +369,21 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
         return false;
     }
 
+    /**
+     * @return checks whether this parameter is secret, meaning it won't be displayed in the usage of the command,
+     * and it will be ignored in the auto-completion suggestions
+     */
+    boolean isSecret();
+
+    /**
+     * Sets whether this parameter is secret, meaning it won't be displayed in the usage of the command,
+     * and it will be ignored in the auto-completion suggestions
+     *
+     * @param secret true if you want this parameter to be secret, false otherwise
+     */
+    void setSecret(boolean secret);
+
+
     @Override
     @SuppressWarnings("all")
     default Command<S> asCommand() {
@@ -427,6 +442,11 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
 
         Builder(@NotNull Imperat<S> imperat, @Nullable Command<S> parent, int position, String name) {
             this(imperat, parent, position, name, null);
+        }
+
+        public Builder<S> secret(boolean secret) {
+            this.cmd.setSecret(secret);
+            return this;
         }
 
         public Builder<S> supressPermissionsForAutoCompletion(boolean ignore) {
@@ -509,4 +529,5 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
             return cmd;
         }
     }
+
 }

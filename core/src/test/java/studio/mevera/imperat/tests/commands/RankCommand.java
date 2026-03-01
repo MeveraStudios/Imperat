@@ -1,12 +1,12 @@
 package studio.mevera.imperat.tests.commands;
 
-import studio.mevera.imperat.annotations.Default;
-import studio.mevera.imperat.annotations.Description;
-import studio.mevera.imperat.annotations.Flag;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.RootCommand;
-import studio.mevera.imperat.annotations.SubCommand;
-import studio.mevera.imperat.annotations.Switch;
+import studio.mevera.imperat.annotations.types.Default;
+import studio.mevera.imperat.annotations.types.Description;
+import studio.mevera.imperat.annotations.types.Flag;
+import studio.mevera.imperat.annotations.types.Named;
+import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.SubCommand;
+import studio.mevera.imperat.annotations.types.Switch;
 import studio.mevera.imperat.tests.TestSource;
 
 import java.time.Duration;

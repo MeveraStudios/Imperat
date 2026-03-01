@@ -1,13 +1,13 @@
 package studio.mevera.imperat.annotations.base.element;
 
-import studio.mevera.imperat.annotations.Context;
-import studio.mevera.imperat.annotations.Default;
-import studio.mevera.imperat.annotations.DefaultProvider;
-import studio.mevera.imperat.annotations.Flag;
-import studio.mevera.imperat.annotations.Optional;
-import studio.mevera.imperat.annotations.Switch;
 import studio.mevera.imperat.annotations.base.AnnotationHelper;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
+import studio.mevera.imperat.annotations.types.Context;
+import studio.mevera.imperat.annotations.types.Default;
+import studio.mevera.imperat.annotations.types.DefaultProvider;
+import studio.mevera.imperat.annotations.types.Flag;
+import studio.mevera.imperat.annotations.types.Optional;
+import studio.mevera.imperat.annotations.types.Switch;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.TypeWrap;
 

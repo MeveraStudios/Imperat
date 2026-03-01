@@ -1,10 +1,10 @@
 package studio.mevera.imperat.tests.commands.realworld.economy;
 
-import studio.mevera.imperat.annotations.Async;
-import studio.mevera.imperat.annotations.Default;
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.annotations.RootCommand;
-import studio.mevera.imperat.annotations.SubCommand;
+import studio.mevera.imperat.annotations.types.Async;
+import studio.mevera.imperat.annotations.types.Default;
+import studio.mevera.imperat.annotations.types.Execute;
+import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 

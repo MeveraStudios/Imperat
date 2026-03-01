@@ -1,10 +1,10 @@
 package studio.mevera.imperat;
 
 import org.jetbrains.annotations.Contract;
-import studio.mevera.imperat.annotations.ExceptionHandler;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.AnnotationReader;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
+import studio.mevera.imperat.annotations.types.ExceptionHandler;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 

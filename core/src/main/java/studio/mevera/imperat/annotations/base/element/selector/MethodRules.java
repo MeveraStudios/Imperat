@@ -1,10 +1,10 @@
 package studio.mevera.imperat.annotations.base.element.selector;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.annotations.ExceptionHandler;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
+import studio.mevera.imperat.annotations.types.ExceptionHandler;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.TypeUtility;

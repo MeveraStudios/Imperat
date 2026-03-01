@@ -1,6 +1,6 @@
 package studio.mevera.imperat.annotations.base;
 
-import studio.mevera.imperat.annotations.ParseOrder;
+import studio.mevera.imperat.annotations.types.ParseOrder;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;

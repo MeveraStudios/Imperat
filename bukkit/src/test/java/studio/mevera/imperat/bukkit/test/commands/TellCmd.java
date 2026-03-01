@@ -1,11 +1,11 @@
 package studio.mevera.imperat.bukkit.test.commands;
 
 import org.bukkit.entity.Player;
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.annotations.Greedy;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.RootCommand;
-import studio.mevera.imperat.annotations.Suggest;
+import studio.mevera.imperat.annotations.types.Execute;
+import studio.mevera.imperat.annotations.types.Greedy;
+import studio.mevera.imperat.annotations.types.Named;
+import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.Suggest;
 
 /**
  * A simple test command: /greet [name]

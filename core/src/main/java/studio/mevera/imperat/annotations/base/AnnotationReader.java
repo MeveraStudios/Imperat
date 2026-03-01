@@ -6,8 +6,8 @@ import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.RootCommandClass;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
-import studio.mevera.imperat.annotations.base.system.parsers.CommandClassParser;
-import studio.mevera.imperat.annotations.base.system.parsers.MethodThrowableResolver;
+import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
+import studio.mevera.imperat.annotations.base.parsers.MethodThrowableResolver;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
 

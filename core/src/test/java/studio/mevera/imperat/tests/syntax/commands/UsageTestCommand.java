@@ -1,8 +1,8 @@
 package studio.mevera.imperat.tests.syntax.commands;
 
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.RootCommand;
-import studio.mevera.imperat.annotations.SubCommand;
+import studio.mevera.imperat.annotations.types.Named;
+import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 @RootCommand("usagetest")

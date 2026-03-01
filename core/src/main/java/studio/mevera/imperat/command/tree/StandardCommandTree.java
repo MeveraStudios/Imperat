@@ -492,6 +492,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         // Greedy parameter — consumes all remaining input
         if (currentNode.isGreedyParam()) {
             if (currentNode.isExecutable()) {
+                assert currentNode.getExecutableUsage() != null;
                 return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
             }
             return noMatchFromNode(currentNode);
@@ -532,6 +533,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (children.isEmpty()) {
             // No children — execute if no unconsumed non-flag input tokens left
             if (currentNode.isExecutable() && nextDepth >= effectiveInputSize) {
+                assert currentNode.getExecutableUsage() != null;
                 return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
             }
             return noMatchFromNode(currentNode);
@@ -566,6 +568,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         // but only if the effective input (non-flag tokens) doesn't exceed the pathway's capacity
         if (currentNode.isExecutable()) {
             CommandPathway<S> pathway = currentNode.getExecutableUsage();
+            assert pathway != null;
             if (effectiveInputSize <= pathway.getArguments().size()) {
                 return executePathway(context, pathway, getCommandFromNode(currentNode));
             }
@@ -634,11 +637,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         // Also check root command's default pathway
         CommandPathway<S> defaultPathway = rootCommand.getDefaultPathway();
-        FlagData<S> flag = matchFlagFromPathway(defaultPathway, rawToken);
-        if (flag != null) {
-            return flag;
-        }
-        return null;
+        return matchFlagFromPathway(defaultPathway, rawToken);
     }
 
     /**
@@ -677,14 +676,10 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
 
         if (node.isExecutable()) {
+            assert node.getExecutableUsage() != null;
             return executePathway(context, node.getExecutableUsage(), getCommandFromNode(node));
         }
 
-        // Literal node without executable usage — it's a valid match but no execution target
-        if (node.isLiteral()) {
-            // Try to find executable in children (e.g., default sub-pathway)
-            return noMatchFromNode(node);
-        }
 
         return noMatchFromNode(node);
     }
@@ -706,6 +701,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
 
         // Optional node didn't match — if it's executable, we can execute (skipping the optional arg)
         if (currentNode.isExecutable()) {
+            assert currentNode.getExecutableUsage() != null;
             return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
         }
 
@@ -833,6 +829,11 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         if (results.size() >= query.getLimit()) {
             return;
         }
+        // Secret commands are hidden from help — skip the entire subtree
+        if (node.isSecret()) {
+            return;
+        }
+
         // Apply filters to current node
         if (!passesFilters(node, query.getFilters())) {
             return;
@@ -881,12 +882,12 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             List<String> results
     ) {
 
-        if (!hasAutoCompletionPermission(context.source(), root)) {
+        if (!hasAutoCompletionPermission(context.source(), root) || root.isSecret()) {
             return Collections.emptyList();
         }
 
         for (var child : root.getChildren()) {
-            tabCompleteNode(child, context, 0, results);
+            tabCompleteNode(child, context, 0, root, results);
         }
         return results.stream()
                        .filter((suggestion) -> !hasPrefix || fastStartsWith(suggestion, prefix))
@@ -897,8 +898,17 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             final CommandNode<S, ?> node,
             final SuggestionContext<S> context,
             int inputDepth,
+            final CommandNode<S, ?> lastLiteral,
             final List<String> results
     ) {
+
+        // Track the last literal node visited — update if current node is literal
+        final CommandNode<S, ?> currentLastLiteral = node.isLiteral() ? node : lastLiteral;
+
+        // If the last literal command we traversed through is secret, skip all suggestions
+        if (currentLastLiteral != null && currentLastLiteral.isSecret()) {
+            return;
+        }
 
         int lastIndex = context.getArgToComplete().index();
         if (inputDepth > lastIndex) {
@@ -934,7 +944,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
 
             if (node.isGreedyParam()) {
-                tabCompleteNode(node, context, lastIndex, results);
+                tabCompleteNode(node, context, lastIndex, currentLastLiteral, results);
                 return;
             }
 
@@ -949,7 +959,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                     }
                     int skip = flagData.isSwitch() ? 1 : 2;
                     // Continue with the same node at the skipped depth
-                    tabCompleteNode(node, context, inputDepth + skip, results);
+                    tabCompleteNode(node, context, inputDepth + skip, currentLastLiteral, results);
                     return;
                 }
             }
@@ -959,7 +969,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             }
 
             for (var child : node.getChildren()) {
-                tabCompleteNode(child, context, inputDepth + node.getNumberOfParametersToConsume(), results);
+                tabCompleteNode(child, context, inputDepth + node.getNumberOfParametersToConsume(), currentLastLiteral, results);
             }
 
         }
@@ -1019,11 +1029,9 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         }
         // Also check root command's default pathway
         CommandPathway<S> defaultPathway = rootCommand.getDefaultPathway();
-        if (defaultPathway != null) {
-            var flags = defaultPathway.getFlagExtractor().getRegisteredFlags();
-            if (!flags.isEmpty()) {
-                return flags;
-            }
+        var flags = defaultPathway.getFlagExtractor().getRegisteredFlags();
+        if (!flags.isEmpty()) {
+            return flags;
         }
         return Set.of();
     }

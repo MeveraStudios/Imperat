@@ -3,8 +3,8 @@ package studio.mevera.imperat.tests;
 import static studio.mevera.imperat.tests.commands.TestCommands.CHAINED_SUBCOMMANDS_CMD;
 import static studio.mevera.imperat.tests.commands.TestCommands.MULTIPLE_OPTIONAL_CMD;
 
-import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
+import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
@@ -18,6 +18,7 @@ import studio.mevera.imperat.tests.commands.MultipleVariantsCmd;
 import studio.mevera.imperat.tests.commands.MyCustomAnnotation;
 import studio.mevera.imperat.tests.commands.OptionalArgCommand;
 import studio.mevera.imperat.tests.commands.RankCommand;
+import studio.mevera.imperat.tests.commands.SecretCommand;
 import studio.mevera.imperat.tests.commands.SetRankCmd;
 import studio.mevera.imperat.tests.commands.SomeClass;
 import studio.mevera.imperat.tests.commands.Test2Command;
@@ -143,6 +144,9 @@ public class ImperatTestGlobals {
         );
 
         IMPERAT.registerCommands(EconomyCommand.class, BalanceCmd.class);
+
+        // Register secret command for testing
+        IMPERAT.registerCommand(SecretCommand.class);
 
         // Register syntax test commands
         IMPERAT.registerCommand(UsageTestCommand.class);

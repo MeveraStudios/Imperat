@@ -61,5 +61,8 @@ public final class LiteralCommandNode<S extends Source> extends CommandNode<S, C
         return findNodeForPathway(new LinkedList<>(inheritedPathway.getArguments()), this);
     }
 
+    public boolean isSecret() {
+        return data.isSecret();
+    }
 
 }

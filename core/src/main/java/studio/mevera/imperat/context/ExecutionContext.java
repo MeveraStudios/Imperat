@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
+import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
@@ -43,7 +44,7 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @ApiStatus.AvailableSince("1.0.0")
-@studio.mevera.imperat.annotations.Context
+@Context
 public interface ExecutionContext<S extends Source> extends CommandContext<S> {
 
 

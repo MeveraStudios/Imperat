@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.annotations.Context;
+import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;

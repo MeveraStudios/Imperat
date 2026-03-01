@@ -1,9 +1,9 @@
 package studio.mevera.imperat.tests.commands.complex;
 
-import studio.mevera.imperat.annotations.Execute;
-import studio.mevera.imperat.annotations.InheritedArg;
-import studio.mevera.imperat.annotations.Named;
-import studio.mevera.imperat.annotations.SubCommand;
+import studio.mevera.imperat.annotations.types.Execute;
+import studio.mevera.imperat.annotations.types.InheritedArg;
+import studio.mevera.imperat.annotations.types.Named;
+import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.tests.TestSource;
 
 @SubCommand(value = "second", attachTo = "<arg1>")
