@@ -7,9 +7,7 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.Source;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 public final class CommandPathSearch<S extends Source> {
@@ -17,16 +15,15 @@ public final class CommandPathSearch<S extends Source> {
     private final LiteralCommandNode<S> root;
 
     private @NotNull CommandNode<S, ?> lastNode;
-    private @NotNull CommandNode<S, ?> lastCommandNode;
-    private final @NotNull List<CommandNode<S, ?>> visitedNodes = new ArrayList<>(20);
+    private @NotNull CommandNode<S, ?> lastLiteralNode;
     private CommandPathway<S> directUsage, closestUsage;
 
     private Result result;
 
     private CommandPathSearch(@NotNull LiteralCommandNode<S> root, Result result) {
         this.root = root;
-        this.lastCommandNode = root;
-        this.lastNode = lastCommandNode;
+        this.lastLiteralNode = root;
+        this.lastNode = lastLiteralNode;
         this.result = result;
     }
 
@@ -36,7 +33,7 @@ public final class CommandPathSearch<S extends Source> {
         this.result = result;
         this.lastNode = lastNode;
         this.directUsage = directUsage;
-        this.lastCommandNode = root;
+        this.lastLiteralNode = root;
     }
 
     public static <S extends Source> CommandPathSearch<S> of(LiteralCommandNode<S> root, final Result result) {
@@ -85,11 +82,11 @@ public final class CommandPathSearch<S extends Source> {
             return;
         }
         if (node.isLiteral()) {
-            this.lastCommandNode = node;
+            this.lastLiteralNode = node;
         }
         this.lastNode = node;
 
-        this.visitedNodes.add(node);
+        System.out.println("Visited node: " + node.format());
     }
 
     public @NotNull CommandNode<S, ?> getLastNode() {
@@ -107,6 +104,7 @@ public final class CommandPathSearch<S extends Source> {
         this.directUsage = directUsage;
     }
 
+
     private CommandPathway<S> calculateFoundPath() {
         var lastNode = getLastNode();
         if (lastNode.isExecutable()) {
@@ -114,16 +112,20 @@ public final class CommandPathSearch<S extends Source> {
             var executableUsage = lastNode.getExecutableUsage();
             assert executableUsage != null;
 
-            List<Argument<S>> args = new ArrayList<>(visitedNodes.stream()
-                                                             .map(CommandNode::getData)
-                                                             .toList());
-
-            var executableArgs = executableUsage.getArguments();
-            for (var arg : executableArgs) {
-                if (args.contains(arg)) {
-                    continue;
+            LinkedList<Argument<S>> args = new LinkedList<>();
+            for (int i = executableUsage.getArguments().size() - 1; i >= 0; i--) {
+                if (i == lastNode.data.getPosition()) {
+                    break;
                 }
-                args.add(arg);
+
+                var arg = executableUsage.getArgumentAt(i);
+                args.addFirst(arg);
+            }
+            //collect arguments from the path, starting from the last node up to the root
+            CommandNode<S, ?> curr = lastNode;
+            while (curr != null && !curr.isRoot()) {
+                args.addFirst(curr.data);
+                curr = lastNode.getParent();
             }
 
             return CommandPathway.<S>builder(executableUsage.getMethodElement())
@@ -140,6 +142,7 @@ public final class CommandPathSearch<S extends Source> {
         }
         return null;
     }
+
 
     public Result getResult() {
         return result;
@@ -190,10 +193,10 @@ public final class CommandPathSearch<S extends Source> {
 
         if (closestUsage == null) {
             //if its still null, then let's go back to the last cmd node
-            if (lastCommandNode.isExecutable()) {
-                closestUsage = lastCommandNode.getExecutableUsage();
+            if (lastLiteralNode.isExecutable()) {
+                closestUsage = lastLiteralNode.getExecutableUsage();
             } else {
-                closestUsage = ((LiteralCommandNode<S>) lastCommandNode).getData().getDefaultPathway();
+                closestUsage = ((LiteralCommandNode<S>) lastLiteralNode).getData().getDefaultPathway();
             }
         }
 
@@ -204,16 +207,8 @@ public final class CommandPathSearch<S extends Source> {
         return new CommandPathSearch<>(result, root, lastNode, directUsage);
     }
 
-    public @NotNull LiteralCommandNode<S> getLastCommandNode() {
-        return (LiteralCommandNode<S>) lastCommandNode;
-    }
-
-    public void visitRemainingOptionalNodes() {
-        CommandNode<S, ?> current = lastNode.getChild(CommandNode::isOptional);
-        while (current != null) {
-            visitedNodes.add(current);
-            current = current.getChild(CommandNode::isOptional);
-        }
+    public @NotNull LiteralCommandNode<S> getLastLiteralNode() {
+        return (LiteralCommandNode<S>) lastLiteralNode;
     }
 
     /**

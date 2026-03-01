@@ -109,7 +109,7 @@ public abstract class ArgumentType<S extends Source, T>
 
     /**
      * Determines whether the provided input matches the expected format or criteria
-     * for a given command parameter. this is used during {@link CommandTree#contextMatch(Context, ArgumentInput)}
+     * for a given command parameter. This is used during {@link CommandTree#execute(Context, ArgumentInput)}
      *
      * @param rawPosition The raw position of the argument in the input.
      * @param context The context to be matched, providing necessary information about the command execution environment.

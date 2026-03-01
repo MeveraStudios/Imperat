@@ -23,8 +23,7 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
             return HandleResult.NEXT_HANDLER;
         } else if (currentRaw == null) {
             // Required parameter missing
-            var pathwaySearch = context.getPathwaySearch();
-            var closestUsage = pathwaySearch != null ? pathwaySearch.getClosestUsage() : null;
+            var closestUsage = context.getDetectedUsage();
             var exception = new CommandException(ResponseKey.INVALID_SYNTAX);
 
             if (closestUsage != null) {

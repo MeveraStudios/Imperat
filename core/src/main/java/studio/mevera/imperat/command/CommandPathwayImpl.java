@@ -161,26 +161,6 @@ final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
     }
 
     @Override
-    public boolean hasMatchingPartialSequence(List<Argument<S>> otherArgs) {
-
-        List<Argument<S>> matching = new ArrayList<>();
-        // Check if the otherArgs is a valid partial sequence of this pathway's arguments
-        for (int i = 0; i < otherArgs.size(); i++) {
-            if (i >= arguments.size()) {
-                return false; // otherArgs is longer than this pathway's arguments
-            }
-            Argument<S> thisArg = arguments.get(i);
-            Argument<S> otherArg = otherArgs.get(i);
-            if (!thisArg.similarTo(otherArg)) {
-                break; // Arguments at position i do not match
-            }
-            matching.add(thisArg);
-        }
-
-        return matching.size() <= arguments.size() && !matching.isEmpty();
-    }
-
-    @Override
     public List<String> getExamples() {
         return examples;
     }

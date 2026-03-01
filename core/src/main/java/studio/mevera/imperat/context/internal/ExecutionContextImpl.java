@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
@@ -39,17 +38,14 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     //last command used
     private final Command<S> lastCommand;
 
-    private final CommandPathSearch<S> pathSearch;
-
     ExecutionContextImpl(
             Context<S> context,
-            CommandPathSearch<S> pathSearch
+            CommandPathway<S> pathway,
+            Command<S> lastCommand
     ) {
         super(context.imperat(), context.command(), context.source(), context.getRootCommandLabelUsed(), context.arguments());
-        this.pathSearch = pathSearch;
-        var lastCmdNode = pathSearch.getLastCommandNode();
-        this.lastCommand = lastCmdNode.getData();
-        this.usage = pathSearch.getFoundPath();
+        this.lastCommand = lastCommand;
+        this.usage = pathway;
     }
 
     /**
@@ -144,10 +140,6 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     }
 
 
-    @Override
-    public @NotNull CommandPathSearch<S> getPathwaySearch() {
-        return pathSearch;
-    }
 
     @Override
     public Optional<ParsedFlagArgument<S>> getFlag(String flagName) {

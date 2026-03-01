@@ -16,9 +16,9 @@ import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
-import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
+import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
@@ -154,13 +154,15 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
 
     /**
      * Traverses the {@link CommandTree} linked to
-     * this command object, searching for the most suitable usage that
-     * best suites the context input by the user
+     * this command object, directly executing the most suitable pathway
+     * that matches the context input by the user.
      *
      * @param context the context of the execution
+     * @return the result of the direct tree execution
+     * @throws CommandException if an error occurs during execution
      */
     @NotNull
-    CommandPathSearch<S> contextMatch(Context<S> context);
+    TreeExecutionResult<S> execute(Context<S> context) throws CommandException;
 
     /**
      * @return The description of a command

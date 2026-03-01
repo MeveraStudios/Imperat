@@ -82,6 +82,12 @@ public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
         return this;
     }
 
+    public ArgumentBuilder<S, T> validate(List<ArgValidator<S>> validators) {
+        Preconditions.notNull(validators, "validators");
+        this.validators.addAll(validators);
+        return this;
+    }
+
     public Argument<S> build() {
         return Argument.of(
                 name, type, permission, description,

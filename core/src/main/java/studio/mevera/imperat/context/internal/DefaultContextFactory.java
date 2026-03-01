@@ -4,8 +4,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
-import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -49,18 +49,18 @@ final class DefaultContextFactory<S extends Source> extends ContextFactory<S> {
     }
 
     /**
-     * @param plainContext the context plain
-     * @return the context after resolving args into values for
-     * later on parsing it into the execution
+     * Creates execution context with the matched pathway and last command.
      */
     @Override
     public ExecutionContext<S> createExecutionContext(
             @NotNull Context<S> plainContext,
-            @NotNull CommandPathSearch<S> dispatch
+            @NotNull CommandPathway<S> pathway,
+            @NotNull Command<S> lastCommand
     ) {
         return new ExecutionContextImpl<>(
                 plainContext,
-                dispatch
+                pathway,
+                lastCommand
         );
     }
 

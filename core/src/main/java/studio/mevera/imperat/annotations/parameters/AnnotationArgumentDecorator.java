@@ -8,6 +8,7 @@ import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.command.parameters.InputParameter;
+import studio.mevera.imperat.command.parameters.NumericParameter;
 import studio.mevera.imperat.context.Source;
 
 import java.lang.annotation.Annotation;
@@ -28,6 +29,9 @@ public final class AnnotationArgumentDecorator<S extends Source> extends InputPa
         );
         this.parameter = parameter;
         this.element = element;
+        for (var validator : parameter.getValidators()) {
+            this.addValidator(validator);
+        }
     }
 
     public static <S extends Source> AnnotationArgumentDecorator<S> decorate(
@@ -90,4 +94,8 @@ public final class AnnotationArgumentDecorator<S extends Source> extends InputPa
         return parameter.isFlag();
     }
 
+    @Override
+    public NumericParameter<S> asNumeric() {
+        return parameter.asNumeric();
+    }
 }

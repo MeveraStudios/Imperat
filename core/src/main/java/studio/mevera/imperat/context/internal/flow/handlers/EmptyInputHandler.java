@@ -40,7 +40,9 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
             //required parameter with no input - invalid syntax
             var command = context.getLastUsedCommand();
             var usage = command != null ? command.getDefaultPathway() : null;
-            var exception = new CommandException(ResponseKey.INVALID_SYNTAX);
+            var exception = new CommandException(ResponseKey.INVALID_SYNTAX).withPlaceholder("invalid_usage",
+                    context.imperatConfig().commandPrefix() + context.getRootCommandLabelUsed() + " " + context.arguments().join(" "));
+
             if (usage != null) {
                 exception.withPlaceholder("closest_usage", context.imperatConfig().commandPrefix() + CommandPathway.format(command, usage));
             } else {

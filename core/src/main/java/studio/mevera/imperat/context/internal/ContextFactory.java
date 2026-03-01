@@ -6,7 +6,6 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
-import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -78,14 +77,17 @@ public abstract class ContextFactory<S extends Source> {
     );
 
     /**
+     * Creates the execution context from a plain context with the matched pathway and last command.
+     *
      * @param plainContext the context plain
-     * @param dispatch     the result of a search and dispatch for the proper {@link CommandPathway}
-     * @return the context after resolving args into values for
-     * later on parsing it into the execution
+     * @param pathway      the matched command pathway
+     * @param lastCommand  the last (most specific) command matched
+     * @return the execution context ready for argument resolution
      */
     public abstract ExecutionContext<S> createExecutionContext(
             @NotNull Context<S> plainContext,
-            @NotNull CommandPathSearch<S> dispatch
+            @NotNull CommandPathway<S> pathway,
+            @NotNull Command<S> lastCommand
     );
 
 }

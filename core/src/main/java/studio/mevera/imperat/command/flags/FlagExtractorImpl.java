@@ -104,7 +104,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
         // Throw exception if there are unmatched parts
         if (!unmatchedParts.isEmpty()) {
             throw new CommandException(ResponseKey.UNKNOWN_FLAG)
-                          .withPlaceholder("input", String.join(", ", unmatchedParts));
+                          .withPlaceholder("input", input);
         }
 
         return extractedFlagArguments;

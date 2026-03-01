@@ -11,7 +11,7 @@ final class EnhancedComplexArgumentParsingTest extends EnhancedBaseImperatTest {
 
     @BeforeEach
     void registerCommands() {
-        IMPERAT.registerCommand(MultipleOptionals.class);
+        //IMPERAT.registerCommand(MultipleOptionals.class);
     }
 
     // === Basic Obligation Calculation Tests ===

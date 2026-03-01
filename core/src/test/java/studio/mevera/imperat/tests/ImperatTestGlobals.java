@@ -13,6 +13,7 @@ import studio.mevera.imperat.tests.commands.ContextResolvingCmd;
 import studio.mevera.imperat.tests.commands.CustomEnumCommand;
 import studio.mevera.imperat.tests.commands.FailCmd;
 import studio.mevera.imperat.tests.commands.KingdomChatCommand;
+import studio.mevera.imperat.tests.commands.MultipleOptionals;
 import studio.mevera.imperat.tests.commands.MultipleVariantsCmd;
 import studio.mevera.imperat.tests.commands.MyCustomAnnotation;
 import studio.mevera.imperat.tests.commands.OptionalArgCommand;
@@ -106,6 +107,8 @@ public class ImperatTestGlobals {
         IMPERAT.registerCommand(MultipleVariantsCmd.class);
         IMPERAT.registerSimpleCommand(MULTIPLE_OPTIONAL_CMD);
         IMPERAT.registerSimpleCommand(CHAINED_SUBCOMMANDS_CMD);
+        IMPERAT.registerCommand(MultipleOptionals.class);
+        System.out.println("GROUPCMD");
         IMPERAT.registerCommand(AnnotatedGroupCommand.class);
         IMPERAT.registerCommand(OptionalArgCommand.class);
         //;

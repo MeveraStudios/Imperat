@@ -13,9 +13,9 @@ import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
-import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
+import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ParsedArgument;
@@ -168,19 +168,16 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public @NotNull CommandPathSearch<S> contextMatch(Context<S> context) {
+    public @NotNull TreeExecutionResult<S> execute(Context<S> context) throws CommandException {
         var copy = context.arguments().copy();
         copy.removeIf(String::isBlank);
-        return tree.contextMatch(context, copy);
+        return tree.execute(context, copy);
     }
 
     @Override
     public void visualizeTree() {
         ImperatDebugger.debug("Visualizing %s's tree", this.name);
         visualizer.visualizeSimple();
-        visualizer.visualizeUniqueTreeSimple();
-        ImperatDebugger.debug("Visualizing %s's unflagged tree", this.name);
-        visualizer.visualizeUnflaggedTreeSimple();
     }
 
     /**

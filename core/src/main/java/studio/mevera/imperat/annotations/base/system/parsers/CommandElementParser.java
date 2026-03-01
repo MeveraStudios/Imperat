@@ -95,7 +95,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
             }
 
             //verify that attachnode exists in parent command if it's not blank
-            verifyAttachmentNodeExistsInParent(parent, ann.attachTo(), clazz.getElement().getName());
+            verifyAttachmentNodeExistsInParent(parent, ann.attachTo(), ann.value()[0]);
 
             String[] values = config.replacePlaceholders(ann.value());
             currentCommand = Command.create(imperat, parent, 0, values[0])
@@ -111,6 +111,27 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                               .filter((e) -> e instanceof MethodElement)
                               .map((e) -> (MethodElement) e)
                               .filter((m) -> methodSelector.canBeSelected(imperat, imperat.getAnnotationParser(), m, false))
+                              .sorted((m1, m2) -> {
+                                  //we want to process @Execute methods first, then @SubCommand methods, then the rest
+                                  boolean m1Execute = m1.isAnnotationPresent(Execute.class);
+                                  boolean m2Execute = m2.isAnnotationPresent(Execute.class);
+                                  if (m1Execute && !m2Execute) {
+                                      return -1;
+                                  } else if (!m1Execute && m2Execute) {
+                                      return 1;
+                                  }
+
+                                  boolean m1Sub = m1.isAnnotationPresent(SubCommand.class);
+                                  boolean m2Sub = m2.isAnnotationPresent(SubCommand.class);
+                                  if (m1Sub && !m2Sub) {
+                                      return -1;
+                                  } else if (!m1Sub && m2Sub) {
+                                      return 1;
+                                  }
+
+                                  //otherwise, we don't care about the order
+                                  return 0;
+                              }) // makes @Execute methods parsed before @Subcommand methods
                               .toList();
 
         for (MethodElement method : methods) {
@@ -137,7 +158,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                 assert ann != null;
 
                 String attachmentNodeFormat = ann.attachTo();
-                verifyAttachmentNodeExistsInParent(parent, attachmentNodeFormat, currentCommand.getName());
+                verifyAttachmentNodeExistsInParent(currentCommand, attachmentNodeFormat, sub.getName());
                 currentCommand.addSubCommand(sub, attachmentNodeFormat);
             }
         }
@@ -175,9 +196,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         if (parent == null) {
             throw new IllegalStateException(
                     "Command '" + commandName + "' specifies an attachment node format of '" + attachmentNode
-                            + "' but does not have a parent command to "
-                            + "attach to."
-                            + " Only subcommands can specify attachment nodes."
+                            + "' but does not have a parent command. Only subcommands can specify an attachment node."
             );
         }
 
@@ -188,8 +207,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
             throw new IllegalStateException(
                     "Command '" + commandName + "' specifies an attachment node format of '" + attachmentNode
                             + "' but no argument with that format was found"
-                            + " in the parent command '"
-                            + parent.getName() + "'."
+                            + " in the parent command '" + parent.getName() + "'."
             );
         }
     }
@@ -206,7 +224,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                 );
             }
             String[] values = config.replacePlaceholders(ann.value());
-            return Command.create(imperat, null, 0, values[0])
+            command = Command.create(imperat, null, 0, values[0])
                            .aliases(Arrays.asList(values).subList(1, values.length))
                            .supressPermissionsForAutoCompletion(ann.skipSuggestionsChecks())
                            .build();
@@ -241,6 +259,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                 parsePathwayMethod(command, method)
         ).build(command);
 
+
         command.addPathway(pathway);
 
         return command;
@@ -257,8 +276,6 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
             Argument<S> argument = parseMethodParameter(method, param);
             if (argument != null) {
                 personalParams.add(argument);
-            } else {
-                throw new IllegalArgumentException("Failed to parse parameter '" + param.getName() + "' in method '" + method.getName() + "'");
             }
         }
 
@@ -326,6 +343,10 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
             }
 
             var shortcut = loadPathwayShortcut(method, parsedMethodArgs, owningCommand, builder, shortcutAnn);
+            System.out.println(
+                    "Adding shortcut '" + shortcut.getName() + "' for pathway '" + builder.build(owningCommand).formatted() + "' from method: "
+                            + method.getName() + " to command: "
+                            + owningCommand.getName());
             owningCommand.addShortcut(shortcut);
         }
 

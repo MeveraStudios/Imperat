@@ -31,6 +31,8 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle ban command with all features")
         void testBanCommandAllFeatures() {
+            //Todo: change how flags parsing works in tree.
+            // The current implementation requires flags to be placed after all arguments, which is not ideal for user experience.
             ExecutionResult<TestSource> result = execute("ban griefer123 -s -ip 7d Griefing spawn area");
             assertSuccess(result);
             assertArgument(result, "target", "griefer123");

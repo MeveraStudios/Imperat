@@ -8,7 +8,6 @@ import studio.mevera.imperat.annotations.ContextResolved;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.tree.CommandPathSearch;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
@@ -48,12 +47,6 @@ import java.util.Optional;
 @ContextResolved
 public interface ExecutionContext<S extends Source> extends Context<S> {
 
-    /**
-     * Fetches the command path search instance used to resolve the command execution path.
-     * This provides access to the full command hierarchy leading to the executed command.
-     * @return the command path search instance
-     */
-    @NotNull CommandPathSearch<S> getPathwaySearch();
 
     /**
      * Retrieves a flag by its name if it was provided in the command input.

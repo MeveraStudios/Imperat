@@ -41,7 +41,7 @@ public class TestCommand {
     }
 
 
-    @SubCommand("sub1")
+    @SubCommand(value = "sub1", attachTo = "<otherText2>")
     public static class Sub1 {
 
         @Execute
@@ -107,7 +107,7 @@ public class TestCommand {
     }
 
 
-    @SubCommand("sub4")
+    @SubCommand(value = "sub4", attachTo = "<otherText2>")
     public static class Sub4 {
 
         @Execute

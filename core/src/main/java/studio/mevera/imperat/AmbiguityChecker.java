@@ -6,6 +6,7 @@ import studio.mevera.imperat.command.tree.LiteralCommandNode;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.util.Priority;
+
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,7 +21,7 @@ final class AmbiguityChecker {
 
     static <S extends Source> void checkAmbiguity(Command<S> command) {
         command.visualizeTree();
-        var rootNode = command.tree().unflaggedUniqueVersionedTree();
+        var rootNode = command.tree().rootNode();
         checkAmbiguity(
                 rootNode,
                 rootNode

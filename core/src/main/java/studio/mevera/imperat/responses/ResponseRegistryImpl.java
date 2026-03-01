@@ -132,8 +132,7 @@ final class ResponseRegistryImpl implements ResponseRegistry {
 
         // RootCommand exceptions
 
-        // InvalidSyntaxException: CommandPathSearch<?> result
-        // CommandPathSearch has: getClosestUsage(), getFoundUsage(), getLastCommandNode()
+        // Command exceptions - Invalid syntax with closest usage hint
         registerResponse(
                 new Response(ResponseKey.INVALID_SYNTAX, () -> "Invalid command usage '%invalid_usage%', you probably meant '%closest_usage%'")
                         .addContextPlaceholders()

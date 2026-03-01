@@ -25,7 +25,11 @@ final class InternalMinestomCommand extends Command {
 
         this.setDefaultExecutor(loadExecutor(imperat));
 
-        for (var usage : imperatCommand.getAllPossiblePathways()) {
+        // Register this command's own dedicated syntaxes (local pathways)
+        for (var usage : imperatCommand.getDedicatedPathways()) {
+            if (usage.isDefault()) {
+                continue; // default is handled by setDefaultExecutor
+            }
             addConditionalSyntax(
                     loadCondition(imperat, usage),
                     loadExecutor(imperat),
@@ -33,6 +37,10 @@ final class InternalMinestomCommand extends Command {
             );
         }
 
+        // Recursively register subcommands as nested Minestom commands
+        for (var sub : imperatCommand.getSubCommands()) {
+            addSubcommand(new InternalMinestomCommand(imperat, sub));
+        }
     }
 
 }

@@ -2,6 +2,7 @@ package studio.mevera.imperat.tests.commands.complex;
 
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.Execute;
+import studio.mevera.imperat.annotations.InheritedArg;
 import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.Optional;
 import studio.mevera.imperat.annotations.RootCommand;
@@ -16,17 +17,17 @@ public final class FirstOptionalArgumentCmd {
         source.reply("Num=" + num);
     }
 
-    @SubCommand("sub")
+    @SubCommand(value = "sub", attachTo = "[num]")
     public static class MySub {
 
 
         @Execute
-        public void defaultUsage(TestSource source, @Named("num") Integer num) {
+        public void defaultUsage(TestSource source, @InheritedArg @Named("num") Integer num) {
             source.reply("Default execution of sub-command, inherited num='" + num + "'");
         }
 
         @Execute
-        public void mainUsage(TestSource source, @Named("num") Integer num, @Named("num2") Integer num2) {
+        public void mainUsage(TestSource source, @InheritedArg @Named("num") Integer num, @Named("num2") Integer num2) {
             source.reply("Main execution of sub-command, inherited num='" + num + "', num2='" + num2 + "'");
         }
 

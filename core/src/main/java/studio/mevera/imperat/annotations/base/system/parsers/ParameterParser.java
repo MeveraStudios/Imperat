@@ -9,15 +9,19 @@ import studio.mevera.imperat.annotations.Flag;
 import studio.mevera.imperat.annotations.Format;
 import studio.mevera.imperat.annotations.Greedy;
 import studio.mevera.imperat.annotations.Permission;
+import studio.mevera.imperat.annotations.Range;
 import studio.mevera.imperat.annotations.Suggest;
 import studio.mevera.imperat.annotations.Switch;
 import studio.mevera.imperat.annotations.Validators;
 import studio.mevera.imperat.annotations.Values;
 import studio.mevera.imperat.annotations.base.AnnotationHelper;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
+import studio.mevera.imperat.annotations.parameters.AnnotationArgumentDecorator;
+import studio.mevera.imperat.annotations.parameters.NumericArgumentDecorator;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.DefaultValueProvider;
+import studio.mevera.imperat.command.parameters.NumericRange;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.parameters.validator.ArgValidator;
 import studio.mevera.imperat.command.parameters.validator.ConstrainedValueValidator;
@@ -26,6 +30,7 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
+import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.ArrayList;
@@ -67,27 +72,83 @@ final class ParameterParser<S extends Source> {
         String name = param.getName();
         boolean optional = param.isOptional();
         boolean greedy = param.getAnnotation(Greedy.class) != null;
+        boolean allowsGreedy =
+                param.getType() == String.class || (TypeUtility.isAcceptableGreedyWrapper(param.getType()) && TypeUtility.hasGenericType(
+                        param.getType(), String.class));
+        if (greedy && !allowsGreedy) {
+            throw new IllegalArgumentException(
+                    "Argument '" + param.getName() + "' is greedy while having a non-greedy valueType '" + param.getType().getTypeName()
+                            + "'");
+        }
 
         // Collect validators
         List<ArgValidator<S>> validators = parseValidators(param);
+        var suggestionProviderFunction = parseSuggestions(param);
+        var defaultValueProvider = parseDefaultValue(param);
+        var perms = parsePermissions(param);
+        var desc = parseDescription(param);
 
-        // Create the argument
-        Argument<S> argument = Argument.of(
-                name,
-                type,
-                parsePermissions(param),
-                parseDescription(param),
-                optional,
-                greedy,
-                parseDefaultValue(param),
-                parseSuggestions(param),
-                validators
+        Argument<S> argument;
+        if (flag != null) {
+            String[] flagAliases = flag.value();
+
+            return Argument.flag(name, type)
+                           .suggestForInputValue(suggestionProviderFunction)
+                           .aliases(getAllExceptFirst(flagAliases))
+                           .flagDefaultInputValue(defaultValueProvider)
+                           .description(desc)
+                           .permission(perms)
+                           .validate(validators)
+                           .build();
+
+        } else if (switchAnn != null) {
+            String[] switchAliases = switchAnn.value();
+            argument = Argument.<S>flagSwitch(name)
+                               .aliases(getAllExceptFirst(switchAliases))
+                               .description(desc)
+                               .permission(perms)
+                               .validate(validators)
+                               .build();
+        } else {
+            // Create the argument
+            argument = Argument.of(
+                    name,
+                    type,
+                    parsePermissions(param),
+                    parseDescription(param),
+                    optional,
+                    greedy,
+                    parseDefaultValue(param),
+                    parseSuggestions(param),
+                    validators
+            );
+        }
+
+        Format formatAnn = param.getAnnotation(Format.class);
+        if (formatAnn != null) {
+            argument.setFormat(config.replacePlaceholders(formatAnn.value()));
+        }
+
+        if (TypeUtility.isNumericType(TypeWrap.of(param.getType()))
+                    && param.isAnnotationPresent(Range.class)) {
+            Range range = param.getAnnotation(Range.class);
+            assert range != null;
+            System.out.println("Applying numeric range to parameter '" + param.getName() + "': " + range.min() + " to " + range.max());
+            argument = NumericArgumentDecorator.decorate(
+                    argument, NumericRange.of(range.min(), range.max())
+            );
+        }
+
+        return AnnotationArgumentDecorator.decorate(
+                argument, param
         );
+    }
 
-        // Apply additional decorators
-        applyParameterDecorators(argument, param);
-
-        return argument;
+    private List<String> getAllExceptFirst(String[] flagAliases) {
+        if (flagAliases.length <= 1) {
+            return List.of();
+        }
+        return Arrays.asList(Arrays.copyOfRange(flagAliases, 1, flagAliases.length));
     }
 
     @SuppressWarnings("unchecked")
@@ -112,13 +173,6 @@ final class ParameterParser<S extends Source> {
         return type;
     }
 
-    private void applyParameterDecorators(Argument<S> argument, ParameterElement param) {
-        // Format
-        Format formatAnn = param.getAnnotation(Format.class);
-        if (formatAnn != null) {
-            argument.setFormat(config.replacePlaceholders(formatAnn.value()));
-        }
-    }
 
     // ==================== Parameter Parsing Helpers ====================
 

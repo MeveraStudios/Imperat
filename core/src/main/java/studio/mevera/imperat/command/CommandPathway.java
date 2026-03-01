@@ -297,8 +297,6 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
 
     List<Argument<S>> getParametersWithFlags();
 
-    boolean hasMatchingPartialSequence(List<Argument<S>> inheritedArgs);
-
     class Builder<S extends Source> {
 
         private final List<Argument<S>> parameters = new ArrayList<>();

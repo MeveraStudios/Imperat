@@ -22,7 +22,7 @@ class EnhancedIntegrationTest extends EnhancedBaseImperatTest {
         @DisplayName("Should handle complete player punishment workflow")
         void testCompletePlayerPunishmentWorkflow() {
             // Silent ban with IP and custom duration/reason
-            ExecutionResult<TestSource> result = execute("ban griefer123 -s -ip 7d Destroyed spawn area and harassed players");
+            ExecutionResult<TestSource> result = execute("ban griefer123 7d -s -ip Destroyed spawn area and harassed players");
 
             assertThat(result)
                     .isSuccessful()

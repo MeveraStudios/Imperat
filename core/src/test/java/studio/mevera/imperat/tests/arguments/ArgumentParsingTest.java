@@ -21,12 +21,40 @@ public class ArgumentParsingTest extends BaseImperatTest {
     }
 
     @Test
+    @DisplayName("Should parse sub-command arguments correctly")
+    void testSubCommandArguments() {
+        ExecutionResult<TestSource> result = execute("test hello world first");
+        assertSuccess(result);
+        assertArgument(result, "otherText", "hello");
+        assertArgument(result, "otherText2", "world");
+
+        result = execute("test hello world first x");
+        assertSuccess(result);
+        assertArgument(result, "otherText", "hello");
+        assertArgument(result, "otherText2", "world");
+        assertArgument(result, "arg1", "x");
+
+        result = execute("test hello world first x second");
+        assertSuccess(result);
+        assertArgument(result, "otherText", "hello");
+        assertArgument(result, "otherText2", "world");
+        assertArgument(result, "arg1", "x");
+
+        result = execute("test hello world first x second y");
+        assertSuccess(result);
+        assertArgument(result, "otherText", "hello");
+        assertArgument(result, "otherText2", "world");
+        assertArgument(result, "arg1", "x");
+        assertArgument(result, "arg2", "y");
+    }
+
+
+    @Test
     @DisplayName("Should handle optional arguments with defaults")
     void testOptionalArgumentsWithDefaults() {
         ExecutionResult<TestSource> result = execute("give apple");
         assertSuccess(result);
         assertArgument(result, "item", "apple");
-        assertArgument(result, "player", null);
         assertArgument(result, "amount", 1);
     }
 

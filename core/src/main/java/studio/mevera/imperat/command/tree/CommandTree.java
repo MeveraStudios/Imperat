@@ -11,6 +11,7 @@ import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.Context;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
+import studio.mevera.imperat.exception.CommandException;
 
 import java.util.List;
 import java.util.Set;
@@ -42,37 +43,11 @@ public interface CommandTree<S extends Source> {
     @NotNull LiteralCommandNode<S> rootNode();
 
     /**
-     * Gets the unique versioned tree.
-     * @return the unique versioned tree.
-     */
-    @NotNull LiteralCommandNode<S> uniqueVersionedTree();
-
-    /**
-     * Gets the unflagged unique versioned tree, which excludes flag nodes.
-     * @return the unflagged unique versioned tree.
-     */
-    @NotNull LiteralCommandNode<S> unflaggedUniqueVersionedTree();
-
-    /**
      * The number of nodes cached in this {@link CommandTree}.
      * @return the number of nodes representing the size
      * of this N-ary tree
      */
     int size();
-
-    /**
-     * The size of the unique versioned tree
-     * @see #uniqueVersionedTree()
-     * @return The size of the unique versioned tree.
-     */
-    int uniqueSize();
-
-    /**
-     * The size of the unflagged unique versioned tree, which excludes flag nodes.
-     * @see #unflaggedUniqueVersionedTree()
-     * @return The size of the unflagged unique versioned tree.
-     */
-    int unflaggedUniqueSize();
 
     /**
      * Parses the given command usage and updates the command tree accordingly.
@@ -88,13 +63,15 @@ public interface CommandTree<S extends Source> {
     }
 
     /**
-     * Matches the given input against this command tree and returns a dispatch context.
+     * Directly traverses the tree and executes the matching pathway in one step.
+     * This combines the old contextMatch + executeUsage into a single unified operation.
      *
-     * @param context The context to match against
-     * @param input  the argument input to match against
-     * @return a command dispatch context containing matching results, never null
+     * @param context the context to execute against
+     * @param input   the argument input to traverse the tree with
+     * @return the result of the tree execution containing status and resolved context
+     * @throws CommandException if an error occurs during argument resolution or execution
      */
-    @NotNull CommandPathSearch<S> contextMatch(Context<S> context, @NotNull ArgumentInput input);
+    @NotNull TreeExecutionResult<S> execute(Context<S> context, @NotNull ArgumentInput input) throws CommandException;
 
     /**
      * Generates tab-completion suggestions based on the current command context.

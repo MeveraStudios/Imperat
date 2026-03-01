@@ -80,14 +80,15 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                                                                          invalidUsage.append(" ")
                                                                                  .append(String.join(" ", ctx.arguments()));
                                                                      }
+                                                                     var detectedUsage = ctx.getDetectedUsage();
                                                                      throw new CommandException(ResponseKey.INVALID_SYNTAX)
                                                                                    .withContextPlaceholders(ctx)
                                                                                    .withPlaceholder("invalid_usage", invalidUsage.toString())
                                                                                    .withPlaceholder("closest_usage",
                                                                                            "/" + ctx.getRootCommandLabelUsed() + " "
-                                                                                                   + ctx.getPathwaySearch()
-                                                                                                                             .getClosestUsage()
-                                                                                                                             .formatted());
+                                                                                                   + (detectedUsage != null
+                                                                                                              ? detectedUsage.formatted()
+                                                                                                              : ""));
                                                                  });
 
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();

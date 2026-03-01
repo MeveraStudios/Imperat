@@ -379,34 +379,6 @@ public final class CommandTreeVisualizer<S extends Source> {
         return builder.toString();
     }
 
-    /**
-     * Alternative visualization using a simpler node representation
-     */
-    public void visualizeUniqueTreeSimple() {
-        if (tree == null || !ImperatDebugger.isEnabled()) {
-            return;
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append("\n==== RootCommand Tree ====\n\n");
-
-        visualizeSimpleNode(tree.uniqueVersionedTree(), builder, 0, new ArrayList<>(), true);
-
-        ImperatDebugger.debug(builder.toString());
-    }
-
-    public void visualizeUnflaggedTreeSimple() {
-        if (tree == null || !ImperatDebugger.isEnabled()) {
-            return;
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append("\n==== RootCommand Tree (Unflagged) ====\n\n");
-
-        visualizeSimpleNode(tree.unflaggedUniqueVersionedTree(), builder, 0, new ArrayList<>(), true);
-
-        ImperatDebugger.debug(builder.toString());
-    }
 
     private void visualizeSimpleNode(CommandNode<S, ?> node,
             StringBuilder builder,

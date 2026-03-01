@@ -14,7 +14,7 @@ import java.time.Duration;
 @RootCommand("rank")
 public class RankCommand {
 
-    @SubCommand("addperm")
+    @SubCommand(value = "addperm")
     @Description("Adds a permission")
     public void addPerm(
             final TestSource actor,

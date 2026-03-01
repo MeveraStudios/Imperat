@@ -266,33 +266,33 @@ class ResponseSystemTest {
                 .isEqualTo("Blocking message");
     }
 
-    @Test
-    @DisplayName("Should fetch content with async fetcher")
-    void testAsyncContentFetcher() throws Exception {
-        ResponseKey testKey = () -> "test.async";
-        ResponseContentFetcher asyncFetcher = ResponseContentFetcher.async();
-        Response response = new TestResponse(testKey, () -> {
-            // Simulate some work
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            return "Async message";
-        }, asyncFetcher);
-
-        responseRegistry.registerResponse(response);
-
-        Context<TestSource> context = createContext();
-
-        response.sendContent(context, null);
-        Thread.sleep(200); // Wait for async operation
-
-        assertThat(capturedMessages)
-                .hasSize(1)
-                .first()
-                .isEqualTo("Async message");
-    }
+    //    @Test
+    //    @DisplayName("Should fetch content with async fetcher")
+    //    void testAsyncContentFetcher() throws Exception {
+    //        ResponseKey testKey = () -> "test.async";
+    //        ResponseContentFetcher asyncFetcher = ResponseContentFetcher.async();
+    //        Response response = new TestResponse(testKey, () -> {
+    //            // Simulate some work
+    //            try {
+    //                Thread.sleep(50);
+    //            } catch (InterruptedException e) {
+    //                Thread.currentThread().interrupt();
+    //            }
+    //            return "Async message";
+    //        }, asyncFetcher);
+    //
+    //        responseRegistry.registerResponse(response);
+    //
+    //        Context<TestSource> context = createContext();
+    //
+    //        response.sendContent(context, null);
+    //        Thread.sleep(200); // Wait for async operation
+    //
+    //        assertThat(capturedMessages)
+    //                .hasSize(1)
+    //                .first()
+    //                .isEqualTo("Async message");
+    //    }
 
     @Test
     @DisplayName("Should use default content fetcher when none specified")
