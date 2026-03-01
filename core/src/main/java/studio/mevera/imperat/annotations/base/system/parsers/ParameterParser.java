@@ -133,7 +133,6 @@ final class ParameterParser<S extends Source> {
                     && param.isAnnotationPresent(Range.class)) {
             Range range = param.getAnnotation(Range.class);
             assert range != null;
-            System.out.println("Applying numeric range to parameter '" + param.getName() + "': " + range.min() + " to " + range.max());
             argument = NumericArgumentDecorator.decorate(
                     argument, NumericRange.of(range.min(), range.max())
             );

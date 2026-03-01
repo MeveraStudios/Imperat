@@ -98,7 +98,6 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         }
 
         CommandNode<S, ?> siblingMatchingInput = findNeighborOfType(depth, ctx);
-        //System.out.println("SIBLING FOUND: " + siblingMatchingInput.data.name());
         return siblingMatchingInput == null;//if no sibling matches this, this one MUST match
     }
 

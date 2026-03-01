@@ -420,9 +420,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             return handleExecution(context);
         } catch (Exception ex) {
             //handle here
-            System.out.println("Handling execution throwable: " + ex.getClass().getName() + " with message: " + ex.getMessage());
             this.config().handleExecutionThrowable(ex, context, BaseImperat.class, "execute(Context<S> context)");
-            System.out.println("FINISHED HANDLING");
             return ExecutionResult.failure(ex, context);
         }
     }

@@ -1041,29 +1041,23 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
         for (var nextNode : currentNode.getChildren()) {
             // Skip if same type as current node
             if (nextNode.data.valueType().equals(origin.data.valueType())) {
-                //System.out.println("Skipping " + nextNode.format() + " due to having same type as ");
                 continue;
             }
 
             // Check permissions
             if (!(nextNode.isLiteral() && nextNode.data.asCommand().isIgnoringACPerms())
                         && !hasPermission(context.source(), nextNode)) {
-                //System.out.println("Skipping " + nextNode.format() + " due to having no perm for it");
                 continue;
             }
 
-            // Collect suggestions from this node
-            //System.out.println("Getting from node " + nextNode.format() + "'s overlap:");
             final var resolver = getResolverCached(nextNode.data);
             final var suggestions = resolver.provide(context, nextNode.data);
             if (suggestions != null && !suggestions.isEmpty()) {
                 results.addAll(suggestions);
-                //System.out.println("Fetched '" + String.join(",", suggestions)  +"'");
             }
 
             // If this is a required parameter, stop here (it's a stop point)
             if (!nextNode.isOptional()) {
-                //System.out.println("Skipping non-optional node " + nextNode.format());
                 continue; // Don't traverse deeper from this branch
             }
 

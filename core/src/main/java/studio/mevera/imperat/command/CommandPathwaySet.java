@@ -16,10 +16,6 @@ final class CommandPathwaySet<S extends Source> implements Iterable<CommandPathw
     }
 
     public CommandPathwaySet<S> put(CommandPathway<S> value) {
-        System.out.println(
-                "Adding pathway='" + value.formatted() + "' with method='" + (value.getMethodElement() != null ? value.getMethodElement().getName() :
-                                                                                      "null") +
-                        "' to CommandPathwaySet");
         sort.add(value);
         return this;
     }

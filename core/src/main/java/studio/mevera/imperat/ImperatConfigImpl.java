@@ -648,7 +648,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         //Since subcommands also can have their own error handlers (aka ThrowableResolver)
         Command<S> cmd = context instanceof ExecutionContext<S> executionContext ? executionContext.getLastUsedCommand() : context.command();
         while (cmd != null) {
-            System.out.println("Running handling of errors from cmd '" + cmd.getName() + "'");
             var res = cmd.handleExecutionThrowable(throwable, context, owning, methodName);
             if (res) {
                 return true;
@@ -656,7 +655,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
             cmd = cmd.getParent();
         }
 
-        System.out.println("Super handling ...");
         //Trying to handle the error from the Central Throwable Handler.
         var res = ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
         if (!res) {

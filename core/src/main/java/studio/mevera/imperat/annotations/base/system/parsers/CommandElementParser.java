@@ -62,7 +62,6 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         //core
         //two possibilities, either this class is a root command, or it's not. If it is, we parse it as a root command,
         // if it's not, we parse it as a regular class and look for methods and inner classes inside of it.
-        System.out.println("Parsing class: " + clazz.getElement().getName() + " with parent: " + (parent != null ? parent.getName() : "null"));
         Command<S> currentCommand;
         if (clazz.isAnnotationPresent(RootCommand.class)) {
             //umm
@@ -142,16 +141,11 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                         currentCommand,
                         parsePathwayMethod(currentCommand, method)
                 ).build(currentCommand);
-                System.out.println("==> Adding pathway '" + pathway.formatted() + "' from method: " + method.getName() + " to command: "
-                                           + currentCommand.getName());
                 currentCommand.addPathway(pathway);
             }
 
             if (method.isAnnotationPresent(SubCommand.class)) {
                 var sub = parseCommandMethod(currentCommand, method);
-                System.out.println("==> Adding subcommand '" + sub.getName() + "' from method: " + method.getName() + " to command: "
-                                           + currentCommand.getName());
-                System.out.println("  ==> Subcommand '" + sub.getName() + "' has pathways: ");
 
                 SubCommand ann = method.isAnnotationPresent(SubCommand.class) ? method.getAnnotation(SubCommand.class) :
                                          method.getParent().getAnnotation(SubCommand.class);
@@ -175,9 +169,6 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         for (ClassElement inner : innerClasses) {
             Command<S> subCommand = parseSpecificClass(currentCommand, inner);
             if (subCommand != null) {
-                System.out.println(
-                        "==> Adding subcommand '" + subCommand.getName() + "' from inner class: " + inner.getElement().getName() + " to command: "
-                                + currentCommand.getName());
                 SubCommand ann = inner.getAnnotation(SubCommand.class);
                 assert ann != null;
                 String attachmentNodeFormat = ann.attachTo();
@@ -343,10 +334,6 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
             }
 
             var shortcut = loadPathwayShortcut(method, parsedMethodArgs, owningCommand, builder, shortcutAnn);
-            System.out.println(
-                    "Adding shortcut '" + shortcut.getName() + "' for pathway '" + builder.build(owningCommand).formatted() + "' from method: "
-                            + method.getName() + " to command: "
-                            + owningCommand.getName());
             owningCommand.addShortcut(shortcut);
         }
 

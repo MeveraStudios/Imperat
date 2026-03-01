@@ -10,7 +10,8 @@ import studio.mevera.imperat.context.Source;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public final class CommandPathSearch<S extends Source> {
+@Deprecated(forRemoval = true)
+final class CommandPathSearch<S extends Source> {
 
     private final LiteralCommandNode<S> root;
 
@@ -85,8 +86,6 @@ public final class CommandPathSearch<S extends Source> {
             this.lastLiteralNode = node;
         }
         this.lastNode = node;
-
-        System.out.println("Visited node: " + node.format());
     }
 
     public @NotNull CommandNode<S, ?> getLastNode() {

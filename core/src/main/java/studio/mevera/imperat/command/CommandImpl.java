@@ -364,7 +364,6 @@ final class CommandImpl<S extends Source> implements Command<S> {
             return;
         }
         this.parent = parent;
-        System.out.println("Setting parent of command '" + this.name + "' to '" + parent.getName() + "'");
     }
 
     @Override
