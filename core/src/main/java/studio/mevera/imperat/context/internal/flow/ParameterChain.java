@@ -47,7 +47,7 @@ public class ParameterChain<S extends Source> {
             }
         }
 
-        var usage = context.getDetectedUsage();
+        var usage = context.getDetectePathway();
         Command<S> lastCmd = context.command();
 
         for (int rPos = 0; rPos < stream.rawsLength(); rPos++) {

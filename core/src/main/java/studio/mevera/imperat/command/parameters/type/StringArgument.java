@@ -93,7 +93,7 @@ public final class StringArgument<S extends Source> extends ArgumentType<S, Stri
             if (nextRaw != null) {
 
                 if (Patterns.isInputFlag(nextRaw)) {
-                    Set<FlagArgument<S>> extracted = context.getDetectedUsage().getFlagExtractor().extract(nextRaw);
+                    Set<FlagArgument<S>> extracted = context.getDetectePathway().getFlagExtractor().extract(nextRaw);
                     if (!extracted.isEmpty()) {
                         inputStream.skipRaw();
                         if (extracted.stream().noneMatch(FlagArgument::isSwitch)) {

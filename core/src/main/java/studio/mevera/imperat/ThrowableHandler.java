@@ -1,7 +1,7 @@
 package studio.mevera.imperat;
 
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ThrowableResolver;
 
@@ -95,7 +95,7 @@ public sealed interface ThrowableHandler<S extends Source> permits BaseThrowable
      */
     <E extends Throwable> boolean handleExecutionThrowable(
             final E throwable,
-            final Context<S> context,
+            final CommandContext<S> context,
             final Class<?> owning,
             final String methodName
     );

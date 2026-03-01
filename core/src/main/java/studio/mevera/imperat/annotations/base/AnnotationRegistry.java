@@ -3,7 +3,7 @@ package studio.mevera.imperat.annotations.base;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.ArgType;
 import studio.mevera.imperat.annotations.Async;
-import studio.mevera.imperat.annotations.ContextResolved;
+import studio.mevera.imperat.annotations.Context;
 import studio.mevera.imperat.annotations.Cooldown;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.DefaultProvider;
@@ -49,7 +49,7 @@ final class AnnotationRegistry {
                 RootCommand.class, ExternalSubCommand.class, Execute.class, SubCommand.class,
                 Cooldown.class, Description.class, Permission.class, Format.class, Shortcut.class,
                 Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
-                Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, ContextResolved.class, Range.class, Async.class,
+                Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, Context.class, Range.class, Async.class,
                 PostProcessor.class, PreProcessor.class, ExceptionHandler.class,
                 Validators.class, ArgType.class, InheritedArg.class
         );

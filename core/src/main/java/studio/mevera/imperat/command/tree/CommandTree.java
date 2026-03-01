@@ -8,7 +8,7 @@ import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
@@ -71,7 +71,7 @@ public interface CommandTree<S extends Source> {
      * @return the result of the tree execution containing status and resolved context
      * @throws CommandException if an error occurs during argument resolution or execution
      */
-    @NotNull TreeExecutionResult<S> execute(Context<S> context, @NotNull ArgumentInput input) throws CommandException;
+    @NotNull TreeExecutionResult<S> execute(CommandContext<S> context, @NotNull ArgumentInput input) throws CommandException;
 
     /**
      * Generates tab-completion suggestions based on the current command context.
@@ -108,8 +108,8 @@ public interface CommandTree<S extends Source> {
      * This will lead to collecting the closest usages in-order by how close they are to your input.
      *
      * @param context the context containing the details of an input.
-     * @return A set of the closest usages to a {@link Context}
+     * @return A set of the closest usages to a {@link CommandContext}
      */
-    Set<CommandPathway<S>> getClosestUsages(Context<S> context);
+    Set<CommandPathway<S>> getClosestUsages(CommandContext<S> context);
 
 }

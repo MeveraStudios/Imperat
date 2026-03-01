@@ -1,6 +1,6 @@
 package studio.mevera.imperat.annotations.base.system.parsers;
 
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.util.asm.MethodCaller;
@@ -20,7 +20,7 @@ public final class MethodThrowableResolver<E extends Throwable, S extends Source
     }
 
     @Override
-    public void resolve(E exception, Context<S> context) {
+    public void resolve(E exception, CommandContext<S> context) {
         caller.call(exception, context);
     }
 }

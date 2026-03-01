@@ -1,7 +1,7 @@
 package studio.mevera.imperat.selector;
 
 import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
@@ -17,16 +17,17 @@ public final class SelectionParameterInput<V> {
     private final SelectionField<V> field;
     private final V value;
 
-    private SelectionParameterInput(SelectionField<V> field, String input, Context<BukkitSource> ctx) throws CommandException {
+    private SelectionParameterInput(SelectionField<V> field, String input, CommandContext<BukkitSource> ctx) throws CommandException {
         this.field = field;
         this.value = field.parseFieldValue(input, ctx);
     }
 
-    public static <V> SelectionParameterInput<V> from(SelectionField<V> field, String input, Context<BukkitSource> ctx) throws CommandException {
+    public static <V> SelectionParameterInput<V> from(SelectionField<V> field, String input, CommandContext<BukkitSource> ctx)
+            throws CommandException {
         return new SelectionParameterInput<>(field, input, ctx);
     }
 
-    public static SelectionParameterInput<?> parse(String expression, Cursor<BukkitSource> cursor, Context<BukkitSource> ctx) throws
+    public static SelectionParameterInput<?> parse(String expression, Cursor<BukkitSource> cursor, CommandContext<BukkitSource> ctx) throws
             CommandException {
         String[] split = expression.split(String.valueOf(SelectionField.VALUE_EQUALS));
         if (split.length != 2) {
@@ -46,7 +47,7 @@ public final class SelectionParameterInput<V> {
     }
 
     public static List<SelectionParameterInput<?>> parseAll(String paramsString, Cursor<BukkitSource> inputStream,
-            Context<BukkitSource> ctx) throws
+            CommandContext<BukkitSource> ctx) throws
             CommandException {
         String[] params = paramsString.split(String.valueOf(SelectionField.SEPARATOR));
         if (params.length == 0) {

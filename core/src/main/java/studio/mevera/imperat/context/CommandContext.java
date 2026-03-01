@@ -13,7 +13,7 @@ import studio.mevera.imperat.command.Command;
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface Context<S extends Source> {
+public interface CommandContext<S extends Source> {
 
     /**
      * @return imperat's instance

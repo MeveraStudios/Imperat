@@ -4,7 +4,7 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.HumanEntity;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
@@ -25,7 +25,7 @@ final class GamemodeField extends PredicateField<GameMode> {
 
     @Override
     protected @NotNull EntityCondition getCondition(GameMode value, Cursor<BukkitSource> cursor,
-            Context<BukkitSource> context) {
+            CommandContext<BukkitSource> context) {
         return ((sender, entity) -> {
             if (!(entity instanceof HumanEntity humanEntity)) {
                 return false;
@@ -43,7 +43,7 @@ final class GamemodeField extends PredicateField<GameMode> {
      * @throws CommandException if the parsing fails
      */
     @Override
-    public GameMode parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
+    public GameMode parseFieldValue(String value, CommandContext<BukkitSource> context) throws CommandException {
         try {
             return GameMode.valueOf(value);
         } catch (EnumConstantNotPresentException ex) {

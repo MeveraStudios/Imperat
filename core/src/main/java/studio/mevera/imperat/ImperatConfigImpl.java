@@ -21,7 +21,7 @@ import studio.mevera.imperat.command.processors.impl.DefaultProcessors;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
@@ -80,7 +80,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                                                                          invalidUsage.append(" ")
                                                                                  .append(String.join(" ", ctx.arguments()));
                                                                      }
-                                                                     var detectedUsage = ctx.getDetectedUsage();
+                                                                     var detectedUsage = ctx.getDetectePathway();
                                                                      throw new CommandException(ResponseKey.INVALID_SYNTAX)
                                                                                    .withContextPlaceholders(ctx)
                                                                                    .withPlaceholder("invalid_usage", invalidUsage.toString())
@@ -225,7 +225,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     /**
      * @return the factory for creation of
-     * command related contexts {@link Context}
+     * command related contexts {@link CommandContext}
      */
     @Override
     public @NotNull ContextFactory<S> getContextFactory() {
@@ -641,7 +641,8 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     @Override
-    public <E extends Throwable> boolean handleExecutionThrowable(@NotNull E throwable, Context<S> context, Class<?> owning, String methodName) {
+    public <E extends Throwable> boolean handleExecutionThrowable(@NotNull E throwable, CommandContext<S> context, Class<?> owning,
+            String methodName) {
 
         //First handling the error using the Local(RootCommand's) Error Handler.
         //if its during execution, then let's use the LAST entered RootCommand (root or sub)

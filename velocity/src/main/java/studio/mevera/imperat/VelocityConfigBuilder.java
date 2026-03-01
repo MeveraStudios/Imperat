@@ -29,7 +29,7 @@ import studio.mevera.imperat.util.TypeWrap;
  *   <li>Velocity-specific parameter types (Player, ServerInfo)</li>
  *   <li>Exception handlers for common Velocity scenarios</li>
  *   <li>Source resolvers for type-safe command source handling</li>
- *   <li>Context resolvers for dependency injection</li>
+ *   <li>CommandContext resolvers for dependency injection</li>
  * </ul>
  *
  * <p>Usage Example:</p>

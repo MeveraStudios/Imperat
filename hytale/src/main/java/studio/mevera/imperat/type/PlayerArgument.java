@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleSource;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.DefaultValueProvider;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -71,7 +71,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<HytaleSource> context, Argument<HytaleSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<HytaleSource> context, Argument<HytaleSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;

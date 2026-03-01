@@ -77,7 +77,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
     }
 
     @Nested
-    @DisplayName("Context Resolution Errors")
+    @DisplayName("CommandContext Resolution Errors")
     class ContextResolutionErrors {
 
         @Test

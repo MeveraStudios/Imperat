@@ -2,12 +2,12 @@ package studio.mevera.imperat.command.processors;
 
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 
 /**
- * Defines a functional interface that processes a {@link Context}
+ * Defines a functional interface that processes a {@link CommandContext}
  * BEFORE the resolving of the arguments into values.
  *
  * @param <S> the command sender valueType
@@ -25,7 +25,7 @@ public interface CommandPreProcessor<S extends Source> extends CommandProcessor<
      */
     void process(
             Imperat<S> imperat,
-            Context<S> context,
+            CommandContext<S> context,
             CommandPathway<S> usage
     ) throws CommandException;
 

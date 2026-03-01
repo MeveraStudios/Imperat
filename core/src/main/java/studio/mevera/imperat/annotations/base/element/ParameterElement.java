@@ -1,6 +1,6 @@
 package studio.mevera.imperat.annotations.base.element;
 
-import studio.mevera.imperat.annotations.ContextResolved;
+import studio.mevera.imperat.annotations.Context;
 import studio.mevera.imperat.annotations.Default;
 import studio.mevera.imperat.annotations.DefaultProvider;
 import studio.mevera.imperat.annotations.Flag;
@@ -66,19 +66,19 @@ public final class ParameterElement extends ParseElement<Parameter> {
     }
 
     private boolean calculateIsContextResolved() {
-        // Check if the parameter itself is annotated with @ContextResolved
-        if (isAnnotationPresent(ContextResolved.class)) {
+        // Check if the parameter itself is annotated with @CommandContext
+        if (isAnnotationPresent(Context.class)) {
             return true;
         }
 
-        // Check if the Type of the parameter is annotated with @ContextResolved
-        if (TypeWrap.of(type).getRawType().isAnnotationPresent(ContextResolved.class)) {
+        // Check if the Type of the parameter is annotated with @CommandContext
+        if (TypeWrap.of(type).getRawType().isAnnotationPresent(Context.class)) {
             return true;
         }
 
-        // Check if any of the annotations on the parameter are annotated with @ContextResolved
+        // Check if any of the annotations on the parameter are annotated with @CommandContext
         for (final Annotation annotation : getDeclaredAnnotations()) {
-            if (annotation.annotationType().isAnnotationPresent(ContextResolved.class)) {
+            if (annotation.annotationType().isAnnotationPresent(Context.class)) {
                 return true;
             }
         }

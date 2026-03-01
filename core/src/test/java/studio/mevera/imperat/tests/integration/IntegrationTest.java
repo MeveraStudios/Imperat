@@ -235,7 +235,7 @@ public class IntegrationTest extends BaseImperatTest {
     }
 
     @Nested
-    @DisplayName("Context Resolution Scenarios")
+    @DisplayName("CommandContext Resolution Scenarios")
     class ContextResolutionScenarios {
 
         @Test

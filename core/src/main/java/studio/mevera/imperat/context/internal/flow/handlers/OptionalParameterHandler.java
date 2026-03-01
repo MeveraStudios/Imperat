@@ -23,10 +23,10 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             return HandleResult.TERMINATE;
         }
         if (Patterns.isInputFlag(currentRaw)) {
-            boolean containsAnyFlag = !context.getDetectedUsage().getFlagExtractor().getRegisteredFlags().isEmpty();
+            boolean containsAnyFlag = !context.getDetectePathway().getFlagExtractor().getRegisteredFlags().isEmpty();
             if (containsAnyFlag) {
                 stream.skipRaw();
-                var extracted = context.getDetectedUsage().getFlagExtractor().extract(Patterns.withoutFlagSign(currentRaw));
+                var extracted = context.getDetectePathway().getFlagExtractor().extract(Patterns.withoutFlagSign(currentRaw));
                 boolean allTrueFlags = extracted.stream().noneMatch(FlagArgument::isSwitch);
                 if (allTrueFlags) {
                     stream.skipRaw();
@@ -60,7 +60,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             ImperatDebugger.debug("MUST SKIP");
             // MUST skip - downstream required parameters need the inputs
             Object defaultValue = getDefaultValue(context, stream, currentParameter);
-            context.resolveArgument(stream, defaultValue);
+            context.parseArgument(stream, defaultValue);
             stream.skipParameter();
             return;
         }
@@ -88,7 +88,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             // Found better match downstream with no required parameters in between
             ImperatDebugger.debug("Found better match down stream : '" + bestMatch.format() + "'");
             Object defaultValue = getDefaultValue(context, stream, currentParameter);
-            context.resolveArgument(stream, defaultValue);
+            context.parseArgument(stream, defaultValue);
             stream.skipParameter();
             return;
         }
@@ -101,7 +101,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             // Type parsing failed - fall back to default value
             ImperatDebugger.debug("FAILED TO CONSUME, SETTING DEFAULT");
             Object defaultValue = getDefaultValue(context, stream, currentParameter);
-            context.resolveArgument(stream, defaultValue);
+            context.parseArgument(stream, defaultValue);
             stream.skipParameter();
         }
     }
@@ -175,7 +175,7 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             Cursor<S> stream
     ) throws CommandException {
         Object value = currentParameter.type().parse(context, stream, currentRaw);
-        context.resolveArgument(stream, value);
+        context.parseArgument(stream, value);
         stream.skip();
     }
 

@@ -3,7 +3,7 @@ package studio.mevera.imperat.selector.field.operators;
 
 import org.bukkit.entity.Entity;
 import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.selector.field.AbstractField;
 import studio.mevera.imperat.util.TypeWrap;
@@ -31,7 +31,7 @@ public abstract class OperatorField<V> extends AbstractField<V> implements Opera
      * @throws CommandException if the parsing fails
      */
     @Override
-    public abstract V parseFieldValue(String value, Context<BukkitSource> context) throws CommandException;
+    public abstract V parseFieldValue(String value, CommandContext<BukkitSource> context) throws CommandException;
 
     /**
      * Performs an operation on the specified value and a list of entities.

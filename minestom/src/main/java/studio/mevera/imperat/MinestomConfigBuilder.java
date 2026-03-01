@@ -22,7 +22,7 @@ import studio.mevera.imperat.util.TypeWrap;
  * <ul>
  *   <li>Minestom-specific source resolvers for type-safe command source handling</li>
  *   <li>Exception handlers for common Minestom scenarios</li>
- *   <li>Context resolvers for dependency injection</li>
+ *   <li>CommandContext resolvers for dependency injection</li>
  *   <li>Integration with Minestom's modern architecture</li>
  * </ul>
  *

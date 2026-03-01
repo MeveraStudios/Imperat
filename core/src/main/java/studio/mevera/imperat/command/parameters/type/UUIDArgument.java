@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.parameters.type;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -32,7 +32,7 @@ public final class UUIDArgument<S extends Source> extends ArgumentType<S, UUID> 
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<S> context, Argument<S> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;

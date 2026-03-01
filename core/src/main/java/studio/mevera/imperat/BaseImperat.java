@@ -13,7 +13,7 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.Source;
@@ -71,7 +71,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                                                    EventSubscription<E> subscription
                                            ) {
                                                var ctxFactory = config.getContextFactory();
-                                               Context<S> dummy = ctxFactory.createDummyContext(BaseImperat.this);
+                                               CommandContext<S> dummy = ctxFactory.createDummyContext(BaseImperat.this);
                                                String methodName = "handle(event, exception, subscription)";
                                                config.handleExecutionThrowable(
                                                        new EventException(event, subscription, exception),
@@ -322,7 +322,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         return null;
     }
 
-    private ExecutionResult<S> handleExecution(Context<S> context) throws CommandException {
+    private ExecutionResult<S> handleExecution(CommandContext<S> context) throws CommandException {
         Command<S> command = context.command();
         S source = context.source();
 
@@ -386,7 +386,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
 
     private void globalPreProcessing(
-            @NotNull Context<S> context,
+            @NotNull CommandContext<S> context,
             @NotNull CommandPathway<S> usage
     ) throws ProcessorException {
 
@@ -413,14 +413,14 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     }
 
     @Override
-    public @NotNull ExecutionResult<S> execute(@NotNull Context<S> context) {
+    public @NotNull ExecutionResult<S> execute(@NotNull CommandContext<S> context) {
 
         try {
             context.command().visualizeTree();
             return handleExecution(context);
         } catch (Exception ex) {
             //handle here
-            this.config().handleExecutionThrowable(ex, context, BaseImperat.class, "execute(Context<S> context)");
+            this.config().handleExecutionThrowable(ex, context, BaseImperat.class, "execute(CommandContext<S> context)");
             return ExecutionResult.failure(ex, context);
         }
     }
@@ -428,7 +428,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput) {
         ArgumentInput rawArguments = ArgumentInput.parse(rawInput);
-        Context<S> plainContext = config.getContextFactory()
+        CommandContext<S> plainContext = config.getContextFactory()
                                           .createContext(this, source, command, commandName, rawArguments);
 
         return execute(plainContext);

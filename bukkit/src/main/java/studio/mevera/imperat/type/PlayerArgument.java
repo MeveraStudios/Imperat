@@ -9,7 +9,7 @@ import studio.mevera.imperat.BukkitUtil;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -74,7 +74,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<BukkitSource> context, Argument<BukkitSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<BukkitSource> context, Argument<BukkitSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;

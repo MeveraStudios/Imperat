@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.parameters.type;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.DefaultValueProvider;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -39,7 +39,7 @@ public final class OptionalArgument<S extends Source, T> extends ArgumentType<S,
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<S> context, Argument<S> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
         return typeResolver.matchesInput(rawPosition, context, parameter);
     }
 

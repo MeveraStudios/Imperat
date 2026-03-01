@@ -6,7 +6,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.Priority;
@@ -80,12 +80,12 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         return children;
     }
 
-    public boolean matchesInput(int depth, Context<S> ctx) {
+    public boolean matchesInput(int depth, CommandContext<S> ctx) {
         // Check supported types in LIFO order
         return matchesInput(depth, ctx, false);
     }
 
-    public boolean matchesInput(int depth, Context<S> ctx, boolean strict) {
+    public boolean matchesInput(int depth, CommandContext<S> ctx, boolean strict) {
         var primaryType = data.type();
         boolean primaryMatches = matchesInput(primaryType, depth, ctx);
 
@@ -101,7 +101,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         return siblingMatchingInput == null;//if no sibling matches this, this one MUST match
     }
 
-    private @Nullable CommandNode<S, ?> findNeighborOfType(int depth, Context<S> context) {
+    private @Nullable CommandNode<S, ?> findNeighborOfType(int depth, CommandContext<S> context) {
         if (parent == null) {
             return null;
         }
@@ -116,7 +116,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         return null;
     }
 
-    private boolean matchesInput(ArgumentType<S, ?> type, int depth, Context<S> ctx) {
+    private boolean matchesInput(ArgumentType<S, ?> type, int depth, CommandContext<S> ctx) {
         return type.matchesInput(depth, ctx, data);
     }
 

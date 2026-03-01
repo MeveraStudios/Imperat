@@ -8,7 +8,7 @@ import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.Version;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -43,7 +43,7 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
 
     @SuppressWarnings("unchecked")
     private static @NotNull <V> EntityCondition getEntityPredicate(@NotNull Cursor<BukkitSource> cursor,
-            List<SelectionParameterInput<?>> inputParameters, Context<BukkitSource> ctx) {
+            List<SelectionParameterInput<?>> inputParameters, CommandContext<BukkitSource> ctx) {
         EntityCondition entityPredicted = (sender, entity) -> true;
         for (var input : inputParameters) {
             if (!(input.getField() instanceof PredicateField<?>)) {

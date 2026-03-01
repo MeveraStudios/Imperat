@@ -16,7 +16,7 @@ import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
@@ -168,7 +168,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public @NotNull TreeExecutionResult<S> execute(Context<S> context) throws CommandException {
+    public @NotNull TreeExecutionResult<S> execute(CommandContext<S> context) throws CommandException {
         var copy = context.arguments().copy();
         copy.removeIf(String::isBlank);
         return tree.execute(context, copy);
@@ -198,7 +198,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
      * @param usage   the usage detected being used
      */
     @Override
-    public void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandPathway<S> usage) throws ProcessorException {
+    public void preProcess(@NotNull Imperat<S> api, @NotNull CommandContext<S> context, @NotNull CommandPathway<S> usage) throws ProcessorException {
         for (var processor : preProcessors) {
             try {
                 processor.process(api, context, usage);

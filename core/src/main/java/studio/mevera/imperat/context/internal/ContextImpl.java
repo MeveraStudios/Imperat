@@ -5,10 +5,10 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 
-class ContextImpl<S extends Source> implements Context<S> {
+class ContextImpl<S extends Source> implements CommandContext<S> {
 
     protected final Imperat<S> imperat;
     protected final ImperatConfig<S> imperatConfig;

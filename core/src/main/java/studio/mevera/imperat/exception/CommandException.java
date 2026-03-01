@@ -2,7 +2,7 @@ package studio.mevera.imperat.exception;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderDataProvider;
@@ -66,7 +66,7 @@ public class CommandException extends Exception {
         );
     }
 
-    public <S extends Source> CommandException withContextPlaceholders(Context<S> ctx) {
+    public <S extends Source> CommandException withContextPlaceholders(CommandContext<S> ctx) {
         // e.g: %command%, %arguments%, etc.
         return withPlaceholder("command", ctx.command().getName())
                        .withPlaceholder("arguments", String.join(" ", ctx.arguments()))

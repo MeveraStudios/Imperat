@@ -16,7 +16,7 @@ import java.io.PrintStream;
  * <p>The builder automatically sets up:</p>
  * <ul>
  *   <li>Basic source resolvers for PrintStream handling</li>
- *   <li>Context resolvers for dependency injection</li>
+ *   <li>CommandContext resolvers for dependency injection</li>
  *   <li>Simple configuration suitable for CLI applications</li>
  *   <li>No complex platform-specific features (kept minimal)</li>
  * </ul>

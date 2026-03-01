@@ -1,7 +1,7 @@
 package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.SelfHandledException;
 import studio.mevera.imperat.exception.ThrowableResolver;
@@ -50,7 +50,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
  * @see ThrowableHandler
  * @see ThrowableResolver
  * @see SelfHandledException
- * @see Context
+ * @see CommandContext
  */
 public non-sealed interface BaseThrowableHandler<S extends Source> extends ThrowableHandler<S> {
 
@@ -63,7 +63,7 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
      *   <li><strong>Chain Traversal:</strong> Iterates through the complete exception
      *       cause chain using {@link Throwable#getCause()}</li>
      *   <li><strong>Self-Handled Exceptions:</strong> Immediately delegates to
-     *       {@link SelfHandledException#handle(ImperatConfig, Context)} when encountered</li>
+     *       {@link SelfHandledException#handle(ImperatConfig, CommandContext)} when encountered</li>
      *   <li><strong>Resolver Lookup:</strong> Searches for registered {@link ThrowableResolver}
      *       instances matching the current exception type</li>
      *   <li><strong>Debug Logging:</strong> Provides detailed logging of the resolution
@@ -106,7 +106,7 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
      * that exception handling does not create additional execution failures.
      * All resolver calls are wrapped in implicit exception safety.
      * @see #getThrowableResolver(Class)
-     * @see SelfHandledException#handle(ImperatConfig, Context)
+     * @see SelfHandledException#handle(ImperatConfig, CommandContext)
      * @see ImperatDebugger#debug(String, Object...)
      * @see ImperatDebugger#error(Class, String, Throwable)
      */
@@ -114,7 +114,7 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
     @SuppressWarnings("unchecked")
     default <E extends Throwable> boolean handleExecutionThrowable(
             @NotNull E throwable,
-            Context<S> context,
+            CommandContext<S> context,
             Class<?> owning,
             String methodName
     ) {

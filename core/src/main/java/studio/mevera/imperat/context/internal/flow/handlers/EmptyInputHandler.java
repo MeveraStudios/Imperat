@@ -80,7 +80,7 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
             context.resolveFlag(parsedFlagArgument);
 
         } else {
-            context.resolveArgument(
+            context.parseArgument(
                     new ParsedArgument<>(
                             null,
                             optionalEmptyParameter,

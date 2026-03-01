@@ -6,7 +6,7 @@ import static studio.mevera.imperat.tests.commands.TestCommands.MULTIPLE_OPTIONA
 import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.BuyCommand;
 import studio.mevera.imperat.tests.commands.ContextResolvingCmd;
@@ -81,7 +81,7 @@ public class ImperatTestGlobals {
                                                       .handleMiddleOptionalArgSkipping(true)
                                                       .contextArgumentProvider(new TypeWrap<CommandHelp<TestSource>>() {
                                                       }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
-                                                      .contextArgumentProvider(new TypeWrap<Context<TestSource>>() {
+                                                      .contextArgumentProvider(new TypeWrap<CommandContext<TestSource>>() {
                                                       }.getType(), (ctx, pe) -> ctx)
                                                       .contextArgumentProvider(PlayerData.class, new PlayerDataContextArgumentResolver())
                                                       .contextArgumentProvider(SomeData.class, new SomeDataCR())

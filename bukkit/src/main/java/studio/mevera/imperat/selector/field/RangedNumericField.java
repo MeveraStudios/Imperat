@@ -1,7 +1,7 @@
 package studio.mevera.imperat.selector.field;
 
 import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.util.TypeUtility;
@@ -40,7 +40,7 @@ public final class RangedNumericField<N extends Number> extends AbstractField<Ra
      * @throws CommandException if the parsing fails
      */
     @Override
-    public Range<N> parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
+    public Range<N> parseFieldValue(String value, CommandContext<BukkitSource> context) throws CommandException {
         if (!value.contains(RANGE_CHARACTER_WITHOUT_ESCAPE)) {
             N numericValue = numericField.parseNumber(value, context);
             return Range.atLeast(numericValue);

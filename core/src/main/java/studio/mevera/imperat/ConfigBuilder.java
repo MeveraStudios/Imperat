@@ -302,7 +302,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param factory the context resolver factory to be registered
      * @return this ConfigBuilder instance for method chaining
      */
-    // Context Resolver Factory
+    // CommandContext Resolver Factory
     public <T> B contextArgumentProviderFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
         config.registerContextArgumentProviderFactory(type, factory);
         return (B) this;
@@ -318,7 +318,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      *                 when required
      * @return the updated instance of {@code ConfigBuilder}, enabling fluent configuration
      */
-    // Context Resolver
+    // CommandContext Resolver
     public <T> B contextArgumentProvider(Type type, ContextArgumentProvider<S, T> resolver) {
         config.registerContextArgumentProvider(type, resolver);
         return (B) this;

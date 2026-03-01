@@ -4,7 +4,7 @@ package studio.mevera.imperat;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.events.EventListener;
@@ -45,12 +45,12 @@ public non-sealed interface Imperat<S extends Source> extends AnnotationInjector
     @NotNull ImperatConfig<S> config();
 
     /**
-     * Dispatches and executes a command using {@link Context} only
+     * Dispatches and executes a command using {@link CommandContext} only
      *
      * @param context the context
      * @return the usage match setResult
      */
-    @NotNull ExecutionResult<S> execute(@NotNull Context<S> context) throws Throwable;
+    @NotNull ExecutionResult<S> execute(@NotNull CommandContext<S> context) throws Throwable;
 
     /**
      * Dispatches and executes a command with certain raw arguments

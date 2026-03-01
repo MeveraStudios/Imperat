@@ -2,7 +2,7 @@ package studio.mevera.imperat.selector.field.filters;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.util.TypeWrap;
@@ -20,7 +20,7 @@ final class NameField extends PredicateField<String> {
 
     @Override
     protected @NotNull EntityCondition getCondition(String value, Cursor<BukkitSource> cursor,
-            Context<BukkitSource> context) {
+            CommandContext<BukkitSource> context) {
         return (sender, entity) -> entity.getName().equalsIgnoreCase(value);
     }
 
@@ -32,7 +32,7 @@ final class NameField extends PredicateField<String> {
      * @return the parsed value of the field's type
      */
     @Override
-    public String parseFieldValue(String value, Context<BukkitSource> context) {
+    public String parseFieldValue(String value, CommandContext<BukkitSource> context) {
         return value;
     }
 

@@ -13,7 +13,7 @@ import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
@@ -236,7 +236,7 @@ public sealed interface ImperatConfig<S extends Source> extends
 
     /**
      * @return the factory for creation of
-     * command related contexts {@link Context}
+     * command related contexts {@link CommandContext}
      */
     ContextFactory<S> getContextFactory();
 

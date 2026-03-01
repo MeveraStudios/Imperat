@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderDataProvider;
 import studio.mevera.imperat.responses.Response;
@@ -63,7 +63,7 @@ class AdvancedPlaceholderTest {
     }
 
     // Helper method to create context with custom source
-    private Context<TestSource> createContext() {
+    private CommandContext<TestSource> createContext() {
         return config.getContextFactory().createContext(
                 imperat,
                 source,
@@ -88,7 +88,7 @@ class AdvancedPlaceholderTest {
                                               .resolver(id -> "Alice")
                                               .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -122,7 +122,7 @@ class AdvancedPlaceholderTest {
                                                     .resolver(id -> "9999")
                                                     .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -156,7 +156,7 @@ class AdvancedPlaceholderTest {
                                                .resolver(id -> "C")
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -185,7 +185,7 @@ class AdvancedPlaceholderTest {
                                                .resolver(id -> String.valueOf(counter.incrementAndGet()))
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         // First call
         response.sendContent(context, placeholders);
@@ -232,7 +232,7 @@ class AdvancedPlaceholderTest {
                                                  .resolver(id -> String.valueOf((a + b) / 2.0))
                                                  .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -272,7 +272,7 @@ class AdvancedPlaceholderTest {
                                                        .build());
         }
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(200);
@@ -304,7 +304,7 @@ class AdvancedPlaceholderTest {
                                                .resolver(id -> "TEST")
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(200);
@@ -333,7 +333,7 @@ class AdvancedPlaceholderTest {
                                                .resolver(id -> "null")  // Return string "null" instead of actual null
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -360,7 +360,7 @@ class AdvancedPlaceholderTest {
                                               .resolver(id -> longValue)
                                               .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(200);
@@ -388,7 +388,7 @@ class AdvancedPlaceholderTest {
                                                  .resolver(id -> "Line 1\nLine 2\nLine 3")
                                                  .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -422,7 +422,7 @@ class AdvancedPlaceholderTest {
                                                 .resolver(id -> "€£¥")
                                                 .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -454,7 +454,7 @@ class AdvancedPlaceholderTest {
                                                .resolver(id -> "Extra")
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         // sendContent() is async, so we need to wait and check for exceptions
         Assertions.assertTrue(capturedMessages.isEmpty());
@@ -472,7 +472,7 @@ class AdvancedPlaceholderTest {
         PlaceholderDataProvider placeholders = PlaceholderDataProvider.createDefault();
         // No placeholders registered
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -511,7 +511,7 @@ class AdvancedPlaceholderTest {
                                                .resolver(id -> "AsyncValue")
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(200); // Wait for async operation
@@ -555,7 +555,7 @@ class AdvancedPlaceholderTest {
                                                })
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -581,7 +581,7 @@ class AdvancedPlaceholderTest {
 
         responseRegistry.registerResponse(response);
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         for (int i = 0; i < 10; i++) {
             final int index = i;
@@ -611,7 +611,7 @@ class AdvancedPlaceholderTest {
 
         responseRegistry.registerResponse(response);
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < 5; i++) {

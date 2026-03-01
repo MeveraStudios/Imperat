@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.ParsedArgument;
@@ -39,7 +39,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
     private final Command<S> lastCommand;
 
     ExecutionContextImpl(
-            Context<S> context,
+            CommandContext<S> context,
             CommandPathway<S> pathway,
             Command<S> lastCommand
     ) {
@@ -57,10 +57,15 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return the argument resolved from raw into a value
      */
     @Override
-    public @Nullable ParsedArgument<S> getResolvedArgument(Command<S> command, String name) {
+    public @Nullable ParsedArgument<S> getParsedArgument(Command<S> command, String name) {
         return resolvedArgumentsPerCommand.getData(command)
                        .flatMap((resolvedArgs) -> resolvedArgs.getData(name))
                        .orElse(null);
+    }
+
+    @Override
+    public @Nullable ParsedArgument<S> getParsedArgument(String argumentName) {
+        return allResolvedArgs.getData(argumentName).orElse(null);
     }
 
     /**
@@ -68,7 +73,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return the command/subcommand's resolved args in as a new array-list
      */
     @Override
-    public List<ParsedArgument<S>> getResolvedArguments(Command<S> command) {
+    public List<ParsedArgument<S>> getParsedArguments(Command<S> command) {
         return resolvedArgumentsPerCommand.getData(command)
                        .map((argMap) -> (List<ParsedArgument<S>>) new ArrayList<ParsedArgument<S>>(argMap.getAll()))
                        .orElse(Collections.emptyList());
@@ -87,7 +92,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * NOTE: the flags are NOT included as a resolved argument, it's treated differently
      */
     @Override
-    public Collection<? extends ParsedArgument<S>> getResolvedArguments() {
+    public Collection<? extends ParsedArgument<S>> getParsedArguments() {
         return allResolvedArgs.getAll();
     }
 
@@ -107,7 +112,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R> @NotNull R getResolvedSource(Type type) throws CommandException {
+    public <R> @NotNull R provideSource(Type type) throws CommandException {
         if (!imperatConfig.hasSourceResolver(type)) {
             throw new IllegalArgumentException("Found no SourceProvider for valueType `" + type.getTypeName() + "`");
         }
@@ -126,7 +131,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> @Nullable T getContextResolvedArgument(Class<T> type) throws CommandException {
+    public <T> @Nullable T getContextArgument(Class<T> type) throws CommandException {
         var resolver = imperatConfig.getContextArgumentProvider(type);
         return resolver == null ? null : (T) resolver.provide(this, null);
     }
@@ -171,7 +176,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
 
 
     @Override
-    public <T> void resolveArgument(
+    public <T> void parseArgument(
             @NotNull Cursor<S> cursor,
             @Nullable T value
     ) throws CommandException {
@@ -190,11 +195,11 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
         }
 
         final ParsedArgument<S> parsedArgument = new ParsedArgument<>(raw, argument, cursor.position().parameter, value);
-        resolveArgument(parsedArgument);
+        parseArgument(parsedArgument);
     }
 
     @Override
-    public void resolveArgument(ParsedArgument<S> parsedArgument) throws CommandException {
+    public void parseArgument(ParsedArgument<S> parsedArgument) throws CommandException {
         var argument = parsedArgument.getOriginalArgument();
         argument.validate(this, parsedArgument);
         resolvedArgumentsPerCommand.update(getLastUsedCommand(), (existingResolvedArgs) -> {
@@ -227,7 +232,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return The used usage to use it to resolve commands
      */
     @Override
-    public CommandPathway<S> getDetectedUsage() {
+    public CommandPathway<S> getDetectePathway() {
         return usage;
     }
 

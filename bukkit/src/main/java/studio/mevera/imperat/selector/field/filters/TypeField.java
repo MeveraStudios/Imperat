@@ -3,7 +3,7 @@ package studio.mevera.imperat.selector.field.filters;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.SourceException;
@@ -29,7 +29,7 @@ final class TypeField extends PredicateField<EntityType> {
 
     @Override
     protected @NotNull EntityCondition getCondition(EntityType value, Cursor<BukkitSource> cursor,
-            Context<BukkitSource> context) {
+            CommandContext<BukkitSource> context) {
         return (sender, entity) -> entity.getType() == value;
     }
 
@@ -42,7 +42,7 @@ final class TypeField extends PredicateField<EntityType> {
      * @throws CommandException if the parsing fails
      */
     @Override
-    public EntityType parseFieldValue(String value, Context<BukkitSource> context) throws CommandException {
+    public EntityType parseFieldValue(String value, CommandContext<BukkitSource> context) throws CommandException {
         try {
             return EntityType.valueOf(value.toUpperCase());
         } catch (EnumConstantNotPresentException ex) {

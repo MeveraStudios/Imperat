@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
@@ -78,7 +78,7 @@ public class FlagArgumentType<S extends Source> extends ArgumentType<S, ParsedFl
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<S> context, Argument<S> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
         String input = context.arguments().getOr(rawPosition, null);
         if (input == null) {
             return false;

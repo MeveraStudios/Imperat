@@ -1,6 +1,6 @@
 package studio.mevera.imperat.exception;
 
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 
 /**
@@ -26,7 +26,7 @@ import studio.mevera.imperat.context.Source;
  * @param <S> the type of source that provides context for the command execution, must extend {@link Source}
  *
  * @since 1.0
- * @see Context
+ * @see CommandContext
  * @see Source
  * @author Imperat Framework
  */
@@ -57,9 +57,9 @@ public interface ThrowableResolver<E extends Throwable, S extends Source> {
      * @throws RuntimeException if the resolution process itself fails critically
      *                         (though implementations should avoid this when possible)
      *
-     * @see Context#source()
-     * @see Context#command()
+     * @see CommandContext#source()
+     * @see CommandContext#command()
      */
-    void resolve(final E exception, Context<S> context);
+    void resolve(final E exception, CommandContext<S> context);
 
 }

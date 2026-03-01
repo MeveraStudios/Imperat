@@ -1,12 +1,12 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.annotations.ContextResolved;
+import studio.mevera.imperat.annotations.Context;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 
-@ContextResolved
+@Context
 public final class CommandHelp<S extends Source> {
 
     private final @NotNull ExecutionContext<S> context;

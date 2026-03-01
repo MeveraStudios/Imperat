@@ -1,5 +1,6 @@
 package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
+import studio.mevera.imperat.annotations.Context;
 import studio.mevera.imperat.annotations.Description;
 import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.InheritedArg;
@@ -7,13 +8,14 @@ import studio.mevera.imperat.annotations.Named;
 import studio.mevera.imperat.annotations.RootCommand;
 import studio.mevera.imperat.annotations.Shortcut;
 import studio.mevera.imperat.annotations.SubCommand;
+import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.tests.TestSource;
 
 @RootCommand("group")
 public final class AnnotatedGroupCommand {
 
-    /*@Execute
-    public void defaultUsage(TestSource source, @ContextResolved CommandHelp<TestSource> commandHelp) {
+    @Execute
+    public void defaultUsage(TestSource source, @Context CommandHelp<TestSource> commandHelp) {
         //default execution = no args
         // /group help
         /*commandHelp.display(
@@ -24,8 +26,8 @@ public final class AnnotatedGroupCommand {
                 HelpRenderOptions.of(
                 
                 )
-        );
-    }*/
+        );*/
+    }
 
     @Execute
     @Description("Shows sub-commands.")

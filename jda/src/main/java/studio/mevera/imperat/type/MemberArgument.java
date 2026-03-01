@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.JdaSource;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
@@ -38,7 +38,7 @@ public final class MemberArgument extends ArgumentType<JdaSource, Member> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<JdaSource> context, Argument<JdaSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<JdaSource> context, Argument<JdaSource> parameter) {
         String arg = context.arguments().get(rawPosition);
         return arg != null;
     }

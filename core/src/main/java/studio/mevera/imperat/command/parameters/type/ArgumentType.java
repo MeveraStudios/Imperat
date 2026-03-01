@@ -7,7 +7,7 @@ import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.DefaultValueProvider;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -109,14 +109,14 @@ public abstract class ArgumentType<S extends Source, T>
 
     /**
      * Determines whether the provided input matches the expected format or criteria
-     * for a given command parameter. This is used during {@link CommandTree#execute(Context, ArgumentInput)}
+     * for a given command parameter. This is used during {@link CommandTree#execute(CommandContext, ArgumentInput)}
      *
      * @param rawPosition The raw position of the argument in the input.
      * @param context The context to be matched, providing necessary information about the command execution environment.
      * @param parameter The command parameter that provides context for the input handling.
      * @return true if the input matches the expected criteria; false otherwise.
      */
-    public boolean matchesInput(int rawPosition, Context<S> context, Argument<S> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
         return true;
     }
 

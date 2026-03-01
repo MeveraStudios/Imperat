@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.tests.enhanced.EnhancedBaseImperatTest;
 
 
-@DisplayName("Context Resolving Test")
+@DisplayName("CommandContext Resolving Test")
 public class ContextResolvingTest extends EnhancedBaseImperatTest {
 
     @Test

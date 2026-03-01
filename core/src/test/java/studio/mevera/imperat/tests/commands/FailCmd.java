@@ -1,9 +1,9 @@
 package studio.mevera.imperat.tests.commands;
 
-import studio.mevera.imperat.annotations.ContextResolved;
+import studio.mevera.imperat.annotations.Context;
 import studio.mevera.imperat.annotations.Execute;
 import studio.mevera.imperat.annotations.RootCommand;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.errors.CustomException;
 
@@ -11,7 +11,7 @@ import studio.mevera.imperat.tests.errors.CustomException;
 public class FailCmd {
 
     @Execute
-    public void t(TestSource src, @ContextResolved Context<TestSource> ctx) throws CustomException {
+    public void t(TestSource src, @Context CommandContext<TestSource> ctx) throws CustomException {
         throw new CustomException();
     }
 }

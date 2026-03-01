@@ -103,7 +103,7 @@ public abstract class EnhancedBaseImperatTest {
         public ExecutionResultAssert hasArgument(String paramName, Object expectedValue) {
             isSuccessful();
             ParsedArgument<?> parsedArgument = null;
-            for (var arg : actual.getExecutionContext().getResolvedArguments()) {
+            for (var arg : actual.getExecutionContext().getParsedArguments()) {
                 if (arg.getOriginalArgument().getName().equals(paramName)) {
                     parsedArgument = arg;
                     break;
@@ -181,7 +181,7 @@ public abstract class EnhancedBaseImperatTest {
             isNotNull();
             isSuccessful();
             try {
-                T argument = actual.getExecutionContext().getContextResolvedArgument(type);
+                T argument = actual.getExecutionContext().getContextArgument(type);
                 if (argument != null && predicate.test(argument)) {
                     return this;
                 }

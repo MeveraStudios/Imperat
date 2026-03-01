@@ -19,7 +19,7 @@ import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
@@ -162,7 +162,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      * @throws CommandException if an error occurs during execution
      */
     @NotNull
-    TreeExecutionResult<S> execute(Context<S> context) throws CommandException;
+    TreeExecutionResult<S> execute(CommandContext<S> context) throws CommandException;
 
     /**
      * @return The description of a command
@@ -217,7 +217,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      * @param context the context
      * @param usage   the usage detected being used
      */
-    void preProcess(@NotNull Imperat<S> api, @NotNull Context<S> context, @NotNull CommandPathway<S> usage) throws CommandException;
+    void preProcess(@NotNull Imperat<S> api, @NotNull CommandContext<S> context, @NotNull CommandPathway<S> usage) throws CommandException;
 
     /**
      * Sets a post-processor for the command

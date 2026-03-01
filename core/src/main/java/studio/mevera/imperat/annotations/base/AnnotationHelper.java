@@ -27,7 +27,8 @@ public final class AnnotationHelper {
     /**
      * The function loads the full parameters of a method and resolves all context, such as senders, flags, regular arguments, etc.
      * <p>
-     * Checks arguments and resolves their context, if the parameter or type contains ContextResolved then it will get the context resolver from the imperat's config instance.
+     * Checks arguments and resolves their context, if the parameter or type contains CommandContext then it will get the context resolver from the
+     * imperat's config instance.
      * @param dispatcher the imperat instance
      * @param source the source of the command
      * @param context the execution context for a command, responsible for resolving and managing command arguments, flags, and their values during command execution.
@@ -56,11 +57,11 @@ public final class AnnotationHelper {
             if (source.getClass().equals(firstParam.getType())) {
                 paramsInstances[0] = source;
             } else {
-                paramsInstances[0] = context.getResolvedSource(firstParam.getType());
+                paramsInstances[0] = context.provideSource(firstParam.getType());
             }
 
         } else {
-            paramsInstances[0] = context.getResolvedSource(firstParam.getType());
+            paramsInstances[0] = context.provideSource(firstParam.getType());
         }
 
         for (int i = 1, p = 0; i < method.size(); i++, p++) {

@@ -23,7 +23,7 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
             return HandleResult.NEXT_HANDLER;
         } else if (currentRaw == null) {
             // Required parameter missing
-            var closestUsage = context.getDetectedUsage();
+            var closestUsage = context.getDetectePathway();
             var exception = new CommandException(ResponseKey.INVALID_SYNTAX);
 
             if (closestUsage != null) {
@@ -45,7 +45,7 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
         try {
             var value = currentParameter.type().parse(context, stream, stream.readInput());
 
-            context.resolveArgument(stream, value);
+            context.parseArgument(stream, value);
             stream.skip();
 
             return HandleResult.NEXT_ITERATION;

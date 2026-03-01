@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.parameters.validator;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
@@ -25,7 +25,7 @@ public interface ArgValidator<S extends Source> extends Comparable<ArgValidator<
             }
 
             @Override
-            public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
+            public void validate(CommandContext<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
             }
         };
     }
@@ -34,7 +34,7 @@ public interface ArgValidator<S extends Source> extends Comparable<ArgValidator<
         return Priority.NORMAL;
     }
 
-    void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException;
+    void validate(CommandContext<S> context, ParsedArgument<S> parsedArgument) throws CommandException;
 
     @Override
     default int compareTo(@NotNull ArgValidator<S> o) {

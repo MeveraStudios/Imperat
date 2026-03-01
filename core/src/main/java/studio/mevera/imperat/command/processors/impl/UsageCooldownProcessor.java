@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.processors.impl;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
@@ -28,7 +28,7 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
     @Override
     public void process(
             Imperat<S> imperat,
-            Context<S> context,
+            CommandContext<S> context,
             CommandPathway<S> usage
     ) throws CommandException {
         var source = context.source();

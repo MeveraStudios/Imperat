@@ -7,7 +7,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
@@ -37,7 +37,7 @@ public abstract class ContextFactory<S extends Source> {
      * @return new context from the command and args used by {@link Source}
      */
     @NotNull
-    public abstract Context<S> createContext(
+    public abstract CommandContext<S> createContext(
             @NotNull Imperat<S> imperat,
             @NotNull S source,
             Command<S> command,
@@ -50,7 +50,7 @@ public abstract class ContextFactory<S extends Source> {
      * @return a dummy context with a dummy sender for testing or other purposes
      */
     @NotNull
-    public Context<S> createDummyContext(
+    public CommandContext<S> createDummyContext(
             @NotNull Imperat<S> imperat
     ) {
         return createContext(
@@ -85,7 +85,7 @@ public abstract class ContextFactory<S extends Source> {
      * @return the execution context ready for argument resolution
      */
     public abstract ExecutionContext<S> createExecutionContext(
-            @NotNull Context<S> plainContext,
+            @NotNull CommandContext<S> plainContext,
             @NotNull CommandPathway<S> pathway,
             @NotNull Command<S> lastCommand
     );

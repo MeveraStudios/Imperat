@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderDataProvider;
@@ -69,7 +69,7 @@ class ResponseSystemTest {
     }
 
     // Helper method to create context with custom source
-    private Context<TestSource> createContext() {
+    private CommandContext<TestSource> createContext() {
         return config.getContextFactory().createContext(
                 imperat,
                 source,
@@ -148,7 +148,7 @@ class ResponseSystemTest {
                                               .build());
 
         // Create a dummy context
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         // Send content
         response.sendContent(context, placeholders);
@@ -185,7 +185,7 @@ class ResponseSystemTest {
                                               .resolver(id -> "arg1 arg2")
                                               .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -214,7 +214,7 @@ class ResponseSystemTest {
                                                  .resolver(id -> "value")
                                                  .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         // sendContent() is async, so the validation happens asynchronously
         // When validation fails, the CompletableFuture completes exceptionally
@@ -233,7 +233,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, null);
         Thread.sleep(100);
@@ -255,7 +255,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, null);
         Thread.sleep(50);
@@ -283,7 +283,7 @@ class ResponseSystemTest {
     //
     //        responseRegistry.registerResponse(response);
     //
-    //        Context<TestSource> context = createContext();
+    //        CommandContext<TestSource> context = createContext();
     //
     //        response.sendContent(context, null);
     //        Thread.sleep(200); // Wait for async operation
@@ -302,7 +302,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, null);
         Thread.sleep(50);
@@ -327,7 +327,7 @@ class ResponseSystemTest {
         Response response = new TestResponse(testKey, () -> "Custom", customFetcher);
         responseRegistry.registerResponse(response);
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, null);
         Thread.sleep(100);
@@ -352,7 +352,7 @@ class ResponseSystemTest {
         CommandException exception = new CommandException(errorKey)
                                              .withPlaceholder("message", "Something went wrong");
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         // Simulate exception handling
         config.handleExecutionThrowable(exception, context, ResponseSystemTest.class, "testMethod");
@@ -377,7 +377,7 @@ class ResponseSystemTest {
         CommandException exception = new CommandException(errorKey)
                                              .withPlaceholder("command", "test");
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         config.handleExecutionThrowable(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
@@ -401,7 +401,7 @@ class ResponseSystemTest {
         CommandException exception = new CommandException(errorKey)
                                              .withPlaceholder("value", () -> String.valueOf(System.currentTimeMillis() / 1000));
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         config.handleExecutionThrowable(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
@@ -492,7 +492,7 @@ class ResponseSystemTest {
                                                .resolver(id -> "maybe")
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         Response retrieved = responseRegistry.getResponse(key);
         retrieved.sendContent(context, placeholders);
@@ -520,7 +520,7 @@ class ResponseSystemTest {
                                                .resolver(id -> "")
                                                .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -553,7 +553,7 @@ class ResponseSystemTest {
                                                  .resolver(id -> "Hello \"World\" & <stuff>")
                                                  .build());
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -581,7 +581,7 @@ class ResponseSystemTest {
         // Just registering shouldn't call the supplier
         assertThat(supplierCalled[0]).isFalse();
 
-        Context<TestSource> context = createContext();
+        CommandContext<TestSource> context = createContext();
 
         // Sending content should call it
         response.sendContent(context, null);

@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.VelocitySource;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -50,7 +50,7 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<VelocitySource> context, Argument<VelocitySource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<VelocitySource> context, Argument<VelocitySource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;

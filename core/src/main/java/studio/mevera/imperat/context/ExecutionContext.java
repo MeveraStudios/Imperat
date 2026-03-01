@@ -4,7 +4,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.annotations.ContextResolved;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
@@ -44,8 +43,8 @@ import java.util.Optional;
  * @since 1.0.0
  */
 @ApiStatus.AvailableSince("1.0.0")
-@ContextResolved
-public interface ExecutionContext<S extends Source> extends Context<S> {
+@studio.mevera.imperat.annotations.Context
+public interface ExecutionContext<S extends Source> extends CommandContext<S> {
 
 
     /**
@@ -119,7 +118,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @throws CommandException if resolution fails
      * @see ImperatConfig#getSourceProviderFor(Type) (Type)
      */
-    <R> @NotNull R getResolvedSource(Type type) throws CommandException;
+    <R> @NotNull R provideSource(Type type) throws CommandException;
 
     /**
      * Gets an argument resolved by the context resolver system.
@@ -130,7 +129,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @throws CommandException if resolution fails
      * @see ContextArgumentProvider
      */
-    <T> @Nullable T getContextResolvedArgument(Class<T> type) throws CommandException;
+    <T> @Nullable T getContextArgument(Class<T> type) throws CommandException;
 
     /**
      * Gets all flags that were resolved from the command input.
@@ -147,7 +146,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param value the resolved value.
      * @throws CommandException if resolution fails.
      */
-    <T> void resolveArgument(
+    <T> void parseArgument(
             Cursor<S> stream,
             @Nullable T value
     ) throws CommandException;
@@ -157,7 +156,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      *
      * @param argument the resolved argument to register
      */
-    void resolveArgument(
+    void parseArgument(
             ParsedArgument<S> argument
     ) throws CommandException;
 
@@ -180,7 +179,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      *
      * @return the detected command usage
      */
-    CommandPathway<S> getDetectedUsage();
+    CommandPathway<S> getDetectePathway();
 
     /**
      * Resolves all arguments and flags from the raw context input.
@@ -197,7 +196,9 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return the resolved argument, or {@code null} if not present
      */
     @Nullable
-    ParsedArgument<S> getResolvedArgument(Command<S> command, String name);
+    ParsedArgument<S> getParsedArgument(Command<S> command, String name);
+
+    @Nullable ParsedArgument<S> getParsedArgument(String argumentName);
 
     /**
      * Gets all resolved arguments for a specific command.
@@ -205,7 +206,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @param command the owning command
      * @return a list of resolved arguments in declaration order
      */
-    List<ParsedArgument<S>> getResolvedArguments(Command<S> command);
+    List<ParsedArgument<S>> getParsedArguments(Command<S> command);
 
     /**
      * Gets all commands in the resolution path.
@@ -221,7 +222,7 @@ public interface ExecutionContext<S extends Source> extends Context<S> {
      * @return a collection of arguments in the order they appeared in the input
      * @note Flags are not included in this collection
      */
-    Collection<? extends ParsedArgument<S>> getResolvedArguments();
+    Collection<? extends ParsedArgument<S>> getParsedArguments();
 
     /**
      * Checks if a flag parameter was resolved in this context.

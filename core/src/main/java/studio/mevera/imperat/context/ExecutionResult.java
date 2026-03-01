@@ -18,16 +18,16 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class ExecutionResult<S extends Source> {
 
-    private final Context<S> context;
+    private final CommandContext<S> context;
     private @Nullable Throwable error;
     private ExecutionContext<S> executionContext;
 
-    private ExecutionResult(@NotNull ExecutionContext<S> executionContext, Context<S> context) {
+    private ExecutionResult(@NotNull ExecutionContext<S> executionContext, CommandContext<S> context) {
         this.executionContext = executionContext;
         this.context = context;
     }
 
-    private ExecutionResult(@Nullable Throwable ex, Context<S> context) {
+    private ExecutionResult(@Nullable Throwable ex, CommandContext<S> context) {
         this.error = ex;
         this.context = context;
     }
@@ -42,7 +42,7 @@ public final class ExecutionResult<S extends Source> {
      */
     public static <S extends Source> ExecutionResult<S> of(
             ExecutionContext<S> executionContext,
-            Context<S> context
+            CommandContext<S> context
     ) {
         return new ExecutionResult<>(executionContext, context);
     }
@@ -55,7 +55,7 @@ public final class ExecutionResult<S extends Source> {
      * @param context the context
      * @return a new {@code ExecutionResult} instance representing failed execution
      */
-    public static <S extends Source> ExecutionResult<S> failure(@Nullable Throwable error, Context<S> context) {
+    public static <S extends Source> ExecutionResult<S> failure(@Nullable Throwable error, CommandContext<S> context) {
         return new ExecutionResult<>(error, context);
     }
 
@@ -66,7 +66,7 @@ public final class ExecutionResult<S extends Source> {
      * @param context the context
      * @return a new {@code ExecutionResult} instance representing a generic failed execution
      */
-    public static <S extends Source> ExecutionResult<S> failure(Context<S> context) {
+    public static <S extends Source> ExecutionResult<S> failure(CommandContext<S> context) {
         return failure(null, context);
     }
 
@@ -88,7 +88,7 @@ public final class ExecutionResult<S extends Source> {
         return error;
     }
 
-    public Context<S> getContext() {
+    public CommandContext<S> getContext() {
         return context;
     }
 

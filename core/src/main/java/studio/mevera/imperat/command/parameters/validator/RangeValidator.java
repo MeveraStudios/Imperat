@@ -1,6 +1,6 @@
 package studio.mevera.imperat.command.parameters.validator;
 
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
@@ -9,7 +9,7 @@ import studio.mevera.imperat.responses.ResponseKey;
 public final class RangeValidator<S extends Source> implements ArgValidator<S> {
 
     @Override
-    public void validate(Context<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
+    public void validate(CommandContext<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
         Object value = parsedArgument.getArgumentParsedValue();
         if (value instanceof Number number) {
             double doubleValue = number.doubleValue();

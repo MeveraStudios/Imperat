@@ -1,7 +1,7 @@
 package studio.mevera.imperat.providers;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 
@@ -22,6 +22,6 @@ public interface SourceProvider<S extends Source, R> {
      * @return the resolved source
      */
     @NotNull
-    R resolve(S source, Context<S> ctx) throws CommandException;
+    R resolve(S source, CommandContext<S> ctx) throws CommandException;
 
 }

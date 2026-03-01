@@ -12,7 +12,7 @@ import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpFilter;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
@@ -396,7 +396,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      */
     @Override
     public @NotNull TreeExecutionResult<S> execute(
-            Context<S> context,
+            CommandContext<S> context,
             @NotNull ArgumentInput input
     ) throws CommandException {
 
@@ -460,7 +460,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Recursive tree traversal that finds the matching pathway and executes it directly.
      */
     private @NotNull TreeExecutionResult<S> traverseAndExecute(
-            Context<S> context,
+            CommandContext<S> context,
             ArgumentInput input,
             @NotNull CommandNode<S, ?> currentNode,
             int depth
@@ -579,7 +579,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * If so, returns how many positions to skip (1 for switch, 2 for value flag).
      * Returns 0 if the token is not a flag.
      */
-    private int computeFlagSkip(Context<S> context, CommandNode<S, ?> node, int depth) {
+    private int computeFlagSkip(CommandContext<S> context, CommandNode<S, ?> node, int depth) {
         String rawToken = context.arguments().getOr(depth, null);
         if (rawToken == null || !Patterns.isInputFlag(rawToken)) {
             return 0;
@@ -596,7 +596,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Computes the effective input size by subtracting flag tokens from the total.
      * This gives the number of "real" argument tokens that the tree needs to match.
      */
-    private int computeEffectiveInputSize(Context<S> context, ArgumentInput input, int startFrom) {
+    private int computeEffectiveInputSize(CommandContext<S> context, ArgumentInput input, int startFrom) {
         int flagTokens = 0;
         for (int i = startFrom; i < input.size(); i++) {
             String token = context.arguments().getOr(i, null);
@@ -660,7 +660,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * Handles the terminal node case: when the current depth matches the last input position.
      */
     private TreeExecutionResult<S> handleTerminalNode(
-            Context<S> context,
+            CommandContext<S> context,
             ArgumentInput input,
             CommandNode<S, ?> node,
             int depth
@@ -694,7 +694,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * try to skip it (if optional) and continue with its children.
      */
     private TreeExecutionResult<S> handleOptionalSkip(
-            Context<S> context,
+            CommandContext<S> context,
             ArgumentInput input,
             CommandNode<S, ?> currentNode,
             int depth
@@ -733,7 +733,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * This means the Cursor will see a full parameter list that matches the raw input 1:1.
      */
     private TreeExecutionResult<S> executePathway(
-            Context<S> context,
+            CommandContext<S> context,
             @NotNull CommandPathway<S> pathway,
             @NotNull Command<S> lastCommand
     ) throws CommandException {
@@ -1091,10 +1091,10 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
      * placed on top of this ordered set of closest usages.
      *
      * @param context the context to search with.
-     * @return the closest usages ordered by how close they are to a {@link Context}
+     * @return the closest usages ordered by how close they are to a {@link CommandContext}
      */
     @Override
-    public Set<CommandPathway<S>> getClosestUsages(Context<S> context) {
+    public Set<CommandPathway<S>> getClosestUsages(CommandContext<S> context) {
         final var queue = context.arguments();
         final String firstArg = queue.getOr(0, null);
 
@@ -1105,7 +1105,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
                        : getClosestUsagesRecursively(new LinkedHashSet<>(), startingNode, context);
     }
 
-    private CommandNode<S, ?> findStartingNode(Context<S> context, CommandNode<S, ?> root) {
+    private CommandNode<S, ?> findStartingNode(CommandContext<S> context, CommandNode<S, ?> root) {
         for (var child : root.getChildren()) {
             if (child.matchesInput(child.getDepth(), context)) {
                 return child;
@@ -1117,7 +1117,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private Set<CommandPathway<S>> getClosestUsagesRecursively(
             Set<CommandPathway<S>> currentUsages,
             CommandNode<S, ?> node,
-            Context<S> context
+            CommandContext<S> context
     ) {
         if (node.isExecutable()) {
             final var usage = node.getExecutableUsage();
@@ -1147,7 +1147,7 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     private void addPermittedUsages(
             Set<CommandPathway<S>> currentUsages,
             CommandNode<S, ?> child,
-            Context<S> context
+            CommandContext<S> context
     ) {
         final var childUsages = getClosestUsagesRecursively(new LinkedHashSet<>(), child, context);
         currentUsages.addAll(childUsages);

@@ -5,7 +5,7 @@ import studio.mevera.imperat.annotations.ExceptionHandler;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
@@ -74,7 +74,7 @@ public interface MethodRules {
                                                                             return TypeWrap.of(first.getElement().getType())
                                                                                            .isSubtypeOf(Throwable.class) &&
                                                                                            TypeUtility.matches(second.getElement().getType(),
-                                                                                                   Context.class);
+                                                                                                   CommandContext.class);
                                                                         })
                                                                         .build();
 

@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BungeeSource;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -47,7 +47,7 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<BungeeSource> context, Argument<BungeeSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<BungeeSource> context, Argument<BungeeSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;

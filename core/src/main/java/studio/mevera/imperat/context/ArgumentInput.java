@@ -3,7 +3,7 @@ package studio.mevera.imperat.context;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.annotations.ContextResolved;
+import studio.mevera.imperat.annotations.Context;
 import studio.mevera.imperat.util.StringUtils;
 
 import java.util.Deque;
@@ -14,7 +14,7 @@ import java.util.List;
  * for handling the arguments entered by the {@link Source}
  */
 @ApiStatus.AvailableSince("1.0.0")
-@ContextResolved
+@Context
 public interface ArgumentInput extends Deque<String>, List<String>, Cloneable {
 
     static ArgumentInput parse(String[] rawArguments) {

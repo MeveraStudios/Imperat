@@ -1,7 +1,7 @@
 package studio.mevera.imperat.selector.field;
 
 import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 
 import java.lang.reflect.Type;
@@ -43,7 +43,7 @@ public interface SelectionField<V> extends SelectionFields {
      * @return the parsed value of the field's type
      * @throws CommandException if the parsing fails
      */
-    V parseFieldValue(String value, Context<BukkitSource> context) throws CommandException;
+    V parseFieldValue(String value, CommandContext<BukkitSource> context) throws CommandException;
 
 
     /**

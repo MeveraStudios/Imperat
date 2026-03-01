@@ -3,7 +3,7 @@ package studio.mevera.imperat.tests.commands.realworld.economy;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
-import studio.mevera.imperat.context.Context;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
@@ -27,7 +27,7 @@ public final class CurrencyParamType extends ArgumentType<TestSource, Currency> 
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, Context<TestSource> context, Argument<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<TestSource> context, Argument<TestSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;

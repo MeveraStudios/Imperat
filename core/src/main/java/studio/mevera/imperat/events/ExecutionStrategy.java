@@ -123,7 +123,7 @@ package studio.mevera.imperat.events;
  *     <li><b>SYNC:</b> Fast execution, blocks caller, preserves order</li>
  *     <li><b>ASYNC:</b> Non-blocking, parallel execution, eventual completion</li>
  *     <li><b>Thread Safety:</b> Async handlers must be thread-safe</li>
- *     <li><b>Context:</b> Async handlers lose thread-local context</li>
+ *     <li><b>CommandContext:</b> Async handlers lose thread-local context</li>
  * </ul>
  *
  * @since 1.0
