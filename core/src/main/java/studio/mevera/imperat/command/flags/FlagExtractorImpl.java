@@ -4,6 +4,7 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.FlagArgument;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Patterns;
@@ -103,8 +104,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
 
         // Throw exception if there are unmatched parts
         if (!unmatchedParts.isEmpty()) {
-            throw new CommandException(ResponseKey.UNKNOWN_FLAG)
-                          .withPlaceholder("input", input);
+            throw new ArgumentParseException(ResponseKey.UNKNOWN_FLAG, input);
         }
 
         return extractedFlagArguments;

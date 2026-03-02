@@ -4,6 +4,7 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseKey;
 
 public final class RangeValidator<S extends Source> implements ArgValidator<S> {
@@ -29,7 +30,7 @@ public final class RangeValidator<S extends Source> implements ArgValidator<S> {
                     rangeBuilder.append("(Open range)");
                 }
 
-                throw new CommandException(ResponseKey.NUMBER_OUT_OF_RANGE)
+                throw ResponseException.of(ResponseKey.NUMBER_OUT_OF_RANGE)
                               .withPlaceholder("original_input", parsedArgument.getArgumentRawInput())
                               .withPlaceholder("value", String.valueOf(number))
                               .withPlaceholder("parameter", param.format())

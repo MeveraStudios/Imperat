@@ -9,6 +9,7 @@ import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseKey;
@@ -78,8 +79,7 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
     @FunctionalInterface
     public interface ExceptionProvider {
 
-        ExceptionProvider DEFAULT = (in) -> new CommandException()
-                                                    .withPlaceholder("input", in);
+        ExceptionProvider DEFAULT = (in) -> new ArgumentParseException(ResponseKey.INVALID_UUID, in);
 
         CommandException fetch(String input);
     }
@@ -98,8 +98,7 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
 
         @Override
         public CommandException fetch(String input) {
-            return new CommandException(responseKey)
-                           .withPlaceholder("input", input);
+            return new ArgumentParseException(responseKey, input);
         }
     }
 

@@ -29,8 +29,7 @@ public final class SubCommandHandler<S extends Source> implements ParameterHandl
                 stream.skip();
                 return HandleResult.NEXT_ITERATION;
             } else {
-                return HandleResult.failure(new CommandException("Invalid sub-command: '%input%'")
-                                                    .withPlaceholder("%input%", currentRaw));
+                return HandleResult.failure(new CommandException("Invalid sub-command: '" + currentRaw + "'"));
             }
         } catch (Exception e) {
             return HandleResult.failure(new CommandException("Error processing command parameter", e));

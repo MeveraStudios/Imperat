@@ -12,6 +12,7 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BukkitResponseKey;
@@ -104,8 +105,7 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
         SelectionType type = cursor.popLetter().map((s) -> SelectionType.from(String.valueOf(s))).orElse(SelectionType.UNKNOWN);
         if (type == SelectionType.UNKNOWN) {
             String input = cursor.currentLetter().orElseThrow() + "";
-            throw new CommandException(BukkitResponseKey.UNKNOWN_SELECTION_TYPE)
-                          .withPlaceholder("input", input);
+            throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_SELECTION_TYPE, input);
         }
 
         List<SelectionParameterInput<?>> inputParameters = new ArrayList<>();

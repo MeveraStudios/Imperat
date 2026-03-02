@@ -13,7 +13,7 @@ import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.responses.ResponseKey;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
 
 public final class EmptyInputHandler<S extends Source> implements ParameterHandler<S> {
 
@@ -40,15 +40,11 @@ public final class EmptyInputHandler<S extends Source> implements ParameterHandl
             //required parameter with no input - invalid syntax
             var command = context.getLastUsedCommand();
             var usage = command != null ? command.getDefaultPathway() : null;
-            var exception = new CommandException(ResponseKey.INVALID_SYNTAX).withPlaceholder("invalid_usage",
-                    context.imperatConfig().commandPrefix() + context.getRootCommandLabelUsed() + " " + context.arguments().join(" "));
-
-            if (usage != null) {
-                exception.withPlaceholder("closest_usage", context.imperatConfig().commandPrefix() + CommandPathway.format(command, usage));
-            } else {
-                exception.withPlaceholder("closest_usage", "");
-            }
-            return HandleResult.failure(exception);
+            String invalidUsage = context.imperatConfig().commandPrefix() + context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
+            String closestUsage = usage != null
+                                          ? context.imperatConfig().commandPrefix() + CommandPathway.format(command, usage)
+                                          : null;
+            return HandleResult.failure(new InvalidSyntaxException(invalidUsage, closestUsage));
 
         } catch (CommandException e) {
             return HandleResult.failure(e);

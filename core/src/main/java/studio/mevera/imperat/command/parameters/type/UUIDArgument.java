@@ -6,6 +6,7 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
 
@@ -26,8 +27,7 @@ public final class UUIDArgument<S extends Source> extends ArgumentType<S, UUID> 
         try {
             return UUID.fromString(correspondingInput);
         } catch (Exception ex) {
-            throw new CommandException(ResponseKey.INVALID_UUID)
-                          .withPlaceholder("input", correspondingInput);
+            throw new ArgumentParseException(ResponseKey.INVALID_UUID, correspondingInput);
         }
     }
 

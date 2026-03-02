@@ -18,7 +18,7 @@ import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.type.LocationArgument;
@@ -95,14 +95,14 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
         config.registerSourceProvider(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
             var origin = bukkitSource.origin();
             if (!(origin instanceof ConsoleCommandSender console)) {
-                throw new CommandException(BukkitResponseKey.ONLY_CONSOLE);
+                throw ResponseException.of(BukkitResponseKey.ONLY_CONSOLE);
             }
             return console;
         });
 
         config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new CommandException(BukkitResponseKey.ONLY_PLAYER);
+                throw ResponseException.of(BukkitResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });

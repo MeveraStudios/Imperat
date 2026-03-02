@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.responses.MinestomResponseKey;
 import studio.mevera.imperat.util.TypeWrap;
@@ -84,14 +84,14 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
         config.registerSourceProvider(AdventureSource.class, (minestomSource, ctx) -> minestomSource);
         config.registerSourceProvider(ConsoleSender.class, (minestomSource, ctx) -> {
             if (!minestomSource.isConsole()) {
-                throw new CommandException(MinestomResponseKey.ONLY_CONSOLE);
+                throw ResponseException.of(MinestomResponseKey.ONLY_CONSOLE);
             }
             return (ConsoleSender) minestomSource.origin();
         });
 
         config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new CommandException(MinestomResponseKey.ONLY_PLAYER);
+                throw ResponseException.of(MinestomResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });

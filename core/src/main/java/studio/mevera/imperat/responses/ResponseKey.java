@@ -22,11 +22,7 @@ public interface ResponseKey extends Keyed<String> {
     // Validation exceptions
     ResponseKey NUMBER_OUT_OF_RANGE = () -> "args.validation.number-out-of-range";
 
-    // Permission exceptions
-    ResponseKey PERMISSION_DENIED = () -> "permission.denied";
-
-    // RootCommand exceptions
-    ResponseKey INVALID_SYNTAX = () -> "command.invalid-syntax";
+    // Command exceptions
     ResponseKey COOLDOWN = () -> "command.cooldown";
 
     // Help exceptions

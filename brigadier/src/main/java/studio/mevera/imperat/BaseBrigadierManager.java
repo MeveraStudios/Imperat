@@ -32,7 +32,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends Source> implemen
     @Override
     public @NotNull <T> com.mojang.brigadier.tree.LiteralCommandNode<T> parseCommandIntoNode(@NotNull Command<S> command) {
         var tree = command.tree();
-        var root = tree.uniqueVersionedTree();
+        var root = tree.rootNode();
         return this.<T>convertRoot(root).build();
     }
 

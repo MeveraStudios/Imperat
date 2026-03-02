@@ -1,14 +1,12 @@
 package studio.mevera.imperat.tests.syntax;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.placeholders.Placeholder;
-import studio.mevera.imperat.responses.ResponseKey;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.TestSource;
 
@@ -31,27 +29,17 @@ public class ClosestUsageTest extends BaseImperatTest {
         // Expected: Should suggest proper usage
 
         ExecutionResult<TestSource> result = execute("req hi iam idk");
-        assertFailure(result, CommandException.class);
+        assertFailure(result, InvalidSyntaxException.class);
 
-        CommandException ex = (CommandException) result.getError();
-        assertNotNull(ex, "CommandException should not be null");
-        assertEquals(ResponseKey.INVALID_SYNTAX, ex.getResponseKey(), "Should be INVALID_SYNTAX error");
+        InvalidSyntaxException ex = (InvalidSyntaxException) result.getError();
+        assertNotNull(ex, "InvalidSyntaxException should not be null");
 
-        // The closest usage should be in the exception data
-        var dataProvider = ex.getPlaceholderDataProvider();
-        if (dataProvider == null) {
-            return;
-        }
-        String closestUsageLine = dataProvider.get("closest_usage")
-                                          .map(Placeholder::resolver)
-                                          .map((r) -> r.resolve("closest_usage"))
-                                          .orElse("");
+        String closestUsage = ex.getClosestUsage();
+        System.out.println("Closest usage: " + closestUsage);
 
-        System.out.println("Closest usage: " + closestUsageLine);
-
-        if (!closestUsageLine.isEmpty()) {
-            assertEquals("req <a> <b> <c> <d>", closestUsageLine, "Usage should contain relevant command info");
-        }
+        // The exception should always carry a closest usage hint
+        assertNotNull(closestUsage, "Closest usage should not be null");
+        assertTrue(closestUsage.contains("req"), "Closest usage should reference the command");
     }
 
 

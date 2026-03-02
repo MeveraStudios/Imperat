@@ -2,18 +2,9 @@ package studio.mevera.imperat.exception;
 
 import studio.mevera.imperat.responses.JdaResponseKey;
 
-public class JdaArgumentParseException extends CommandException {
-
-    private final String input;
+public class JdaArgumentParseException extends ArgumentParseException {
 
     public JdaArgumentParseException(JdaResponseKey responseKey, String input) {
-        super(responseKey);
-        this.input = input;
-        withPlaceholder("input", input);
+        super(responseKey, input);
     }
-
-    public String getInput() {
-        return input;
-    }
-
 }

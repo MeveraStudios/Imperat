@@ -28,9 +28,10 @@ import studio.mevera.imperat.events.types.CommandPostRegistrationEvent;
 import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
+import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.UnknownCommandException;
-import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Priority;
@@ -327,9 +328,10 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         S source = context.source();
 
         if (!config.getPermissionChecker().hasPermission(source, command)) {
-            throw new CommandException(ResponseKey.PERMISSION_DENIED)
-                          .withPlaceholder("command", command.getName())
-                          .withPlaceholder("usage", CommandPathway.format(command, command.getDefaultPathway()));
+            throw new PermissionDeniedException(
+                    command.getName(),
+                    CommandPathway.format(command, command.getDefaultPathway())
+            );
         }
 
         // Direct execution: traverse tree, resolve args, and execute in one step
@@ -338,22 +340,24 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
         if (treeResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
             var closestUsage = treeResult.getClosestUsage();
-            throw new CommandException(ResponseKey.PERMISSION_DENIED)
-                          .withPlaceholder("command", command.getName())
-                          .withPlaceholder("usage", closestUsage != null
-                                                            ? CommandPathway.format(command, closestUsage)
-                                                            : CommandPathway.format(command, command.getDefaultPathway()));
+            throw new PermissionDeniedException(
+                    command.getName(),
+                    closestUsage != null
+                            ? CommandPathway.format(command, closestUsage)
+                            : CommandPathway.format(command, command.getDefaultPathway())
+            );
         }
 
         if (treeResult.getStatus() == TreeExecutionResult.Status.NO_MATCH) {
             ImperatDebugger.debug("No matching pathway found!");
             var closestUsage = treeResult.getClosestUsage();
             String invalidUsage = context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
-            throw new CommandException(ResponseKey.INVALID_SYNTAX)
-                          .withPlaceholder("invalid_usage", invalidUsage)
-                          .withPlaceholder("closest_usage", closestUsage != null
-                                                                    ? CommandPathway.format(command, closestUsage)
-                                                                    : "No usage found");
+            throw new InvalidSyntaxException(
+                    invalidUsage,
+                    closestUsage != null
+                            ? CommandPathway.format(command, closestUsage)
+                            : "No usage found"
+            );
         }
 
         // SUCCESS: The tree already resolved args and created ExecutionContext
@@ -364,9 +368,10 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         // Check usage-level permission
         if (!config.getPermissionChecker().hasPermission(source, usage)) {
             ImperatDebugger.debug("Failed usage permission check!");
-            throw new CommandException(ResponseKey.PERMISSION_DENIED)
-                          .withPlaceholder("command", command.getName())
-                          .withPlaceholder("usage", CommandPathway.format(command, usage));
+            throw new PermissionDeniedException(
+                    command.getName(),
+                    CommandPathway.format(command, usage)
+            );
         }
 
         ImperatDebugger.debug("Usage Found Format: '%s'", CommandPathway.formatWithTypes(command, usage));

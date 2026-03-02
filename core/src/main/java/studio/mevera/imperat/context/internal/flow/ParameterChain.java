@@ -9,6 +9,7 @@ import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.handlers.ParameterHandler;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.exception.ShortHandFlagException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Patterns;
@@ -77,7 +78,7 @@ public class ParameterChain<S extends Source> {
 
                 }
                 if (foundOutsideScope) {
-                    throw new CommandException(ResponseKey.FLAG_OUTSIDE_SCOPE)
+                    throw ResponseException.of(ResponseKey.FLAG_OUTSIDE_SCOPE)
                                   .withPlaceholder("flag_input", raw)
                                   .withPlaceholder("wrong_cmd", lastCmd.getName());
                 }
@@ -122,7 +123,7 @@ public class ParameterChain<S extends Source> {
 
         String inputRaw = areAllSwitches ? currentRaw : nextRaw;
         if (!areAllSwitches && inputRaw == null) {
-            throw new CommandException(ResponseKey.MISSING_FLAG_INPUT)
+            throw ResponseException.of(ResponseKey.MISSING_FLAG_INPUT)
                           .withPlaceholder("flags", extracted.stream().map(FlagArgument::getName).collect(Collectors.joining(",")));
         }
         return inputRaw;

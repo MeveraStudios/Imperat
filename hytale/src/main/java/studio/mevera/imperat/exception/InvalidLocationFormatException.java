@@ -1,8 +1,9 @@
 package studio.mevera.imperat.exception;
 
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.responses.HytaleResponseKey;
 
-public class InvalidLocationFormatException extends CommandException {
+public class InvalidLocationFormatException extends ResponseException {
 
     private final Reason reason;
     private final @Nullable String inputX, inputY, inputZ, inputPitch, inputYaw;
@@ -16,7 +17,7 @@ public class InvalidLocationFormatException extends CommandException {
             @Nullable String inputPitch,
             @Nullable String inputYaw
     ) {
-        super(input);
+        super(HytaleResponseKey.INVALID_LOCATION);
         this.reason = reason;
         this.inputX = inputX;
         this.inputY = inputY;
@@ -24,12 +25,13 @@ public class InvalidLocationFormatException extends CommandException {
         this.inputPitch = inputPitch;
         this.inputYaw = inputYaw;
 
-        withPlaceholder("reason", reason.name())
-                .withPlaceholder("inputX", inputX)
-                .withPlaceholder("inputY", inputY)
-                .withPlaceholder("inputZ", inputZ)
-                .withPlaceholder("inputPitch", inputPitch)
-                .withPlaceholder("inputYaw", inputYaw);
+        withPlaceholder("input", input)
+                .withPlaceholder("reason", reason.name())
+                .withPlaceholder("inputX", inputX != null ? inputX : "")
+                .withPlaceholder("inputY", inputY != null ? inputY : "")
+                .withPlaceholder("inputZ", inputZ != null ? inputZ : "")
+                .withPlaceholder("inputPitch", inputPitch != null ? inputPitch : "")
+                .withPlaceholder("inputYaw", inputYaw != null ? inputYaw : "");
     }
 
     public InvalidLocationFormatException(String input, Reason reason) {
@@ -61,23 +63,14 @@ public class InvalidLocationFormatException extends CommandException {
     }
 
     public enum Reason {
-
         INVALID_X_COORDINATE,
-
         INVALID_Y_COORDINATE,
-
         INVALID_Z_COORDINATE,
-
         INVALID_YAW_COORDINATE,
-
         INVALID_PITCH_COORDINATE,
-
         NO_WORLDS_AVAILABLE,
-
         WRONG_FORMAT,
-
         SELF_LOCATION_NOT_AVAILABLE;
-
     }
 
 }

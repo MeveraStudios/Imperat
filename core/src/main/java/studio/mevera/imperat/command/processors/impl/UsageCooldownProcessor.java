@@ -6,6 +6,7 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseKey;
 
 import java.time.Duration;
@@ -47,7 +48,7 @@ public final class UsageCooldownProcessor<S extends Source> implements CommandPr
                 var remaining = cooldownDuration.minus(elapsed);
                 var remainingDuration = remaining.isNegative() ? Duration.ZERO : remaining;
 
-                throw new CommandException(ResponseKey.COOLDOWN)
+                throw ResponseException.of(ResponseKey.COOLDOWN)
                               .withPlaceholder("seconds", String.valueOf(remainingDuration.toSeconds()))
                               .withPlaceholder("remaining_duration", remainingDuration.toString())
                               .withPlaceholder("cooldown_duration", cooldownDuration.toString())

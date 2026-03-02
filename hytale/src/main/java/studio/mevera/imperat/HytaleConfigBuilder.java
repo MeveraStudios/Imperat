@@ -39,7 +39,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.HytaleResponseKey;
 import studio.mevera.imperat.type.HytaleArgumentType;
 import studio.mevera.imperat.type.LocationArgument;
@@ -186,21 +186,21 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
 
         config.registerSourceProvider(ConsoleSender.class, (hytaleSource, ctx) -> {
             if (!hytaleSource.isConsole()) {
-                throw new CommandException(HytaleResponseKey.ONLY_CONSOLE);
+                throw ResponseException.of(HytaleResponseKey.ONLY_CONSOLE);
             }
             return (ConsoleSender) hytaleSource.origin();
         });
 
         config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new CommandException(HytaleResponseKey.ONLY_PLAYER);
+                throw ResponseException.of(HytaleResponseKey.ONLY_PLAYER);
             }
             return source.as(Player.class);
         });
 
         config.registerSourceProvider(PlayerRef.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new CommandException(HytaleResponseKey.ONLY_PLAYER);
+                throw ResponseException.of(HytaleResponseKey.ONLY_PLAYER);
             }
             return source.asPlayerRef();
         });

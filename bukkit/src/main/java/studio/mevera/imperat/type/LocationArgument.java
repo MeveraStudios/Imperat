@@ -12,6 +12,7 @@ import studio.mevera.imperat.command.parameters.type.ArgumentTypes;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.util.TypeUtility;
 
@@ -163,7 +164,7 @@ public class LocationArgument extends ArgumentType<BukkitSource, Location> {
 
         World world = Bukkit.getWorld(split[0]);
         if (world == null) {
-            throw new CommandException(BukkitResponseKey.UNKNOWN_WORLD)
+            throw ResponseException.of(BukkitResponseKey.UNKNOWN_WORLD)
                           .withPlaceholder("name", split[0]);
         }
 
@@ -234,7 +235,7 @@ public class LocationArgument extends ArgumentType<BukkitSource, Location> {
         return new Location(world, x, y, z, yaw, pitch);
     }
 
-    private CommandException createLocationException(String input, String reason, String inputX, String inputY, String inputZ, String inputPitch,
+    private ResponseException createLocationException(String input, String reason, String inputX, String inputY, String inputZ, String inputPitch,
             String inputYaw) {
         String message = switch (reason) {
             case "INVALID_X_COORDINATE" -> "Invalid X coordinate '" + inputX + "'";
@@ -248,7 +249,7 @@ public class LocationArgument extends ArgumentType<BukkitSource, Location> {
             default -> "Unknown location error";
         };
 
-        return new CommandException(BukkitResponseKey.INVALID_LOCATION)
+        return ResponseException.of(BukkitResponseKey.INVALID_LOCATION)
                        .withPlaceholder("input", input)
                        .withPlaceholder("cause", message)
                        .withPlaceholder("reason", reason)

@@ -9,8 +9,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.UnknownCommandException;
-import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("Enhanced Error Validation Tests")
@@ -46,8 +46,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
             ExecutionResult<TestSource> result = execute("group member setperm"); // Missing permission
 
             Assertions.assertNotNull(result.getError());
-            Assertions.assertTrue(result.getError() instanceof CommandException e && e.getResponseKey() != null
-                                          && e.getResponseKey() == ResponseKey.INVALID_SYNTAX);
+            Assertions.assertTrue(result.getError() instanceof InvalidSyntaxException);
         }
     }
 

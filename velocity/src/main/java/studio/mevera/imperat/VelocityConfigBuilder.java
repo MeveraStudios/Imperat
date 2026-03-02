@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.responses.VelocityResponseKey;
 import studio.mevera.imperat.type.PlayerArgument;
@@ -91,7 +91,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         config.registerContextArgumentProvider(ServerInfo.class, (ctx, paramElement) -> {
             VelocitySource source = ctx.source();
             if (source.isConsole()) {
-                throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
+                throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER);
             }
             Player player = source.asPlayer();
             return player.getCurrentServer()
@@ -111,7 +111,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         config.registerSourceProvider(AdventureSource.class, (velocitySource, ctx) -> velocitySource);
         config.registerSourceProvider(ConsoleCommandSource.class, (velocitySource, ctx) -> {
             if (!velocitySource.isConsole()) {
-                throw new CommandException(VelocityResponseKey.ONLY_CONSOLE);
+                throw ResponseException.of(VelocityResponseKey.ONLY_CONSOLE);
             }
             return velocitySource.asConsole();
         });
@@ -120,7 +120,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
 
         config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
+                throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });

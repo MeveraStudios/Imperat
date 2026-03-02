@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.flow.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.responses.ResponseKey;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
 
 public final class RequiredParameterHandler<S extends Source> implements ParameterHandler<S> {
 
@@ -24,21 +24,18 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
         } else if (currentRaw == null) {
             // Required parameter missing
             var closestUsage = context.getDetectePathway();
-            var exception = new CommandException(ResponseKey.INVALID_SYNTAX);
-
+            String closestUsageStr = null;
             if (closestUsage != null) {
                 var command = context.getLastUsedCommand();
                 if (command != null) {
-                    exception.withPlaceholder("closest_usage_line",
-                            "Closest Usage: " + context.imperatConfig().commandPrefix() + CommandPathway.format(command, closestUsage));
-                } else {
-                    exception.withPlaceholder("closest_usage_line", "");
+                    closestUsageStr = context.imperatConfig().commandPrefix() + CommandPathway.format(command, closestUsage);
                 }
-            } else {
-                exception.withPlaceholder("closest_usage_line", "");
             }
 
-            return HandleResult.failure(exception);
+            return HandleResult.failure(new InvalidSyntaxException(
+                    context.imperatConfig().commandPrefix() + context.getRootCommandLabelUsed() + " " + context.arguments().join(" "),
+                    closestUsageStr
+            ));
         }
 
 

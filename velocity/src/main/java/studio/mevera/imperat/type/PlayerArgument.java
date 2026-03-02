@@ -11,6 +11,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.VelocityResponseKey;
 
@@ -36,7 +37,7 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
 
         if (correspondingInput.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
-                throw new CommandException(VelocityResponseKey.ONLY_PLAYER)
+                throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER)
                               .withPlaceholder("player", correspondingInput);
             }
             return context.source().asPlayer();
@@ -44,7 +45,7 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
         return proxyServer.getPlayer(
                 correspondingInput.toLowerCase()
         ).orElseThrow(() ->
-                              new CommandException(VelocityResponseKey.UNKNOWN_PLAYER)
+                                                        ResponseException.of(VelocityResponseKey.UNKNOWN_PLAYER)
                                       .withPlaceholder("player", correspondingInput)
         );
     }

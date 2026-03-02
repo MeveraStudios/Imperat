@@ -10,6 +10,7 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BungeeResponseKey;
@@ -32,16 +33,14 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
 
         if (correspondingInput.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
-                throw new CommandException(BungeeResponseKey.UNKNOWN_PLAYER)
-                              .withPlaceholder("input", correspondingInput);
+                throw new ArgumentParseException(BungeeResponseKey.UNKNOWN_PLAYER, correspondingInput);
             }
             return context.source().asPlayer();
         }
 
         ProxiedPlayer proxiedPlayer = ProxyServer.getInstance().getPlayer(correspondingInput);
         if (proxiedPlayer == null) {
-            throw new CommandException(BungeeResponseKey.UNKNOWN_PLAYER)
-                          .withPlaceholder("input", correspondingInput);
+            throw new ArgumentParseException(BungeeResponseKey.UNKNOWN_PLAYER, correspondingInput);
         }
         return proxiedPlayer;
     }

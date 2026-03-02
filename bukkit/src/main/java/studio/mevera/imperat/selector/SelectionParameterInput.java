@@ -4,6 +4,7 @@ import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.selector.field.SelectionField;
 import studio.mevera.imperat.selector.field.provider.FieldProvider;
@@ -31,14 +32,14 @@ public final class SelectionParameterInput<V> {
             CommandException {
         String[] split = expression.split(String.valueOf(SelectionField.VALUE_EQUALS));
         if (split.length != 2) {
-            throw new CommandException(BukkitResponseKey.INVALID_SELECTOR_FIELD)
+            throw ResponseException.of(BukkitResponseKey.INVALID_SELECTOR_FIELD)
                           .withPlaceholder("criteria_expression", expression)
                           .withPlaceholder("input", cursor.readInput());
         }
         String field = split[0], value = split[1];
         SelectionField<?> selectionField = FieldProvider.INSTANCE.provideField(field, cursor);
         if (selectionField == null) {
-            throw new CommandException(BukkitResponseKey.UNKNOWN_SELECTOR_FIELD)
+            throw ResponseException.of(BukkitResponseKey.UNKNOWN_SELECTOR_FIELD)
                           .withPlaceholder("field_entered", field)
                           .withPlaceholder("input", cursor.readInput());
         }

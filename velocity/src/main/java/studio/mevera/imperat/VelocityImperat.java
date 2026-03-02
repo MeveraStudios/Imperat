@@ -7,7 +7,7 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.VelocityResponseKey;
 import studio.mevera.imperat.type.PlayerArgument;
 
@@ -93,7 +93,7 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
         // Register source resolver for Player
         config.registerSourceProvider(Player.class, (source, ctx) -> {
             if (source.isConsole()) {
-                throw new CommandException(VelocityResponseKey.ONLY_PLAYER);
+                throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });

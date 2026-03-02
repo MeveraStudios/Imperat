@@ -10,6 +10,7 @@ import studio.mevera.imperat.command.parameters.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BukkitResponseKey;
@@ -33,8 +34,7 @@ public class OfflinePlayerArgument extends ArgumentType<BukkitSource, OfflinePla
             @NotNull String correspondingInput) throws CommandException {
 
         if (correspondingInput.length() > 16) {
-            throw new CommandException(BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER)
-                          .withPlaceholder("name", correspondingInput);
+            throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER, correspondingInput);
         }
 
         return Bukkit.getOfflinePlayer(correspondingInput);

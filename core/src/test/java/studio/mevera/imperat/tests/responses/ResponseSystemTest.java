@@ -11,6 +11,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderDataProvider;
 import studio.mevera.imperat.responses.Response;
@@ -349,7 +350,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        CommandException exception = new CommandException(errorKey)
+        CommandException exception = ResponseException.of(errorKey)
                                              .withPlaceholder("message", "Something went wrong");
 
         CommandContext<TestSource> context = createContext();
@@ -374,7 +375,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        CommandException exception = new CommandException(errorKey)
+        CommandException exception = ResponseException.of(errorKey)
                                              .withPlaceholder("command", "test");
 
         CommandContext<TestSource> context = createContext();
@@ -398,7 +399,7 @@ class ResponseSystemTest {
         responseRegistry.registerResponse(response);
 
         // Use a supplier that computes the value
-        CommandException exception = new CommandException(errorKey)
+        CommandException exception = ResponseException.of(errorKey)
                                              .withPlaceholder("value", () -> String.valueOf(System.currentTimeMillis() / 1000));
 
         CommandContext<TestSource> context = createContext();
@@ -439,21 +440,6 @@ class ResponseSystemTest {
         assertThat(response.getKey().getKey()).isEqualTo("args.parsing.invalid-number-format");
     }
 
-    @Test
-    @DisplayName("Should have default PERMISSION_DENIED response registered")
-    void testDefaultPermissionDeniedResponse() {
-        Response response = responseRegistry.getResponse(ResponseKey.PERMISSION_DENIED);
-        assertThat(response).isNotNull();
-        assertThat(response.getKey().getKey()).isEqualTo("permission.denied");
-    }
-
-    @Test
-    @DisplayName("Should have default INVALID_SYNTAX response registered")
-    void testDefaultInvalidSyntaxResponse() {
-        Response response = responseRegistry.getResponse(ResponseKey.INVALID_SYNTAX);
-        assertThat(response).isNotNull();
-        assertThat(response.getKey().getKey()).isEqualTo("command.invalid-syntax");
-    }
 
     @Test
     @DisplayName("Should have all default responses registered")
@@ -469,8 +455,6 @@ class ResponseSystemTest {
         assertThat(responseRegistry.getResponse(ResponseKey.MISSING_FLAG_INPUT)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.FLAG_OUTSIDE_SCOPE)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.NUMBER_OUT_OF_RANGE)).isNotNull();
-        assertThat(responseRegistry.getResponse(ResponseKey.PERMISSION_DENIED)).isNotNull();
-        assertThat(responseRegistry.getResponse(ResponseKey.INVALID_SYNTAX)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.COOLDOWN)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.NO_HELP)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.NO_HELP_PAGE)).isNotNull();

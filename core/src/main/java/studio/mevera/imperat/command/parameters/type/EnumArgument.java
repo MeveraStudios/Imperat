@@ -6,6 +6,7 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.TypeUtility;
@@ -37,8 +38,7 @@ public final class EnumArgument<S extends Source> extends ArgumentType<S, Enum<?
         try {
             return Enum.valueOf((Class<? extends Enum>) enumType, correspondingInput);
         } catch (IllegalArgumentException | EnumConstantNotPresentException ex) {
-            throw new CommandException(ResponseKey.INVALID_ENUM)
-                          .withPlaceholder("input", correspondingInput)
+            throw new ArgumentParseException(ResponseKey.INVALID_ENUM, correspondingInput)
                           .withPlaceholder("enum_type", ((Class<?>) enumType).getTypeName());
         }
     }

@@ -28,6 +28,9 @@ import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSourceException;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
+import studio.mevera.imperat.exception.PermissionDeniedException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
@@ -37,7 +40,6 @@ import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.DependencySupplier;
 import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
-import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
@@ -81,14 +83,13 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                                                                                  .append(String.join(" ", ctx.arguments()));
                                                                      }
                                                                      var detectedUsage = ctx.getDetectePathway();
-                                                                     throw new CommandException(ResponseKey.INVALID_SYNTAX)
-                                                                                   .withContextPlaceholders(ctx)
-                                                                                   .withPlaceholder("invalid_usage", invalidUsage.toString())
-                                                                                   .withPlaceholder("closest_usage",
-                                                                                           "/" + ctx.getRootCommandLabelUsed() + " "
-                                                                                                   + (detectedUsage != null
-                                                                                                              ? detectedUsage.formatted()
-                                                                                                              : ""));
+                                                                     throw new InvalidSyntaxException(
+                                                                             invalidUsage.toString(),
+                                                                             "/" + ctx.getRootCommandLabelUsed() + " "
+                                                                                     + (detectedUsage != null
+                                                                                                ? detectedUsage.formatted()
+                                                                                                : "")
+                                                                     );
                                                                  });
 
     private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
@@ -136,18 +137,25 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     private void regDefThrowableResolvers() {
-        this.setThrowableResolver(CommandException.class, (exception, context) -> {
-            // CommandException - this is an exception that should be handled and not printed as error
-            if (exception.getResponseKey() != null) {
-                var response = this.getResponseRegistry().getResponse(exception.getResponseKey());
-                if (response != null) {
-                    response.sendContent(context, exception.getPlaceholderDataProvider());
-                }
-            } else {
-                context.source().reply(exception.getMessage());
+        // Structural/flow exceptions — reply with their own plain message directly
+        this.setThrowableResolver(InvalidSyntaxException.class, (exception, context) ->
+                                                                        context.source().reply(exception.getMessage()));
+        this.setThrowableResolver(PermissionDeniedException.class, (exception, context) ->
+                                                                           context.source().reply(exception.getMessage()));
+
+        // All registry-driven exceptions (parse, flag, validation, cooldown, help)
+        this.setThrowableResolver(ResponseException.class, (exception, context) -> {
+            var response = this.getResponseRegistry().getResponse(exception.getResponseKey());
+            if (response != null) {
+                response.sendContent(context, exception.getPlaceholderDataProvider());
             }
         });
-        // InvalidSourceException - this is a system/runtime exception that should still be handled
+
+        // Fallback for plain CommandException (message-only, no ResponseKey)
+        this.setThrowableResolver(CommandException.class, (exception, context) ->
+                                                                  context.source().reply(exception.getMessage()));
+
+        // InvalidSourceException — system/runtime error, escalate
         this.setThrowableResolver(InvalidSourceException.class, (exception, context) -> {
             throw new UnsupportedOperationException("Couldn't find any source resolver for valueType `"
                                                             + exception.getTargetType().getTypeName() + "'");

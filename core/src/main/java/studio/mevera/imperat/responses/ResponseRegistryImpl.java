@@ -118,28 +118,10 @@ final class ResponseRegistryImpl implements ResponseRegistry {
                         .addPlaceholder("parameter_name")
         );
 
-        // Permission exceptions
+        // Permission exceptions are now handled directly by PermissionDeniedException
 
-        // PermissionDeniedException: CommandPathway<?> usage, Argument<?> targetParameter
-        // CommandPathway has: getCommand(), getPermission(), getDescription(), format()
-        // Argument has: name(), description(), permission(), format()
-        registerResponse(
-                new Response(ResponseKey.PERMISSION_DENIED, () -> "You don't have permission to use this command!")
-                        .addContextPlaceholders()
-                        .addPlaceholder("usage")
-                        .addPlaceholder("parameter")
-        );
-
-        // RootCommand exceptions
-
-        // Command exceptions - Invalid syntax with closest usage hint
-        registerResponse(
-                new Response(ResponseKey.INVALID_SYNTAX, () -> "Invalid command usage '%invalid_usage%', you probably meant '%closest_usage%'")
-                        .addContextPlaceholders()
-                        .addPlaceholder("invalid_usage")
-                        .addPlaceholder("closest_usage")// Will be populated from exception data
-
-        );
+        // Command exceptions
+        // InvalidSyntaxException is now handled directly by InvalidSyntaxException
 
         // CooldownException: Duration cooldownDuration, Instant lastTimeExecuted, Duration remainingDuration
         registerResponse(

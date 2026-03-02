@@ -6,6 +6,7 @@ import studio.mevera.imperat.command.parameters.Argument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.TypeWrap;
@@ -47,16 +48,14 @@ public class MapArgument<S extends Source, K, V, M extends Map<K, V>> extends Ar
             }
 
             if (!raw.contains(ENTRY_SEPARATOR)) {
-                throw new CommandException(ResponseKey.INVALID_MAP_ENTRY_FORMAT)
-                              .withPlaceholder("input", raw)
+                throw new ArgumentParseException(ResponseKey.INVALID_MAP_ENTRY_FORMAT, raw)
                               .withPlaceholder("extra_msg", ", entry doesn't contain '" + ENTRY_SEPARATOR + "'");
                 //throw new SourceException("Invalid map entry '%s', entry doesn't contain '%s'", raw, ENTRY_SEPARATOR);
             }
 
             String[] split = raw.split(ENTRY_SEPARATOR);
             if (split.length != 2) {
-                throw new CommandException(ResponseKey.INVALID_MAP_ENTRY_FORMAT)
-                              .withPlaceholder("input", raw)
+                throw new ArgumentParseException(ResponseKey.INVALID_MAP_ENTRY_FORMAT, raw)
                               .withPlaceholder("extra_msg", ", entry is not made of 2 elements");
                 //throw new SourceException("Invalid map entry '%s', entry is not made of 2 elements", raw);
             }
