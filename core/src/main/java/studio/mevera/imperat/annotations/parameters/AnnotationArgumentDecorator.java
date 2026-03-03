@@ -5,10 +5,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.FlagArgument;
-import studio.mevera.imperat.command.parameters.InputParameter;
-import studio.mevera.imperat.command.parameters.NumericParameter;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.arguments.InputParameter;
+import studio.mevera.imperat.command.arguments.NumericParameter;
 import studio.mevera.imperat.context.Source;
 
 import java.lang.annotation.Annotation;

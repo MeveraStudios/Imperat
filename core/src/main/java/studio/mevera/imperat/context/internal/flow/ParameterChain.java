@@ -2,7 +2,7 @@ package studio.mevera.imperat.context.internal.flow;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.FlagArgument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -48,7 +48,7 @@ public class ParameterChain<S extends Source> {
             }
         }
 
-        var usage = context.getDetectePathway();
+        var usage = context.getDetectedPathway();
         Command<S> lastCmd = context.command();
 
         for (int rPos = 0; rPos < stream.rawsLength(); rPos++) {

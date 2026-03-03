@@ -12,7 +12,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
 import studio.mevera.imperat.command.tree.ArgumentNode;
 import studio.mevera.imperat.command.tree.LiteralCommandNode;

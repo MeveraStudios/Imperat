@@ -4,7 +4,7 @@ import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import studio.mevera.imperat.HytaleSource;
-import studio.mevera.imperat.command.parameters.DefaultValueProvider;
+import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.exception.UnknownWorldException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 

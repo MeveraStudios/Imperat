@@ -1,6 +1,6 @@
 package studio.mevera.imperat.command;
 
-import studio.mevera.imperat.command.parameters.NumericRange;
+import studio.mevera.imperat.command.arguments.NumericRange;
 import studio.mevera.imperat.util.Preconditions;
 
 import java.util.Map;

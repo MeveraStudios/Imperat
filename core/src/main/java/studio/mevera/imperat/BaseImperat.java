@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.base.AnnotationReader;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;

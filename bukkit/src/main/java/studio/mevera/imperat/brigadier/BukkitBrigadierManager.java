@@ -11,7 +11,7 @@ import studio.mevera.imperat.BaseBrigadierManager;
 import studio.mevera.imperat.BukkitImperat;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.commodore.Commodore;
 import studio.mevera.imperat.commodore.CommodoreProvider;
 import studio.mevera.imperat.permissions.PermissionChecker;

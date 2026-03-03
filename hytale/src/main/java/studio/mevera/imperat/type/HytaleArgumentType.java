@@ -5,8 +5,8 @@ import com.hypixel.hytale.server.core.command.system.suggestion.SuggestionResult
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleSource;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
@@ -58,7 +58,7 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
     }
 
     @Override
-    public int getNumberOfParametersToConsume() {
+    public int getNumberOfParametersToConsume(Argument<HytaleSource> argument) {
         return hytaleArgType.getNumberOfParameters();
     }
 

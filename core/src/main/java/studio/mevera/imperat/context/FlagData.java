@@ -3,7 +3,7 @@ package studio.mevera.imperat.context;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.StringUtils;
 

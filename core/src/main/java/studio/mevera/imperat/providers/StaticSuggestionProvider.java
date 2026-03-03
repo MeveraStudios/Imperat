@@ -1,6 +1,6 @@
 package studio.mevera.imperat.providers;
 
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 

@@ -2,7 +2,7 @@ package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;

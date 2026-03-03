@@ -1,7 +1,7 @@
 package studio.mevera.imperat.context.internal;
 
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.FlagArgument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 

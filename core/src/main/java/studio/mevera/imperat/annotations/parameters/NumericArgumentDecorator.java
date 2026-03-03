@@ -2,11 +2,11 @@ package studio.mevera.imperat.annotations.parameters;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.InputParameter;
-import studio.mevera.imperat.command.parameters.NumericParameter;
-import studio.mevera.imperat.command.parameters.NumericRange;
-import studio.mevera.imperat.command.parameters.validator.RangeValidator;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.InputParameter;
+import studio.mevera.imperat.command.arguments.NumericParameter;
+import studio.mevera.imperat.command.arguments.NumericRange;
+import studio.mevera.imperat.command.arguments.validator.RangeValidator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.providers.SuggestionProvider;
 

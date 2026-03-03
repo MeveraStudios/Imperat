@@ -1,6 +1,6 @@
 package studio.mevera.imperat.annotations.types;
 
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

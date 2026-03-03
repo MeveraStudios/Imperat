@@ -40,9 +40,13 @@ final class AmbiguityChecker {
     }
 
     static <S extends Source> AmbiguityResult<S> checkIsNodeAmbiguous(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
-        if(node.isGreedyParam() && !node.isLast()) {
-            throw new AmbiguousCommandException("Greedy parameter '" + node.format() + "' in command '" + root.format() + "' must be the last"
-                                                    + " parameter of the command !");
+        if (node.isGreedyParam() && !node.isLast()) {
+            // Limited greedy (limit != -1) is allowed to have trailing args — the cap is enforced at parse time
+            boolean isUnlimited = node.getData().greedyLimit() == -1;
+            if (isUnlimited) {
+                throw new AmbiguousCommandException("Greedy parameter '" + node.format() + "' in command '" + root.format() + "' must be the last"
+                                                            + " parameter of the command !");
+            }
         }
         if(node.isLast()) {
             return AmbiguityResult.failure();

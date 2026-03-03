@@ -1,6 +1,6 @@
 package studio.mevera.imperat;
 
-import studio.mevera.imperat.command.parameters.FlagArgument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 

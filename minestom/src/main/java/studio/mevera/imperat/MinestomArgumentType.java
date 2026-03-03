@@ -2,8 +2,8 @@ package studio.mevera.imperat;
 
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -96,7 +96,7 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomSource, 
 
 
     @Override
-    public int getNumberOfParametersToConsume() {
+    public int getNumberOfParametersToConsume(Argument<MinestomSource> argument) {
         return numberOfParametersToConsume;
     }
 

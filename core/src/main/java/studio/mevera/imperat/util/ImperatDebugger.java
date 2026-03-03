@@ -1,7 +1,7 @@
 package studio.mevera.imperat.util;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.Source;
 
 import java.util.List;

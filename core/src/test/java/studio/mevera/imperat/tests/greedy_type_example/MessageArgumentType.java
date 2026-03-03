@@ -1,8 +1,8 @@
 package studio.mevera.imperat.tests.greedy_type_example;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;

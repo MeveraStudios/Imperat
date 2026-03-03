@@ -2,7 +2,7 @@ package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -23,7 +23,7 @@ public final class RequiredParameterHandler<S extends Source> implements Paramet
             return HandleResult.NEXT_HANDLER;
         } else if (currentRaw == null) {
             // Required parameter missing
-            var closestUsage = context.getDetectePathway();
+            var closestUsage = context.getDetectedPathway();
             String closestUsageStr = null;
             if (closestUsage != null) {
                 var command = context.getLastUsedCommand();

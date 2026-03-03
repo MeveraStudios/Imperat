@@ -9,8 +9,8 @@ import studio.mevera.imperat.annotations.RequireConfirmation;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.type.EnumArgument;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.EnumArgument;
 import studio.mevera.imperat.type.HytaleArgumentType;
 import studio.mevera.imperat.util.TypeUtility;
 

@@ -1,9 +1,9 @@
 package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.DefaultValueProvider;
-import studio.mevera.imperat.command.parameters.FlagArgument;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.DefaultValueProvider;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -23,10 +23,10 @@ public final class OptionalParameterHandler<S extends Source> implements Paramet
             return HandleResult.TERMINATE;
         }
         if (Patterns.isInputFlag(currentRaw)) {
-            boolean containsAnyFlag = !context.getDetectePathway().getFlagExtractor().getRegisteredFlags().isEmpty();
+            boolean containsAnyFlag = !context.getDetectedPathway().getFlagExtractor().getRegisteredFlags().isEmpty();
             if (containsAnyFlag) {
                 stream.skipRaw();
-                var extracted = context.getDetectePathway().getFlagExtractor().extract(Patterns.withoutFlagSign(currentRaw));
+                var extracted = context.getDetectedPathway().getFlagExtractor().extract(Patterns.withoutFlagSign(currentRaw));
                 boolean allTrueFlags = extracted.stream().noneMatch(FlagArgument::isSwitch);
                 if (allTrueFlags) {
                     stream.skipRaw();

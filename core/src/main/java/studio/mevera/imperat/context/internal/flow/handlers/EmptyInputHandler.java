@@ -2,9 +2,9 @@ package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.DefaultValueProvider;
-import studio.mevera.imperat.command.parameters.FlagArgument;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.DefaultValueProvider;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.ParsedArgument;

@@ -6,8 +6,9 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.NumericRange;
+import studio.mevera.imperat.command.arguments.NumericRange;
 import studio.mevera.imperat.util.TypeUtility;
+
 import java.lang.reflect.Type;
 
 class NumericArgUtil {

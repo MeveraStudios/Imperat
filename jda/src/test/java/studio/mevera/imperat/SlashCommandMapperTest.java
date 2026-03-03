@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 
 import java.util.List;
 

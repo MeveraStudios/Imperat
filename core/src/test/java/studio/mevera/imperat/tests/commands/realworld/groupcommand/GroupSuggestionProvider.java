@@ -1,6 +1,6 @@
 package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.tests.TestSource;

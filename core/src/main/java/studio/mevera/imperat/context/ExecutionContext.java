@@ -7,7 +7,7 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
@@ -180,7 +180,7 @@ public interface ExecutionContext<S extends Source> extends CommandContext<S> {
      *
      * @return the detected command usage
      */
-    CommandPathway<S> getDetectePathway();
+    CommandPathway<S> getDetectedPathway();
 
     /**
      * Resolves all arguments and flags from the raw context input.

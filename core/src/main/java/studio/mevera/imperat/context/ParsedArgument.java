@@ -2,7 +2,7 @@ package studio.mevera.imperat.context;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 
 public class ParsedArgument<S extends Source> {
 

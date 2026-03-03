@@ -14,7 +14,7 @@ import studio.mevera.imperat.annotations.types.Default
 import studio.mevera.imperat.command.Command
 import studio.mevera.imperat.command.CommandPathway
 import studio.mevera.imperat.command.CoroutineCommandCoordinator
-import studio.mevera.imperat.command.parameters.Argument
+import studio.mevera.imperat.command.arguments.Argument
 import studio.mevera.imperat.context.ExecutionContext
 import studio.mevera.imperat.context.Source
 import studio.mevera.imperat.util.ImperatDebugger

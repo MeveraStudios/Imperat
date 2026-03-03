@@ -1,6 +1,6 @@
 package studio.mevera.imperat.annotations.types;
 
-import studio.mevera.imperat.command.parameters.validator.ArgValidator;
+import studio.mevera.imperat.command.arguments.validator.ArgValidator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

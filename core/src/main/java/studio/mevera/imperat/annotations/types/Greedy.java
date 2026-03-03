@@ -13,4 +13,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.PARAMETER})
 public @interface Greedy {
 
+    int limit() default -1; // Optional limit on the number of tokens to consume, -1 for unlimited
 }

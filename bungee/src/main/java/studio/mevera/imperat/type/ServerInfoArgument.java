@@ -4,7 +4,7 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BungeeSource;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;

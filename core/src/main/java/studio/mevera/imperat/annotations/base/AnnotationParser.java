@@ -6,7 +6,7 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ThrowableResolver;
 

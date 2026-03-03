@@ -4,7 +4,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
 import studio.mevera.imperat.BukkitSource;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;

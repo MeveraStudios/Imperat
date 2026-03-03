@@ -2,7 +2,8 @@ package studio.mevera.imperat.tests.compound_example;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
@@ -33,7 +34,7 @@ public class Point2DArgumentType extends ArgumentType<TestSource, Point2D> {
     }
 
     @Override
-    public int getNumberOfParametersToConsume() {
+    public int getNumberOfParametersToConsume(Argument<TestSource> argument) {
         return 2;
     }
 }

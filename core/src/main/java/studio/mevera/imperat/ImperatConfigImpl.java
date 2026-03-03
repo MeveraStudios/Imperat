@@ -12,8 +12,8 @@ import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.ContextArgumentProviderRegistry;
 import studio.mevera.imperat.command.ReturnResolverRegistry;
 import studio.mevera.imperat.command.SourceProviderRegistry;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
-import studio.mevera.imperat.command.parameters.type.ArgumentTypeHandler;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.processors.CommandProcessingChain;
@@ -82,7 +82,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                                                                          invalidUsage.append(" ")
                                                                                  .append(String.join(" ", ctx.arguments()));
                                                                      }
-                                                                     var detectedUsage = ctx.getDetectePathway();
+                                                                     var detectedUsage = ctx.getDetectedPathway();
                                                                      throw new InvalidSyntaxException(
                                                                              invalidUsage.toString(),
                                                                              "/" + ctx.getRootCommandLabelUsed() + " "

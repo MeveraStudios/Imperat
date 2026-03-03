@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionsData;
@@ -187,7 +187,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
     }
 
     public int getNumberOfParametersToConsume() {
-        int incrementation = this.data.type().getNumberOfParametersToConsume();
+        int incrementation = this.data.type().getNumberOfParametersToConsume(data);
         if (incrementation < 1) {
             incrementation = 1;
         }

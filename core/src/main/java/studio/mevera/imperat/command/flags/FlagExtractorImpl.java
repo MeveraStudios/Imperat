@@ -1,8 +1,8 @@
 package studio.mevera.imperat.command.flags;
 
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.FlagArgument;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;

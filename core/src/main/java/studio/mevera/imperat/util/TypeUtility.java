@@ -1,8 +1,8 @@
 package studio.mevera.imperat.util;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.FlagArgument;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.Source;
 

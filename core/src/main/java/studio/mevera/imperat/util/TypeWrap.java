@@ -1,7 +1,7 @@
 package studio.mevera.imperat.util;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.parameters.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.Source;
 
 import java.lang.reflect.Array;

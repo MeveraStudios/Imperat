@@ -187,7 +187,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
         }
 
         String raw = cursor.currentRawIfPresent();
-        if(argument.type().getNumberOfParametersToConsume() > 1) {
+        if (argument.type().getNumberOfParametersToConsume(argument) > 1) {
             StringBuilder builder = new StringBuilder();
             for (int i = cursor.position().parameter; i <= cursor.position().raw; i++)
                 builder.append(arguments().get(i)).append(" ");
@@ -232,7 +232,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
      * @return The used usage to use it to resolve commands
      */
     @Override
-    public CommandPathway<S> getDetectePathway() {
+    public CommandPathway<S> getDetectedPathway() {
         return usage;
     }
 

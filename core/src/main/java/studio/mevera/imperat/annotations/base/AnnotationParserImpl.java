@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
 import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.parsers.MethodThrowableResolver;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.Source;
 
 import java.lang.annotation.Annotation;

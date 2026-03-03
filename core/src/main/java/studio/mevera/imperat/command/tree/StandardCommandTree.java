@@ -5,8 +5,8 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
-import studio.mevera.imperat.command.parameters.FlagArgument;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.tree.help.HelpEntryFactory;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpFilter;
@@ -385,6 +385,25 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
     // ========================================
 
     /**
+     * Counts the minimum number of required descendant nodes in the shortest
+     * path from this node's children to an executable leaf. Used to reserve
+     * tokens for trailing arguments after a limited greedy.
+     */
+    private int countMinRequiredDescendants(CommandNode<S, ?> node) {
+        if (node.isLast()) {
+            return 0;
+        }
+        int min = Integer.MAX_VALUE;
+        for (var child : node.getChildren()) {
+            int count = child.getNumberOfParametersToConsume() + countMinRequiredDescendants(child);
+            if (count < min) {
+                min = count;
+            }
+        }
+        return min == Integer.MAX_VALUE ? 0 : min;
+    }
+
+    /**
      * Directly traverses the tree and executes the matching pathway in one step.
      * <p>
      * The algorithm:
@@ -489,8 +508,36 @@ final class StandardCommandTree<S extends Source> implements CommandTree<S> {
             );
         }
 
-        // Greedy parameter — consumes all remaining input
+        // Greedy parameter handling
         if (currentNode.isGreedyParam()) {
+            int greedyLimit = currentNode.getData().greedyLimit();
+
+            // LIMITED greedy with children — reserve tokens for trailing args,
+            // then try from max consumption down to 1 to find a valid child match.
+            if (greedyLimit > 0 && !currentNode.isLast()) {
+                int tokensAvailable = inputSize - depth;
+                int childrenNeeded = countMinRequiredDescendants(currentNode);
+                int maxConsume = Math.min(greedyLimit, tokensAvailable - childrenNeeded);
+
+                // Try from highest consumption downward (greedy preference)
+                for (int consume = maxConsume; consume >= 1; consume--) {
+                    int nextDepth = depth + consume;
+                    for (var child : currentNode.getChildren()) {
+                        TreeExecutionResult<S> result = traverseAndExecute(context, input, child, nextDepth);
+                        if (result.isSuccess() || result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                            return result;
+                        }
+                    }
+                }
+                // If children didn't match but this node is executable, execute here
+                if (currentNode.isExecutable()) {
+                    assert currentNode.getExecutableUsage() != null;
+                    return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
+                }
+                return noMatchFromNode(currentNode);
+            }
+
+            // UNLIMITED greedy — consumes all remaining input, short-circuit
             if (currentNode.isExecutable()) {
                 assert currentNode.getExecutableUsage() != null;
                 return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));

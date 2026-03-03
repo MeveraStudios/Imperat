@@ -2,7 +2,7 @@ package studio.mevera.imperat.tests.commands;
 
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.parameters.Argument;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
