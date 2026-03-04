@@ -108,30 +108,37 @@ public final class StringArgument<S extends Source> extends ArgumentType<S, Stri
      */
     private void handleGreedyOptimized(StringBuilder builder, int limit, Cursor<S> inputStream, ExecutionContext<S> context) throws CommandException {
         // Find the next non-flag parameter after this one (if any)
-        Argument<S> nextParam = findNextNonFlagParam(inputStream);
+        Argument<S> nextParam = GreedyLimitHelper.findNextNonFlagParam(inputStream);
         boolean nextParamCanDiscriminate = nextParam != null && !nextParam.isGreedyString()
                                                    && !(nextParam.type() instanceof StringArgument<?>);
 
-        // If the next param is also a String (can't discriminate by type),
-        // compute a hard effective limit that reserves tokens for trailing required params.
-        int effectiveLimit;
-        if (nextParam != null && !nextParamCanDiscriminate) {
-            int reserveForTrailing = countRemainingRequiredParams(inputStream);
-            int rawsLeft = inputStream.rawsLength() - inputStream.currentRawPosition();
-            int maxByReserve = rawsLeft - reserveForTrailing;
-            effectiveLimit = limit > 0 ? Math.min(limit, maxByReserve) : maxByReserve;
-            if (effectiveLimit < 1) {
-                effectiveLimit = 1;
-            }
-        } else {
-            // Next param can discriminate OR there is no next param — use annotation limit as-is
-            effectiveLimit = limit;
-        }
+        int effectiveLimit = GreedyLimitHelper.computeEffectiveLimit(
+                limit, nextParam, nextParamCanDiscriminate, inputStream
+        );
 
         int consumed = 0;
-        // Append the FIRST raw (already read by the caller as correspondingInput).
-        // The cursor currently points at this first raw — we will NOT skipRaw for it
-        // because `stream.skip()` in RequiredParameterHandler will advance past it.
+
+        // Skip any leading flag tokens that appear before the actual greedy content.
+        // e.g. "motd -time 1h Hello world" — the cursor starts at "-time", which must be skipped.
+        while (inputStream.isCurrentRawInputAvailable()) {
+            String candidate = inputStream.currentRaw().orElse(null);
+            if (candidate == null) {
+                return;
+            }
+            if (Patterns.isInputFlag(candidate)) {
+                Set<FlagArgument<S>> extracted = context.getDetectedPathway().getFlagExtractor().extract(candidate);
+                if (!extracted.isEmpty()) {
+                    inputStream.skipRaw(); // skip the flag name
+                    if (extracted.stream().noneMatch(FlagArgument::isSwitch)) {
+                        inputStream.skipRaw(); // skip the flag value
+                    }
+                    continue;
+                }
+            }
+            break; // not a flag — this is the real first raw
+        }
+
+        // Append the FIRST real raw token.
         String firstRaw = inputStream.currentRaw().orElse(null);
         if (firstRaw == null) {
             return;
@@ -184,35 +191,6 @@ public final class StringArgument<S extends Source> extends ArgumentType<S, Stri
         // The caller's `stream.skip()` will advance past it.
     }
 
-    /**
-     * Finds the next non-flag parameter after the current parameter position,
-     * or {@code null} if there is none.
-     */
-    private @org.jetbrains.annotations.Nullable Argument<S> findNextNonFlagParam(Cursor<S> stream) {
-        int currentPos = stream.currentParameterPosition();
-        for (int i = currentPos + 1; i < stream.parametersLength(); i++) {
-            Argument<S> param = stream.getParametersList().get(i);
-            if (!param.isFlag()) {
-                return param;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Counts required non-flag parameters remaining AFTER the current parameter position.
-     */
-    private int countRemainingRequiredParams(Cursor<S> stream) {
-        int count = 0;
-        int currentPos = stream.currentParameterPosition();
-        for (int i = currentPos + 1; i < stream.parametersLength(); i++) {
-            Argument<S> param = stream.getParametersList().get(i);
-            if (param.isRequired() && !param.isFlag()) {
-                count++;
-            }
-        }
-        return count;
-    }
 
     @Override
     public boolean isGreedy(Argument<S> parameter) {

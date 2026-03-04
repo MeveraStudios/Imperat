@@ -71,14 +71,7 @@ final class ParameterParser<S extends Source> {
         String name = param.getName();
         boolean optional = param.isOptional();
         boolean greedy = param.getAnnotation(Greedy.class) != null;
-        boolean allowsGreedy =
-                param.getType() == String.class || (TypeUtility.isAcceptableGreedyWrapper(param.getType()) && TypeUtility.hasGenericType(
-                        param.getType(), String.class));
-        if (greedy && !allowsGreedy) {
-            throw new IllegalArgumentException(
-                    "Argument '" + param.getName() + "' is greedy while having a non-greedy valueType '" + param.getType().getTypeName()
-                            + "'");
-        }
+
 
         // Collect validators
         List<ArgValidator<S>> validators = parseValidators(param);
@@ -91,7 +84,7 @@ final class ParameterParser<S extends Source> {
         if (flag != null) {
             String[] flagAliases = flag.value();
 
-            return Argument.flag(name, type)
+            argument = Argument.flag(name, type)
                            .suggestForInputValue(suggestionProviderFunction)
                            .aliases(getAllExceptFirst(flagAliases))
                            .flagDefaultInputValue(defaultValueProvider)
@@ -137,9 +130,16 @@ final class ParameterParser<S extends Source> {
             );
         }
 
-        return AnnotationArgumentDecorator.decorate(
+
+        var annotated = AnnotationArgumentDecorator.decorate(
                 argument, param
         );
+
+        if (greedy && !type.isGreedy(annotated)) {
+            throw new IllegalArgumentException(
+                    "Argument '" + param.getName() + "' is greedy while having a non-greedy valueType '" + param.getType().getTypeName() + "'");
+        }
+        return annotated;
     }
 
     @SuppressWarnings("unchecked")

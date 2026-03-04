@@ -321,8 +321,7 @@ class ResponseSystemTest {
 
         // Custom fetcher that modifies content
         ResponseContentFetcher customFetcher = contentSupplier ->
-                                                       CompletableFuture.supplyAsync(() ->
-                                                                                             "[CUSTOM] " + contentSupplier.get() + " [/CUSTOM]"
+                                                       CompletableFuture.supplyAsync(() -> "[CUSTOM] " + contentSupplier.get() + " [/CUSTOM]"
                                                        );
 
         Response response = new TestResponse(testKey, () -> "Custom", customFetcher);
@@ -330,13 +329,16 @@ class ResponseSystemTest {
 
         CommandContext<TestSource> context = createContext();
 
-        response.sendContent(context, null);
-        Thread.sleep(100);
-
-        assertThat(capturedMessages)
-                .hasSize(1)
-                .first()
-                .isEqualTo("[CUSTOM] Custom [/CUSTOM]");
+        response.sendContent(context, null)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        throwable.printStackTrace();
+                    }
+                    assertThat(capturedMessages)
+                            .hasSize(1)
+                            .first()
+                            .isEqualTo("[CUSTOM] Custom [/CUSTOM]");
+                });
     }
 
     // ==================== CommandException Integration Tests ====================

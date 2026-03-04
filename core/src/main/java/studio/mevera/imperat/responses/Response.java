@@ -59,9 +59,9 @@ public class Response {
                        .addPlaceholder("source");
     }
 
-    public <S extends Source> void sendContent(CommandContext<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
+    public <S extends Source> CompletableFuture<Void> sendContent(CommandContext<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
         var src = ctx.source();
-        getContent(ctx, placeholders)
+        return getContent(ctx, placeholders)
                 .thenAccept((content) -> {
                     if (content == null) {
                         throw new IllegalStateException(
