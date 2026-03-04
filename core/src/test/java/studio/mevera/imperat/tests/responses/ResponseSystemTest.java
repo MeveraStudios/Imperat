@@ -320,9 +320,8 @@ class ResponseSystemTest {
         ResponseKey testKey = () -> "test.custom-impl";
 
         // Custom fetcher that modifies content
-        ResponseContentFetcher customFetcher = contentSupplier ->
-                                                       CompletableFuture.supplyAsync(() -> "[CUSTOM] " + contentSupplier.get() + " [/CUSTOM]"
-                                                       );
+        ResponseContentFetcher customFetcher =
+                contentSupplier -> CompletableFuture.supplyAsync(() -> "[CUSTOM] " + contentSupplier.get() + " [/CUSTOM]");
 
         Response response = new TestResponse(testKey, () -> "Custom", customFetcher);
         responseRegistry.registerResponse(response);

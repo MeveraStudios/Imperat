@@ -131,15 +131,9 @@ final class ParameterParser<S extends Source> {
         }
 
 
-        var annotated = AnnotationArgumentDecorator.decorate(
+        return AnnotationArgumentDecorator.decorate(
                 argument, param
         );
-
-        if (greedy && !type.isGreedy(annotated)) {
-            throw new IllegalArgumentException(
-                    "Argument '" + param.getName() + "' is greedy while having a non-greedy valueType '" + param.getType().getTypeName() + "'");
-        }
-        return annotated;
     }
 
     @SuppressWarnings("unchecked")

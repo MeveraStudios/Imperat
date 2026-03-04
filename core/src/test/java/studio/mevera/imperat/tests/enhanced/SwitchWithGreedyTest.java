@@ -16,7 +16,7 @@ import studio.mevera.imperat.tests.commands.realworld.ShoutCommand;
  * </ul>
  */
 @DisplayName("Switch + Greedy string interaction tests")
-class SwitchBeforeGreedyTest extends EnhancedBaseImperatTest {
+class SwitchWithGreedyTest extends EnhancedBaseImperatTest {
 
     // ════════════════════════════════════════════════════════════════════════
     // Switches declared BEFORE the greedy parameter (/announce)
