@@ -11,6 +11,7 @@ import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.BuyCommand;
 import studio.mevera.imperat.tests.commands.ContextResolvingCmd;
 import studio.mevera.imperat.tests.commands.CustomEnumCommand;
+import studio.mevera.imperat.tests.commands.ExceptionHandlerTestCmd;
 import studio.mevera.imperat.tests.commands.FailCmd;
 import studio.mevera.imperat.tests.commands.KingdomChatCommand;
 import studio.mevera.imperat.tests.commands.MultipleOptionals;
@@ -104,6 +105,7 @@ public class ImperatTestGlobals {
         });
         IMPERAT.registerCommands(TestCommand.class, Test2Command.class, Test3Command.class, TestCustomAnnotationCmd.class);
         IMPERAT.registerCommand(BuyCommand.class);
+        IMPERAT.registerCommand(ExceptionHandlerTestCmd.class);
         IMPERAT.registerCommand(ReqCmd.class);
         IMPERAT.registerCommand(MultipleVariantsCmd.class);
         IMPERAT.registerSimpleCommand(MULTIPLE_OPTIONAL_CMD);
@@ -159,5 +161,8 @@ public class ImperatTestGlobals {
 
     /** Reset global state for tests */
     public static void resetTestState() {
+        BuyCommand.lastHandledExceptionMessage = null;
+        ExceptionHandlerTestCmd.lastHandledMessage = null;
+        ExceptionHandlerTestCmd.lastHandledType = null;
     }
 }

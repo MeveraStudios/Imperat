@@ -35,6 +35,7 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
                         .condition((imperat, registry, method) ->
                                            MethodRules.HAS_A_MAIN_ANNOTATION.test(imperat, registry, method)
                                                    || MethodRules.IS_PROCESSOR.test(imperat, registry, method)
+                                                   || MethodRules.HAS_EXCEPTION_HANDLER_ANNOTATION.test(imperat, registry, method)
                         )
                         .build()
         );
