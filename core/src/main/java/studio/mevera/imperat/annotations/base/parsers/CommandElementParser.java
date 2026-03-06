@@ -136,6 +136,14 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
             //either its @Execute, or its @Subcommand method or BOTH (which is weird but why not)
             if (method.isAnnotationPresent(Processor.class)) {
 
+                if (parent != null) {
+                    throw new IllegalStateException(
+                            "Method '" + method.getName() + "' in class '" + clazz.getElement().getName()
+                                    + "' is annotated with @Processor but belongs to a subcommand."
+                                    + " Processors can only be defined on root commands."
+                    );
+                }
+
                 var firstParam = method.getParameterAt(0);
                 if (firstParam == null) {
                     throw new IllegalStateException("Method '" + method.getName()

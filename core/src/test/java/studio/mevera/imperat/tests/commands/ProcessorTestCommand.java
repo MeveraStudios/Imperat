@@ -23,7 +23,7 @@ import java.util.List;
  * <pre>
  *   /proctest                           — root default
  *   /proctest &lt;name&gt;                    — root with arg
- *     sub1                              — subcommand with its own processors
+ *     sub1                              — subcommand (no own processors, root processors still apply)
  *       &lt;value&gt;                         — sub1 with arg
  * </pre>
  */
@@ -76,15 +76,6 @@ public class ProcessorTestCommand {
     @SubCommand("sub1")
     public static class Sub1 {
 
-        @Processor
-        public void sub1Pre(CommandContext<TestSource> context) {
-            CALL_LOG.add("sub1:pre");
-        }
-
-        @Processor
-        public void sub1Post(ExecutionContext<TestSource> context) {
-            CALL_LOG.add("sub1:post");
-        }
 
         @Execute
         public void defaultUsage(TestSource source) {

@@ -67,34 +67,34 @@ class EnhancedProcessorTest extends EnhancedBaseImperatTest {
         }
 
         @Test
-        @DisplayName("Subcommand execution should trigger sub1's own pre- and post-processors")
-        void subcommandShouldTriggerOwnProcessors() {
+        @DisplayName("Subcommand execution should still trigger root pre- and post-processors")
+        void subcommandShouldTriggerRootProcessors() {
             assertThat(execute(ProcessorTestCommand.class, cfg -> {
             }, "proctest sub1"))
                     .isSuccessful();
 
             List<String> log = ProcessorTestCommand.getCallLog();
             Assertions.assertThat(log)
-                    .as("Sub1 pre-processor should run")
-                    .contains("sub1:pre");
+                    .as("Root pre-processor should run for subcommand")
+                    .contains("root:pre");
             Assertions.assertThat(log)
-                    .as("Sub1 post-processor should run")
-                    .contains("sub1:post");
+                    .as("Root post-processor should run for subcommand")
+                    .contains("root:post");
             Assertions.assertThat(log)
                     .as("Sub1 execution should happen")
                     .contains("sub1:exec:default");
         }
 
         @Test
-        @DisplayName("Subcommand with argument should trigger sub1's processors and pass args")
-        void subcommandWithArgShouldTriggerProcessors() {
+        @DisplayName("Subcommand with argument should trigger root processors and pass args")
+        void subcommandWithArgShouldTriggerRootProcessors() {
             assertThat(execute(ProcessorTestCommand.class, cfg -> {
             }, "proctest sub1 myValue"))
                     .isSuccessful()
                     .hasArgument("value", "myValue");
 
             List<String> log = ProcessorTestCommand.getCallLog();
-            Assertions.assertThat(log).contains("sub1:pre", "sub1:exec:value=myValue", "sub1:post");
+            Assertions.assertThat(log).contains("root:pre", "sub1:exec:value=myValue", "root:post");
         }
     }
 
@@ -142,15 +142,15 @@ class EnhancedProcessorTest extends EnhancedBaseImperatTest {
         }
 
         @Test
-        @DisplayName("Subcommand: pre → post → exec order should hold")
-        void subCommandPreBeforePostBeforeExec() {
+        @DisplayName("Subcommand: root pre → root post → sub exec order should hold")
+        void subCommandRootPreBeforeRootPostBeforeExec() {
             assertThat(execute(ProcessorTestCommand.class, cfg -> {
             }, "proctest sub1 testVal"))
                     .isSuccessful();
 
             List<String> log = ProcessorTestCommand.getCallLog();
-            int preIdx = log.indexOf("sub1:pre");
-            int postIdx = log.indexOf("sub1:post");
+            int preIdx = log.indexOf("root:pre");
+            int postIdx = log.indexOf("root:post");
             int execIdx = log.indexOf("sub1:exec:value=testVal");
 
             Assertions.assertThat(preIdx).isGreaterThanOrEqualTo(0);
