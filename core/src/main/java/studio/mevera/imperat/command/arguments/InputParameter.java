@@ -189,7 +189,7 @@ public abstract class InputParameter<S extends Source> implements Argument<S> {
     @Override
     public Command<S> asCommand() {
         if (!(this.type instanceof CommandArgument<?> asCommandType)) {
-            throw new UnsupportedOperationException("Non-CommandProcessingChain Parameter cannot be converted into a command parameter");
+            throw new UnsupportedOperationException("Non-Command Parameter cannot be converted into a command parameter");
         }
         return parentCommand.getSubCommand(asCommandType.getName());
     }

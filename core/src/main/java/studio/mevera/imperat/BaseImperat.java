@@ -416,9 +416,20 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
         ImperatDebugger.debug("Usage Found Format: '%s'", CommandPathway.formatWithTypes(command, pathway));
 
-        // Post-processing
+        // Per-subcommand pre-processing (if the matched command is a subcommand, not the root)
+        Command<S> matchedCommand = treeResult.getLastCommand();
+        if (matchedCommand != command) {
+            matchedCommand.preProcess(executionContext);
+        }
+
+        // Post-processing (root)
         var postProcessEvent = new CommandPostProcessEvent<>(command, executionContext);
         this.publishEvent(postProcessEvent);
+
+        // Per-subcommand post-processing
+        if (matchedCommand != command) {
+            matchedCommand.postProcess(executionContext);
+        }
 
         // Execute
         if (!postProcessEvent.isCancelled()) {

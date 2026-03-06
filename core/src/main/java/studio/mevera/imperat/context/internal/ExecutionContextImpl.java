@@ -30,7 +30,7 @@ final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implem
 
     private final CommandPathway<S> usage;
     private final Registry<String, ParsedFlagArgument<S>> flagRegistry = new Registry<>();
-    //per command/subcommand because the class 'CommandProcessingChain' can be also treated as a sub command
+    //per command/subcommand because the class 'Command' can be also treated as a sub command
     private final Registry<Command<S>, Registry<String, ParsedArgument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
     //all resolved arguments EXCEPT for subcommands and flags.
     private final Registry<String, ParsedArgument<S>> allResolvedArgs = new Registry<>(LinkedHashMap::new);

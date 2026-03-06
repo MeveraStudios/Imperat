@@ -19,6 +19,7 @@ import studio.mevera.imperat.annotations.types.Description;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.InheritedArg;
 import studio.mevera.imperat.annotations.types.Permission;
+import studio.mevera.imperat.annotations.types.Processor;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Secret;
 import studio.mevera.imperat.annotations.types.Shortcut;
@@ -27,9 +28,17 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.processors.CommandPostProcessor;
+import studio.mevera.imperat.command.processors.CommandPreProcessor;
+import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionsData;
+import studio.mevera.imperat.util.asm.MethodCaller;
+import studio.mevera.imperat.util.asm.MethodCallerFactory;
+import studio.mevera.imperat.util.priority.Priority;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -116,30 +125,46 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
                               .map((e) -> (MethodElement) e)
                               .filter((m) -> methodSelector.canBeSelected(imperat, imperat.getAnnotationParser(), m, false))
                               .sorted((m1, m2) -> {
-                                  //we want to process @Execute methods first, then @SubCommand methods, then the rest
-                                  boolean m1Execute = m1.isAnnotationPresent(Execute.class);
-                                  boolean m2Execute = m2.isAnnotationPresent(Execute.class);
-                                  if (m1Execute && !m2Execute) {
-                                      return -1;
-                                  } else if (!m1Execute && m2Execute) {
-                                      return 1;
-                                  }
-
-                                  boolean m1Sub = m1.isAnnotationPresent(SubCommand.class);
-                                  boolean m2Sub = m2.isAnnotationPresent(SubCommand.class);
-                                  if (m1Sub && !m2Sub) {
-                                      return -1;
-                                  } else if (!m1Sub && m2Sub) {
-                                      return 1;
-                                  }
-
-                                  //otherwise, we don't care about the order
-                                  return 0;
-                              }) // makes @Execute methods parsed before @Subcommand methods
+                                  // Order: @Processor first, then @Execute, then @SubCommand, then the rest
+                                  int rank1 = methodSortRank(m1);
+                                  int rank2 = methodSortRank(m2);
+                                  return Integer.compare(rank1, rank2);
+                              })
                               .toList();
 
         for (MethodElement method : methods) {
             //either its @Execute, or its @Subcommand method or BOTH (which is weird but why not)
+            if (method.isAnnotationPresent(Processor.class)) {
+
+                var firstParam = method.getParameterAt(0);
+                if (firstParam == null) {
+                    throw new IllegalStateException("Method '" + method.getName()
+                                                            + "' is annotated with @Processor but has no parameters. Processor methods must have at"
+                                                            + " least one parameter of type CommandContext or ExecutionContext.");
+                }
+                var rawType = firstParam.getElement().getType();
+                if (!CommandContext.class.isAssignableFrom(rawType)) {
+                    throw new IllegalStateException(
+                            "Method '" + method.getName() + "' is annotated with @Processor but its first parameter is of type '"
+                                    + firstParam.getElement().getType().getTypeName()
+                                    + "'. Processor methods must have a first parameter of type CommandContext or ExecutionContext.");
+                }
+                Processor processorAnn = method.getAnnotation(Processor.class);
+                assert processorAnn != null;
+
+                if (ExecutionContext.class.isAssignableFrom(rawType)) {
+                    //post processor
+                    currentCommand.addPostProcessor(
+                            this.loadPostProcessorMethod(method, processorAnn)
+                    );
+                } else {
+                    //pre processor
+                    currentCommand.addPreProcessor(
+                            this.loadPreProcessorMethod(method, processorAnn)
+                    );
+                }
+            }
+
             if (method.isAnnotationPresent(Execute.class)) {
                 CommandPathway<S> pathway = finalizedPathway(
                         method,
@@ -182,6 +207,57 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         }
 
         return currentCommand;
+    }
+
+    private @NotNull CommandPostProcessor<S> loadPostProcessorMethod(MethodElement method, Processor processorAnn) {
+        return new MethodPostProcessor<>(method, processorAnn);
+    }
+
+    private @NotNull CommandPreProcessor<S> loadPreProcessorMethod(MethodElement method, Processor processorAnn) {
+        return new MethodPreProcessor<>(method, processorAnn);
+    }
+
+    private int methodSortRank(MethodElement method) {
+        if (method.isAnnotationPresent(Processor.class)) {
+            return 0;
+        }
+        if (method.isAnnotationPresent(Execute.class)) {
+            return 1;
+        }
+        if (method.isAnnotationPresent(SubCommand.class)) {
+            return 2;
+        }
+        return 3;
+    }
+
+    static final class MethodPostProcessor<S extends Source> implements CommandPostProcessor<S> {
+
+        private final Priority priority;
+
+        private final MethodCaller.BoundMethodCaller boundMethodCaller;
+
+        MethodPostProcessor(MethodElement method, Processor annotation) {
+            this.priority = Priority.of(annotation.priority());
+            try {
+                boolean isStaticMethod = Modifier.isStatic(method.getModifiers());
+                this.boundMethodCaller = MethodCallerFactory.methodHandles()
+                                                 .createFor(method.getElement())
+                                                 .bindTo(isStaticMethod ? null : method.getParent().getObjectInstance());
+            } catch (Throwable ex) {
+                throw new RuntimeException("Failed to create method caller for processor method '" + method.getName() + "'", ex);
+            }
+        }
+
+        @Override
+        public void process(ExecutionContext<S> context) {
+            boundMethodCaller.call(context);
+        }
+
+        @Override
+        public @NotNull Priority getPriority() {
+            return priority;
+        }
+
     }
 
     private void verifyAttachmentNodeExistsInParent(@Nullable Command<S> parent, String attachmentNode, String commandName) {
@@ -401,5 +477,33 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         return shortcut;
     }
 
+    static final class MethodPreProcessor<S extends Source> implements CommandPreProcessor<S> {
+
+        private final Priority priority;
+        private final MethodCaller.BoundMethodCaller boundMethodCaller;
+
+        MethodPreProcessor(MethodElement method, Processor annotation) {
+            this.priority = Priority.of(annotation.priority());
+            try {
+                boolean isStaticMethod = Modifier.isStatic(method.getModifiers());
+                this.boundMethodCaller = MethodCallerFactory.methodHandles()
+                                                 .createFor(method.getElement())
+                                                 .bindTo(isStaticMethod ? null : method.getParent().getObjectInstance());
+            } catch (Throwable ex) {
+                throw new RuntimeException("Failed to create method caller for processor method '" + method.getName() + "'", ex);
+            }
+        }
+
+        @Override
+        public void process(CommandContext<S> context) {
+            boundMethodCaller.call(context);
+        }
+
+        @Override
+        public @NotNull Priority getPriority() {
+            return priority;
+        }
+
+    }
 
 }

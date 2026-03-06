@@ -5,8 +5,8 @@ import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.annotations.types.ExceptionHandler;
+import studio.mevera.imperat.annotations.types.Processor;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -17,10 +17,18 @@ public interface MethodRules {
 
     Rule<MethodElement> IS_PUBLIC = Rule.buildForMethod()
                                             .condition((imperat, registry, method) -> Modifier.isPublic(method.getModifiers()))
-                                            .failure((registry, method) -> {
-                                                throw methodError(method, "is not public");
-                                            })
                                             .build();
+
+    Rule<MethodElement> IS_PROCESSOR = Rule.buildForMethod()
+                                               .condition((imperat, registry, method) -> {
+                                                   ParameterElement parameterElement = method.getParameterAt(0);
+                                                   if (parameterElement == null) {
+                                                       return false;
+                                                   }
+                                                   return method.isAnnotationPresent(Processor.class) &&
+                                                                  CommandContext.class.isAssignableFrom(parameterElement.getElement().getType());
+                                               })
+                                               .build();
 
     Rule<MethodElement> HAS_KNOWN_SENDER = Rule.buildForMethod()
                                                    .condition((imperat, registry, method) -> {
@@ -30,17 +38,6 @@ public interface MethodRules {
                                                        }
                                                        return imperat.canBeSender(parameterElement.getType())
                                                                       || imperat.config().hasSourceResolver(parameterElement.getType());
-                                                   })
-                                                   .failure((registry, method) -> {
-                                                       ParameterElement parameterElement = method.getParameterAt(0);
-                                                       String msg;
-                                                       if (parameterElement == null) {
-                                                           msg = "Method '" + method.getName() + "' has no parameters";
-                                                       } else {
-                                                           msg = "First parameter of valueType '" + parameterElement.getType().getTypeName()
-                                                                         + "' is not a sub-valueType of `" + Source.class.getName() + "'";
-                                                       }
-                                                       throw methodError(method, msg);
                                                    })
                                                    .build();
 
@@ -80,7 +77,7 @@ public interface MethodRules {
 
     @NotNull
     static IllegalStateException methodError(@NotNull MethodElement element, String msg) {
-        ClassElement parent = (ClassElement) element.getParent();
+        ClassElement parent = element.getParent();
 
         return new IllegalStateException(
                 String.format("Method '%s' In class '%s' " + msg,

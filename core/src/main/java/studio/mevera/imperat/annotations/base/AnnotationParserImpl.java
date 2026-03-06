@@ -6,6 +6,7 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
+import studio.mevera.imperat.annotations.base.element.selector.Rule;
 import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.parsers.MethodThrowableResolver;
 import studio.mevera.imperat.command.Command;
@@ -28,8 +29,14 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
         this.annotationRegistry = new AnnotationRegistry();
 
         this.methodSelector = ElementSelector.create();
+        methodSelector.addRule(MethodRules.IS_PUBLIC);
         methodSelector.addRule(
-                MethodRules.IS_PUBLIC/*.and(MethodRules.RETURNS_VOID)*/.and(MethodRules.HAS_A_MAIN_ANNOTATION)
+                Rule.buildForMethod()
+                        .condition((imperat, registry, method) ->
+                                           MethodRules.HAS_A_MAIN_ANNOTATION.test(imperat, registry, method)
+                                                   || MethodRules.IS_PROCESSOR.test(imperat, registry, method)
+                        )
+                        .build()
         );
 
         this.commandParsingVisitor = CommandClassParser.newCommandParsingVisitor(dispatcher, this);

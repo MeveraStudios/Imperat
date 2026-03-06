@@ -51,7 +51,8 @@ public abstract class CommandClassParser<S extends Source, R> {
                 imperat,
                 parser,
                 ElementSelector.<MethodElement>create()
-                    .addRule(MethodRules.HAS_KNOWN_SENDER)
+                        .addRule(MethodRules.IS_PUBLIC)
+                        .addRule(MethodRules.HAS_KNOWN_SENDER.or(MethodRules.IS_PROCESSOR))
                 //.addRule(MethodRules.HAS_LEAST_ONLY_ONE_MAIN_ANNOTATION)
             );
         };

@@ -18,8 +18,7 @@ import studio.mevera.imperat.annotations.types.InheritedArg;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.Permission;
-import studio.mevera.imperat.annotations.types.PostProcessor;
-import studio.mevera.imperat.annotations.types.PreProcessor;
+import studio.mevera.imperat.annotations.types.Processor;
 import studio.mevera.imperat.annotations.types.Range;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Shortcut;
@@ -50,7 +49,7 @@ final class AnnotationRegistry {
                 Cooldown.class, Description.class, Permission.class, Format.class, Shortcut.class,
                 Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
                 Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, Context.class, Range.class, Async.class,
-                PostProcessor.class, PreProcessor.class, ExceptionHandler.class,
+                Processor.class, ExceptionHandler.class,
                 Validators.class, ArgType.class, InheritedArg.class
         );
     }

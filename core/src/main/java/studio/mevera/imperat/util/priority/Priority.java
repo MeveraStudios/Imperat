@@ -39,9 +39,11 @@ import java.util.Objects;
  */
 public final class Priority implements Comparable<Priority> {
 
+    public static final int NORMAL_VALUE = 20;
+
     public static final Priority MINIMUM = new Priority(Integer.MIN_VALUE);
     public static final Priority LOW = new Priority(0);
-    public static final Priority NORMAL = new Priority(20);
+    public static final Priority NORMAL = new Priority(NORMAL_VALUE);
     public static final Priority HIGH = new Priority(100);
     public static final Priority MAXIMUM = new Priority(Integer.MAX_VALUE);
 
