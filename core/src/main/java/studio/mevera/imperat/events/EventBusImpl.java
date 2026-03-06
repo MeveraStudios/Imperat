@@ -2,8 +2,8 @@ package studio.mevera.imperat.events;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.util.Priority;
-import studio.mevera.imperat.util.PriorityList;
+import studio.mevera.imperat.util.priority.Priority;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.util.Map;
 import java.util.UUID;
@@ -73,7 +73,7 @@ final class EventBusImpl implements EventBus {
         EventSubscription<T> subscription = new EventSubscriptionImpl<>(id, handler, priority, strategy);
 
         subscriptions.computeIfAbsent(eventType, k -> new PriorityList<>())
-                     .add(priority, subscription);
+                .add(subscription);
 
         subscriptionIdMap.put(id, subscription);
         return subscription;

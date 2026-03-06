@@ -1,5 +1,12 @@
 package studio.mevera.imperat.tests.events;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -7,7 +14,7 @@ import studio.mevera.imperat.events.Event;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.events.EventExceptionHandler;
 import studio.mevera.imperat.events.EventSubscription;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,8 +23,6 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests exception handling in event handlers.

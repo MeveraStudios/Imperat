@@ -10,8 +10,8 @@ import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeUtility;
+import studio.mevera.imperat.util.priority.Priority;
 
 public abstract class NumberArgument<S extends Source, N extends Number> extends ArgumentType<S, N> {
 

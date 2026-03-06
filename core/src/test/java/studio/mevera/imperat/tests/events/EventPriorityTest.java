@@ -1,17 +1,17 @@
 package studio.mevera.imperat.tests.events;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.events.Event;
 import studio.mevera.imperat.events.EventBus;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests handler priority ordering and execution.

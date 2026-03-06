@@ -8,9 +8,6 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
-import studio.mevera.imperat.command.processors.CommandPostProcessor;
-import studio.mevera.imperat.command.processors.CommandPreProcessor;
-import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Source;
@@ -240,57 +237,6 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
         return (B) this;
     }
 
-    /**
-     * Adds a command pre-processor to the configuration.
-     * A command pre-processor is executed before resolving command arguments into values.
-     *
-     * @param preProcessor the {@link CommandPreProcessor} to be added to the chain of execution
-     * @return the current {@link ConfigBuilder} instance for method chaining
-     */
-    // CommandProcessingChain Pre-Processor
-    public B preProcessor(CommandPreProcessor<S> preProcessor) {
-        config.getPreProcessors().add(preProcessor);
-        return (B) this;
-    }
-
-    /**
-     * Adds a {@link CommandPostProcessor} to the chain of execution that processes
-     * the command context after the resolving of arguments into values.
-     *
-     * @param postProcessor the post-processor to be added to the execution chain; it processes
-     *                      the command context after argument resolution
-     * @return the current {@link ConfigBuilder} instance for chaining additional configurations
-     */
-    // CommandProcessingChain Post-Processor
-    public B postProcessor(CommandPostProcessor<S> postProcessor) {
-        config.getPostProcessors().add(postProcessor);
-        return (B) this;
-    }
-
-    /**
-     * Configures the pre-processing chain for command processing.
-     * This chain defines a series of {@code CommandPreProcessor} instances
-     * that will execute before resolving the arguments into values.
-     *
-     * @param chain the pre-processing chain to set, which consists of
-     *              multiple {@code CommandPreProcessor} handlers
-     * @return the current {@code ConfigBuilder} instance for method chaining
-     */
-    public B preProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain) {
-        this.config.setPreProcessorsChain(chain);
-        return (B) this;
-    }
-
-    /**
-     * Sets the post-processing chain for the configuration.
-     *
-     * @param chain the {@link CommandProcessingChain} of {@link CommandPostProcessor} instances to be set as the post-processing chain
-     * @return the {@link ConfigBuilder} instance for method chaining
-     */
-    public B postProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain) {
-        this.config.setPostProcessorsChain(chain);
-        return (B) this;
-    }
 
     /**
      * Registers a context resolver factory for the specified type.

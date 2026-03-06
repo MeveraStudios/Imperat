@@ -11,7 +11,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.Patterns;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.Set;
 

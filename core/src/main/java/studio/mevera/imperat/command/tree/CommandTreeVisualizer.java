@@ -4,8 +4,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.ImperatDebugger;
-import studio.mevera.imperat.util.Priority;
-import studio.mevera.imperat.util.PriorityList;
+import studio.mevera.imperat.util.priority.Priority;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -396,9 +396,9 @@ public final class CommandTreeVisualizer<S extends Source> {
 
         // Draw node box
         String nodeText =
-                node.format() + ": " + (node.isExecutable() ? "Executable" : "Non-executable") + ":P=" + (node.priority() == Priority.MAXIMUM ?
+                node.format() + ": " + (node.isExecutable() ? "Executable" : "Non-executable") + ":P=" + (node.getPriority() == Priority.MAXIMUM ?
                                                                                                                   "MAX" :
-                                                                                                                  node.priority().getLevel());
+                                                                                                                  node.getPriority().getLevel());
         builder.append(nodeText).append("\n");
 
         // Draw children

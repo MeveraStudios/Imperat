@@ -10,7 +10,7 @@ import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.Locale;
 import java.util.Map;

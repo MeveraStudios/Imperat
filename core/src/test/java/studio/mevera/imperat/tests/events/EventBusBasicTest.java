@@ -1,5 +1,12 @@
 package studio.mevera.imperat.tests.events;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,8 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests basic EventBus functionality including registration, posting, and unregistration.
@@ -56,7 +61,7 @@ public class EventBusBasicTest {
         assertNotNull(subscription, "Registration should return subscription");
         assertNotNull(subscription.id(), "Subscription should have ID");
         assertNotNull(subscription.handler(), "Subscription should have handler");
-        assertNotNull(subscription.priority(), "Subscription should have priority");
+        assertNotNull(subscription.getPriority(), "Subscription should have priority");
         assertNotNull(subscription.strategy(), "Subscription should have strategy");
     }
 

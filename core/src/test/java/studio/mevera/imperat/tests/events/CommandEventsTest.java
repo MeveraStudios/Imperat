@@ -15,7 +15,7 @@ import studio.mevera.imperat.events.types.CommandPostRegistrationEvent;
 import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
 import studio.mevera.imperat.tests.TestSource;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.ArrayList;
 import java.util.List;

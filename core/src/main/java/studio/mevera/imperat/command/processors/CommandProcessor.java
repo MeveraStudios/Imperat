@@ -1,6 +1,10 @@
 package studio.mevera.imperat.command.processors;
 
-public interface CommandProcessor {
+import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.util.priority.Prioritizable;
+import studio.mevera.imperat.util.priority.Priority;
+
+public interface CommandProcessor extends Prioritizable {
 
     /**
      * Returns the priority of the command processor.
@@ -13,8 +17,8 @@ public interface CommandProcessor {
      *
      * @return the priority of this command processor
      */
-    default int priority() {
-        return 50;
+    default @NotNull Priority getPriority() {
+        return Priority.NORMAL;
     }
 
 }

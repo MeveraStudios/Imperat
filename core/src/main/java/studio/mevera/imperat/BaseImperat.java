@@ -34,8 +34,8 @@ import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;

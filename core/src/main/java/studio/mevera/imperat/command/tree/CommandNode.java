@@ -9,13 +9,13 @@ import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionsData;
-import studio.mevera.imperat.util.Priority;
-import studio.mevera.imperat.util.PriorityList;
+import studio.mevera.imperat.util.priority.Prioritizable;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public abstract class CommandNode<S extends Source, T extends Argument<S>> implements Comparable<CommandNode<S, ?>> {
+public abstract class CommandNode<S extends Source, T extends Argument<S>> implements Comparable<CommandNode<S, ?>>, Prioritizable {
 
     protected final @NotNull T data;
     private final PriorityList<CommandNode<S, ?>> children = new PriorityList<>();
@@ -73,7 +73,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         if (children.contains(node)) {
             return;
         }
-        children.add(node.priority(), node);
+        children.add(node);
     }
 
     public PriorityList<CommandNode<S, ?>> getChildren() {
@@ -127,7 +127,6 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         return children.isEmpty();
     }
 
-    public abstract Priority priority();
 
     public boolean isGreedyParam() {
         return data.isGreedy();
@@ -216,7 +215,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
     @Override
     public int compareTo(@NotNull CommandNode<S, ?> o) {
         //the highest priority comes first
-        return this.priority().compareTo(o.priority());
+        return this.getPriority().compareTo(o.getPriority());
     }
 
     public @Nullable CommandNode<S, ?> findNode(Predicate<CommandNode<S, ?>> predicate) {

@@ -7,7 +7,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -25,7 +25,7 @@ public final class LiteralCommandNode<S extends Source> extends CommandNode<S, C
     }
 
     @Override
-    public Priority priority() {
+    public @NotNull Priority getPriority() {
         return Priority.MAXIMUM;
     }
 

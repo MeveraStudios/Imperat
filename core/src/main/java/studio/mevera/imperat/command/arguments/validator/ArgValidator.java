@@ -5,7 +5,8 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Prioritizable;
+import studio.mevera.imperat.util.priority.Priority;
 
 /**
  * Validates a parsed command argument.
@@ -15,12 +16,12 @@ import studio.mevera.imperat.util.Priority;
  *
  * @param <S> the {@link Source} type providing execution context for the argument
  */
-public interface ArgValidator<S extends Source> extends Comparable<ArgValidator<S>> {
+public interface ArgValidator<S extends Source> extends Comparable<ArgValidator<S>>, Prioritizable {
 
     static <S extends Source> ArgValidator<S> empty() {
         return new ArgValidator<>() {
             @Override
-            public @NotNull Priority priority() {
+            public @NotNull Priority getPriority() {
                 return Priority.LOW;
             }
 
@@ -30,7 +31,8 @@ public interface ArgValidator<S extends Source> extends Comparable<ArgValidator<
         };
     }
 
-    default @NotNull Priority priority() {
+    @Override
+    default @NotNull Priority getPriority() {
         return Priority.NORMAL;
     }
 
@@ -38,7 +40,7 @@ public interface ArgValidator<S extends Source> extends Comparable<ArgValidator<
 
     @Override
     default int compareTo(@NotNull ArgValidator<S> o) {
-        return Integer.compare(this.priority().getLevel(), o.priority().getLevel());
+        return Integer.compare(this.getPriority().getLevel(), o.getPriority().getLevel());
     }
 
 }

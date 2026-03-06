@@ -1,6 +1,6 @@
 package studio.mevera.imperat.events;
 
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.UUID;
 
@@ -13,7 +13,7 @@ import java.util.UUID;
 record EventSubscriptionImpl<T extends Event>(
         UUID id,
         EventListenerConsumer<T> handler,
-        Priority priority,
+        Priority getPriority,
         ExecutionStrategy strategy
 ) implements EventSubscription<T> {
 

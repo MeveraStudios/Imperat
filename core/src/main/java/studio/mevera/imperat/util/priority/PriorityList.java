@@ -1,4 +1,4 @@
-package studio.mevera.imperat.util;
+package studio.mevera.imperat.util.priority;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ import java.util.stream.StreamSupport;
  *
  * @param <E> the type of elements in this list
  */
-public class PriorityList<E> implements Iterable<E> {
+public class PriorityList<E extends Prioritizable> implements Iterable<E> {
 
     private final TreeMap<PriorityKey, E> map;
     private final Map<E, PriorityKey> elementToKey;
@@ -43,17 +43,14 @@ public class PriorityList<E> implements Iterable<E> {
      * Adds an element with the specified priority.
      * If the element already exists, it will not be added again.
      *
-     * @param priority the priority of the element
      * @param element the element to add
      * @return true if the element was added, false if it already existed
      */
-    public boolean add(Priority priority, E element) {
+    public boolean add(E element) {
         if (element == null) {
             throw new IllegalArgumentException("Element cannot be null");
         }
-        if (priority == null) {
-            throw new IllegalArgumentException("Priority cannot be null");
-        }
+        Priority priority = element.getPriority();
 
         if (elementToKey.containsKey(element)) {
             return false;
@@ -67,15 +64,6 @@ public class PriorityList<E> implements Iterable<E> {
         return true;
     }
 
-    /**
-     * Adds an element with normal priority.
-     *
-     * @param element the element to add
-     * @return true if the element was added, false if it already existed
-     */
-    public boolean add(E element) {
-        return add(Priority.NORMAL, element);
-    }
 
     /**
      * Removes an element from this list.
@@ -228,17 +216,12 @@ public class PriorityList<E> implements Iterable<E> {
      * An immutable wrapper around a PriorityList that prevents modifications.
      * All mutation operations throw {@link UnsupportedOperationException}.
      */
-    private static class UnmodifiablePriorityList<E> extends PriorityList<E> {
+    private static class UnmodifiablePriorityList<E extends Prioritizable> extends PriorityList<E> {
 
         private final PriorityList<E> delegate;
 
         UnmodifiablePriorityList(PriorityList<E> delegate) {
             this.delegate = delegate;
-        }
-
-        @Override
-        public boolean add(Priority priority, E element) {
-            throw new UnsupportedOperationException("Cannot modify an unmodifiable PriorityList");
         }
 
         @Override

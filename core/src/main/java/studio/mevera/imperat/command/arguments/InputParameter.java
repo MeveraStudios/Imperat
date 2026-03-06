@@ -17,9 +17,9 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
-import studio.mevera.imperat.util.PriorityList;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.util.Objects;
 

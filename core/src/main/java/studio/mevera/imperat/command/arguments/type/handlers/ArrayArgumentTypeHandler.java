@@ -7,8 +7,8 @@ import studio.mevera.imperat.command.arguments.type.ArgumentTypeLookup;
 import studio.mevera.imperat.command.arguments.type.ArrayArgument;
 import studio.mevera.imperat.command.arguments.type.SimpleTypeResolver;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
@@ -117,7 +117,7 @@ public final class ArrayArgumentTypeHandler<S extends Source> implements Argumen
     }
 
     @Override
-    public @NotNull Priority priority() {
+    public @NotNull Priority getPriority() {
         return Priority.NORMAL;
     }
 }

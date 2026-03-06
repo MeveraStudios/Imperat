@@ -14,7 +14,6 @@ import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
-import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
@@ -25,6 +24,7 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.util.Collection;
 import java.util.List;
@@ -416,13 +416,13 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
      */
     void setIgnoreACPermissions(boolean ignore);
 
-    CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors();
+    PriorityList<CommandPreProcessor<S>> getPreProcessors();
 
-    CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors();
+    PriorityList<CommandPostProcessor<S>> getPostProcessors();
 
-    void setPreProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain);
+    void setPreProcessingChain(PriorityList<CommandPreProcessor<S>> chain);
 
-    void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain);
+    void setPostProcessingChain(PriorityList<CommandPostProcessor<S>> chain);
 
     Collection<? extends Command<S>> getAllShortcuts();
 

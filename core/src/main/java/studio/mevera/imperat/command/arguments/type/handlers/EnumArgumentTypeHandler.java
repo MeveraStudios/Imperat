@@ -6,9 +6,9 @@ import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeLookup;
 import studio.mevera.imperat.command.arguments.type.EnumArgument;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.reflect.Type;
 
@@ -21,7 +21,7 @@ import java.lang.reflect.Type;
  *
  * @param <S> the source type
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"unchecked"})
 public final class EnumArgumentTypeHandler<S extends Source> implements ArgumentTypeHandler<S> {
 
     @Override
@@ -39,7 +39,7 @@ public final class EnumArgumentTypeHandler<S extends Source> implements Argument
     }
 
     @Override
-    public @NotNull Priority priority() {
+    public @NotNull Priority getPriority() {
         // Low priority so specific enum types registered by user take precedence
         return Priority.LOW;
     }

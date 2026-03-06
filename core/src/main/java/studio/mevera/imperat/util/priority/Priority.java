@@ -1,4 +1,4 @@
-package studio.mevera.imperat.util;
+package studio.mevera.imperat.util.priority;
 
 import org.jetbrains.annotations.NotNull;
 

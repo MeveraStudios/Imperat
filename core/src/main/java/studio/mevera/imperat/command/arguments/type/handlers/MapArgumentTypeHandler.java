@@ -6,8 +6,8 @@ import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeLookup;
 import studio.mevera.imperat.command.arguments.type.MapArgument;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.reflect.Type;
 import java.util.EnumMap;
@@ -131,7 +131,7 @@ public final class MapArgumentTypeHandler<S extends Source> implements ArgumentT
     }
 
     @Override
-    public @NotNull Priority priority() {
+    public @NotNull Priority getPriority() {
         return Priority.NORMAL;
     }
 }

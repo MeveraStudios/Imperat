@@ -1,5 +1,7 @@
 package studio.mevera.imperat.events;
 
+import studio.mevera.imperat.util.priority.Priority;
+
 /**
  * Defines the execution strategy for event handlers registered with the {@link EventBus}.
  *
@@ -128,7 +130,7 @@ package studio.mevera.imperat.events;
  *
  * @since 1.0
  * @author Imperat Framework
- * @see EventBus#register(Class, EventListenerConsumer, studio.mevera.imperat.util.Priority, ExecutionStrategy)
+ * @see EventBus#register(Class, EventListenerConsumer, Priority, ExecutionStrategy)
  */
 public enum ExecutionStrategy {
     

@@ -2,7 +2,7 @@ package studio.mevera.imperat.events;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;

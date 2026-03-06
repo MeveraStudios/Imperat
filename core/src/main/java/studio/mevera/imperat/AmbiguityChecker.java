@@ -5,7 +5,7 @@ import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.command.tree.LiteralCommandNode;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.reflect.Type;
 import java.util.Collection;

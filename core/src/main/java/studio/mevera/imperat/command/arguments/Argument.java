@@ -18,8 +18,8 @@ import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.Preconditions;
-import studio.mevera.imperat.util.PriorityList;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;

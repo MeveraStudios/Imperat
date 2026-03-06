@@ -13,7 +13,7 @@ import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.events.EventExceptionHandler;
 import studio.mevera.imperat.events.EventSubscription;
 import studio.mevera.imperat.events.ExecutionStrategy;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.ArrayList;
 import java.util.Collections;

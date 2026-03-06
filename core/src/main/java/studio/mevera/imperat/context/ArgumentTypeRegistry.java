@@ -15,10 +15,10 @@ import studio.mevera.imperat.command.arguments.type.handlers.EnumArgumentTypeHan
 import studio.mevera.imperat.command.arguments.type.handlers.MapArgumentTypeHandler;
 import studio.mevera.imperat.command.arguments.type.handlers.NumericArgumentTypeHandler;
 import studio.mevera.imperat.command.arguments.type.handlers.OptionalArgumentTypeHandler;
-import studio.mevera.imperat.util.Priority;
-import studio.mevera.imperat.util.PriorityList;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.Priority;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -95,7 +95,7 @@ public final class ArgumentTypeRegistry<S extends Source> {
      * @param handler the handler to register
      */
     public void registerHandler(@NotNull ArgumentTypeHandler<S> handler) {
-        handlers.add(handler.priority(), handler);
+        handlers.add(handler);
     }
 
     /**
@@ -124,14 +124,14 @@ public final class ArgumentTypeRegistry<S extends Source> {
      */
     public <T> void registerResolver(@NotNull Type type, @NotNull Supplier<ArgumentType<S, T>> supplier, @NotNull Priority priority) {
         SimpleTypeResolver<S, T> resolver = new SimpleTypeResolver<>(type, supplier, priority);
-        handlers.add(priority, resolver);
+        handlers.add(resolver);
         publishResolver(resolver);
 
         if (TypeUtility.isPrimitive(type)) {
             // Also register the boxed type for primitive types
             Type boxedType = TypeUtility.primitiveToBoxed(type);
             SimpleTypeResolver<S, T> boxedResolver = new SimpleTypeResolver<>(boxedType, supplier, priority);
-            handlers.add(priority, boxedResolver);
+            handlers.add(boxedResolver);
         }
     }
 

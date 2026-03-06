@@ -13,10 +13,10 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeCapturer;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;

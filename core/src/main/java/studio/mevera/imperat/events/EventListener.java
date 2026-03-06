@@ -1,7 +1,7 @@
 package studio.mevera.imperat.events;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.UUID;
 

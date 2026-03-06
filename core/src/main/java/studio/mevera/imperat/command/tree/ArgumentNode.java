@@ -7,7 +7,7 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Priority;
 
 @ApiStatus.Internal
 public final class ArgumentNode<S extends Source> extends CommandNode<S, Argument<S>> {
@@ -38,7 +38,7 @@ public final class ArgumentNode<S extends Source> extends CommandNode<S, Argumen
     }
 
     @Override
-    public Priority priority() {
+    public @NotNull Priority getPriority() {
         return priority;
     }
 

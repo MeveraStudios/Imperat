@@ -1,6 +1,7 @@
 package studio.mevera.imperat.events;
 
-import studio.mevera.imperat.util.Priority;
+import studio.mevera.imperat.util.priority.Prioritizable;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.UUID;
 
@@ -79,7 +80,7 @@ import java.util.UUID;
  * @see Priority
  * @see ExecutionStrategy
  */
-public interface EventSubscription<T extends Event> {
+public interface EventSubscription<T extends Event> extends Prioritizable {
 
     /**
      * Returns the unique identifier of this subscription.
@@ -98,17 +99,6 @@ public interface EventSubscription<T extends Event> {
      */
     EventListenerConsumer<T> handler();
 
-    /**
-     * Returns the priority at which this subscription executes relative to others
-     * registered for the same event type.
-     *
-     * <p>Higher priority subscriptions execute before lower ones. For subscriptions
-     * with equal priority, execution order follows registration order (FIFO).</p>
-     *
-     * @return the priority, never null
-     * @see Priority
-     */
-    Priority priority();
 
     /**
      * Returns the execution strategy for this subscription, determining whether

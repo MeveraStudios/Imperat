@@ -11,7 +11,6 @@ import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.arguments.validator.ArgValidator;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
-import studio.mevera.imperat.command.processors.CommandProcessingChain;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
@@ -26,7 +25,7 @@ import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
-import studio.mevera.imperat.util.PriorityList;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,13 +63,9 @@ final class CommandImpl<S extends Source> implements Command<S> {
 
     private ParseElement<?> annotatedElement = null;
 
-    private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> preProcessors =
-            CommandProcessingChain.<S>preProcessors()
-                    .build();
+    private @NotNull PriorityList<CommandPreProcessor<S>> preProcessors = new PriorityList<>();
+    private @NotNull PriorityList<CommandPostProcessor<S>> postProcessors = new PriorityList<>();
 
-    private @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> postProcessors =
-            CommandProcessingChain.<S>postProcessors()
-                    .build();
     private @Nullable Command<S> parent;
 
 
@@ -364,22 +359,22 @@ final class CommandImpl<S extends Source> implements Command<S> {
     }
 
     @Override
-    public @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors() {
+    public @NotNull PriorityList<CommandPreProcessor<S>> getPreProcessors() {
         return preProcessors;
     }
 
     @Override
-    public @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors() {
+    public @NotNull PriorityList<CommandPostProcessor<S>> getPostProcessors() {
         return postProcessors;
     }
 
     @Override
-    public void setPreProcessingChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain) {
+    public void setPreProcessingChain(PriorityList<CommandPreProcessor<S>> chain) {
         this.preProcessors = chain;
     }
 
     @Override
-    public void setPostProcessingChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain) {
+    public void setPostProcessingChain(PriorityList<CommandPostProcessor<S>> chain) {
         this.postProcessors = chain;
     }
 

@@ -3,9 +3,9 @@ package studio.mevera.imperat.command.arguments.type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.util.Priority;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.reflect.Type;
 import java.util.function.Supplier;
@@ -88,7 +88,7 @@ public final class SimpleTypeResolver<S extends Source, T> implements ArgumentTy
     }
 
     @Override
-    public @NotNull Priority priority() {
+    public @NotNull Priority getPriority() {
         return priority;
     }
 
