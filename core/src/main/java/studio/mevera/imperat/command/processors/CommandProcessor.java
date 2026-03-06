@@ -1,8 +1,6 @@
 package studio.mevera.imperat.command.processors;
 
-import studio.mevera.imperat.context.Source;
-
-public interface CommandProcessor<S extends Source> {
+public interface CommandProcessor {
 
     /**
      * Returns the priority of the command processor.

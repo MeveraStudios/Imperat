@@ -194,15 +194,13 @@ final class CommandImpl<S extends Source> implements Command<S> {
     /**
      * Executes the pre-processing instructions in {@link CommandPreProcessor}
      *
-     * @param api     the api
      * @param context the context
-     * @param usage   the usage detected being used
      */
     @Override
-    public void preProcess(@NotNull Imperat<S> api, @NotNull CommandContext<S> context, @NotNull CommandPathway<S> usage) throws ProcessorException {
+    public void preProcess(@NotNull CommandContext<S> context) throws ProcessorException {
         for (var processor : preProcessors) {
             try {
-                processor.process(api, context, usage);
+                processor.process(context);
             } catch (CommandException e) {
                 throw new ProcessorException(ProcessorException.Type.PRE, this, e);
             }
@@ -222,16 +220,14 @@ final class CommandImpl<S extends Source> implements Command<S> {
     /**
      * Executes the post-processing instructions in {@link CommandPostProcessor}
      *
-     * @param api     the api
      * @param context the context
-     * @param usage   the usage detected being used
      */
     @Override
-    public void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandPathway<S> usage)
+    public void postProcess(@NotNull ExecutionContext<S> context)
             throws ProcessorException {
         for (var processor : postProcessors) {
             try {
-                processor.process(api, context);
+                processor.process(context);
             } catch (CommandException e) {
                 throw new ProcessorException(ProcessorException.Type.POST, this, e);
             }

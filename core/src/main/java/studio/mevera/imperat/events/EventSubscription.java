@@ -3,7 +3,6 @@ package studio.mevera.imperat.events;
 import studio.mevera.imperat.util.Priority;
 
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  * Represents a single subscription to a specific event type on an {@link EventBus}.
@@ -18,7 +17,7 @@ import java.util.function.Consumer;
  *
  * <h2>Subscription Lifecycle</h2>
  * <ol>
- *     <li>Handler is registered via {@link EventBus#register(Class, Consumer)}</li>
+ *     <li>Handler is registered via {@link EventBus#register(Class, EventListenerConsumer)}</li>
  *     <li>EventBus creates an {@code EventSubscription} with a unique ID</li>
  *     <li>Subscription is stored and returned to the caller</li>
  *     <li>Handler is invoked whenever matching events are posted</li>
@@ -75,7 +74,7 @@ import java.util.function.Consumer;
  * @param <T> the exact type of {@link Event} this subscription handles
  * @since 1.0
  * @author Imperat Framework
- * @see EventBus#register(Class, Consumer)
+ * @see EventBus#register(Class, EventListenerConsumer)
  * @see EventBus#unregister(UUID)
  * @see Priority
  * @see ExecutionStrategy
@@ -97,7 +96,7 @@ public interface EventSubscription<T extends Event> {
      *
      * @return the event handler, never null
      */
-    Consumer<T> handler();
+    EventListenerConsumer<T> handler();
 
     /**
      * Returns the priority at which this subscription executes relative to others

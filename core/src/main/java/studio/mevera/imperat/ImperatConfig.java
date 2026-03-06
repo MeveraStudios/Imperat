@@ -45,8 +45,7 @@ import java.util.Optional;
  *
  * @param <S> The type of the source object used by the configuration, which implements the {@link Source} interface.
  */
-public sealed interface ImperatConfig<S extends Source> extends
-        ProcessorRegistrar<S>, ResolverRegistrar<S>, BaseThrowableHandler<S>
+public sealed interface ImperatConfig<S extends Source> extends ResolverRegistrar<S>, BaseThrowableHandler<S>
         permits ImperatConfigImpl {
 
     /**
@@ -220,7 +219,7 @@ public sealed interface ImperatConfig<S extends Source> extends
      * {@link ContextArgumentProvider}
      */
     @Nullable
-    <T> ContextArgumentProviderFactory<S, T> getContextResolverFactory(Type resolvingContextType);
+    <T> ContextArgumentProviderFactory<S, T> getContextArgumentProviderFactory(Type resolvingContextType);
 
     /**
      * @return {@link PermissionChecker} for the dispatcher

@@ -14,10 +14,6 @@ import studio.mevera.imperat.command.ReturnResolverRegistry;
 import studio.mevera.imperat.command.SourceProviderRegistry;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
-import studio.mevera.imperat.command.processors.CommandPostProcessor;
-import studio.mevera.imperat.command.processors.CommandPreProcessor;
-import studio.mevera.imperat.command.processors.CommandProcessingChain;
-import studio.mevera.imperat.command.processors.impl.DefaultProcessors;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
@@ -68,8 +64,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                     Collections.emptyList();
     private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
     private @NotNull ContextFactory<S> contextFactory;
-    private @NotNull CommandProcessingChain<S, CommandPreProcessor<S>> globalPreProcessors;
-    private @NotNull CommandProcessingChain<S, CommandPostProcessor<S>> globalPostProcessors;
     private boolean overlapOptionalParameterSuggestions = false;
     private boolean handleExecutionConsecutiveOptionalArgumentsSkip = false;
     private String commandPrefix = "/";
@@ -122,13 +116,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         returnResolverRegistry = ReturnResolverRegistry.createDefault();
         contextFactory = ContextFactory.defaultFactory();
 
-        globalPreProcessors = CommandProcessingChain.<S>preProcessors()
-                                      .then(DefaultProcessors.preUsageCooldown())
-                                      .build();
-
-        globalPostProcessors = CommandProcessingChain.<S>postProcessors()
-                                       .build();
-
         // register some defaults:
         this.regDefThrowableResolvers();
         this.registerSourceProvider(Source.class, (source, ctx) -> source);
@@ -173,45 +160,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         this.commandPrefix = cmdPrefix;
     }
 
-    /**
-     * Sets the whole pre-processing chain
-     *
-     * @param chain the chain to set
-     */
-    @Override
-    public void setPreProcessorsChain(CommandProcessingChain<S, CommandPreProcessor<S>> chain) {
-        Preconditions.notNull(chain, "pre-processors chain");
-        this.globalPreProcessors = chain;
-    }
-
-    /**
-     * Sets the whole post-processing chain
-     *
-     * @param chain the chain to set
-     */
-    @Override
-    public void setPostProcessorsChain(CommandProcessingChain<S, CommandPostProcessor<S>> chain) {
-        Preconditions.notNull(chain, "post-processors chain");
-        this.globalPostProcessors = chain;
-    }
-
-    /**
-     * @return gets the pre-processors in the chain of execution
-     * @see CommandPreProcessor
-     */
-    @Override
-    public CommandProcessingChain<S, CommandPreProcessor<S>> getPreProcessors() {
-        return globalPreProcessors;
-    }
-
-    /**
-     * @return gets the post-processors in the chain of execution
-     * @see CommandPostProcessor
-     */
-    @Override
-    public CommandProcessingChain<S, CommandPostProcessor<S>> getPostProcessors() {
-        return globalPostProcessors;
-    }
 
     /**
      * @return {@link PermissionChecker} for the dispatcher
@@ -288,7 +236,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> @Nullable ContextArgumentProviderFactory<S, T> getContextResolverFactory(Type type) {
+    public <T> @Nullable ContextArgumentProviderFactory<S, T> getContextArgumentProviderFactory(Type type) {
         return (ContextArgumentProviderFactory<S, T>) contextArgumentProviderRegistry.getFactoryFor(type).orElse(null);
     }
 

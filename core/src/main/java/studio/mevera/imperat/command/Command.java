@@ -213,11 +213,9 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     /**
      * Executes the pre-processing instructions in {@link CommandPreProcessor}
      *
-     * @param api     the api
      * @param context the context
-     * @param usage   the usage detected being used
      */
-    void preProcess(@NotNull Imperat<S> api, @NotNull CommandContext<S> context, @NotNull CommandPathway<S> usage) throws CommandException;
+    void preProcess(@NotNull CommandContext<S> context) throws CommandException;
 
     /**
      * Sets a post-processor for the command
@@ -229,11 +227,9 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
     /**
      * Executes the post-processing instructions in {@link CommandPostProcessor}
      *
-     * @param api     the api
      * @param context the context
-     * @param usage   the usage detected being used
      */
-    void postProcess(@NotNull Imperat<S> api, @NotNull ExecutionContext<S> context, @NotNull CommandPathway<S> usage) throws CommandException;
+    void postProcess(@NotNull ExecutionContext<S> context) throws CommandException;
 
     /**
      * @return the default usage of the command

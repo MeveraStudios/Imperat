@@ -1,9 +1,7 @@
 package studio.mevera.imperat.command.processors.impl;
 
-import studio.mevera.imperat.Imperat;
-import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.processors.CommandPreProcessor;
-import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.command.processors.CommandPostProcessor;
+import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
@@ -12,35 +10,32 @@ import studio.mevera.imperat.responses.ResponseKey;
 import java.time.Duration;
 import java.time.Instant;
 
-public final class UsageCooldownProcessor<S extends Source> implements CommandPreProcessor<S> {
+public final class CooldownProcessor<S extends Source> implements CommandPostProcessor<S> {
 
-    UsageCooldownProcessor() {
+    CooldownProcessor() {
 
     }
 
     /**
      * Processes context BEFORE the resolving operation.
      *
-     * @param imperat the api
      * @param context the context
-     * @param usage   The usage detected
      * @throws CommandException the exception to throw if something happens
      */
     @Override
     public void process(
-            Imperat<S> imperat,
-            CommandContext<S> context,
-            CommandPathway<S> usage
+            ExecutionContext<S> context
     ) throws CommandException {
         var source = context.source();
-        var handler = usage.getCooldownHandler();
-        var cooldown = usage.getCooldown();
+        var pathway = context.getDetectedPathway();
+        var handler = pathway.getCooldownHandler();
+        var cooldown = pathway.getCooldown();
 
         if (handler.hasCooldown(source)) {
             assert cooldown != null;
             if (cooldown.permission() == null
                         || cooldown.permission().isEmpty()
-                        || !imperat.config().getPermissionChecker().hasPermission(source, cooldown.permission())) {
+                        || !context.imperatConfig().getPermissionChecker().hasPermission(source, cooldown.permission())) {
 
                 var cooldownDuration = cooldown.toDuration();
                 var lastTimeExecuted = handler.getLastTimeExecuted(source).orElseThrow();

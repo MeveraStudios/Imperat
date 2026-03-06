@@ -6,7 +6,6 @@ import studio.mevera.imperat.util.Priority;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 
 /**
  * A high-performance, thread-safe event bus system with priority-based handler execution.
@@ -124,7 +123,7 @@ public interface EventBus {
      */
     <T extends Event> EventSubscription<T> register(
             @NotNull Class<T> eventType,
-            @NotNull Consumer<T> handler
+            @NotNull EventListenerConsumer<T> handler
     );
 
     /**
@@ -139,7 +138,7 @@ public interface EventBus {
      */
     <T extends Event> EventSubscription<T> register(
             @NotNull Class<T> eventType,
-            @NotNull Consumer<T> handler,
+            @NotNull EventListenerConsumer<T> handler,
             @NotNull Priority priority
     );
 
@@ -162,7 +161,7 @@ public interface EventBus {
      */
     <T extends Event> EventSubscription<T> register(
             @NotNull Class<T> eventType,
-            @NotNull Consumer<T> handler,
+            @NotNull EventListenerConsumer<T> handler,
             @NotNull Priority priority,
             @NotNull ExecutionStrategy strategy
     );

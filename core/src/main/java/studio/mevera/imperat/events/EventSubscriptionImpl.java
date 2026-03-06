@@ -1,8 +1,8 @@
 package studio.mevera.imperat.events;
 
 import studio.mevera.imperat.util.Priority;
+
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  * Package-private implementation of {@link EventSubscription}.
@@ -12,7 +12,7 @@ import java.util.function.Consumer;
  */
 record EventSubscriptionImpl<T extends Event>(
         UUID id,
-        Consumer<T> handler,
+        EventListenerConsumer<T> handler,
         Priority priority,
         ExecutionStrategy strategy
 ) implements EventSubscription<T> {

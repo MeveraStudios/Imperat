@@ -6,7 +6,7 @@ import studio.mevera.imperat.context.Source;
 import java.util.Iterator;
 import java.util.Queue;
 
-record ChainImpl<S extends Source, P extends CommandProcessor<S>>(Queue<P> processors) implements CommandProcessingChain<S, P> {
+record ChainImpl<S extends Source, P extends CommandProcessor>(Queue<P> processors) implements CommandProcessingChain<S, P> {
 
     @Override
     public @NotNull Queue<P> getProcessors() {

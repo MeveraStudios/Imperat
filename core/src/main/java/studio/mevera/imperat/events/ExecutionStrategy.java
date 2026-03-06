@@ -128,7 +128,7 @@ package studio.mevera.imperat.events;
  *
  * @since 1.0
  * @author Imperat Framework
- * @see EventBus#register(Class, java.util.function.Consumer, studio.mevera.imperat.util.Priority, ExecutionStrategy)
+ * @see EventBus#register(Class, EventListenerConsumer, studio.mevera.imperat.util.Priority, ExecutionStrategy)
  */
 public enum ExecutionStrategy {
     

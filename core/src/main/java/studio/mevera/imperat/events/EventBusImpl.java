@@ -10,7 +10,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 
 /**
  * Package-private implementation of {@link EventBus}.
@@ -48,7 +47,7 @@ final class EventBusImpl implements EventBus {
     @Override
     public <T extends Event> EventSubscription<T> register(
             @NotNull Class<T> eventType,
-            @NotNull Consumer<T> handler
+            @NotNull EventListenerConsumer<T> handler
     ) {
         return register(eventType, handler, Priority.NORMAL, ExecutionStrategy.SYNC);
     }
@@ -56,7 +55,7 @@ final class EventBusImpl implements EventBus {
     @Override
     public <T extends Event> EventSubscription<T> register(
             @NotNull Class<T> eventType,
-            @NotNull Consumer<T> handler,
+            @NotNull EventListenerConsumer<T> handler,
             @NotNull Priority priority
     ) {
         return register(eventType, handler, priority, ExecutionStrategy.SYNC);
@@ -65,7 +64,7 @@ final class EventBusImpl implements EventBus {
     @Override
     public <T extends Event> EventSubscription<T> register(
             @NotNull Class<T> eventType,
-            @NotNull Consumer<T> handler,
+            @NotNull EventListenerConsumer<T> handler,
             @NotNull Priority priority,
             @NotNull ExecutionStrategy strategy
     ) {

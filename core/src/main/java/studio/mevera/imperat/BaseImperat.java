@@ -8,8 +8,6 @@ import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.processors.CommandPostProcessor;
-import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.ArgumentInput;
@@ -21,16 +19,18 @@ import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.events.Event;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.events.EventExceptionHandler;
+import studio.mevera.imperat.events.EventListenerConsumer;
 import studio.mevera.imperat.events.EventSubscription;
 import studio.mevera.imperat.events.ExecutionStrategy;
 import studio.mevera.imperat.events.exception.EventException;
+import studio.mevera.imperat.events.types.CommandPostProcessEvent;
 import studio.mevera.imperat.events.types.CommandPostRegistrationEvent;
+import studio.mevera.imperat.events.types.CommandPreProcessEvent;
 import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
-import studio.mevera.imperat.exception.ProcessorException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
@@ -48,7 +48,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.Consumer;
 
 public abstract class BaseImperat<S extends Source> implements Imperat<S> {
 
@@ -87,12 +86,56 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                             .build()
             );
         }
+
+        this.registerEvents();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void registerEvents() {
+
+        this.listen(CommandPreProcessEvent.class, (event) -> {
+            // Per-command pre-processing, executed after global pre-processing.
+            Command<S> command = event.getCommand();
+            CommandContext<S> context = event.getContext();
+            try {
+                command.preProcess(context);
+            } catch (CommandException e) {
+                event.setCancelled(true);
+                throw new RuntimeException(e);
+            }
+        }, Priority.NORMAL, ExecutionStrategy.SYNC);
+
+        this.listen(CommandPostProcessEvent.class, (event) -> {
+            // Per-command post-processing, executed before global post-processing.
+            Command<S> command = event.getCommand();
+            ExecutionContext<S> context = event.getContext();
+            try {
+                command.postProcess(context);
+            } catch (CommandException e) {
+                throw new RuntimeException(e);
+            }
+        }, Priority.NORMAL, ExecutionStrategy.SYNC);
+        this.listen(CommandPostProcessEvent.class, (event) -> {
+            // Check usage-level permission
+            var ctx = event.getContext();
+            var source = ctx.source();
+            var command = event.getCommand();
+            var pathway = ctx.getDetectedPathway();
+            var cfg = ctx.imperatConfig();
+            if (!cfg.getPermissionChecker().hasPermission(source, pathway)) {
+                ImperatDebugger.debug("Failed usage permission check!");
+                throw new PermissionDeniedException(
+                        command.getName(),
+                        CommandPathway.format(command, pathway)
+                );
+            }
+        }, Priority.HIGH, ExecutionStrategy.SYNC);
     }
 
     @Override
     public <E extends Event> void listen(
             @NotNull Class<E> eventType,
-            @NotNull Consumer<E> handler,
+            @NotNull EventListenerConsumer<E> handler,
             @NotNull Priority priority,
             @NotNull ExecutionStrategy strategy
     ) {
@@ -333,6 +376,12 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                     CommandPathway.format(command, command.getDefaultPathway())
             );
         }
+        var preProcessEvent = new CommandPreProcessEvent<>(command, context);
+        this.publishEvent(preProcessEvent);
+        if (preProcessEvent.isCancelled()) {
+            ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPreProcessEvent.", command.getName());
+            return ExecutionResult.failure(context);
+        }
 
         // Direct execution: traverse tree, resolve args, and execute in one step
         TreeExecutionResult<S> treeResult = command.execute(context);
@@ -361,59 +410,24 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         }
 
         // SUCCESS: The tree already resolved args and created ExecutionContext
-        CommandPathway<S> usage = treeResult.getMatchedPathway();
+        CommandPathway<S> pathway = treeResult.getMatchedPathway();
         ExecutionContext<S> executionContext = treeResult.getExecutionContext();
-        assert usage != null && executionContext != null;
+        assert pathway != null && executionContext != null;
 
-        // Check usage-level permission
-        if (!config.getPermissionChecker().hasPermission(source, usage)) {
-            ImperatDebugger.debug("Failed usage permission check!");
-            throw new PermissionDeniedException(
-                    command.getName(),
-                    CommandPathway.format(command, usage)
-            );
-        }
-
-        ImperatDebugger.debug("Usage Found Format: '%s'", CommandPathway.formatWithTypes(command, usage));
-
-        // Pre-processing
-        globalPreProcessing(context, usage);
-        command.preProcess(this, context, usage);
-
-        // Execute
-        usage.execute(this, source, executionContext);
+        ImperatDebugger.debug("Usage Found Format: '%s'", CommandPathway.formatWithTypes(command, pathway));
 
         // Post-processing
-        globalPostProcessing(executionContext);
-        command.postProcess(this, executionContext, usage);
+        var postProcessEvent = new CommandPostProcessEvent<>(command, executionContext);
+        this.publishEvent(postProcessEvent);
 
-        return ExecutionResult.of(executionContext, context);
-    }
-
-    private void globalPreProcessing(
-            @NotNull CommandContext<S> context,
-            @NotNull CommandPathway<S> usage
-    ) throws ProcessorException {
-
-        for (CommandPreProcessor<S> preProcessor : config.getPreProcessors()) {
-            try {
-                preProcessor.process(this, context, usage);
-            } catch (Throwable ex) {
-                throw new ProcessorException(ProcessorException.Type.PRE, null, ex);
-            }
-        }
-
-    }
-
-    private void globalPostProcessing(
-            @NotNull ExecutionContext<S> context
-    ) throws CommandException {
-        for (CommandPostProcessor<S> postProcessor : config.getPostProcessors()) {
-            try {
-                postProcessor.process(this, context);
-            } catch (Throwable ex) {
-                throw new ProcessorException(ProcessorException.Type.POST, null, ex);
-            }
+        // Execute
+        if (!postProcessEvent.isCancelled()) {
+            ImperatDebugger.debug("Executing command '%s' for source '%s'", command.getName(), source);
+            pathway.execute(this, source, executionContext);
+            return ExecutionResult.of(executionContext, context);
+        } else {
+            ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPostProcessEvent.", command.getName());
+            return ExecutionResult.failure(executionContext);
         }
     }
 

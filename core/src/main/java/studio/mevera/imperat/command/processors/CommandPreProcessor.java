@@ -1,7 +1,5 @@
 package studio.mevera.imperat.command.processors;
 
-import studio.mevera.imperat.Imperat;
-import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
@@ -13,20 +11,16 @@ import studio.mevera.imperat.exception.CommandException;
  * @param <S> the command sender valueType
  */
 @FunctionalInterface
-public interface CommandPreProcessor<S extends Source> extends CommandProcessor<S> {
+public interface CommandPreProcessor<S extends Source> extends CommandProcessor {
 
     /**
      * Processes context BEFORE the resolving operation.
      *
-     * @param imperat the api
      * @param context the context
-     * @param usage   The usage detected
      * @throws CommandException the exception to throw if something happens
      */
     void process(
-            Imperat<S> imperat,
-            CommandContext<S> context,
-            CommandPathway<S> usage
+            CommandContext<S> context
     ) throws CommandException;
 
 }
