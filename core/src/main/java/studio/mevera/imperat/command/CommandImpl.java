@@ -82,10 +82,10 @@ final class CommandImpl<S extends Source> implements Command<S> {
         this.name = name.toLowerCase();
         this.setDefaultPathwayWithValidation(imperat.config().getGlobalDefaultPathway().build(this));
         this.autoCompleter = AutoCompleter.createNative(this);
-        this.tree = CommandTree.create(imperat.config(), this);
-        this.visualizer = CommandTreeVisualizer.of(tree);
         this.suggestionProvider = SuggestionProvider.forCommand(this);
         this.annotatedElement = annotatedElement;
+        this.tree = CommandTree.create(imperat.config(), this);
+        this.visualizer = CommandTreeVisualizer.of(tree);
     }
 
 

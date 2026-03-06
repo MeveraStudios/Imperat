@@ -31,7 +31,9 @@ import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.exception.UnknownCommandException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
@@ -39,6 +41,8 @@ import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -114,6 +118,37 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             } catch (CommandException e) {
                 throw new RuntimeException(e);
             }
+        }, Priority.NORMAL, ExecutionStrategy.SYNC);
+        this.listen(CommandPostProcessEvent.class, (event) -> {
+            var context = event.getContext();
+
+
+            var source = context.source();
+            var pathway = context.getDetectedPathway();
+            var handler = pathway.getCooldownHandler();
+            var cooldown = pathway.getCooldown();
+
+            if (handler.hasCooldown(source)) {
+                assert cooldown != null;
+                if (cooldown.permission() == null
+                            || cooldown.permission().isEmpty()
+                            || !context.imperatConfig().getPermissionChecker().hasPermission(source, cooldown.permission())) {
+
+                    var cooldownDuration = cooldown.toDuration();
+                    Instant lastTimeExecuted = (Instant) handler.getLastTimeExecuted(source).orElseThrow();
+                    var elapsed = Duration.between(lastTimeExecuted, Instant.now());
+                    var remaining = cooldownDuration.minus(elapsed);
+                    var remainingDuration = remaining.isNegative() ? Duration.ZERO : remaining;
+
+                    event.setCancelled(true);
+                    throw ResponseException.of(ResponseKey.COOLDOWN)
+                                  .withPlaceholder("seconds", String.valueOf(remainingDuration.toSeconds()))
+                                  .withPlaceholder("remaining_duration", remainingDuration.toString())
+                                  .withPlaceholder("cooldown_duration", cooldownDuration.toString())
+                                  .withPlaceholder("last_executed", lastTimeExecuted.toString());
+                }
+            }
+            handler.registerExecutionMoment(source);
         }, Priority.NORMAL, ExecutionStrategy.SYNC);
         this.listen(CommandPostProcessEvent.class, (event) -> {
             // Check usage-level permission
