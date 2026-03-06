@@ -62,8 +62,8 @@ public interface AnnotationInjector<S extends Source> {
      * into multiple throwable resolvers to be registered and injected into {@link Imperat}
      * @param object the annotated class containing the exception handling methods.
      */
-    default void registerThrowableHandler(Object object) {
-        getAnnotationParser().parseThrowableHandlerClass(object);
+    default void registerGlobalExceptionHandlers(Object object) {
+        getAnnotationParser().parseGlobalErrorHandlersFrom(object);
     }
 
 }

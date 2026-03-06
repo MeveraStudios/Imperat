@@ -357,7 +357,7 @@ class ResponseSystemTest {
         CommandContext<TestSource> context = createContext();
 
         // Simulate exception handling
-        config.handleExecutionThrowable(exception, context, ResponseSystemTest.class, "testMethod");
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
         assertThat(capturedMessages)
@@ -381,7 +381,7 @@ class ResponseSystemTest {
 
         CommandContext<TestSource> context = createContext();
 
-        config.handleExecutionThrowable(exception, context, ResponseSystemTest.class, "testMethod");
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
         assertThat(capturedMessages)
@@ -405,7 +405,7 @@ class ResponseSystemTest {
 
         CommandContext<TestSource> context = createContext();
 
-        config.handleExecutionThrowable(exception, context, ResponseSystemTest.class, "testMethod");
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
         assertThat(capturedMessages)

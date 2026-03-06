@@ -8,7 +8,7 @@ import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.ThrowableResolver;
+import studio.mevera.imperat.exception.CommandExceptionHandler;
 
 import java.lang.annotation.Annotation;
 
@@ -44,13 +44,13 @@ public abstract class AnnotationParser<S extends Source> {
 
     /**
      * Parses annotated throwable handling class
-     * into a set of {@link ThrowableResolver} that are automatically
+     * into a set of {@link CommandExceptionHandler} that are automatically
      * injected into the instance of {@link Imperat} that you're using.
      *
      * @param instance the instance of the throwable-handling class.
      * @param <T> the type of the instance of the throwable-handling class.
      */
-    public abstract <T> void parseThrowableHandlerClass(T instance);
+    public abstract <T> void parseGlobalErrorHandlersFrom(T instance);
 
     /**
      * Registers a valueType of annotations so that it can be

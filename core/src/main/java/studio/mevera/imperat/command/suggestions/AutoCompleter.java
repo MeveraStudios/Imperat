@@ -72,7 +72,7 @@ public abstract class AutoCompleter<S extends Source> {
         }).thenCompose((context) ->
                                autoComplete(context).exceptionally((ex) -> {
                                    dispatcher.config()
-                                           .handleExecutionThrowable(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
+                                           .handleExecutionError(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
                                    return Collections.emptyList();
                                })
         );

@@ -20,7 +20,7 @@ import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
 import studio.mevera.imperat.events.EventBus;
-import studio.mevera.imperat.exception.ThrowableResolver;
+import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
@@ -293,16 +293,16 @@ public sealed interface ImperatConfig<S extends Source> extends ResolverRegistra
     }
 
     /**
-     * Registers a new {@link ThrowableResolver} for the specified valueType of throwable.
+     * Registers a new {@link CommandExceptionHandler} for the specified valueType of throwable.
      * This allows customizing the handling of specific throwable types within the application.
      *
      * @param exception The class of the throwable to set the resolver for.
-     * @param handler   The {@link ThrowableResolver} to be registered for the specified throwable valueType.
+     * @param handler   The {@link CommandExceptionHandler} to be registered for the specified throwable valueType.
      * @param <T>       The valueType of the throwable.
      */
-    <T extends Throwable> void setThrowableResolver(
+    <T extends Throwable> void setErrorHandler(
             final Class<T> exception,
-            final ThrowableResolver<T, S> handler
+            final CommandExceptionHandler<T, S> handler
     );
 
     /**

@@ -102,7 +102,7 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
      * This provides user-friendly error messages for various error conditions.
      */
     private void addThrowableHandlers() {
-        config.setThrowableResolver(
+        config.setErrorHandler(
                 UnknownPlayerException.class,
                 (exception, context) -> context.source().error("A player with the name '" + exception.getName() + "' is not online.")
         );

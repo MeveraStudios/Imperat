@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.ImperatConfig;
+import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.Command;
 
 /**
@@ -13,6 +14,7 @@ import studio.mevera.imperat.command.Command;
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
+@Context
 public interface CommandContext<S extends Source> {
 
     /**

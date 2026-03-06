@@ -58,11 +58,11 @@ public abstract class CommandClassParser<S extends Source, R> {
         };
     }
 
-    public static <S extends Source> CommandClassParser<S, Set<MethodThrowableResolver<?, S>>> newThrowableParsingVisitor(
+    public static <S extends Source> CommandClassParser<S, Set<MethodCommandExceptionHandler<?, S>>> newThrowableParsingVisitor(
             Imperat<S> imperat,
             AnnotationParser<S> parser
     ) {
-        return new ThrowableParsingVisitor<>(
+        return new ErrorHandlerParsingVisitor<>(
                 imperat,
                 parser,
                 ERROR_HANDLING_METHOD_SELECTOR

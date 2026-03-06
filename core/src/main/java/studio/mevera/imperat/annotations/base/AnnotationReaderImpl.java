@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.RootCommandClass;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
-import studio.mevera.imperat.annotations.base.parsers.MethodThrowableResolver;
+import studio.mevera.imperat.annotations.base.parsers.MethodCommandExceptionHandler;
 import studio.mevera.imperat.annotations.types.ExternalSubCommand;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.Source;
@@ -139,14 +139,14 @@ final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S
 
     @Override
     @SuppressWarnings("unchecked")
-    public <E extends Throwable> void acceptThrowableResolversParsing(CommandClassParser<S, Set<MethodThrowableResolver<?, S>>> visitor) {
-        Set<MethodThrowableResolver<?, S>> collectedErrorHandlers = classElement.accept(visitor);
+    public <E extends Throwable> void acceptThrowableResolversParsing(CommandClassParser<S, Set<MethodCommandExceptionHandler<?, S>>> visitor) {
+        Set<MethodCommandExceptionHandler<?, S>> collectedErrorHandlers = classElement.accept(visitor);
         if (collectedErrorHandlers == null) {
             return;
         }
         for (var errorHandler : collectedErrorHandlers) {
             Class<E> castedExceptionType = (Class<E>) errorHandler.getExceptionType();
-            imperat.config().setThrowableResolver(castedExceptionType, (MethodThrowableResolver<E, S>) errorHandler);
+            imperat.config().setErrorHandler(castedExceptionType, (MethodCommandExceptionHandler<E, S>) errorHandler);
         }
     }
 }

@@ -13,7 +13,7 @@ import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
-import studio.mevera.imperat.exception.ThrowableResolver;
+import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
@@ -226,14 +226,14 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param <T>       The type of the throwable.
      * @param exception The class object representing the type of the throwable
      *                  for which the resolver will be configured.
-     * @param handler   The {@link ThrowableResolver} implementation responsible
+     * @param handler   The {@link CommandExceptionHandler} implementation responsible
      *                  for handling the specified throwable type.
      * @return The current instance of {@code ConfigBuilder}, allowing method
      *         chaining for further configuration.
      */
     // Throwable Resolver
-    public <T extends Throwable> B throwableResolver(Class<T> exception, ThrowableResolver<T, S> handler) {
-        config.setThrowableResolver(exception, handler);
+    public <T extends Throwable> B exceptionHandler(Class<T> exception, CommandExceptionHandler<T, S> handler) {
+        config.setErrorHandler(exception, handler);
         return (B) this;
     }
 

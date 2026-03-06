@@ -70,7 +70,7 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
         //                                                                          not be found")
         //        );
 
-        config.setThrowableResolver(NoDMSException.class, (ex, ctx) ->
+        config.setErrorHandler(NoDMSException.class, (ex, ctx) ->
                                                                   ctx.source().error(ex.getMessage())
         );
     }

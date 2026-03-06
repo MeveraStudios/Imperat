@@ -23,11 +23,11 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.exception.InvalidSourceException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.ResponseException;
-import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
@@ -56,7 +56,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     private final ArgumentTypeRegistry<S> argumentTypeRegistry;
     private final SourceProviderRegistry<S> sourceProviderRegistry;
     private final ReturnResolverRegistry<S> returnResolverRegistry;
-    private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
+    private final Map<Class<? extends Throwable>, CommandExceptionHandler<?, S>> errorHandlers = new HashMap<>();
     private final Map<Class<?>, AnnotationReplacer<?>> annotationReplacerMap = new HashMap<>();
     private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
     private @NotNull SuggestionProvider<S> defaultSuggestionProvider =
@@ -125,13 +125,13 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
     private void regDefThrowableResolvers() {
         // Structural/flow exceptions — reply with their own plain message directly
-        this.setThrowableResolver(InvalidSyntaxException.class, (exception, context) ->
+        this.setErrorHandler(InvalidSyntaxException.class, (exception, context) ->
                                                                         context.source().reply(exception.getMessage()));
-        this.setThrowableResolver(PermissionDeniedException.class, (exception, context) ->
+        this.setErrorHandler(PermissionDeniedException.class, (exception, context) ->
                                                                            context.source().reply(exception.getMessage()));
 
         // All registry-driven exceptions (parse, flag, validation, cooldown, help)
-        this.setThrowableResolver(ResponseException.class, (exception, context) -> {
+        this.setErrorHandler(ResponseException.class, (exception, context) -> {
             var response = this.getResponseRegistry().getResponse(exception.getResponseKey());
             if (response != null) {
                 response.sendContent(context, exception.getPlaceholderDataProvider());
@@ -139,11 +139,11 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         });
 
         // Fallback for plain CommandException (message-only, no ResponseKey)
-        this.setThrowableResolver(CommandException.class, (exception, context) ->
+        this.setErrorHandler(CommandException.class, (exception, context) ->
                                                                   context.source().reply(exception.getMessage()));
 
         // InvalidSourceException — system/runtime error, escalate
-        this.setThrowableResolver(InvalidSourceException.class, (exception, context) -> {
+        this.setErrorHandler(InvalidSourceException.class, (exception, context) -> {
             throw new UnsupportedOperationException("Couldn't find any source resolver for valueType `"
                                                             + exception.getTargetType().getTypeName() + "'");
         });
@@ -528,12 +528,12 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     @Override
     @Nullable
     @SuppressWarnings("unchecked")
-    public <T extends Throwable> ThrowableResolver<T, S> getThrowableResolver(Class<T> exception) {
-        Class<?> current = exception;
+    public <T extends Throwable> CommandExceptionHandler<T, S> getErrorHandlerFor(Class<T> type) {
+        Class<?> current = type;
         while (current != null && Throwable.class.isAssignableFrom(current)) {
             var resolver = errorHandlers.get(current);
             if (resolver != null) {
-                return (ThrowableResolver<T, S>) resolver;
+                return (CommandExceptionHandler<T, S>) resolver;
             }
             current = current.getSuperclass();
         }
@@ -541,7 +541,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     @Override
-    public <T extends Throwable> void setThrowableResolver(Class<T> exception, ThrowableResolver<T, S> handler) {
+    public <T extends Throwable> void setErrorHandler(Class<T> exception, CommandExceptionHandler<T, S> handler) {
         this.errorHandlers.put(exception, handler);
     }
 
@@ -597,15 +597,15 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
     }
 
     @Override
-    public <E extends Throwable> boolean handleExecutionThrowable(@NotNull E throwable, CommandContext<S> context, Class<?> owning,
+    public <E extends Throwable> boolean handleExecutionError(@NotNull E throwable, CommandContext<S> context, Class<?> owning,
             String methodName) {
 
         //First handling the error using the Local(RootCommand's) Error Handler.
         //if its during execution, then let's use the LAST entered RootCommand (root or sub)
-        //Since subcommands also can have their own error handlers (aka ThrowableResolver)
+        //Since subcommands also can have their own error handlers (aka CommandExceptionHandler)
         Command<S> cmd = context instanceof ExecutionContext<S> executionContext ? executionContext.getLastUsedCommand() : context.command();
         while (cmd != null) {
-            var res = cmd.handleExecutionThrowable(throwable, context, owning, methodName);
+            var res = cmd.handleExecutionError(throwable, context, owning, methodName);
             if (res) {
                 return true;
             }
@@ -613,7 +613,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
         }
 
         //Trying to handle the error from the Central Throwable Handler.
-        var res = ImperatConfig.super.handleExecutionThrowable(throwable, context, owning, methodName);
+        var res = ImperatConfig.super.handleExecutionError(throwable, context, owning, methodName);
         if (!res) {
             throwablePrinter.print(throwable);
         }

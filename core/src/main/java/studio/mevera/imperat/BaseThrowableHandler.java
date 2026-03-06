@@ -3,8 +3,8 @@ package studio.mevera.imperat;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.SelfHandledException;
-import studio.mevera.imperat.exception.ThrowableResolver;
+import studio.mevera.imperat.exception.CommandExceptionHandler;
+import studio.mevera.imperat.exception.SelfHandlingException;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 /**
@@ -15,8 +15,8 @@ import studio.mevera.imperat.util.ImperatDebugger;
  * <p>This handler implements a comprehensive exception resolution strategy that:
  * <ol>
  *   <li>Traverses the entire exception cause chain from the root exception to the deepest cause</li>
- *   <li>Prioritizes {@link SelfHandledException} instances for immediate self-resolution</li>
- *   <li>Falls back to registered {@link ThrowableResolver} instances for standard exceptions</li>
+ *   <li>Prioritizes {@link SelfHandlingException} instances for immediate self-resolution</li>
+ *   <li>Falls back to registered {@link CommandExceptionHandler} instances for standard exceptions</li>
  *   <li>Provides detailed debugging information throughout the resolution process</li>
  *   <li>Logs unhandled exceptions for debugging purposes</li>
  * </ol>
@@ -26,8 +26,8 @@ import studio.mevera.imperat.util.ImperatDebugger;
  *
  * <p><strong>Exception Resolution Priority:</strong>
  * <pre>{@code
- * 1. SelfHandledException.handle() - immediate self-resolution
- * 2. Registered ThrowableResolver for the specific exception type
+ * 1. SelfHandlingException.handle() - immediate self-resolution
+ * 2. Registered CommandExceptionHandler for the specific exception type
  * 3. Traverse to exception.getCause() and repeat
  * 4. Log error if no handler found in the entire chain
  * }</pre>
@@ -37,7 +37,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
  * public class CommandExceptionHandler implements BaseThrowableHandler<CommandSource> {
  *
  *     @Override
- *     public ThrowableResolver<?, CommandSource> getThrowableResolver(Class<?> exceptionType) {
+ *     public CommandExceptionHandler<?, CommandSource> getThrowableResolver(Class<?> exceptionType) {
  *         return resolvers.get(exceptionType);
  *     }
  * }
@@ -48,8 +48,8 @@ import studio.mevera.imperat.util.ImperatDebugger;
  *
  * @since 1.0
  * @see ThrowableHandler
- * @see ThrowableResolver
- * @see SelfHandledException
+ * @see CommandExceptionHandler
+ * @see SelfHandlingException
  * @see CommandContext
  */
 public non-sealed interface BaseThrowableHandler<S extends Source> extends ThrowableHandler<S> {
@@ -63,8 +63,8 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
      *   <li><strong>Chain Traversal:</strong> Iterates through the complete exception
      *       cause chain using {@link Throwable#getCause()}</li>
      *   <li><strong>Self-Handled Exceptions:</strong> Immediately delegates to
-     *       {@link SelfHandledException#handle(ImperatConfig, CommandContext)} when encountered</li>
-     *   <li><strong>Resolver Lookup:</strong> Searches for registered {@link ThrowableResolver}
+     *       {@link SelfHandlingException#handle(CommandContext)} when encountered</li>
+     *   <li><strong>Resolver Lookup:</strong> Searches for registered {@link CommandExceptionHandler}
      *       instances matching the current exception type</li>
      *   <li><strong>Debug Logging:</strong> Provides detailed logging of the resolution
      *       process through {@link ImperatDebugger}</li>
@@ -80,8 +80,8 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
      * try {
      *     // RootCommand execution
      * } catch (CommandPermissionException e) {
-     *     // 1. Check if CommandPermissionException is SelfHandledException → No
-     *     // 2. Look for ThrowableResolver<CommandPermissionException> → Found
+     *     // 1. Check if CommandPermissionException is SelfHandlingException → No
+     *     // 2. Look for CommandExceptionHandler<CommandPermissionException> → Found
      *     // 3. Call resolver.resolve(e, context) → Success, return
      * } catch (WrappedException e) {
      *     // 1. Check WrappedException → No resolver
@@ -91,7 +91,7 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
      * }</pre>
      *
      * <p><strong>Thread Safety:</strong> This method is thread-safe assuming the
-     * underlying {@link #getThrowableResolver(Class)} implementation is thread-safe.
+     * underlying {@link #getErrorHandlerFor(Class)} implementation is thread-safe.
      *
      * @param throwable  the root exception that occurred during command execution,
      *                   may be {@code null} (though this typically indicates a logic error)
@@ -105,14 +105,14 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
      * @implNote The default implementation never throws exceptions itself, ensuring
      * that exception handling does not create additional execution failures.
      * All resolver calls are wrapped in implicit exception safety.
-     * @see #getThrowableResolver(Class)
-     * @see SelfHandledException#handle(ImperatConfig, CommandContext)
+     * @see #getErrorHandlerFor(Class)
+     * @see SelfHandlingException#handle(CommandContext)
      * @see ImperatDebugger#debug(String, Object...)
      * @see ImperatDebugger#error(Class, String, Throwable)
      */
     @Override
     @SuppressWarnings("unchecked")
-    default <E extends Throwable> boolean handleExecutionThrowable(
+    default <E extends Throwable> boolean handleExecutionError(
             @NotNull E throwable,
             CommandContext<S> context,
             Class<?> owning,
@@ -122,12 +122,13 @@ public non-sealed interface BaseThrowableHandler<S extends Source> extends Throw
         Throwable current = throwable;
 
         while (current != null) {
-            if (current instanceof SelfHandledException selfHandledException) {
-                selfHandledException.handle(context.imperatConfig(), context);
+            if (current instanceof SelfHandlingException selfHandlingException) {
+                selfHandlingException.handle(context);
                 return true;
             }
 
-            ThrowableResolver<? super Throwable, S> handler = (ThrowableResolver<? super Throwable, S>) this.getThrowableResolver(current.getClass());
+            CommandExceptionHandler<? super Throwable, S> handler =
+                    (CommandExceptionHandler<? super Throwable, S>) this.getErrorHandlerFor(current.getClass());
             if (handler != null) {
                 ImperatDebugger.debug("Found handler for exception '%s'", current.getClass().getName());
                 handler.resolve(current, context);

@@ -41,7 +41,7 @@ public final class CompletableFutureArgument<S extends Source, T> extends Argume
                 return typeResolver.parse(context, copyStream, correspondingInput);
             } catch (CommandException e) {
                 context.imperatConfig()
-                        .handleExecutionThrowable(e, context, CompletableFutureArgument.class, "resolve");
+                        .handleExecutionError(e, context, CompletableFutureArgument.class, "resolve");
                 return null;
             }
         });

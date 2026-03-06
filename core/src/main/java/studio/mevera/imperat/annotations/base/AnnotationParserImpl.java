@@ -8,7 +8,7 @@ import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
 import studio.mevera.imperat.annotations.base.element.selector.Rule;
 import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
-import studio.mevera.imperat.annotations.base.parsers.MethodThrowableResolver;
+import studio.mevera.imperat.annotations.base.parsers.MethodCommandExceptionHandler;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.Source;
@@ -22,7 +22,7 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
     final AnnotationRegistry annotationRegistry;
     private final ElementSelector<MethodElement> methodSelector;
     private final CommandClassParser<S, Set<Command<S>>> commandParsingVisitor;
-    private final CommandClassParser<S, Set<MethodThrowableResolver<?, S>>> throwableHandlerVisitor;
+    private final CommandClassParser<S, Set<MethodCommandExceptionHandler<?, S>>> throwableHandlerVisitor;
 
     AnnotationParserImpl(Imperat<S> dispatcher) {
         super(dispatcher);
@@ -52,7 +52,7 @@ final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
     }
 
     @Override
-    public <T> void parseThrowableHandlerClass(T instance) {
+    public <T> void parseGlobalErrorHandlersFrom(T instance) {
         AnnotationReader<S> reader = AnnotationReader.read(imperat, CommandClassParser.ERROR_HANDLING_METHOD_SELECTOR, this, instance);
         reader.acceptThrowableResolversParsing(throwableHandlerVisitor);
     }

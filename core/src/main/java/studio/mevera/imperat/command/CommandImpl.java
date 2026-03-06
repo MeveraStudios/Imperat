@@ -20,8 +20,8 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.exception.ProcessorException;
-import studio.mevera.imperat.exception.ThrowableResolver;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -48,7 +48,7 @@ final class CommandImpl<S extends Source> implements Command<S> {
     private final AutoCompleter<S> autoCompleter;
     private final @NotNull CommandTree<S> tree;
     private final @NotNull CommandTreeVisualizer<S> visualizer;
-    private final Map<Class<? extends Throwable>, ThrowableResolver<?, S>> errorHandlers = new HashMap<>();
+    private final Map<Class<? extends Throwable>, CommandExceptionHandler<?, S>> errorHandlers = new HashMap<>();
     private final @NotNull SuggestionProvider<S> suggestionProvider;
     private PermissionsData permissions = PermissionsData.empty();
     private Description description = Description.EMPTY;
@@ -493,18 +493,18 @@ final class CommandImpl<S extends Source> implements Command<S> {
 
 
     @Override
-    public <T extends Throwable> void setThrowableResolver(Class<T> exception, ThrowableResolver<T, S> resolver) {
+    public <T extends Throwable> void setErrorHandler(Class<T> exception, CommandExceptionHandler<T, S> resolver) {
         errorHandlers.put(exception, resolver);
     }
 
     @Override @SuppressWarnings("unchecked")
-    public @Nullable <T extends Throwable> ThrowableResolver<T, S> getThrowableResolver(Class<T> exception) {
+    public @Nullable <T extends Throwable> CommandExceptionHandler<T, S> getErrorHandlerFor(Class<T> type) {
 
-        Class<?> current = exception;
+        Class<?> current = type;
         while (current != null && Throwable.class.isAssignableFrom(current)) {
             var resolver = errorHandlers.get(current);
             if (resolver != null) {
-                return (ThrowableResolver<T, S>) resolver;
+                return (CommandExceptionHandler<T, S>) resolver;
             }
             current = current.getSuperclass();
         }

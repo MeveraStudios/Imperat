@@ -88,15 +88,15 @@ public class ImperatTestGlobals {
                                                       .contextArgumentProvider(SomeData.class, new SomeDataCR())
                                                       .handleMiddleOptionalArgSkipping(true)
                                                       .overlapOptionalParameterSuggestions(true)
-                                                      .throwableResolver(CustomException.class, (exc, ctx) -> {
+                                                      .exceptionHandler(CustomException.class, (exc, ctx) -> {
                                                           System.out.println("CustomException occurred: " + exc.getMessage());
                                                       })
                                                       .build();
+
     public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);
 
     static {
         System.out.println("=== ImperatTestGlobals static initializer START ===");
-
         IMPERAT.registerAnnotationReplacer(MyCustomAnnotation.class, (element, ann) -> {
             RootCommand cmdAnn = AnnotationFactory.create(RootCommand.class, "value",
                     new String[]{ann.name()});

@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.context.ArgumentInput;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
@@ -21,8 +22,8 @@ public final class ContextArgumentProviderRegistry<S extends Source> extends Reg
     private ContextArgumentProviderRegistry() {
         super();
         //this.registerResolver(TypeWrap.of(CommandHelp.class).getType(), (ctx, param) -> new CommandHelp(config, ctx));
-        this.registerProvider(new TypeWrap<ExecutionContext<S>>() {
-        }.getType(), (ctx, param) -> ctx);
+        this.registerProvider(CommandContext.class, (ctx, param) -> ctx);
+        this.registerProvider(ExecutionContext.class, (ctx, param) -> ctx);
         this.registerProvider(new TypeWrap<ArgumentInput>() {
         }.getType(), (ctx, param) -> ctx.arguments());
     }

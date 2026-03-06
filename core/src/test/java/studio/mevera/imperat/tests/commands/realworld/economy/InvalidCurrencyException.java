@@ -1,11 +1,10 @@
 package studio.mevera.imperat.tests.commands.realworld.economy;
 
-import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.Source;
-import studio.mevera.imperat.exception.SelfHandledException;
+import studio.mevera.imperat.exception.SelfHandlingException;
 
-public final class InvalidCurrencyException extends SelfHandledException {
+public final class InvalidCurrencyException extends SelfHandlingException {
 
     private final String input;
 
@@ -19,7 +18,7 @@ public final class InvalidCurrencyException extends SelfHandledException {
     }
 
     @Override
-    public <S extends Source> void handle(ImperatConfig<S> config, CommandContext<S> context) {
+    public <S extends Source> void handle(CommandContext<S> context) {
         context.source().reply("Invalid currency '" + input + "'");
     }
 }

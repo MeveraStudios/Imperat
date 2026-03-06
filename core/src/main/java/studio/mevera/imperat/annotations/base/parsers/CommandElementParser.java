@@ -16,6 +16,7 @@ import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.types.Async;
 import studio.mevera.imperat.annotations.types.Cooldown;
 import studio.mevera.imperat.annotations.types.Description;
+import studio.mevera.imperat.annotations.types.ExceptionHandler;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.InheritedArg;
 import studio.mevera.imperat.annotations.types.Permission;
@@ -33,6 +34,7 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.asm.MethodCaller;
 import studio.mevera.imperat.util.asm.MethodCallerFactory;
@@ -68,7 +70,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         return commands;
     }
 
-    protected Command<S> parseSpecificClass(@Nullable Command<S> parent, ClassElement clazz) {
+    protected <E extends Throwable> Command<S> parseSpecificClass(@Nullable Command<S> parent, ClassElement clazz) {
         //core
         //two possibilities, either this class is a root command, or it's not. If it is, we parse it as a root command,
         // if it's not, we parse it as a regular class and look for methods and inner classes inside of it.
@@ -134,6 +136,40 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
 
         for (MethodElement method : methods) {
             //either its @Execute, or its @Subcommand method or BOTH (which is weird but why not)
+
+            if (method.isAnnotationPresent(ExceptionHandler.class)) {
+                //we load it as a throwable resolver instead of a processor, and we don't care about the parent command
+                ExceptionHandler ann = method.getAnnotation(ExceptionHandler.class);
+                assert ann != null;
+
+                var firstParam = method.getParameterAt(0);
+                if (firstParam == null) {
+                    throw new IllegalStateException("Method '" + method.getName()
+                                                            + "' is annotated with @ExceptionHandler but has no parameters. Exception handler "
+                                                            + "methods must have at"
+                                                            + " least one parameter of type Throwable.");
+                }
+
+                if (!Throwable.class.isAssignableFrom(firstParam.getElement().getType())) {
+                    throw new IllegalStateException("Method '" + method.getName()
+                                                            + "' is annotated with @ExceptionHandler but its first parameter is of type '"
+                                                            + firstParam.getElement().getType().getTypeName()
+                                                            + "'. Exception handler methods must have a first parameter of type Throwable.");
+                }
+                if (ann.value() != firstParam.getElement().getType()) {
+                    throw new IllegalStateException("Method '" + method.getName()
+                                                            + "' is annotated with @ExceptionHandler for error type '" + ann.value().getName()
+                                                            + "' but its first parameter is of type '" + firstParam.getElement().getType()
+                                                                                                                 .getTypeName()
+                                                            + "'. The first parameter of an exception handler method must be of the same type as "
+                                                            + "the error type specified in the annotation.");
+                }
+
+                Class<E> errorType = (Class<E>) ann.value();
+                CommandExceptionHandler<E, S> handler = ErrorHandlerParsingVisitor.loadErrorHandler(config, clazz, method);
+                currentCommand.setErrorHandler(errorType, handler);
+            }
+
             if (method.isAnnotationPresent(Processor.class)) {
 
                 if (parent != null) {
@@ -226,7 +262,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
     }
 
     private int methodSortRank(MethodElement method) {
-        if (method.isAnnotationPresent(Processor.class)) {
+        if (method.isAnnotationPresent(Processor.class) || method.isAnnotationPresent(ExceptionHandler.class)) {
             return 0;
         }
         if (method.isAnnotationPresent(Execute.class)) {

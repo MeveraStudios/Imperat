@@ -77,7 +77,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
                                                var ctxFactory = config.getContextFactory();
                                                CommandContext<S> dummy = ctxFactory.createDummyContext(BaseImperat.this);
                                                String methodName = "handle(event, exception, subscription)";
-                                               config.handleExecutionThrowable(
+                                               config.handleExecutionError(
                                                        new EventException(event, subscription, exception),
                                                        dummy ,
                                                        EventBus.class,
@@ -475,7 +475,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
             return handleExecution(context);
         } catch (Exception ex) {
             //handle here
-            this.config().handleExecutionThrowable(ex, context, BaseImperat.class, "execute(CommandContext<S> context)");
+            this.config().handleExecutionError(ex, context, BaseImperat.class, "execute(CommandContext<S> context)");
             return ExecutionResult.failure(ex, context);
         }
     }
@@ -547,7 +547,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
         return command.autoCompleter()
                        .autoComplete(context)
                        .exceptionally((ex) -> {
-                           this.config.handleExecutionThrowable(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
+                           this.config.handleExecutionError(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
                            return Collections.emptyList();
                        });
     }

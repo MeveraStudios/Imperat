@@ -15,7 +15,7 @@ import studio.mevera.imperat.context.Source;
  *
  * <p>Example usage:
  * <pre>{@code
- * ThrowableResolver<CommandSyntaxException, CommandSource> syntaxResolver =
+ * CommandExceptionHandler<CommandSyntaxException, CommandSource> syntaxResolver =
  *     (exception, context) -> {
  *         context.source().sendMessage("Invalid command syntax: " + exception.getMessage());
  *         // Log the error or perform additional cleanup
@@ -31,7 +31,7 @@ import studio.mevera.imperat.context.Source;
  * @author Imperat Framework
  */
 @FunctionalInterface
-public interface ThrowableResolver<E extends Throwable, S extends Source> {
+public interface CommandExceptionHandler<E extends Throwable, S extends Source> {
 
     /**
      * Resolves the given exception within the provided execution context.
