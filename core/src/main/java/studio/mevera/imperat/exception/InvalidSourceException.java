@@ -1,18 +1,13 @@
 package studio.mevera.imperat.exception;
 
+import studio.mevera.imperat.annotations.base.element.MethodElement;
+
 import java.lang.reflect.Type;
 
-public class InvalidSourceException extends CommandException {
+public class InvalidSourceException extends RuntimeException {
 
-    private final Type targetType;
-
-    public InvalidSourceException(Type targetType) {
-        super();
-        this.targetType = targetType;
-    }
-
-    public Type getTargetType() {
-        return targetType;
+    public InvalidSourceException(MethodElement method, Type invalidType) {
+        super("Method '" + method.getName() + "' has an invalid source type: " + invalidType.getTypeName());
     }
 
 }

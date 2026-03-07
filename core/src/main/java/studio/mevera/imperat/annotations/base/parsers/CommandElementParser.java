@@ -35,6 +35,7 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
+import studio.mevera.imperat.exception.InvalidSourceException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.asm.MethodCaller;
 import studio.mevera.imperat.util.asm.MethodCallerFactory;
@@ -384,6 +385,15 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
     }
 
     protected CommandPathway.Builder<S> parsePathwayMethod(Command<S> owningCommand, MethodElement method) {
+        ParameterElement firstParam = method.getParameterAt(0);
+        if (firstParam == null) {
+            throw new IllegalStateException(
+                    "Method '" + method.getElement().getName() + "', its first parameter is not a valid source type. The first parameter of a "
+                            + "pathway-method must be a valid source type."
+            );
+        } else if (!isSenderParameter(firstParam)) {
+            throw new InvalidSourceException(method, firstParam.getElement().getParameterizedType());
+        }
 
         List<Argument<S>> personalParams = new ArrayList<>();
         for (ParameterElement param : method.getParameters()) {

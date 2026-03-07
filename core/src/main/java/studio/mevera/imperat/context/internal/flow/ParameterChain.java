@@ -8,9 +8,9 @@ import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.handlers.ParameterHandler;
+import studio.mevera.imperat.exception.CombinedFlagsException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
-import studio.mevera.imperat.exception.ShortHandFlagException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.TypeUtility;
@@ -112,11 +112,11 @@ public class ParameterChain<S extends Source> {
         long numberOfTrueFlags = extracted.size() - numberOfSwitches;
 
         if (extracted.size() != numberOfSwitches && extracted.size() != numberOfTrueFlags) {
-            throw new ShortHandFlagException("Unsupported use of a mixture of switches and true flags!");
+            throw new CombinedFlagsException("Unsupported use of a mixture of switches and true flags!");
         }
 
         if (extracted.size() == numberOfTrueFlags && !TypeUtility.areTrueFlagsOfSameInputType(extracted)) {
-            throw new ShortHandFlagException("You cannot use compressed true-flags, while they are not of same input type");
+            throw new CombinedFlagsException("You cannot use compressed true-flags, while they are not of same input type");
         }
 
         boolean areAllSwitches = extracted.size() == numberOfSwitches;

@@ -24,7 +24,6 @@ import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
-import studio.mevera.imperat.exception.InvalidSourceException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.ResponseException;
@@ -143,10 +142,6 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
                                                                   context.source().reply(exception.getMessage()));
 
         // InvalidSourceException — system/runtime error, escalate
-        this.setErrorHandler(InvalidSourceException.class, (exception, context) -> {
-            throw new UnsupportedOperationException("Couldn't find any source resolver for valueType `"
-                                                            + exception.getTargetType().getTypeName() + "'");
-        });
     }
 
 

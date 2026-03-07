@@ -3,9 +3,9 @@ package studio.mevera.imperat.exception;
 import org.jetbrains.annotations.ApiStatus;
 
 @ApiStatus.AvailableSince("1.9.8")
-public class ShortHandFlagException extends CommandException {
+public class CombinedFlagsException extends CommandException {
 
-    public ShortHandFlagException(String message) {
+    public CombinedFlagsException(String message) {
         super(message);
     }
 }
