@@ -7,7 +7,6 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 
 public class CustomDurationArgumentType<S extends Source> extends ArgumentType<S, CustomDuration> {
@@ -28,7 +27,7 @@ public class CustomDurationArgumentType<S extends Source> extends ArgumentType<S
     ) throws CommandException {
         final long ms = TimeUtil.convertDurationToMs(correspondingInput);
         if (ms == 0) {
-            throw new SourceException("Bad duration input '" + correspondingInput + "'");
+            throw new CommandException("Bad duration input '" + correspondingInput + "'");
         }
         return new CustomDuration(ms);
     }

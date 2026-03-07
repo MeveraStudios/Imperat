@@ -7,7 +7,6 @@ import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -38,7 +37,6 @@ final class GamemodeField extends PredicateField<GameMode> {
      * Parses the given string representation of the value and converts it into the field's value type.
      *
      * @param value   the string representation of the value to be parsed
-     * @param context
      * @return the parsed value of the field's type
      * @throws CommandException if the parsing fails
      */
@@ -47,7 +45,7 @@ final class GamemodeField extends PredicateField<GameMode> {
         try {
             return GameMode.valueOf(value);
         } catch (EnumConstantNotPresentException ex) {
-            throw new SourceException("Unknown gamemode '%s'", value);
+            throw new CommandException("Unknown gamemode '%s'", value);
         }
     }
 }

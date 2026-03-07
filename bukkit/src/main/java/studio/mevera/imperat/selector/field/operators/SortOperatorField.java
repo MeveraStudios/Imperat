@@ -4,7 +4,6 @@ import org.bukkit.entity.Entity;
 import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Arrays;
@@ -35,7 +34,7 @@ final class SortOperatorField extends OperatorField<SortOption> {
                 return option;
             }
         }
-        throw new SourceException("Unknown sort option '%s'", name);
+        throw new CommandException("Unknown sort option '%s'", name);
     }
 
     /**

@@ -6,7 +6,6 @@ import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -46,7 +45,7 @@ final class TypeField extends PredicateField<EntityType> {
         try {
             return EntityType.valueOf(value.toUpperCase());
         } catch (EnumConstantNotPresentException ex) {
-            throw new SourceException("Unknown entity-type '%s'", value);
+            throw new CommandException("Unknown entity-type '%s'", value);
         }
     }
 }

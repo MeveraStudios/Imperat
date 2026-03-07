@@ -8,7 +8,6 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.SourceException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.tests.TestSource;
 
@@ -31,7 +30,7 @@ public final class GroupArgument extends ArgumentType<TestSource, Group> {
             return null;
         }
         return GroupRegistry.getInstance().getData(raw)
-                       .orElseThrow(() -> new SourceException("Unknown group '%s'", raw));
+                       .orElseThrow(() -> new CommandException("Unknown group '%s'", raw));
     }
 
     @Override
