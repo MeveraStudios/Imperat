@@ -1,14 +1,14 @@
 package studio.mevera.imperat.command.tree.help;
 
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Objects;
 
 /**
  * Standard help provider that queries the command tree.
  */
-public class StandardTreeHelpVisitor<S extends Source> implements TreeHelpVisitor<S> {
+public class StandardTreeHelpVisitor<S extends CommandSource> implements TreeHelpVisitor<S> {
 
     @Override
     public HelpEntryList<S> visit(Command<S> command, HelpQuery<S> query) {

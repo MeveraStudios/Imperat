@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * Rendering options for customizing help display.
@@ -10,9 +10,9 @@ import studio.mevera.imperat.context.Source;
  * It encapsulates settings like the display theme and the layout style, providing a
  * fluent API for easy configuration.
  *
- * @param <S> The type of {@link Source} from which the command was executed.
+ * @param <S> The type of {@link CommandSource} from which the command was executed.
  */
-public class HelpRenderOptions<S extends Source, C> {
+public class HelpRenderOptions<S extends CommandSource, C> {
 
     private final HelpTheme<S, C> theme;
     private final Layout layout;
@@ -28,10 +28,10 @@ public class HelpRenderOptions<S extends Source, C> {
     /**
      * Creates a new builder for configuring help rendering options.
      *
-     * @param <S> The type of {@link Source}.
+     * @param <S> The type of {@link CommandSource}.
      * @return A new instance of {@code HelpRenderOptions}.
      */
-    public static <S extends Source, C> HelpRenderOptions<S, C> of(
+    public static <S extends CommandSource, C> HelpRenderOptions<S, C> of(
             HelpTheme<S, C> theme,
             Layout layout
     ) {

@@ -12,11 +12,11 @@ import java.util.List;
 final class InternalVelocityCommand<P> implements SimpleCommand {
 
     private final VelocityImperat<P> imperat;
-    private final Command<VelocitySource> command;
+    private final Command<VelocityCommandSource> command;
 
     private final CommandMeta meta;
 
-    InternalVelocityCommand(VelocityImperat<P> imperat, Command<VelocitySource> command, CommandManager commandManager) {
+    InternalVelocityCommand(VelocityImperat<P> imperat, Command<VelocityCommandSource> command, CommandManager commandManager) {
         this.imperat = imperat;
         this.command = command;
         this.meta = createMeta(commandManager);

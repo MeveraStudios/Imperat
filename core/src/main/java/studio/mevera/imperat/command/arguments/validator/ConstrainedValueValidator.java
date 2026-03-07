@@ -2,8 +2,8 @@ package studio.mevera.imperat.command.arguments.validator;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ParsedArgument;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
@@ -11,7 +11,7 @@ import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.Set;
 
-public final class ConstrainedValueValidator<S extends Source> implements ArgValidator<S> {
+public final class ConstrainedValueValidator<S extends CommandSource> implements ArgValidator<S> {
 
     private final Set<String> allowedValues;
     private final boolean caseSensitive;

@@ -4,19 +4,19 @@ import studio.mevera.imperat.annotations.types.Default;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Permission;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("testperm")
 @Permission("testperm.use")
 public class TestPerm {
 
     @Execute
-    public void def(TestSource source) {
+    public void def(TestCommandSource source) {
         source.reply("DEFAULT-EXE");
     }
 
     @Execute
-    public void mainUsage(TestSource source, @Permission("testperm.a.use") String a, String b, @Default("1") Integer c) {
+    public void mainUsage(TestCommandSource source, @Permission("testperm.a.use") String a, String b, @Default("1") Integer c) {
         source.reply("a=" + a + ", b=" + b + ", c=" + c);
     }
 

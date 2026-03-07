@@ -7,18 +7,18 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.providers.SuggestionProvider;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.List;
 
-public final class TestPlayerParamType extends ArgumentType<TestSource, TestPlayer> {
+public final class TestPlayerParamType extends ArgumentType<TestCommandSource, TestPlayer> {
 
     @Override
     public TestPlayer parse(
-            @NotNull ExecutionContext<TestSource> context,
-            @NotNull Cursor<TestSource> cursor,
+            @NotNull ExecutionContext<TestCommandSource> context,
+            @NotNull Cursor<TestCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws NotPlayerException {
         // Note: We can't easily call matchesInput here without the raw position and context,
@@ -36,7 +36,7 @@ public final class TestPlayerParamType extends ArgumentType<TestSource, TestPlay
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<TestSource> context, Argument<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<TestCommandSource> context, Argument<TestCommandSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
@@ -53,7 +53,7 @@ public final class TestPlayerParamType extends ArgumentType<TestSource, TestPlay
     }
 
     @Override
-    public SuggestionProvider<TestSource> getSuggestionProvider() {
+    public SuggestionProvider<TestCommandSource> getSuggestionProvider() {
         return (ctx, p) -> {
             return List.of("MQZEN", "MOHAMED");
         };

@@ -1,6 +1,6 @@
 package studio.mevera.imperat;
 
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.reflect.Type;
 
@@ -9,9 +9,9 @@ import java.lang.reflect.Type;
  * and handling sources or senders of commands, and validating
  * the compatibility of a type as a sender.
  *
- * @param <S> the type that extends the {@link Source}, representing the command sender
+ * @param <S> the type that extends the {@link CommandSource}, representing the command sender
  */
-public sealed interface SourceWrapper<S extends Source> permits Imperat {
+public sealed interface SourceWrapper<S extends CommandSource> permits Imperat {
 
     S createDummySender();
 

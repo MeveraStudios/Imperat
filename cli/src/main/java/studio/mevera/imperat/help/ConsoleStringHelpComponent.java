@@ -1,7 +1,7 @@
 package studio.mevera.imperat.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.ConsoleSource;
+import studio.mevera.imperat.ConsoleCommandSource;
 import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
 /**
@@ -12,7 +12,7 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * <p>Features:</p>
  * <ul>
  *   <li>Simple string-based help messages</li>
- *   <li>Automatic integration with ConsoleSource messaging</li>
+ *   <li>Automatic integration with ConsoleCommandSource messaging</li>
  *   <li>Console-friendly formatting</li>
  *   <li>Lightweight design for CLI applications</li>
  *   <li>No external dependencies</li>
@@ -27,10 +27,10 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  *
  * @since 2.1.0
  * @author Imperat Framework
- * @see ConsoleSource
+ * @see ConsoleCommandSource
  * @see StringHelpComponent
  */
-public class ConsoleStringHelpComponent extends StringHelpComponent<ConsoleSource> {
+public class ConsoleStringHelpComponent extends StringHelpComponent<ConsoleCommandSource> {
 
     /**
      * Creates a new ConsoleStringHelpComponent with the specified string content.

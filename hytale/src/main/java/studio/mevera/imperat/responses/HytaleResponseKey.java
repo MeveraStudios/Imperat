@@ -7,7 +7,7 @@ package studio.mevera.imperat.responses;
  */
 public interface HytaleResponseKey extends ResponseKey {
 
-    // Source restrictions
+    // CommandSource restrictions
     HytaleResponseKey ONLY_PLAYER = () -> "commands.conditions.only-player";
     HytaleResponseKey ONLY_CONSOLE = () -> "commands.conditions.only-console";
 

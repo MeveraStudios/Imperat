@@ -1,12 +1,12 @@
 package studio.mevera.imperat.events.types;
 
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.events.CancellableEvent;
 import studio.mevera.imperat.events.CommandEvent;
 
-public class CommandPostProcessEvent<S extends Source> extends CommandEvent<S> implements CancellableEvent {
+public class CommandPostProcessEvent<S extends CommandSource> extends CommandEvent<S> implements CancellableEvent {
 
     private final ExecutionContext<S> context;
     private boolean cancelled = false;

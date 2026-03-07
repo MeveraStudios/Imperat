@@ -7,7 +7,7 @@ import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
 import studio.mevera.imperat.command.arguments.validator.ArgValidator;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.Preconditions;
@@ -15,7 +15,7 @@ import studio.mevera.imperat.util.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 
-public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
+public sealed class ArgumentBuilder<S extends CommandSource, T> permits FlagBuilder {
 
     protected final String name;
     protected final List<ArgValidator<S>> validators = new ArrayList<>();
@@ -39,7 +39,7 @@ public sealed class ArgumentBuilder<S extends Source, T> permits FlagBuilder {
         this(name, type, optional, false);
     }
 
-    public static <S extends Source> ArgumentBuilder<S, Command<S>> literalBuilder(String name) {
+    public static <S extends CommandSource> ArgumentBuilder<S, Command<S>> literalBuilder(String name) {
         return new ArgumentBuilder<>(name, ArgumentTypes.command(name, new ArrayList<>()), false, false);
     }
 

@@ -8,7 +8,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,15 +25,15 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
     /**
      * Queries all help entries for the given root command name using default settings.
      */
-    private HelpEntryList<TestSource> queryHelp(String commandName) {
-        return queryHelp(commandName, HelpQuery.<TestSource>builder().build());
+    private HelpEntryList<TestCommandSource> queryHelp(String commandName) {
+        return queryHelp(commandName, HelpQuery.<TestCommandSource>builder().build());
     }
 
     /**
      * Queries help entries for the given root command name using a custom query.
      */
-    private HelpEntryList<TestSource> queryHelp(String commandName, HelpQuery<TestSource> query) {
-        Command<TestSource> cmd = IMPERAT.getCommand(commandName);
+    private HelpEntryList<TestCommandSource> queryHelp(String commandName, HelpQuery<TestCommandSource> query) {
+        Command<TestCommandSource> cmd = IMPERAT.getCommand(commandName);
         Assertions.assertThat(cmd)
                 .as("Command '%s' should be registered", commandName)
                 .isNotNull();
@@ -44,9 +44,9 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
     /**
      * Collects the formatted usage strings from a {@link HelpEntryList}.
      */
-    private List<String> formattedUsages(HelpEntryList<TestSource> entries) {
+    private List<String> formattedUsages(HelpEntryList<TestCommandSource> entries) {
         List<String> usages = new ArrayList<>();
-        for (HelpEntry<TestSource> entry : entries) {
+        for (HelpEntry<TestCommandSource> entry : entries) {
             usages.add(entry.getPathway().formatted());
         }
         return usages;
@@ -61,7 +61,7 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("queryHelp should return non-empty entries for a command with usages")
         void shouldReturnEntriesForCommandWithUsages() {
-            HelpEntryList<TestSource> entries = queryHelp("test");
+            HelpEntryList<TestCommandSource> entries = queryHelp("test");
 
             Assertions.assertThat(entries.size())
                     .as("Command 'test' should have at least one help entry")
@@ -71,9 +71,9 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Every help entry should have a non-null pathway")
         void everyEntryShouldHavePathway() {
-            HelpEntryList<TestSource> entries = queryHelp("test");
+            HelpEntryList<TestCommandSource> entries = queryHelp("test");
 
-            for (HelpEntry<TestSource> entry : entries) {
+            for (HelpEntry<TestCommandSource> entry : entries) {
                 Assertions.assertThat(entry.getPathway())
                         .as("Each help entry must have a non-null pathway")
                         .isNotNull();
@@ -83,9 +83,9 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Every help entry's node should be executable")
         void everyEntryShouldBeExecutable() {
-            HelpEntryList<TestSource> entries = queryHelp("test");
+            HelpEntryList<TestCommandSource> entries = queryHelp("test");
 
-            for (HelpEntry<TestSource> entry : entries) {
+            for (HelpEntry<TestCommandSource> entry : entries) {
                 Assertions.assertThat(entry.getNode().isExecutable())
                         .as("Help entry node '%s' must be executable", entry.getNode().format())
                         .isTrue();
@@ -102,10 +102,10 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("queryHelp with limit=0 should return empty list")
         void limitZeroShouldReturnEmpty() {
-            HelpQuery<TestSource> query = HelpQuery.<TestSource>builder()
+            HelpQuery<TestCommandSource> query = HelpQuery.<TestCommandSource>builder()
                                                   .limit(0)
                                                   .build();
-            HelpEntryList<TestSource> entries = queryHelp("test", query);
+            HelpEntryList<TestCommandSource> entries = queryHelp("test", query);
 
             Assertions.assertThat(entries.isEmpty()).isTrue();
         }
@@ -113,10 +113,10 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("queryHelp with limit=1 should return at most 1 entry")
         void limitOneShouldReturnAtMostOne() {
-            HelpQuery<TestSource> query = HelpQuery.<TestSource>builder()
+            HelpQuery<TestCommandSource> query = HelpQuery.<TestCommandSource>builder()
                                                   .limit(1)
                                                   .build();
-            HelpEntryList<TestSource> entries = queryHelp("test", query);
+            HelpEntryList<TestCommandSource> entries = queryHelp("test", query);
 
             Assertions.assertThat(entries.size())
                     .isLessThanOrEqualTo(1);
@@ -125,12 +125,12 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("queryHelp with maxDepth=0 should only return root-level entries")
         void maxDepthZeroShouldReturnOnlyRoot() {
-            HelpQuery<TestSource> query = HelpQuery.<TestSource>builder()
+            HelpQuery<TestCommandSource> query = HelpQuery.<TestCommandSource>builder()
                                                   .maxDepth(0)
                                                   .build();
-            HelpEntryList<TestSource> entries = queryHelp("test", query);
+            HelpEntryList<TestCommandSource> entries = queryHelp("test", query);
 
-            for (HelpEntry<TestSource> entry : entries) {
+            for (HelpEntry<TestCommandSource> entry : entries) {
                 Assertions.assertThat(entry.getNode().getDepth())
                         .as("All entries should be at depth <= 0")
                         .isLessThanOrEqualTo(0);
@@ -147,7 +147,7 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("queryHelp should not contain duplicate entries")
         void shouldNotContainDuplicates() {
-            HelpEntryList<TestSource> entries = queryHelp("test");
+            HelpEntryList<TestCommandSource> entries = queryHelp("test");
 
             List<String> usages = formattedUsages(entries);
             Assertions.assertThat(usages)
@@ -165,7 +165,7 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("A command with subcommands should include entries for the subcommands")
         void shouldIncludeSubcommandEntries() {
-            HelpEntryList<TestSource> entries = queryHelp("secrettest");
+            HelpEntryList<TestCommandSource> entries = queryHelp("secrettest");
 
             List<String> usages = formattedUsages(entries);
 
@@ -182,7 +182,7 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("A command's help entries should cover deep children")
         void shouldIncludeDeepChildren() {
-            HelpEntryList<TestSource> entries = queryHelp("secrettest");
+            HelpEntryList<TestCommandSource> entries = queryHelp("secrettest");
 
             List<String> usages = formattedUsages(entries);
 

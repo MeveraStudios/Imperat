@@ -1,10 +1,10 @@
 package studio.mevera.imperat.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
-public class BukkitStringHelpComponent extends StringHelpComponent<BukkitSource> {
+public class BukkitStringHelpComponent extends StringHelpComponent<BukkitCommandSource> {
 
     protected BukkitStringHelpComponent(@NotNull String componentValue) {
         super(componentValue);

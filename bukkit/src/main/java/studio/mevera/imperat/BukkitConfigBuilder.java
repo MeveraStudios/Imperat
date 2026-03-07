@@ -10,14 +10,14 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.adventure.AdventureHelpComponent;
 import studio.mevera.imperat.adventure.AdventureProvider;
-import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.adventure.CastingAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.selector.TargetSelector;
@@ -37,7 +37,7 @@ import studio.mevera.imperat.util.reflection.Reflections;
  * <ul>
  *   <li>Bukkit-specific parameter types (Player, Location, OfflinePlayer, TargetSelector)</li>
  *   <li>Exception handlers for common Bukkit scenarios</li>
- *   <li>Source resolvers for type-safe command source handling</li>
+ *   <li>CommandSource resolvers for type-safe command source handling</li>
  *   <li>Adventure API integration with automatic detection</li>
  *   <li>Entity selector support (@p, @a, @e, @r)</li>
  *   <li>Permission system integration</li>
@@ -54,7 +54,7 @@ import studio.mevera.imperat.util.reflection.Reflections;
  * @see BukkitImperat
  * @since 1.0
  */
-public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, BukkitImperat, BukkitConfigBuilder> {
+public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource, BukkitImperat, BukkitConfigBuilder> {
 
     private final static BukkitPermissionChecker DEFAULT_PERMISSION_RESOLVER = new BukkitPermissionChecker();
 
@@ -74,12 +74,12 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
 
     private void registerContextResolvers() {
         config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<BukkitSource>>() {
+                new TypeWrap<ExecutionContext<BukkitCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<BukkitSource>>() {
+                new TypeWrap<CommandHelp<BukkitCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
@@ -90,7 +90,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceProvider(AdventureSource.class, (bukkitSource, ctx) -> bukkitSource);
+        config.registerSourceProvider(AdventureCommandSource.class, (bukkitSource, ctx) -> bukkitSource);
         config.registerSourceProvider(CommandSender.class, (bukkitSource, ctx) -> bukkitSource.origin());
         config.registerSourceProvider(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
             var origin = bukkitSource.origin();
@@ -161,9 +161,9 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitSource, Bukki
             if (Audience.class.isAssignableFrom(CommandSender.class)) {
                 return new CastingAdventure<>() {
                     @Override
-                    public <SRC extends Source> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
+                    public <SRC extends CommandSource> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
                         return new AdventureHelpComponent<>(component, (source, comp) -> {
-                            if (source instanceof BukkitSource bukkitSource) {
+                            if (source instanceof BukkitCommandSource bukkitSource) {
                                 bukkitSource.reply(comp);
                             } else {
                                 source.reply(comp.toString());

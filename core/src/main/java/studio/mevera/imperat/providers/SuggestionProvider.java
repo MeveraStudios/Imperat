@@ -3,7 +3,7 @@ package studio.mevera.imperat.providers;
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 
 import java.util.ArrayList;
@@ -19,17 +19,17 @@ import java.util.concurrent.CompletableFuture;
  * @see Argument
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface SuggestionProvider<S extends Source> {
+public interface SuggestionProvider<S extends CommandSource> {
 
-    static <S extends Source> SuggestionProvider<S> staticSuggestions(List<String> results) {
+    static <S extends CommandSource> SuggestionProvider<S> staticSuggestions(List<String> results) {
         return new StaticSuggestionProvider<>(results);
     }
 
-    static <S extends Source> SuggestionProvider<S> staticSuggestions(String... results) {
+    static <S extends CommandSource> SuggestionProvider<S> staticSuggestions(String... results) {
         return staticSuggestions(Arrays.asList(results));
     }
 
-    static <S extends Source> SuggestionProvider<S> forCommand(Command<S> command) {
+    static <S extends CommandSource> SuggestionProvider<S> forCommand(Command<S> command) {
         List<String> list = new ArrayList<>();
         list.add(command.getName());
         list.addAll(command.aliases());

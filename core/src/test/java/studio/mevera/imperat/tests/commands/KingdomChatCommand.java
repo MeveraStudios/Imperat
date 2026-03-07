@@ -4,18 +4,18 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("kingdomchat")
 public class KingdomChatCommand {
 
     @Execute
-    public void def(TestSource source) {
+    public void def(TestCommandSource source) {
         source.reply("This is the default usage of the kingdomchat command.");
     }
 
     @Execute
-    public void mainUsage(TestSource source, @Named("message") @Greedy String message) {
+    public void mainUsage(TestCommandSource source, @Named("message") @Greedy String message) {
         source.reply("Your message: " + message);
     }
 }

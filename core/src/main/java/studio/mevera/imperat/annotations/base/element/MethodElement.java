@@ -3,7 +3,7 @@ package studio.mevera.imperat.annotations.base.element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -16,7 +16,7 @@ public final class MethodElement extends ParseElement<Method> {
     private int inputCount = 0;
     private int optionalCount = 0;
 
-    public <S extends Source> MethodElement(
+    public <S extends CommandSource> MethodElement(
             @NotNull AnnotationParser<S> parser,
             @Nullable ClassElement owningElement,
             @NotNull Method element

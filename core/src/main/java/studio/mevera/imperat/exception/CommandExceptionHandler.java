@@ -1,7 +1,7 @@
 package studio.mevera.imperat.exception;
 
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * A functional interface for handling and resolving exceptions that occur during
@@ -23,15 +23,15 @@ import studio.mevera.imperat.context.Source;
  * }</pre>
  *
  * @param <E> the specific type of exception this resolver can handle, must extend {@link Throwable}
- * @param <S> the type of source that provides context for the command execution, must extend {@link Source}
+ * @param <S> the type of source that provides context for the command execution, must extend {@link CommandSource}
  *
  * @since 1.0
  * @see CommandContext
- * @see Source
+ * @see CommandSource
  * @author Imperat Framework
  */
 @FunctionalInterface
-public interface CommandExceptionHandler<E extends Throwable, S extends Source> {
+public interface CommandExceptionHandler<E extends Throwable, S extends CommandSource> {
 
     /**
      * Resolves the given exception within the provided execution context.

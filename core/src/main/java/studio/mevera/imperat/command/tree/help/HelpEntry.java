@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.tree.help;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.CommandNode;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Objects;
 
@@ -15,9 +15,9 @@ import java.util.Objects;
  * executable nodes can be used to create a help entry, making it a reliable data
  * model for displaying help information.
  *
- * @param <S> The type of {@link Source} from which the command was executed.
+ * @param <S> The type of {@link CommandSource} from which the command was executed.
  */
-public final class HelpEntry<S extends Source> {
+public final class HelpEntry<S extends CommandSource> {
 
     private final CommandNode<S, ?> node;
     private final @NotNull CommandPathway<S> pathway;

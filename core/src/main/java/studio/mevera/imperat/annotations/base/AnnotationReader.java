@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.parsers.MethodCommandExceptionHandler;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Set;
 
@@ -20,9 +20,9 @@ import java.util.Set;
  * @author Mqzen
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface AnnotationReader<S extends Source> {
+public interface AnnotationReader<S extends CommandSource> {
 
-    static <S extends Source> AnnotationReader<S> read(
+    static <S extends CommandSource> AnnotationReader<S> read(
             Imperat<S> imperat,
             ElementSelector<MethodElement> methodSelector,
             AnnotationParser<S> parser,

@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import studio.mevera.imperat.command.tree.CommandNode;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * A functional interface for filtering help entries during query operations.
@@ -15,7 +15,7 @@ import studio.mevera.imperat.context.Source;
  * @author Mqzen
  */
 @FunctionalInterface
-public interface HelpFilter<S extends Source> {
+public interface HelpFilter<S extends CommandSource> {
 
     /**
      * Determines whether a node should be included in help results.

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * Imperat implementation for Discord using JDA slash commands.
  */
-public final class JdaImperat extends BaseImperat<JdaSource> {
+public final class JdaImperat extends BaseImperat<JdaCommandSource> {
 
     private final JDA jda;
     private final JdaSlashCommandListener listener;
@@ -24,7 +24,7 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     private final Map<String, SlashCommandMapper.SlashMapping> slashMappings = new ConcurrentHashMap<>();
     private final AtomicBoolean syncScheduled = new AtomicBoolean(false);
 
-    JdaImperat(@NotNull JDA jda, @NotNull ImperatConfig<JdaSource> config) {
+    JdaImperat(@NotNull JDA jda, @NotNull ImperatConfig<JdaCommandSource> config) {
         super(config);
         this.jda = jda;
         this.listener = new JdaSlashCommandListener(this);
@@ -36,14 +36,14 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     }
 
     @Override
-    public void registerSimpleCommand(Command<JdaSource> command) {
+    public void registerSimpleCommand(Command<JdaCommandSource> command) {
         super.registerSimpleCommand(command);
         scheduleSync();
     }
 
     @SafeVarargs
     @Override
-    public final void registerCommands(Command<JdaSource>... commands) {
+    public final void registerCommands(Command<JdaCommandSource>... commands) {
         for (final var command : commands) {
             super.registerSimpleCommand(command);
         }
@@ -83,13 +83,13 @@ public final class JdaImperat extends BaseImperat<JdaSource> {
     }
 
     @Override
-    public JdaSource createDummySender() {
-        return new JdaSource(null);
+    public JdaCommandSource createDummySender() {
+        return new JdaCommandSource(null);
     }
 
     @Override
-    public JdaSource wrapSender(Object sender) {
-        return new JdaSource((SlashCommandInteractionEvent) sender);
+    public JdaCommandSource wrapSender(Object sender) {
+        return new JdaCommandSource((SlashCommandInteractionEvent) sender);
     }
 
     SlashCommandMapper.SlashMapping getSlashMapping(String name) {

@@ -2,7 +2,7 @@ package studio.mevera.imperat.events.types;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.events.CommandEvent;
 
 /**
@@ -123,7 +123,7 @@ import studio.mevera.imperat.events.CommandEvent;
  * @see CommandPreRegistrationEvent
  * @see Command
  */
-public final class CommandPostRegistrationEvent<S extends Source> extends CommandEvent<S> {
+public final class CommandPostRegistrationEvent<S extends CommandSource> extends CommandEvent<S> {
 
     /**
      * The exception that caused the registration to fail, or {@code null} if successful.

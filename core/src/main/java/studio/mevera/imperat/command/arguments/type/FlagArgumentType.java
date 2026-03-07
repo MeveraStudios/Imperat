@@ -5,9 +5,9 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
@@ -18,7 +18,7 @@ import studio.mevera.imperat.responses.ResponseKey;
 import java.util.Collections;
 import java.util.Set;
 
-public class FlagArgumentType<S extends Source> extends ArgumentType<S, ParsedFlagArgument<S>> {
+public class FlagArgumentType<S extends CommandSource> extends ArgumentType<S, ParsedFlagArgument<S>> {
 
     private final FlagData<S> flagData;
 

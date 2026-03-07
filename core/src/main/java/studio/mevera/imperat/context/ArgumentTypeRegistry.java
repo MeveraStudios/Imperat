@@ -44,7 +44,7 @@ import java.util.function.Supplier;
  * @param <S> the source type
  */
 @ApiStatus.Internal
-public final class ArgumentTypeRegistry<S extends Source> {
+public final class ArgumentTypeRegistry<S extends CommandSource> {
 
     private final PriorityList<ArgumentTypeHandler<S>> handlers = new PriorityList<>();
 
@@ -76,7 +76,7 @@ public final class ArgumentTypeRegistry<S extends Source> {
      * @param <S> the source type
      * @return a new ArgumentTypeRegistry instance
      */
-    public static <S extends Source> ArgumentTypeRegistry<S> createDefault() {
+    public static <S extends CommandSource> ArgumentTypeRegistry<S> createDefault() {
         return new ArgumentTypeRegistry<>();
     }
 

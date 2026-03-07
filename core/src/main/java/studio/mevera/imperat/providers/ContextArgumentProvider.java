@@ -3,8 +3,8 @@ package studio.mevera.imperat.providers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 
 import java.util.function.Supplier;
@@ -16,14 +16,14 @@ import java.util.function.Supplier;
  * @param <T> the valueType of resolver's parameter
  */
 @FunctionalInterface
-public interface ContextArgumentProvider<S extends Source, T> {
+public interface ContextArgumentProvider<S extends CommandSource, T> {
 
 
-    static <S extends Source, T> ContextArgumentProvider<S, T> of(T value) {
+    static <S extends CommandSource, T> ContextArgumentProvider<S, T> of(T value) {
         return (c, p) -> value;
     }
 
-    static <S extends Source, T> ContextArgumentProvider<S, T> of(Supplier<T> supplier) {
+    static <S extends CommandSource, T> ContextArgumentProvider<S, T> of(Supplier<T> supplier) {
         return of(supplier.get());
     }
 

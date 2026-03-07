@@ -10,9 +10,9 @@ import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.CooldownRecord;
 import studio.mevera.imperat.command.flags.FlagExtractor;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.permissions.PermissionsData;
@@ -32,11 +32,11 @@ import java.util.function.Predicate;
  *
  * @see Command
  */
-public sealed interface CommandPathway<S extends Source> extends Iterable<Argument<S>>, PermissionHolder, DescriptionHolder, CooldownHolder
+public sealed interface CommandPathway<S extends CommandSource> extends Iterable<Argument<S>>, PermissionHolder, DescriptionHolder, CooldownHolder
         permits CommandPathwayImpl {
 
 
-    static <S extends Source> String formatWithTypes(Command<S> command, CommandPathway<S> usage) {
+    static <S extends CommandSource> String formatWithTypes(Command<S> command, CommandPathway<S> usage) {
         Preconditions.notNull(usage, "usage");
         StringBuilder builder = new StringBuilder(command.getName()).append(' ');
 
@@ -52,7 +52,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
         return builder.toString();
     }
 
-    static <S extends Source> String format(@Nullable String label, CommandPathway<S> usage) {
+    static <S extends CommandSource> String format(@Nullable String label, CommandPathway<S> usage) {
         Preconditions.notNull(usage, "usage");
         StringBuilder builder = new StringBuilder(label == null ? "" : label);
         if (label != null) {
@@ -71,16 +71,16 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
         return builder.toString();
     }
 
-    static <S extends Source> String format(@Nullable Command<S> command, CommandPathway<S> usage) {
+    static <S extends CommandSource> String format(@Nullable Command<S> command, CommandPathway<S> usage) {
         String label = command == null ? null : command.getName();
         return format(label, usage);
     }
 
-    static <S extends Source> Builder<S> builder() {
+    static <S extends CommandSource> Builder<S> builder() {
         return new Builder<>();
     }
 
-    static <S extends Source> Builder<S> builder(@Nullable MethodElement methodElement) {
+    static <S extends CommandSource> Builder<S> builder(@Nullable MethodElement methodElement) {
         return new Builder<>(methodElement);
     }
 
@@ -297,7 +297,7 @@ public sealed interface CommandPathway<S extends Source> extends Iterable<Argume
 
     List<Argument<S>> getParametersWithFlags();
 
-    class Builder<S extends Source> {
+    class Builder<S extends CommandSource> {
 
         private final List<Argument<S>> parameters = new ArrayList<>();
         private final Set<FlagArgument<S>> flagArguments = new HashSet<>();

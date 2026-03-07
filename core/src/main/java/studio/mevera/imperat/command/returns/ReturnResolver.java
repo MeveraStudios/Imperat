@@ -1,8 +1,8 @@
 package studio.mevera.imperat.command.returns;
 
 import studio.mevera.imperat.annotations.base.element.MethodElement;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 import java.lang.reflect.Type;
 
@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
  * @param <S> the source type
  * @param <T> the type of value to return
  */
-public interface ReturnResolver<S extends Source, T> {
+public interface ReturnResolver<S extends CommandSource, T> {
 
     /**
      * Handles the return value of a command.

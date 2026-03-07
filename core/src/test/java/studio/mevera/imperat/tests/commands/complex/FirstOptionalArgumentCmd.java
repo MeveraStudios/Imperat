@@ -7,13 +7,13 @@ import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("foa")
 public final class FirstOptionalArgumentCmd {
 
     @Execute
-    public void def(TestSource source, @Named("num") @Optional @Default("1") Integer num) {
+    public void def(TestCommandSource source, @Named("num") @Optional @Default("1") Integer num) {
         source.reply("Num=" + num);
     }
 
@@ -22,12 +22,12 @@ public final class FirstOptionalArgumentCmd {
 
 
         @Execute
-        public void defaultUsage(TestSource source, @InheritedArg @Named("num") Integer num) {
+        public void defaultUsage(TestCommandSource source, @InheritedArg @Named("num") Integer num) {
             source.reply("Default execution of sub-command, inherited num='" + num + "'");
         }
 
         @Execute
-        public void mainUsage(TestSource source, @InheritedArg @Named("num") Integer num, @Named("num2") Integer num2) {
+        public void mainUsage(TestCommandSource source, @InheritedArg @Named("num") Integer num, @Named("num2") Integer num2) {
             source.reply("Main execution of sub-command, inherited num='" + num + "', num2='" + num2 + "'");
         }
 

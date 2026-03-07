@@ -6,13 +6,13 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
-import studio.mevera.imperat.adventure.AdventureSource;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.adventure.AdventureCommandSource;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.UUID;
 
 /**
- * A Minestom-specific implementation of {@link Source} that wraps a Minestom {@link CommandSender}.
+ * A Minestom-specific implementation of {@link CommandSource} that wraps a Minestom {@link CommandSender}.
  * This class provides a bridge between Minestom's command system and the Imperat framework,
  * with full Adventure API integration for rich text messaging.
  *
@@ -29,7 +29,7 @@ import java.util.UUID;
  * <pre>{@code
  * // In a command method
  * @Command("teleport")
- * public void teleport(MinestomSource source, Player target) {
+ * public void teleport(MinestomCommandSource source, Player target) {
  *     if (source.isConsole()) {
  *         source.error("Only players can teleport!");
  *         return;
@@ -41,20 +41,20 @@ import java.util.UUID;
  *
  * @since 1.0
  * @author Imperat Framework
- * @see Source
+ * @see CommandSource
  * @see CommandSender
  * @see Player
  */
-public final class MinestomSource implements AdventureSource {
+public final class MinestomCommandSource implements AdventureCommandSource {
 
     private final CommandSender sender;
 
     /**
-     * Creates a new MinestomSource wrapping the specified CommandSender.
+     * Creates a new MinestomCommandSource wrapping the specified CommandSender.
      *
      * @param sender the Minestom CommandSender to wrap (player or console)
      */
-    MinestomSource(CommandSender sender) {
+    MinestomCommandSource(CommandSender sender) {
         this.sender = sender;
     }
 
@@ -69,7 +69,7 @@ public final class MinestomSource implements AdventureSource {
     }
 
     /**
-     * Gets the original Minestom CommandSender that this MinestomSource wraps.
+     * Gets the original Minestom CommandSender that this MinestomCommandSource wraps.
      *
      * @return the underlying Minestom CommandSender
      */

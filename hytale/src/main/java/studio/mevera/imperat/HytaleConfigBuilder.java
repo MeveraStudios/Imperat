@@ -47,7 +47,7 @@ import studio.mevera.imperat.type.PlayerArgument;
 import studio.mevera.imperat.type.WorldArgument;
 import studio.mevera.imperat.util.TypeWrap;
 
-public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, HytaleImperat, HytaleConfigBuilder> {
+public final class HytaleConfigBuilder extends ConfigBuilder<HytaleCommandSource, HytaleImperat, HytaleConfigBuilder> {
 
     private static final HytaleArgumentType.Data<?>[] HYTALE_ARGUMENT_TYPES = {
             //TODO we should add exceptions(and their providers) for each type of data eventually.
@@ -164,12 +164,12 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleSource, Hytal
      */
     private void registerContextResolvers() {
         config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<HytaleSource>>() {
+                new TypeWrap<ExecutionContext<HytaleCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<HytaleSource>>() {
+                new TypeWrap<CommandHelp<HytaleCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );

@@ -5,7 +5,7 @@ import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.commands.realworld.groupcommand.Group;
 import studio.mevera.imperat.tests.contextresolver.PlayerData;
 import studio.mevera.imperat.tests.contextresolver.SomeData;
@@ -14,17 +14,17 @@ import studio.mevera.imperat.tests.contextresolver.SomeData;
 public final class ContextResolvingCmd {
 
     @Execute
-    public void def(TestSource source, @Context PlayerData data) {
+    public void def(TestCommandSource source, @Context PlayerData data) {
         Assertions.assertEquals(source.name(), data.name());
     }
 
     @SubCommand("sub")
-    public void defSub(TestSource source, @Context Group group) {
+    public void defSub(TestCommandSource source, @Context Group group) {
         System.out.println("DEFAULT SUBCMD EXECUTION, CONTEXT RESOLVED GROUP=" + group.name());
     }
 
     @SubCommand("sub2")
-    public void defSub2(TestSource source, SomeData data) {
+    public void defSub2(TestCommandSource source, SomeData data) {
     }
 
 }

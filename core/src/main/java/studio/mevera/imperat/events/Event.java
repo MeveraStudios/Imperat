@@ -73,7 +73,7 @@ package studio.mevera.imperat.events;
  * <h2>RootCommand-Related Events</h2>
  * <p>For events related to command operations, extend {@link CommandEvent}:</p>
  * <pre>{@code
- * public class CommandExecutionEvent<S extends Source> extends CommandEvent<S> {
+ * public class CommandExecutionEvent<S extends CommandSource> extends CommandEvent<S> {
  *     private final ExecutionContext<S> context;
  *     private final long executionTime;
  *

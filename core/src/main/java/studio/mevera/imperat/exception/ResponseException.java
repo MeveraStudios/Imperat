@@ -3,7 +3,7 @@ package studio.mevera.imperat.exception;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderDataProvider;
 import studio.mevera.imperat.responses.ResponseKey;
@@ -70,7 +70,7 @@ public abstract class ResponseException extends CommandException {
         );
     }
 
-    public <S extends Source> ResponseException withContextPlaceholders(CommandContext<S> ctx) {
+    public <S extends CommandSource> ResponseException withContextPlaceholders(CommandContext<S> ctx) {
         return withPlaceholder("command", ctx.command().getName())
                        .withPlaceholder("arguments", String.join(" ", ctx.arguments()))
                        .withPlaceholder("source", ctx.source().name());

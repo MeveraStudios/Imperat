@@ -3,7 +3,7 @@ package studio.mevera.imperat.adventure;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * The {@code AdventureProvider} interface defines a mechanism for obtaining an
@@ -26,14 +26,14 @@ public interface AdventureProvider<S> {
     Audience audience(final S s);
 
     /**
-     * Obtains an {@link Audience} for a given {@link Source} instance.
+     * Obtains an {@link Audience} for a given {@link CommandSource} instance.
      * This method delegates to {@link #audience(Object)} by retrieving the origin
-     * from the provided {@link Source}.
+     * from the provided {@link CommandSource}.
      *
-     * @param source the {@link Source} instance from which the {@link Audience} is derived
-     * @return the {@link Audience} corresponding to the origin of the provided {@link Source}
+     * @param source the {@link CommandSource} instance from which the {@link Audience} is derived
+     * @return the {@link Audience} corresponding to the origin of the provided {@link CommandSource}
      */
-    default Audience audience(final Source source) {
+    default Audience audience(final CommandSource source) {
         return this.audience((S) source.origin());
     }
 
@@ -48,14 +48,14 @@ public interface AdventureProvider<S> {
     }
 
     /**
-     * Sends a message to the {@link Audience} derived from the specified {@link Source} instance.
+     * Sends a message to the {@link Audience} derived from the specified {@link CommandSource} instance.
      * This method delegates to {@link #send(Object, ComponentLike)} by retrieving the origin
-     * from the provided {@link Source}.
+     * from the provided {@link CommandSource}.
      *
-     * @param source    the {@link Source} instance from which the {@link Audience} is derived
+     * @param source    the {@link CommandSource} instance from which the {@link Audience} is derived
      * @param component the message to be sent, represented by a {@link ComponentLike} instance
      */
-    default void send(final Source source, final ComponentLike component) {
+    default void send(final CommandSource source, final ComponentLike component) {
         this.send((S) source.origin(), component);
     }
 
@@ -66,5 +66,5 @@ public interface AdventureProvider<S> {
     default void close() {
     }
 
-    <SRC extends Source> AdventureHelpComponent<SRC> createHelpComponent(Component component);
+    <SRC extends CommandSource> AdventureHelpComponent<SRC> createHelpComponent(Component component);
 }

@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.flags;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
+final class FlagExtractorImpl<S extends CommandSource> implements FlagExtractor<S> {
 
     private final CommandPathway<S> usage;
     private final FlagTrie<S> flagTrie;
@@ -114,7 +114,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
      * Trie data structure optimized for flag alias storage and retrieval.
      * Uses a Map-based approach for efficient character lookup.
      */
-    private static class FlagTrie<S extends Source> {
+    private static class FlagTrie<S extends CommandSource> {
 
         private final TrieNode<S> root;
 
@@ -166,7 +166,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
     /**
      * Represents a node in the Trie structure.
      */
-    private static class TrieNode<S extends Source> {
+    private static class TrieNode<S extends CommandSource> {
 
         final Map<Character, TrieNode<S>> children;
         FlagArgument<S> flagArgumentData;
@@ -181,7 +181,7 @@ final class FlagExtractorImpl<S extends Source> implements FlagExtractor<S> {
     /**
      * Represents the result of a flag matching operation.
      */
-    private record MatchResult<S extends Source>(FlagArgument<S> flagArgumentData, int matchLength) {
+    private record MatchResult<S extends CommandSource>(FlagArgument<S> flagArgumentData, int matchLength) {
 
         boolean isFound() {
             return flagArgumentData != null && matchLength > 0;

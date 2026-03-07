@@ -15,8 +15,8 @@ import studio.mevera.imperat.command.Command
 import studio.mevera.imperat.command.CommandPathway
 import studio.mevera.imperat.command.CoroutineCommandCoordinator
 import studio.mevera.imperat.command.arguments.Argument
+import studio.mevera.imperat.context.CommandSource
 import studio.mevera.imperat.context.ExecutionContext
-import studio.mevera.imperat.context.Source
 import studio.mevera.imperat.util.ImperatDebugger
 import kotlin.coroutines.Continuation
 import kotlin.reflect.KFunction
@@ -27,7 +27,7 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.kotlinFunction
 
-internal abstract class AbstractKotlinCommandClassParser<S : Source>(
+internal abstract class AbstractKotlinCommandClassParser<S : CommandSource>(
     imperat: Imperat<S>,
     parser: AnnotationParser<S>,
     methodSelector: ElementSelector<MethodElement>
@@ -229,7 +229,7 @@ internal abstract class AbstractKotlinCommandClassParser<S : Source>(
     /**
      * Executor that handles Kotlin defaults and coroutines
      */
-    private class KotlinDefaultsAwareExecutor<S : Source>(
+    private class KotlinDefaultsAwareExecutor<S : CommandSource>(
         originalExecutor: MethodCommandExecutor<S>,
         private val kFunction: KFunction<*>,
         private val isSuspend: Boolean,
@@ -293,7 +293,7 @@ internal abstract class AbstractKotlinCommandClassParser<S : Source>(
     }
 }
 
-internal class KotlinCoroutineCommandClassParser<S : Source>(
+internal class KotlinCoroutineCommandClassParser<S : CommandSource>(
     imperat: Imperat<S>,
     parser: AnnotationParser<S>,
     methodSelector: ElementSelector<MethodElement>
@@ -310,7 +310,7 @@ internal class KotlinCoroutineCommandClassParser<S : Source>(
 /**
  * Basic visitor without coroutines
  */
-internal class KotlinBasicCommandClassParser<S : Source>(
+internal class KotlinBasicCommandClassParser<S : CommandSource>(
     imperat: Imperat<S>,
     parser: AnnotationParser<S>,
     methodSelector: ElementSelector<MethodElement>
@@ -356,7 +356,7 @@ internal object KotlinCommandParsingVisitorFactory {
         .build()
 
     @JvmStatic
-    fun <S : Source> create(
+    fun <S : CommandSource> create(
         imperat: Imperat<S>,
         parser: AnnotationParser<S>
     ): CommandClassParser<S, Set<Command<S>>> {

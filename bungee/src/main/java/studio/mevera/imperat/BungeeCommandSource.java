@@ -8,14 +8,14 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.adventure.AdventureProvider;
-import studio.mevera.imperat.adventure.AdventureSource;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.UUID;
 
 /**
- * A BungeeCord-specific implementation of {@link Source} that wraps a BungeeCord {@link CommandSender}.
+ * A BungeeCord-specific implementation of {@link CommandSource} that wraps a BungeeCord {@link CommandSender}.
  * This class provides a bridge between BungeeCord's command system and the Imperat framework,
  * supporting both legacy BungeeCord messaging and modern Adventure API components.
  *
@@ -33,7 +33,7 @@ import java.util.UUID;
  * <pre>{@code
  * // In a command method
  * @Command("send")
- * public void sendToServer(BungeeSource source, ProxiedPlayer target, String serverName) {
+ * public void sendToServer(BungeeCommandSource source, ProxiedPlayer target, String serverName) {
  *     if (source.isConsole()) {
  *         source.error("Only players can use this command!");
  *         return;
@@ -44,23 +44,23 @@ import java.util.UUID;
  * }</pre>
  *
  * @author Imperat Framework
- * @see Source
+ * @see CommandSource
  * @see CommandSender
  * @see ProxiedPlayer
  * @since 1.0
  */
-public class BungeeSource implements AdventureSource {
+public class BungeeCommandSource implements AdventureCommandSource {
 
     private final CommandSender sender;
     private final AdventureProvider<CommandSender> adventureProvider;
 
     /**
-     * Creates a new BungeeSource wrapping the specified CommandSender.
+     * Creates a new BungeeCommandSource wrapping the specified CommandSender.
      *
      * @param adventureProvider the Adventure provider for rich text support
      * @param sender            the BungeeCord CommandSender to wrap (player or console)
      */
-    BungeeSource(AdventureProvider<CommandSender> adventureProvider, CommandSender sender) {
+    BungeeCommandSource(AdventureProvider<CommandSender> adventureProvider, CommandSender sender) {
         this.adventureProvider = adventureProvider;
         this.sender = sender;
     }
@@ -76,7 +76,7 @@ public class BungeeSource implements AdventureSource {
     }
 
     /**
-     * Gets the original BungeeCord CommandSender that this BungeeSource wraps.
+     * Gets the original BungeeCord CommandSender that this BungeeCommandSource wraps.
      *
      * @return the underlying BungeeCord CommandSender
      */

@@ -8,8 +8,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BaseBrigadierManager;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.BukkitImperat;
-import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.commodore.Commodore;
@@ -19,7 +19,7 @@ import studio.mevera.imperat.selector.TargetSelector;
 
 import java.lang.reflect.Type;
 
-public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSource> {
+public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitCommandSource> {
 
     private final Commodore<org.bukkit.command.Command> commodore;
 
@@ -58,12 +58,12 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSou
     }
 
     @Override
-    public BukkitSource wrapCommandSource(Object commandSource) {
+    public BukkitCommandSource wrapCommandSource(Object commandSource) {
         return dispatcher.wrapSender(commodore.wrapNMSCommandSource(commandSource));
     }
 
     @Override
-    public @NotNull ArgumentType<?> getArgumentType(Argument<BukkitSource> parameter) {
+    public @NotNull ArgumentType<?> getArgumentType(Argument<BukkitCommandSource> parameter) {
         var paramType = parameter.type();
         if (paramType instanceof BukkitArgumentType<?> bukkitParamType) {
             if (bukkitParamType.isSupported()) {
@@ -81,8 +81,8 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitSou
 
     public void registerBukkitCommand(
             org.bukkit.command.Command bukkitCmd,
-            Command<BukkitSource> imperatCommand,
-            PermissionChecker<BukkitSource> resolver
+            Command<BukkitCommandSource> imperatCommand,
+            PermissionChecker<BukkitCommandSource> resolver
     ) {
         commodore.register(bukkitCmd, parseCommandIntoNode(imperatCommand),
                 (player) -> resolver.hasPermission(dispatcher.wrapSender(player), bukkitCmd.getPermission()));

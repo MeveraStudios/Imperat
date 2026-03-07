@@ -5,8 +5,8 @@ import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Plugin;
-import studio.mevera.imperat.BungeeSource;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.BungeeCommandSource;
+import studio.mevera.imperat.context.CommandSource;
 
 public final class BungeeAdventure implements AdventureProvider<CommandSender> {
 
@@ -27,9 +27,9 @@ public final class BungeeAdventure implements AdventureProvider<CommandSender> {
     }
 
     @Override
-    public <SRC extends Source> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
+    public <SRC extends CommandSource> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
         return new AdventureHelpComponent<>(component, (source, comp) -> {
-            if (source instanceof BungeeSource bungeeSource) {
+            if (source instanceof BungeeCommandSource bungeeSource) {
                 bungeeSource.reply(comp);
             } else {
                 source.reply(comp.toString());

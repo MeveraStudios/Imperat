@@ -8,9 +8,9 @@ import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.returns.BaseReturnResolver;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ExecutionResult;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestImperatConfig;
-import studio.mevera.imperat.tests.TestSource;
 import studio.mevera.imperat.tests.commands.KotlinDefaultCommand;
 import studio.mevera.imperat.tests.commands.KotlinReturnCommand;
 
@@ -19,12 +19,12 @@ import java.io.PrintStream;
 
 public class KotlinDefaultValuesTest {
 
-    private static ExecutionResult<TestSource> executeWithCapture(
+    private static ExecutionResult<TestCommandSource> executeWithCapture(
             TestImperat imperat,
             String commandLine,
             ByteArrayOutputStream out
     ) {
-        TestSource source = new TestSource(new PrintStream(out));
+        TestCommandSource source = new TestCommandSource(new PrintStream(out));
         return imperat.execute(source, commandLine);
     }
 
@@ -36,7 +36,7 @@ public class KotlinDefaultValuesTest {
         imperat.registerCommand(KotlinDefaultCommand.class);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ExecutionResult<TestSource> result = executeWithCapture(imperat, "kdef", out);
+        ExecutionResult<TestCommandSource> result = executeWithCapture(imperat, "kdef", out);
 
         assertThat(result.hasFailed()).isFalse();
         assertThat(out.toString()).contains("input=hello");
@@ -50,7 +50,7 @@ public class KotlinDefaultValuesTest {
         imperat.registerCommand(KotlinDefaultCommand.class);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ExecutionResult<TestSource> result = executeWithCapture(imperat, "kdef hi", out);
+        ExecutionResult<TestCommandSource> result = executeWithCapture(imperat, "kdef hi", out);
 
         assertThat(result.hasFailed()).isFalse();
         assertThat(out.toString()).contains("input=hi");
@@ -62,9 +62,9 @@ public class KotlinDefaultValuesTest {
                 .applyOnConfig(cfg -> {
                     cfg.setCommandParsingMode(CommandParsingMode.KOTLIN);
                 })
-                .returnResolver(String.class, new BaseReturnResolver<TestSource, String>(String.class) {
+                                      .returnResolver(String.class, new BaseReturnResolver<TestCommandSource, String>(String.class) {
                     @Override
-                    public void handle(ExecutionContext<TestSource> context, MethodElement method, String value) {
+                    public void handle(ExecutionContext<TestCommandSource> context, MethodElement method, String value) {
                         context.source().reply("returned=" + value);
                     }
                 })
@@ -73,7 +73,7 @@ public class KotlinDefaultValuesTest {
         imperat.registerCommand(KotlinReturnCommand.class);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ExecutionResult<TestSource> result = executeWithCapture(imperat, "kret", out);
+        ExecutionResult<TestCommandSource> result = executeWithCapture(imperat, "kret", out);
 
         assertThat(result.hasFailed()).isFalse();
         assertThat(out.toString()).contains("returned=ok");

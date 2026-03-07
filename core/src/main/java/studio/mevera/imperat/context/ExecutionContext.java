@@ -45,7 +45,7 @@ import java.util.Optional;
  */
 @ApiStatus.AvailableSince("1.0.0")
 @Context
-public interface ExecutionContext<S extends Source> extends CommandContext<S> {
+public interface ExecutionContext<S extends CommandSource> extends CommandContext<S> {
 
 
     /**

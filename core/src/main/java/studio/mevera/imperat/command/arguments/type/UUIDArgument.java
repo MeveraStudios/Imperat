@@ -3,8 +3,8 @@ package studio.mevera.imperat.command.arguments.type;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
@@ -12,7 +12,7 @@ import studio.mevera.imperat.responses.ResponseKey;
 
 import java.util.UUID;
 
-public final class UUIDArgument<S extends Source> extends ArgumentType<S, UUID> {
+public final class UUIDArgument<S extends CommandSource> extends ArgumentType<S, UUID> {
 
     public UUIDArgument() {
         super();

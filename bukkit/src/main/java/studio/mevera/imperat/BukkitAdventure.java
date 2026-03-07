@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import studio.mevera.imperat.adventure.AdventureHelpComponent;
 import studio.mevera.imperat.adventure.AdventureProvider;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 public final class BukkitAdventure implements AdventureProvider<CommandSender> {
 
@@ -28,9 +28,9 @@ public final class BukkitAdventure implements AdventureProvider<CommandSender> {
     }
 
     @Override
-    public <SRC extends Source> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
+    public <SRC extends CommandSource> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
         return new AdventureHelpComponent<>(component, (source, comp) -> {
-            if (source instanceof BukkitSource bukkitSource) {
+            if (source instanceof BukkitCommandSource bukkitSource) {
                 bukkitSource.reply(comp);
             } else {
                 source.reply(comp.toString());

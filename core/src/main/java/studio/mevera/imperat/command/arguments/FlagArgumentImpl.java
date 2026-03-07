@@ -5,15 +5,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
 
 import java.util.Objects;
 
 @ApiStatus.Internal
-public final class FlagArgumentImpl<S extends Source> extends InputParameter<S> implements FlagArgument<S> {
+public final class FlagArgumentImpl<S extends CommandSource> extends InputParameter<S> implements FlagArgument<S> {
 
     private final FlagData<S> flag;
     private final DefaultValueProvider inputValueSupplier;

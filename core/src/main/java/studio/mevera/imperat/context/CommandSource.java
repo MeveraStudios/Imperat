@@ -10,7 +10,7 @@ import java.util.UUID;
  * may be a console, a player in a game, etc...
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface Source {
+public interface CommandSource {
 
     UUID CONSOLE_UUID = UUID.nameUUIDFromBytes("imperat-console".getBytes());
 

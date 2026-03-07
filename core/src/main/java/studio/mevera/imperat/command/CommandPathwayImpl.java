@@ -13,9 +13,9 @@ import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.CooldownRecord;
 import studio.mevera.imperat.command.flags.FlagExtractor;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.Patterns;
@@ -28,7 +28,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 @ApiStatus.Internal
-final class CommandPathwayImpl<S extends Source> implements CommandPathway<S> {
+final class CommandPathwayImpl<S extends CommandSource> implements CommandPathway<S> {
 
     private final static int EXPECTED_PARAMETERS_CAPACITY = 8;
 

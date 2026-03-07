@@ -1,24 +1,24 @@
 package studio.mevera.imperat.tests;
 
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class TestSource implements Source {
+public class TestCommandSource implements CommandSource {
 
     private final PrintStream origin;
     private final List<String> permissions = new ArrayList<>();
 
-    public TestSource(PrintStream origin) {
+    public TestCommandSource(PrintStream origin) {
         this.origin = origin;
         //permissions.add("group.group");
         //permissions.add("group.group.setperm");
     }
 
-    public TestSource withPerm(String perm) {
+    public TestCommandSource withPerm(String perm) {
         if (!permissions.contains(perm)) {
             permissions.add(perm);
         }
@@ -71,7 +71,7 @@ public class TestSource implements Source {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        var that = (TestSource) obj;
+        var that = (TestCommandSource) obj;
         return Objects.equals(this.origin, that.origin);
     }
 
@@ -82,7 +82,7 @@ public class TestSource implements Source {
 
     @Override
     public String toString() {
-        return "TestSource[" +
+        return "TestCommandSource[" +
                        "origin=" + origin + ']';
     }
 

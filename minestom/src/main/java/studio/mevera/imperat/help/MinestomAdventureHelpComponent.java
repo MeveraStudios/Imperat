@@ -2,7 +2,7 @@ package studio.mevera.imperat.help;
 
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.MinestomSource;
+import studio.mevera.imperat.MinestomCommandSource;
 import studio.mevera.imperat.adventure.AdventureHelpComponent;
 
 import java.util.function.BiConsumer;
@@ -30,28 +30,28 @@ import java.util.function.BiConsumer;
  * }</pre>
  *
  * @author Imperat Framework
- * @see MinestomSource
+ * @see MinestomCommandSource
  * @see AdventureHelpComponent
  * @since 2.1.0
  */
-public class MinestomAdventureHelpComponent extends AdventureHelpComponent<MinestomSource> {
+public class MinestomAdventureHelpComponent extends AdventureHelpComponent<MinestomCommandSource> {
 
     /**
      * Creates a new MinestomAdventureHelpComponent with the specified component and message sender.
      *
      * @param componentValue          the Adventure Component to display as help
-     * @param sendMessageToSourceFunc function to send the component to a MinestomSource
+     * @param sendMessageToSourceFunc function to send the component to a MinestomCommandSource
      */
     protected MinestomAdventureHelpComponent(
             @NotNull Component componentValue,
-            BiConsumer<MinestomSource, Component> sendMessageToSourceFunc
+            BiConsumer<MinestomCommandSource, Component> sendMessageToSourceFunc
     ) {
         super(componentValue, sendMessageToSourceFunc);
     }
 
     /**
      * Creates a new MinestomAdventureHelpComponent with the specified Adventure Component.
-     * Uses the default MinestomSource sendMessage method for sending messages.
+     * Uses the default MinestomCommandSource sendMessage method for sending messages.
      *
      * @param componentValue the Adventure Component to display as help
      * @return a new MinestomAdventureHelpComponent instance
@@ -59,6 +59,6 @@ public class MinestomAdventureHelpComponent extends AdventureHelpComponent<Mines
     public static MinestomAdventureHelpComponent of(
             @NotNull Component componentValue
     ) {
-        return new MinestomAdventureHelpComponent(componentValue, MinestomSource::reply);
+        return new MinestomAdventureHelpComponent(componentValue, MinestomCommandSource::reply);
     }
 }

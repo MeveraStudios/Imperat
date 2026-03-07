@@ -13,7 +13,7 @@ import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
-public final class MinestomArgumentType<T> extends ArgumentType<MinestomSource, T> {
+public final class MinestomArgumentType<T> extends ArgumentType<MinestomCommandSource, T> {
 
     private final BiFunction<Type, String, net.minestom.server.command.builder.arguments.Argument<?>> minestomType;
     private final int numberOfParametersToConsume;
@@ -39,8 +39,8 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomSource, 
 
     @Override @SuppressWarnings("unchecked")
     public @NotNull T parse(
-            @NotNull ExecutionContext<MinestomSource> context,
-            @NotNull Cursor<MinestomSource> cursor,
+            @NotNull ExecutionContext<MinestomCommandSource> context,
+            @NotNull Cursor<MinestomCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
 
@@ -69,8 +69,8 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomSource, 
     @Override
     public boolean matchesInput(
             int rawPosition,
-            CommandContext<MinestomSource> context,
-            Argument<MinestomSource> parameter
+            CommandContext<MinestomCommandSource> context,
+            Argument<MinestomCommandSource> parameter
     ) {
         //collect input using the limit
         int limit = numberOfParametersToConsume == -1 ? context.arguments().size()-1 : numberOfParametersToConsume;
@@ -96,12 +96,12 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomSource, 
 
 
     @Override
-    public int getNumberOfParametersToConsume(Argument<MinestomSource> argument) {
+    public int getNumberOfParametersToConsume(Argument<MinestomCommandSource> argument) {
         return numberOfParametersToConsume;
     }
 
     @Override
-    public boolean isGreedy(Argument<MinestomSource> parameter) {
+    public boolean isGreedy(Argument<MinestomCommandSource> parameter) {
         return numberOfParametersToConsume == -1;
     }
 

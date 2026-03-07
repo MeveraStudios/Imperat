@@ -1,7 +1,7 @@
 package studio.mevera.imperat.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.VelocitySource;
+import studio.mevera.imperat.VelocityCommandSource;
 import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
 /**
@@ -13,7 +13,7 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * <ul>
  *   <li>Simple string-based help messages</li>
  *   <li>MiniMessage format support for colors and basic styling</li>
- *   <li>Automatic integration with VelocitySource messaging</li>
+ *   <li>Automatic integration with VelocityCommandSource messaging</li>
  *   <li>Lightweight alternative to Adventure Component-based help</li>
  * </ul>
  *
@@ -26,10 +26,10 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  *
  * @since 2.1.0
  * @author Imperat Framework
- * @see VelocitySource
+ * @see VelocityCommandSource
  * @see StringHelpComponent
  */
-public class VelocityStringHelpComponent extends StringHelpComponent<VelocitySource> {
+public class VelocityStringHelpComponent extends StringHelpComponent<VelocityCommandSource> {
 
     /**
      * Creates a new VelocityStringHelpComponent with the specified string content.

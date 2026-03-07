@@ -5,12 +5,12 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.List;
 import java.util.Optional;
 
-final class CursorImpl<S extends Source> implements Cursor<S> {
+final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     private final String inputLine;
     private final StreamPosition<S> streamPosition;

@@ -5,7 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
@@ -19,12 +19,12 @@ import studio.mevera.imperat.util.TypeUtility;
 import java.util.Objects;
 
 @SuppressWarnings("unchecked")
-public class LocationArgument extends ArgumentType<BukkitSource, Location> {
+public class LocationArgument extends ArgumentType<BukkitCommandSource, Location> {
 
     private final static String SINGLE_STRING_SEPARATOR = ";";
     private final static String SELF_LOCATION_SYMBOL = "~";
 
-    private final ArgumentType<BukkitSource, Double> doubleParser;
+    private final ArgumentType<BukkitCommandSource, Double> doubleParser;
 
     public LocationArgument() {
         super();
@@ -32,7 +32,7 @@ public class LocationArgument extends ArgumentType<BukkitSource, Location> {
     }
 
     @Override
-    public @Nullable Location parse(@NotNull ExecutionContext<BukkitSource> context, @NotNull Cursor<BukkitSource> cursor,
+    public @Nullable Location parse(@NotNull ExecutionContext<BukkitCommandSource> context, @NotNull Cursor<BukkitCommandSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         try {
@@ -55,8 +55,8 @@ public class LocationArgument extends ArgumentType<BukkitSource, Location> {
                 world = context.source().asPlayer().getWorld();
             }
 
-            ArgumentType<BukkitSource, Double> doubleParser =
-                    (ArgumentType<BukkitSource, Double>) context.imperatConfig().getArgumentType(Double.class);
+            ArgumentType<BukkitCommandSource, Double> doubleParser =
+                    (ArgumentType<BukkitCommandSource, Double>) context.imperatConfig().getArgumentType(Double.class);
             if (doubleParser == null) {
                 throw new IllegalArgumentException("Failed to find a parser for type '" + Double.class.getTypeName() + "'");
             }
@@ -155,7 +155,7 @@ public class LocationArgument extends ArgumentType<BukkitSource, Location> {
         }
     }
 
-    private @NotNull Location locFromStr(ExecutionContext<BukkitSource> context, Cursor<BukkitSource> stream, String currentRaw) throws
+    private @NotNull Location locFromStr(ExecutionContext<BukkitCommandSource> context, Cursor<BukkitCommandSource> stream, String currentRaw) throws
             CommandException {
         String[] split = currentRaw.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
@@ -261,7 +261,7 @@ public class LocationArgument extends ArgumentType<BukkitSource, Location> {
     }
 
     @Override
-    public boolean isGreedy(Argument<BukkitSource> parameter) {
+    public boolean isGreedy(Argument<BukkitCommandSource> parameter) {
         return true;
     }
 }

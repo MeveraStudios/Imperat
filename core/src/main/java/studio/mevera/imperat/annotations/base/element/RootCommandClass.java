@@ -2,7 +2,7 @@ package studio.mevera.imperat.annotations.base.element;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Objects;
 
@@ -11,7 +11,7 @@ import java.util.Objects;
  *
  * @param <S> the command source valueType
  */
-public final class RootCommandClass<S extends Source> {
+public final class RootCommandClass<S extends CommandSource> {
 
     private final Class<?> proxyClass;
     private final Object proxyInstance;

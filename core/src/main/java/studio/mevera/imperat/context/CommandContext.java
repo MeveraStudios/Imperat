@@ -9,13 +9,13 @@ import studio.mevera.imperat.command.Command;
 
 /**
  * Represents the processes context of a command
- * entered by {@link Source}
+ * entered by {@link CommandSource}
  *
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
 @Context
-public interface CommandContext<S extends Source> {
+public interface CommandContext<S extends CommandSource> {
 
     /**
      * @return imperat's instance
@@ -33,19 +33,19 @@ public interface CommandContext<S extends Source> {
     @NotNull Command<S> command();
 
     /**
-     * @return the {@link Source} of the command
-     * @see Source
+     * @return the {@link CommandSource} of the command
+     * @see CommandSource
      */
     @NotNull S source();
 
     /**
-     * @return the root command entered by the {@link Source}
+     * @return the root command entered by the {@link CommandSource}
      */
     @NotNull
     String getRootCommandLabelUsed();
 
     /**
-     * @return the arguments entered by the {@link Source}
+     * @return the arguments entered by the {@link CommandSource}
      * @see ArgumentInput
      */
     ArgumentInput arguments();

@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.cooldown;
 
 import org.jetbrains.annotations.ApiStatus;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,10 +15,10 @@ import java.util.Optional;
  * @param <S> the sender-valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface CooldownHandler<S extends Source> {
+public interface CooldownHandler<S extends CommandSource> {
 
 
-    static <S extends Source> CooldownHandler<S> createDefault(CommandPathway<S> usage) {
+    static <S extends CommandSource> CooldownHandler<S> createDefault(CommandPathway<S> usage) {
         return new DefaultCooldownHandler<>(usage);
     }
 

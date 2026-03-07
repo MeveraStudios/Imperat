@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 public abstract class BaseImperatTest {
 
     protected static final TestImperat IMPERAT = ImperatTestGlobals.IMPERAT;
-    protected static final TestSource SOURCE = ImperatTestGlobals.GLOBAL_TEST_SOURCE;
+    protected static final TestCommandSource SOURCE = ImperatTestGlobals.GLOBAL_TEST_SOURCE;
 
     static {
         System.out.println("Loading BaseImperatTest...");
@@ -34,12 +34,12 @@ public abstract class BaseImperatTest {
      * Executes a full command line and returns the result for assertion.
      * Uses the correct execute method that takes the full command line.
      */
-    protected ExecutionResult<TestSource> execute(String commandLine) {
+    protected ExecutionResult<TestCommandSource> execute(String commandLine) {
         return IMPERAT.execute(SOURCE, commandLine);
     }
 
-    protected ExecutionResult<TestSource> execute(Consumer<TestSource> sourceModifier, String commandLine) {
-        TestSource source = new TestSource(SOURCE.origin());
+    protected ExecutionResult<TestCommandSource> execute(Consumer<TestCommandSource> sourceModifier, String commandLine) {
+        TestCommandSource source = new TestCommandSource(SOURCE.origin());
         sourceModifier.accept(source);
         return IMPERAT.execute(source, commandLine);
     }
@@ -47,7 +47,7 @@ public abstract class BaseImperatTest {
     /**
      * Asserts that command execution was successful.
      */
-    protected void assertSuccess(ExecutionResult<TestSource> result) {
+    protected void assertSuccess(ExecutionResult<TestCommandSource> result) {
         if (result.hasFailed()) {
             assertNotNull(result.getError());
             result.getError().printStackTrace();
@@ -60,14 +60,14 @@ public abstract class BaseImperatTest {
     /**
      * Asserts that command execution failed.
      */
-    protected void assertFailure(ExecutionResult<TestSource> result) {
+    protected void assertFailure(ExecutionResult<TestCommandSource> result) {
         assertTrue(result.hasFailed(), "Expected failed execution but got success");
     }
 
     /**
      * Asserts that command execution failed with specific error.
      */
-    protected void assertFailure(ExecutionResult<TestSource> result, Class<? extends Throwable> expectedError) {
+    protected void assertFailure(ExecutionResult<TestCommandSource> result, Class<? extends Throwable> expectedError) {
         assertFailure(result);
         if (result.getError() != null) {
             assertInstanceOf(expectedError, result.getError(),
@@ -78,14 +78,14 @@ public abstract class BaseImperatTest {
     /**
      * Asserts argument value in successful execution.
      */
-    protected <T> void assertArgument(ExecutionResult<TestSource> result, String paramName, T expectedValue) {
+    protected <T> void assertArgument(ExecutionResult<TestCommandSource> result, String paramName, T expectedValue) {
         assertSuccess(result);
         T actualValue = result.getExecutionContext().getArgument(paramName);
         assertEquals(expectedValue, actualValue,
                 "Argument '" + paramName + "' has unexpected value");
     }
 
-    protected <T> void assertArrayArgs(ExecutionResult<TestSource> result, String paramName, T[] expected) {
+    protected <T> void assertArrayArgs(ExecutionResult<TestCommandSource> result, String paramName, T[] expected) {
         assertSuccess(result);
         T[] actualValue = result.getExecutionContext().getArgument(paramName);
         assertArrayEquals(expected, actualValue, "Argument '" + paramName + "' has unexpected value");
@@ -94,7 +94,7 @@ public abstract class BaseImperatTest {
     /**
      * Asserts flag value in successful execution.
      */
-    protected <T> void assertFlag(ExecutionResult<TestSource> result, String flagName, T expectedValue) {
+    protected <T> void assertFlag(ExecutionResult<TestCommandSource> result, String flagName, T expectedValue) {
         assertSuccess(result);
         T actualValue = result.getExecutionContext().getFlagValue(flagName);
         assertEquals(expectedValue, actualValue,

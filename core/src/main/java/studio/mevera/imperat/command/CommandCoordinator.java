@@ -3,23 +3,23 @@ package studio.mevera.imperat.command;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
-public interface CommandCoordinator<S extends Source> {
+public interface CommandCoordinator<S extends CommandSource> {
 
-    static <S extends Source> CommandCoordinator<S> sync() {
+    static <S extends CommandSource> CommandCoordinator<S> sync() {
         return (api, source, context, execution) -> {
             execution.execute(source, context);
         };
     }
 
-    static <S extends Source> CommandCoordinator<S> async(final @Nullable ExecutorService service) {
+    static <S extends CommandSource> CommandCoordinator<S> async(final @Nullable ExecutorService service) {
         return ((api, source, context, execution) -> {
             ExecutorService executorService = service;
             if (executorService == null) {
@@ -29,7 +29,7 @@ public interface CommandCoordinator<S extends Source> {
         });
     }
 
-    static <S extends Source> CommandCoordinator<S> async() {
+    static <S extends CommandSource> CommandCoordinator<S> async() {
         return async(null);
     }
 

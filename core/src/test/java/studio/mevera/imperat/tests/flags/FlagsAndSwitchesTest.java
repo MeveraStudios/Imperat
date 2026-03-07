@@ -6,7 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.tests.BaseImperatTest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @DisplayName("Flags and Switches Tests")
 public class FlagsAndSwitchesTest extends BaseImperatTest {
@@ -14,7 +14,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle switch flags correctly")
     void testSwitchFlags() {
-        ExecutionResult<TestSource> result = execute("ban mqzen");
+        ExecutionResult<TestCommandSource> result = execute("ban mqzen");
         assertSuccess(result);
         assertArgument(result, "target", "mqzen");
         assertFlag(result, "silent", false);
@@ -25,7 +25,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle activated switch flags")
     void testActivatedSwitchFlags() {
-        ExecutionResult<TestSource> result = execute("ban mqzen -s");
+        ExecutionResult<TestCommandSource> result = execute("ban mqzen -s");
         assertSuccess(result);
         assertArgument(result, "target", "mqzen");
         assertFlag(result, "silent", true);
@@ -35,7 +35,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle multiple switch flags")
     void testMultipleSwitchFlags() {
-        ExecutionResult<TestSource> result = execute("ban mqzen -s -ip");
+        ExecutionResult<TestCommandSource> result = execute("ban mqzen -s -ip");
         assertSuccess(result);
         assertArgument(result, "target", "mqzen");
         assertFlag(result, "silent", true);
@@ -45,7 +45,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle value flags")
     void testValueFlags() {
-        ExecutionResult<TestSource> result = execute("git commit -m \"Initial commit\"");
+        ExecutionResult<TestCommandSource> result = execute("git commit -m \"Initial commit\"");
         assertSuccess(result);
         assertFlag(result, "message", "Initial commit");
     }
@@ -53,7 +53,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle mixed flags and arguments")
     void testMixedFlagsAndArguments() {
-        ExecutionResult<TestSource> result = execute("ban mqzen -s 1d Cheating is bad");
+        ExecutionResult<TestCommandSource> result = execute("ban mqzen -s 1d Cheating is bad");
         assertSuccess(result);
         assertArgument(result, "target", "mqzen");
         assertFlag(result, "silent", true);
@@ -64,7 +64,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle flag aliases")
     void testFlagAliases() {
-        ExecutionResult<TestSource> result = execute("ban mqzen -silent");
+        ExecutionResult<TestCommandSource> result = execute("ban mqzen -silent");
         assertSuccess(result);
         assertArgument(result, "target", "mqzen");
         assertFlag(result, "silent", true);
@@ -80,7 +80,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @DisplayName("Should handle various flag combinations")
     void testVariousFlagCombinations(String commandLine, String expectedTarget, boolean expectedSilent,
             boolean expectedIp, String expectedDuration, String expectedReason) {
-        ExecutionResult<TestSource> result = execute(commandLine);
+        ExecutionResult<TestCommandSource> result = execute(commandLine);
         assertSuccess(result);
         assertArgument(result, "target", expectedTarget);
         assertFlag(result, "silent", expectedSilent);
@@ -92,7 +92,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle middle flag with arguments")
     void testMiddleFlagWithArguments() {
-        ExecutionResult<TestSource> result = execute("ban2 mqzen -t 7d Cheating is not good");
+        ExecutionResult<TestCommandSource> result = execute("ban2 mqzen -t 7d Cheating is not good");
         assertSuccess(result);
         assertArgument(result, "target", "mqzen");
         assertFlag(result, "time", "7d");

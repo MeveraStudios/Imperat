@@ -19,8 +19,8 @@ import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.TypeWrap;
@@ -36,17 +36,17 @@ import java.util.function.Predicate;
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface Command<S extends Source> extends Argument<S>, BaseThrowableHandler<S> {
+public interface Command<S extends CommandSource> extends Argument<S>, BaseThrowableHandler<S> {
 
-    static <S extends Source> Command.Builder<S> create(@NotNull Imperat<S> imperat, String name) {
+    static <S extends CommandSource> Command.Builder<S> create(@NotNull Imperat<S> imperat, String name) {
         return create(imperat, null, name);
     }
 
-    static <S extends Source> Command.Builder<S> create(@NotNull Imperat<S> imperat, String name, @Nullable ParseElement<?> annotatedElement) {
+    static <S extends CommandSource> Command.Builder<S> create(@NotNull Imperat<S> imperat, String name, @Nullable ParseElement<?> annotatedElement) {
         return create(imperat, null, name, annotatedElement);
     }
 
-    static <S extends Source> Command.Builder<S> create(
+    static <S extends CommandSource> Command.Builder<S> create(
             @NotNull Imperat<S> imperat,
             @Nullable Command<S> parent,
             @NotNull String name
@@ -54,7 +54,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
         return create(imperat, parent, -1, name);
     }
 
-    static <S extends Source> Command.Builder<S> create(
+    static <S extends CommandSource> Command.Builder<S> create(
             @NotNull Imperat<S> imperat,
             @Nullable Command<S> parent,
             @NotNull String name,
@@ -63,7 +63,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
         return create(imperat, parent, -1, name, annotatedElement);
     }
 
-    static <S extends Source> Command.Builder<S> create(
+    static <S extends CommandSource> Command.Builder<S> create(
             @NotNull Imperat<S> imperat,
             @Nullable Command<S> parent,
             int position,
@@ -72,7 +72,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
         return new Builder<>(imperat, parent, position, name);
     }
 
-    static <S extends Source> Command.Builder<S> create(
+    static <S extends CommandSource> Command.Builder<S> create(
             @NotNull Imperat<S> imperat,
             @Nullable Command<S> parent,
             int position,
@@ -428,7 +428,7 @@ public interface Command<S extends Source> extends Argument<S>, BaseThrowableHan
 
     CommandTreeVisualizer<S> getVisualizer();
 
-    class Builder<S extends Source> {
+    class Builder<S extends CommandSource> {
 
         private final Command<S> cmd;
 

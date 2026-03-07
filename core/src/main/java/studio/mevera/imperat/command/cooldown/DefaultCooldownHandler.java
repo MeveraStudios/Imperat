@@ -1,14 +1,14 @@
 package studio.mevera.imperat.command.cooldown;
 
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-final class DefaultCooldownHandler<S extends Source> implements CooldownHandler<S> {
+final class DefaultCooldownHandler<S extends CommandSource> implements CooldownHandler<S> {
 
     private final Map<String, Instant> lastTimeExecuted = new HashMap<>();
     private final CommandPathway<S> usage;

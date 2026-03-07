@@ -3,8 +3,8 @@ package studio.mevera.imperat.command.tree.help.renderers;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 /**
  * Interface for rendering help documentation.
@@ -13,7 +13,7 @@ import studio.mevera.imperat.context.Source;
  * @param <S> the source type
  * @param <C> the component type
  */
-public interface HelpLayoutRenderer<S extends Source, C> {
+public interface HelpLayoutRenderer<S extends CommandSource, C> {
 
     /**
      * Renders the help documentation to the source.

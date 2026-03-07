@@ -6,7 +6,7 @@ import studio.mevera.imperat.annotations.base.AnnotationReader;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.types.ExceptionHandler;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.annotation.Annotation;
 
@@ -18,7 +18,7 @@ import java.lang.annotation.Annotation;
  *
  * @param <S> the type of the command source (e.g., console, player, etc.)
  */
-public interface AnnotationInjector<S extends Source> {
+public interface AnnotationInjector<S extends CommandSource> {
 
     /**
      * Fetches the annotation parser

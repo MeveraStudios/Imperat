@@ -13,7 +13,7 @@ import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @DisplayName("Error Handling Tests")
 public class ErrorHandlingTest extends BaseImperatTest {
@@ -25,7 +25,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should fail for incomplete required arguments")
     void testIncompleteRequiredArguments() {
-        ExecutionResult<TestSource> result = execute("test hello"); // Missing second required argument
+        ExecutionResult<TestCommandSource> result = execute("test hello"); // Missing second required argument
         assertFailure(result);
     }
 
@@ -43,7 +43,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle malformed flag syntax")
     void testMalformedFlagSyntax() {
-        ExecutionResult<TestSource> result = execute("ban mqzen --invalid-flag");
+        ExecutionResult<TestCommandSource> result = execute("ban mqzen --invalid-flag");
         // This should either work or fail gracefully depending on implementation
         // Just ensure it doesn't crash
         assertNotNull(result);
@@ -74,7 +74,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle context resolution failures")
     void testContextResolutionFailures() {
-        ExecutionResult<TestSource> result = execute("ctx sub"); // Should fail due to missing Group context
+        ExecutionResult<TestCommandSource> result = execute("ctx sub"); // Should fail due to missing Group context
         assertFailure(result);
     }
 
@@ -92,14 +92,15 @@ public class ErrorHandlingTest extends BaseImperatTest {
             "Should detect the validator for ranged numerical arg and handle out of range number input"
     )
     void testArgumentValidatorHandling() {
-        ExecutionResult<TestSource> result = execute("buy potato 0"); // Should fail due to validator range
+        ExecutionResult<TestCommandSource> result = execute("buy potato 0"); // Should fail due to validator range
         assertFailure(result, CommandException.class);
     }
     
    /*@Test
     @DisplayName("Should handle permissions overlap 1")
     void testPermissions1() {
-        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"),"testperm hi bye"); // Should fail due to missing Group
+        ExecutionResult<TestCommandSource> result = execute((src)-> src.withPerm("testperm.use"),"testperm hi bye"); // Should fail due to missing
+        Group
         context
         assertNotNull(result.getError());
         ThrowablePrinter.simple().print(result.getError());
@@ -108,7 +109,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle permissions overlap 2")
     void testPermissions2() {
-        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use"), "testperm a b"); // Should fail due to missing Group
+        ExecutionResult<TestCommandSource> result = execute((src)-> src.withPerm("testperm.use"), "testperm a b"); // Should fail due to missing Group
         context
         assertFailure(result, PermissionDeniedException.class);
         assertNotNull(result.getError());
@@ -118,7 +119,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle permissions overlap 3")
     void testPermissions3() {
-        ExecutionResult<TestSource> result = execute((src)-> src.withPerm("testperm.use").withPerm("testperm.use.arg1.arg2").withPerm("testperm
+        ExecutionResult<TestCommandSource> result = execute((src)-> src.withPerm("testperm.use").withPerm("testperm.use.arg1.arg2").withPerm("testperm
         .main"), "testperm a b"); // Should fail due to missing Group context
         assertSuccess(result);
     }
@@ -126,7 +127,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle permissions overlap 4")
     void testPermissions4() {
-        ExecutionResult<TestSource> result = execute(
+        ExecutionResult<TestCommandSource> result = execute(
                 (src)-> src.withPerm("testperm.use")
                         .withPerm("testperm.use.arg1.arg2")
                         .withPerm("testperm.use.arg1.arg2.arg3")
@@ -137,7 +138,7 @@ public class ErrorHandlingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle permissions overlap 5")
     void testPermissions5() {
-        ExecutionResult<TestSource> result = execute(
+        ExecutionResult<TestCommandSource> result = execute(
                 (src)->
                         src.withPerm("ban")
                                 .withPerm("ban.target")

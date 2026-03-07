@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.priority.Prioritizable;
 import studio.mevera.imperat.util.priority.Priority;
@@ -23,7 +23,7 @@ import java.lang.reflect.Type;
  *
  * @param <S> the source type
  */
-public interface ArgumentTypeHandler<S extends Source> extends Prioritizable {
+public interface ArgumentTypeHandler<S extends CommandSource> extends Prioritizable {
 
     /**
      * Determines if this handler can resolve the given type.

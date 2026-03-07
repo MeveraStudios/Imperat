@@ -8,11 +8,11 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.time.Duration;
 
-public final class JavaDurationArgumentType extends ArgumentType<TestSource, Duration> {
+public final class JavaDurationArgumentType extends ArgumentType<TestCommandSource, Duration> {
 
     public JavaDurationArgumentType() {
         super();
@@ -20,15 +20,15 @@ public final class JavaDurationArgumentType extends ArgumentType<TestSource, Dur
 
     @Override
     public @Nullable Duration parse(
-            @NotNull ExecutionContext<TestSource> context,
-            @NotNull Cursor<TestSource> cursor,
+            @NotNull ExecutionContext<TestCommandSource> context,
+            @NotNull Cursor<TestCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
         return JavaDurationParser.parseDuration(correspondingInput);
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<TestSource> context, Argument<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<TestCommandSource> context, Argument<TestCommandSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;

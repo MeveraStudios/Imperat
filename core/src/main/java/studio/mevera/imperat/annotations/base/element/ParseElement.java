@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.AnnotationMap;
 import studio.mevera.imperat.util.ImperatDebugger;
 
@@ -23,7 +23,7 @@ public sealed abstract class ParseElement<E extends AnnotatedElement> implements
     protected final @Nullable ParseElement<?> parent;
     protected final @NotNull E element;
 
-    public <S extends Source> ParseElement(
+    public <S extends CommandSource> ParseElement(
             @NotNull AnnotationParser<S> parser,
             @Nullable ParseElement<?> parent,
             @NotNull E element
@@ -35,7 +35,7 @@ public sealed abstract class ParseElement<E extends AnnotatedElement> implements
     }
 
     @SuppressWarnings("unchecked")
-    private <A extends Annotation, S extends Source> void load(@NotNull AnnotationParser<S> registry) {
+    private <A extends Annotation, S extends CommandSource> void load(@NotNull AnnotationParser<S> registry) {
         for (Annotation annotation : element.getDeclaredAnnotations()) {
             Class<A> clazz = (Class<A>) annotation.annotationType();
             annotations.put(clazz, annotation);

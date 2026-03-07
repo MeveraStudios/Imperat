@@ -1,7 +1,7 @@
 package studio.mevera.imperat.events;
 
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * Base class for all command-related events in the Imperat framework.
@@ -23,7 +23,7 @@ import studio.mevera.imperat.context.Source;
  * <h2>Example Usage</h2>
  * <pre>{@code
  * // Create a custom command event
- * public class CommandExecutionEvent<S extends Source> extends CommandEvent<S> {
+ * public class CommandExecutionEvent<S extends CommandSource> extends CommandEvent<S> {
  *     private final ExecutionContext<S> context;
  *
  *     public CommandExecutionEvent(RootCommand<S> command, ExecutionContext<S> context) {
@@ -50,7 +50,7 @@ import studio.mevera.imperat.context.Source;
  * @see Command
  * @see EventBus
  */
-public abstract class CommandEvent<S extends Source> implements Event {
+public abstract class CommandEvent<S extends CommandSource> implements Event {
 
     /**
      * The command associated with this event.

@@ -2,7 +2,7 @@ package studio.mevera.imperat.selector.field.filters;
 
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
@@ -24,8 +24,8 @@ final class LevelField extends PredicateField<Range<Integer>> {
 
 
     @Override
-    protected @NotNull EntityCondition getCondition(Range<Integer> value, Cursor<BukkitSource> cursor,
-            CommandContext<BukkitSource> context) {
+    protected @NotNull EntityCondition getCondition(Range<Integer> value, Cursor<BukkitCommandSource> cursor,
+            CommandContext<BukkitCommandSource> context) {
         return ((sender, entity) -> {
             if (!(entity instanceof Player humanEntity)) {
                 return false;
@@ -43,7 +43,7 @@ final class LevelField extends PredicateField<Range<Integer>> {
      * @throws CommandException if the parsing fails
      */
     @Override
-    public Range<Integer> parseFieldValue(String value, CommandContext<BukkitSource> context) throws CommandException {
+    public Range<Integer> parseFieldValue(String value, CommandContext<BukkitCommandSource> context) throws CommandException {
         return numericField.parseFieldValue(value, context);
     }
 }

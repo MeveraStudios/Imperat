@@ -7,7 +7,7 @@ package studio.mevera.imperat.responses;
  */
 public interface MinestomResponseKey extends ResponseKey {
 
-    // Source restrictions
+    // CommandSource restrictions
     MinestomResponseKey ONLY_PLAYER = () -> "commands.conditions.only-player";
     MinestomResponseKey ONLY_CONSOLE = () -> "commands.conditions.only-console";
 

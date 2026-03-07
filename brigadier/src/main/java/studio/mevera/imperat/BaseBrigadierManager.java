@@ -17,11 +17,11 @@ import studio.mevera.imperat.command.suggestions.CompletionArg;
 import studio.mevera.imperat.command.tree.ArgumentNode;
 import studio.mevera.imperat.command.tree.LiteralCommandNode;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 
 @SuppressWarnings("unchecked")
-public abstract non-sealed class BaseBrigadierManager<S extends Source> implements BrigadierManager<S> {
+public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> implements BrigadierManager<S> {
 
     protected final Imperat<S> dispatcher;
 

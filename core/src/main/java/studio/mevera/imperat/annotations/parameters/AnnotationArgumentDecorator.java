@@ -9,13 +9,13 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.arguments.InputParameter;
 import studio.mevera.imperat.command.arguments.NumericParameter;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 
-public final class AnnotationArgumentDecorator<S extends Source> extends InputParameter<S> implements AnnotatedArgument<S> {
+public final class AnnotationArgumentDecorator<S extends CommandSource> extends InputParameter<S> implements AnnotatedArgument<S> {
 
     private final Argument<S> parameter;
     private final ParameterElement element;
@@ -34,7 +34,7 @@ public final class AnnotationArgumentDecorator<S extends Source> extends InputPa
         }
     }
 
-    public static <S extends Source> AnnotationArgumentDecorator<S> decorate(
+    public static <S extends CommandSource> AnnotationArgumentDecorator<S> decorate(
             Argument<S> parameter,
             ParameterElement element
     ) {

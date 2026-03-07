@@ -4,7 +4,7 @@ import studio.mevera.imperat.annotations.types.Default;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Flag;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 
 @RootCommand("bal")
@@ -13,7 +13,7 @@ public class BalanceCmd {
 
     @Execute
     public void def(
-            TestSource sender,
+            TestCommandSource sender,
             @Default("me") TestPlayer target,
             @Flag({"currency", "c"}) @Default("GOLD") Currency currency
     ) {

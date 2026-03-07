@@ -20,7 +20,7 @@ public class AsyncTabListener implements Listener {
             commandLine = commandLine.substring(1);
         }
 
-        BukkitSource src = imperat.wrapSender(event.getSender());
+        BukkitCommandSource src = imperat.wrapSender(event.getSender());
         var autocompletedResults = imperat.autoComplete(src, commandLine).join();
         if (autocompletedResults.isEmpty()) {
             return;

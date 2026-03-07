@@ -1,8 +1,8 @@
 package studio.mevera.imperat.command;
 
 import org.jetbrains.annotations.ApiStatus;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 
 /**
@@ -12,9 +12,9 @@ import studio.mevera.imperat.exception.CommandException;
  * @param <S> the command sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface CommandExecution<S extends Source> {
+public interface CommandExecution<S extends CommandSource> {
 
-    static <S extends Source> CommandExecution<S> empty() {
+    static <S extends CommandSource> CommandExecution<S> empty() {
         return (source, context) -> {
         };
     }

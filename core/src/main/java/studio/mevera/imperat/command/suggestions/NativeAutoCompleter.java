@@ -1,13 +1,13 @@
 package studio.mevera.imperat.command.suggestions;
 
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-final class NativeAutoCompleter<S extends Source> extends AutoCompleter<S> {
+final class NativeAutoCompleter<S extends CommandSource> extends AutoCompleter<S> {
 
     NativeAutoCompleter(Command<S> command) {
         super(command);

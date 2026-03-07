@@ -5,7 +5,7 @@ import studio.mevera.imperat.annotations.types.Default;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 
 import java.math.BigDecimal;
@@ -15,7 +15,7 @@ public class EconomyCommand {
 
     @Execute
     @Async
-    public void defaultUsage(TestSource source) {
+    public void defaultUsage(TestCommandSource source) {
 
     }
 
@@ -25,7 +25,7 @@ public class EconomyCommand {
         @Execute
         //@Async
         public void addCurrency(
-                final TestSource source,
+                final TestCommandSource source,
                 final TestPlayer player,
                 final @Default("gold") Currency currency,
                 final BigDecimal amount
@@ -41,7 +41,7 @@ public class EconomyCommand {
         @Execute
         @Async
         public void setCurrency(
-                final TestSource source,
+                final TestCommandSource source,
                 final TestPlayer player,
                 final @Optional Currency currency,
                 final BigDecimal amount

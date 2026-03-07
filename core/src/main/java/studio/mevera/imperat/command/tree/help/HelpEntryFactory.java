@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.CommandNode;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * Factory interface for creating {@link HelpEntry} instances from parameter nodes.
@@ -11,9 +11,9 @@ import studio.mevera.imperat.context.Source;
  * @param <S> the source type
  * @author Mqzen
  */
-public interface HelpEntryFactory<S extends Source> {
+public interface HelpEntryFactory<S extends CommandSource> {
 
-    static <S extends Source> HelpEntryFactory<S> defaultFactory() {
+    static <S extends CommandSource> HelpEntryFactory<S> defaultFactory() {
         return HelpEntry::new;
     }
 

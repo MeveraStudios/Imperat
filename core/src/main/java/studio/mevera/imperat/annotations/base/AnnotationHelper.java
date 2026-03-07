@@ -15,8 +15,8 @@ import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.Switch;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +37,7 @@ public final class AnnotationHelper {
      * @param <S> the source
      * @throws CommandException if resolution fails
      */
-    public static <S extends Source> Object[] loadParameterInstances(
+    public static <S extends CommandSource> Object[] loadParameterInstances(
             Imperat<S> dispatcher,
             S source,
             ExecutionContext<S> context,
@@ -118,14 +118,14 @@ public final class AnnotationHelper {
         return paramsInstances;
     }
 
-    private static <S extends Source> @Nullable Argument<S> getUsageParam(List<? extends Argument<S>> params, int index) {
+    private static <S extends CommandSource> @Nullable Argument<S> getUsageParam(List<? extends Argument<S>> params, int index) {
         if (index < 0 || index >= params.size()) {
             return null;
         }
         return params.get(index);
     }
 
-    public static <S extends Source> @NotNull String getParamName(
+    public static <S extends CommandSource> @NotNull String getParamName(
             ImperatConfig<S> imperat,
             ParameterElement parameter,
             @Nullable Named named,
@@ -147,7 +147,7 @@ public final class AnnotationHelper {
         return imperat.replacePlaceholders(name);
     }
 
-    public static <S extends Source> @NotNull String getParamName(ImperatConfig<S> imperat, ParameterElement parameter) {
+    public static <S extends CommandSource> @NotNull String getParamName(ImperatConfig<S> imperat, ParameterElement parameter) {
         return getParamName(
                 imperat,
                 parameter,

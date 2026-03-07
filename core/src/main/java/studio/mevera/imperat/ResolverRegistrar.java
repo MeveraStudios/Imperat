@@ -8,7 +8,7 @@ import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.SourceProvider;
@@ -27,7 +27,7 @@ import java.util.Objects;
  *
  * @param <S> the type of source that this registrar handles
  */
-public sealed interface ResolverRegistrar<S extends Source> permits ImperatConfig {
+public sealed interface ResolverRegistrar<S extends CommandSource> permits ImperatConfig {
 
 
     /**

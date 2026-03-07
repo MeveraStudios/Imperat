@@ -1,16 +1,15 @@
 package studio.mevera.imperat;
 
-import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.ComponentLike;
-import studio.mevera.imperat.adventure.AdventureSource;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.adventure.AdventureCommandSource;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.UUID;
 
 /**
- * A Velocity-specific implementation of {@link Source} that wraps a Velocity {@link CommandSource}.
+ * A Velocity-specific implementation of {@link CommandSource} that wraps a Velocity {@link com.velocitypowered.api.command.CommandSource}.
  * This class provides a bridge between Velocity's command system and the Imperat framework,
  * allowing commands to work seamlessly with Velocity's player and console command sources.
  *
@@ -25,16 +24,16 @@ import java.util.UUID;
  * @since 1.0
  * @author Imperat Framework
  */
-public class VelocitySource implements AdventureSource {
+public class VelocityCommandSource implements AdventureCommandSource {
 
-    private final CommandSource origin;
+    private final com.velocitypowered.api.command.CommandSource origin;
 
     /**
-     * Creates a new VelocitySource wrapping the specified CommandSource.
+     * Creates a new VelocityCommandSource wrapping the specified CommandSource.
      *
      * @param origin the Velocity CommandSource to wrap (player or console)
      */
-    VelocitySource(CommandSource origin) {
+    VelocityCommandSource(com.velocitypowered.api.command.CommandSource origin) {
         this.origin = origin;
     }
 
@@ -49,12 +48,12 @@ public class VelocitySource implements AdventureSource {
     }
 
     /**
-     * Gets the original Velocity CommandSource that this VelocitySource wraps.
+     * Gets the original Velocity CommandSource that this VelocityCommandSource wraps.
      *
      * @return the underlying Velocity CommandSource
      */
     @Override
-    public CommandSource origin() {
+    public com.velocitypowered.api.command.CommandSource origin() {
         return origin;
     }
 

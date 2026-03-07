@@ -24,7 +24,7 @@ final class InternalHytaleCommand extends CommandBase {
 
     private final HytaleImperat imperat;
 
-    InternalHytaleCommand(HytaleImperat imperat, List<Argument<HytaleSource>> variant) {
+    InternalHytaleCommand(HytaleImperat imperat, List<Argument<HytaleCommandSource>> variant) {
         super("");
         this.imperat = imperat;
         for (var p : variant) {
@@ -32,7 +32,7 @@ final class InternalHytaleCommand extends CommandBase {
         }
     }
 
-    InternalHytaleCommand(HytaleImperat imperat, Command<HytaleSource> imperatCmd) {
+    InternalHytaleCommand(HytaleImperat imperat, Command<HytaleCommandSource> imperatCmd) {
         super(imperatCmd.getName().toLowerCase(), imperatCmd.getDescription().getValueOrElse(""), requiresConfirmation(imperatCmd));
         this.imperat = imperat;
         setAllowsExtraArguments(true); //TODO IN THE FUTURE , WE MAY NOT ACTUALLY NEED THIS UNLESS THERE'S A GREEDY ARG IN ANY TYPE OF USAGE
@@ -62,7 +62,7 @@ final class InternalHytaleCommand extends CommandBase {
      * @return {@code true} if the command's annotated element is annotated with
      *         {@link RequireConfirmation}, {@code false} otherwise
      */
-    private static boolean requiresConfirmation(Command<HytaleSource> imperatCmd) {
+    private static boolean requiresConfirmation(Command<HytaleCommandSource> imperatCmd) {
         if (!imperatCmd.isAnnotated()) {
             return false;
         }
@@ -72,7 +72,7 @@ final class InternalHytaleCommand extends CommandBase {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static ArgumentType<?> loadArgType(Argument<HytaleSource> parameter) {
+    private static ArgumentType<?> loadArgType(Argument<HytaleCommandSource> parameter) {
         final Type type = parameter.valueType();
         if (parameter.type() instanceof EnumArgument EnumArgument) {
             var typeStr = type.getTypeName();
@@ -98,9 +98,9 @@ final class InternalHytaleCommand extends CommandBase {
 
     //we split each usage INTO variants
     //the main usage will be split into multiple usages
-    private void deduceVariants(Command<HytaleSource> imperatCmd) {
-        for (CommandPathway<HytaleSource> mainUsage : imperatCmd.getDedicatedPathways()) {
-            Map<Integer, Argument<HytaleSource>> optionals = new HashMap<>();
+    private void deduceVariants(Command<HytaleCommandSource> imperatCmd) {
+        for (CommandPathway<HytaleCommandSource> mainUsage : imperatCmd.getDedicatedPathways()) {
+            Map<Integer, Argument<HytaleCommandSource>> optionals = new HashMap<>();
             for (int i = 0; i < mainUsage.size(); i++) {
                 var parameter = mainUsage.getArgumentAt(i);
                 assert parameter != null;
@@ -115,13 +115,13 @@ final class InternalHytaleCommand extends CommandBase {
             }
 
 
-            List<List<Argument<HytaleSource>>> parameterVariants = new ArrayList<>();
+            List<List<Argument<HytaleCommandSource>>> parameterVariants = new ArrayList<>();
             for (int i = 0; i < mainUsage.size(); i++) {
                 var parameter = mainUsage.getArgumentAt(i);
                 assert parameter != null;
                 if (optionals.get(i) != null) {
                     //add to a new variant , then remove and skip
-                    List<Argument<HytaleSource>> variant = new ArrayList<>();
+                    List<Argument<HytaleCommandSource>> variant = new ArrayList<>();
                     for (int j = 0; j < mainUsage.size(); j++) {
                         var p = mainUsage.getArgumentAt(j);
                         if (j != i) {
@@ -141,7 +141,7 @@ final class InternalHytaleCommand extends CommandBase {
     }
 
 
-    private void hookSubcommands(Command<HytaleSource> imperatCmd) {
+    private void hookSubcommands(Command<HytaleCommandSource> imperatCmd) {
         for (var sub : imperatCmd.getSubCommands()) {
             this.addSubCommand(new InternalHytaleCommand(imperat, sub));
         }

@@ -10,9 +10,9 @@ import studio.mevera.imperat.command.DescriptionHolder;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
 import studio.mevera.imperat.command.arguments.validator.ArgValidator;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ParsedArgument;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.permissions.PermissionsData;
@@ -31,9 +31,9 @@ import java.util.List;
  * by the usage of the command itself
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface Argument<S extends Source> extends PermissionHolder, DescriptionHolder {
+public interface Argument<S extends CommandSource> extends PermissionHolder, DescriptionHolder {
 
-    static <S extends Source, T> Argument<S> of(
+    static <S extends CommandSource, T> Argument<S> of(
             String name,
             ArgumentType<S, T> type,
             @NotNull PermissionsData permission,
@@ -58,85 +58,85 @@ public interface Argument<S extends Source> extends PermissionHolder, Descriptio
         return param;
     }
 
-    static <S extends Source, T> ArgumentBuilder<S, T> required(String name, ArgumentType<S, T> type) {
+    static <S extends CommandSource, T> ArgumentBuilder<S, T> required(String name, ArgumentType<S, T> type) {
         return new ArgumentBuilder<>(name, type, false);
     }
 
-    static <S extends Source> ArgumentBuilder<S, Integer> requiredInt(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Integer> requiredInt(String name) {
         return required(name, ArgumentTypes.numeric(Integer.class));
     }
 
-    static <S extends Source> ArgumentBuilder<S, Long> requiredLong(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Long> requiredLong(String name) {
         return required(name, ArgumentTypes.numeric(Long.class));
     }
 
-    static <S extends Source> ArgumentBuilder<S, Double> requiredDouble(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Double> requiredDouble(String name) {
         return required(name, ArgumentTypes.numeric(Double.class));
     }
 
-    static <S extends Source> ArgumentBuilder<S, Float> requiredFloat(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Float> requiredFloat(String name) {
         return required(name, ArgumentTypes.numeric(Float.class));
     }
 
-    static <S extends Source> ArgumentBuilder<S, Boolean> requiredBoolean(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Boolean> requiredBoolean(String name) {
         return required(name, ArgumentTypes.bool());
     }
 
-    static <S extends Source> ArgumentBuilder<S, String> requiredText(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, String> requiredText(String name) {
         return required(name, ArgumentTypes.string());
     }
 
     //TODO REPLACE GREEDY SYSTEM WITH PARAMETER TYPE SYSTEM
-    static <S extends Source> ArgumentBuilder<S, String> requiredGreedy(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, String> requiredGreedy(String name) {
         return new ArgumentBuilder<>(name, ArgumentTypes.string(), false, true);
     }
 
-    static <S extends Source, T> ArgumentBuilder<S, T> optional(String name, ArgumentType<S, T> token) {
+    static <S extends CommandSource, T> ArgumentBuilder<S, T> optional(String name, ArgumentType<S, T> token) {
         return new ArgumentBuilder<>(name, token, true);
     }
 
 
-    static <S extends Source> ArgumentBuilder<S, Integer> optionalInt(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Integer> optionalInt(String name) {
         return optional(name, ArgumentTypes.numeric(Integer.class));
     }
 
-    static <S extends Source> ArgumentBuilder<S, Long> optionalLong(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Long> optionalLong(String name) {
         return optional(name, ArgumentTypes.numeric(Long.class));
     }
 
-    static <S extends Source> ArgumentBuilder<S, Double> optionalDouble(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Double> optionalDouble(String name) {
         return optional(name, ArgumentTypes.numeric(Double.class));
     }
 
-    static <S extends Source> ArgumentBuilder<S, Float> optionalFloat(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Float> optionalFloat(String name) {
         return optional(name, ArgumentTypes.numeric(Float.class));
     }
 
-    static <S extends Source> ArgumentBuilder<S, Boolean> optionalBoolean(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, Boolean> optionalBoolean(String name) {
         return optional(name, ArgumentTypes.bool());
     }
 
-    static <S extends Source> ArgumentBuilder<S, String> optionalText(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, String> optionalText(String name) {
         return optional(name, ArgumentTypes.string());
     }
 
     //TODO REPLACE GREEDY SYSTEM WITH PARAMETER TYPE SYSTEM
-    static <S extends Source> ArgumentBuilder<S, String> optionalGreedy(String name) {
+    static <S extends CommandSource> ArgumentBuilder<S, String> optionalGreedy(String name) {
         return new ArgumentBuilder<>(name, ArgumentTypes.string(), true, true);
     }
 
-    static <S extends Source, T> FlagBuilder<S, T> flag(
+    static <S extends CommandSource, T> FlagBuilder<S, T> flag(
             String name,
             ArgumentType<S, T> inputType
     ) {
         return FlagBuilder.ofFlag(name, inputType);
     }
 
-    static <S extends Source> FlagBuilder<S, Boolean> flagSwitch(String name) {
+    static <S extends CommandSource> FlagBuilder<S, Boolean> flagSwitch(String name) {
         return FlagBuilder.ofSwitch(name);
     }
 
-    static <S extends Source> Argument<S> literal(String part) {
+    static <S extends CommandSource> Argument<S> literal(String part) {
         Preconditions.notNull(part, "part");
         Preconditions.checkArgument(!part.isEmpty(), "Literal part cannot be empty");
         Preconditions.checkArgument(part.chars().allMatch(c -> Character.isLetterOrDigit(c) || c == '_'),

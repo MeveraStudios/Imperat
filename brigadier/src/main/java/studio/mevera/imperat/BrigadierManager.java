@@ -5,7 +5,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * A class that manages parsing {@link Command}
@@ -13,7 +13,7 @@ import studio.mevera.imperat.context.Source;
  *
  * @param <S> the command-source valueType
  */
-public sealed interface BrigadierManager<S extends Source> permits BaseBrigadierManager {
+public sealed interface BrigadierManager<S extends CommandSource> permits BaseBrigadierManager {
 
     /**
      * Converts the original command source from brigadier

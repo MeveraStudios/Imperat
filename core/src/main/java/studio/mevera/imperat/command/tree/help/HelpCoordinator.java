@@ -3,11 +3,11 @@ package studio.mevera.imperat.command.tree.help;
 import studio.mevera.imperat.command.tree.help.renderers.HelpLayoutRenderer;
 import studio.mevera.imperat.command.tree.help.renderers.StandardHelpRenderer;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 
-public class HelpCoordinator<S extends Source> {
+public class HelpCoordinator<S extends CommandSource> {
 
     private final TreeHelpVisitor<S> provider;
     private final HelpLayoutRenderer<S, ?> renderer;
@@ -32,10 +32,10 @@ public class HelpCoordinator<S extends Source> {
      * @param provider The provider responsible for fetching help entries.
      * @param renderer The renderer responsible for displaying help entries.
      *
-     * @param <S> The type of the {@link Source}.
+     * @param <S> The type of the {@link CommandSource}.
      * @return A new instance of {@code HelpCoordinator}.
      */
-    public static <S extends Source> HelpCoordinator<S> create(
+    public static <S extends CommandSource> HelpCoordinator<S> create(
             TreeHelpVisitor<S> provider,
             HelpLayoutRenderer<S, ?> renderer
     ) {
@@ -45,10 +45,10 @@ public class HelpCoordinator<S extends Source> {
     /**
      * A factory method to create a new HelpCoordinator with default settings.
      *
-     * @param <S> The type of the {@link Source}.
+     * @param <S> The type of the {@link CommandSource}.
      * @return A new instance of {@code HelpCoordinator} with default provider and renderer.
      */
-    public static <S extends Source> HelpCoordinator<S> create() {
+    public static <S extends CommandSource> HelpCoordinator<S> create() {
         return new HelpCoordinator<>(TreeHelpVisitor.defaultProvider(), new StandardHelpRenderer<>());
     }
 

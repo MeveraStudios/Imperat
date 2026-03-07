@@ -9,9 +9,9 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
-public final class GroupArgument extends ArgumentType<TestSource, Group> {
+public final class GroupArgument extends ArgumentType<TestCommandSource, Group> {
 
     private final GroupSuggestionProvider suggestionResolver = new GroupSuggestionProvider();
 
@@ -22,8 +22,8 @@ public final class GroupArgument extends ArgumentType<TestSource, Group> {
 
     @Override
     public @Nullable Group parse(
-            @NotNull ExecutionContext<TestSource> context,
-            @NotNull Cursor<TestSource> cursor,
+            @NotNull ExecutionContext<TestCommandSource> context,
+            @NotNull Cursor<TestCommandSource> cursor,
             @NotNull String correspondingInput) throws CommandException {
         String raw = cursor.currentRaw().orElse(null);
         if (raw == null) {
@@ -34,7 +34,7 @@ public final class GroupArgument extends ArgumentType<TestSource, Group> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<TestSource> context, Argument<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<TestCommandSource> context, Argument<TestCommandSource> parameter) {
         String raw = context.arguments().getOr(rawPosition, null);
         if (raw == null) {
             return false;
@@ -43,7 +43,7 @@ public final class GroupArgument extends ArgumentType<TestSource, Group> {
     }
 
     @Override
-    public SuggestionProvider<TestSource> getSuggestionProvider() {
+    public SuggestionProvider<TestCommandSource> getSuggestionProvider() {
         return suggestionResolver;
     }
 

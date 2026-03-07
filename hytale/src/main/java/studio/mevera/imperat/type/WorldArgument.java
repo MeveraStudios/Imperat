@@ -3,7 +3,7 @@ package studio.mevera.imperat.type;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
-import studio.mevera.imperat.HytaleSource;
+import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.exception.UnknownWorldException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -27,7 +27,7 @@ public class WorldArgument extends HytaleArgumentType<World> {
     }
 
     @Override
-    public SuggestionProvider<HytaleSource> getSuggestionProvider() {
+    public SuggestionProvider<HytaleCommandSource> getSuggestionProvider() {
         return (ignored, ignoredToo) -> new ArrayList<>(Universe.get().getWorlds().keySet());
     }
 }

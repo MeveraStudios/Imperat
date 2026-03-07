@@ -5,7 +5,7 @@ import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Switch;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * /announce [-urgent/-u] [-pin/-p] <message...>
@@ -19,7 +19,7 @@ public class AnnounceCommand {
 
     @Execute
     public void announce(
-            TestSource source,
+            TestCommandSource source,
             @Switch({"urgent", "u"}) boolean urgent,
             @Switch({"pin", "p"}) boolean pin,
             @Named("message") @Greedy String message

@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.internal.Cursor;
 
 /**
@@ -23,7 +23,7 @@ final class GreedyLimitHelper {
      * Finds the next non-flag parameter after the current cursor position,
      * or {@code null} if there is none.
      */
-    static <S extends Source> @Nullable Argument<S> findNextNonFlagParam(Cursor<S> cursor) {
+    static <S extends CommandSource> @Nullable Argument<S> findNextNonFlagParam(Cursor<S> cursor) {
         int currentPos = cursor.currentParameterPosition();
         for (int i = currentPos + 1; i < cursor.parametersLength(); i++) {
             Argument<S> param = cursor.getParametersList().get(i);
@@ -45,7 +45,7 @@ final class GreedyLimitHelper {
      * @param cursor                 the current cursor
      * @return the effective limit ({@code -1} for unlimited, positive otherwise)
      */
-    static <S extends Source> int computeEffectiveLimit(
+    static <S extends CommandSource> int computeEffectiveLimit(
             int greedyLimit,
             @Nullable Argument<S> nextParam,
             boolean nextParamCanDiscriminate,
@@ -66,7 +66,7 @@ final class GreedyLimitHelper {
     /**
      * Counts required non-flag parameters remaining AFTER the current parameter position.
      */
-    private static <S extends Source> int countRemainingRequiredParams(Cursor<S> cursor) {
+    private static <S extends CommandSource> int countRemainingRequiredParams(Cursor<S> cursor) {
         int count = 0;
         int currentPos = cursor.currentParameterPosition();
         for (int i = currentPos + 1; i < cursor.parametersLength(); i++) {

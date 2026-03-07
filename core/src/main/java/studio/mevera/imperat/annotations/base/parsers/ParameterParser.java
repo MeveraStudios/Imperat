@@ -25,7 +25,7 @@ import studio.mevera.imperat.command.arguments.NumericRange;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.validator.ArgValidator;
 import studio.mevera.imperat.command.arguments.validator.ConstrainedValueValidator;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -41,7 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-final class ParameterParser<S extends Source> {
+final class ParameterParser<S extends CommandSource> {
 
     private static final String VALUES_SEPARATION_CHAR = "\\|";
 

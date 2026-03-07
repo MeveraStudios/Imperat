@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.tree;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.priority.Priority;
 import studio.mevera.imperat.util.priority.PriorityList;
@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @ApiStatus.Internal
-public final class CommandTreeVisualizer<S extends Source> {
+public final class CommandTreeVisualizer<S extends CommandSource> {
 
     private static final String HORIZONTAL_LINE = "─";
     private static final String VERTICAL_LINE = "│";
@@ -55,7 +55,7 @@ public final class CommandTreeVisualizer<S extends Source> {
         this.nodeSpacing = nodeSpacing;
     }
 
-    public static <S extends Source> CommandTreeVisualizer<S> of(@Nullable CommandTree<S> tree) {
+    public static <S extends CommandSource> CommandTreeVisualizer<S> of(@Nullable CommandTree<S> tree) {
         return new CommandTreeVisualizer<>(tree);
     }
 

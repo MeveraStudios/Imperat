@@ -6,8 +6,8 @@ import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.theme.HelpComponent;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +24,7 @@ import java.util.Set;
  * @param <S> the source type
  * @param <C> the component type
  */
-public final class StandardHelpRenderer<S extends Source, C> implements HelpLayoutRenderer<S, C> {
+public final class StandardHelpRenderer<S extends CommandSource, C> implements HelpLayoutRenderer<S, C> {
 
     @Override
     public void render(

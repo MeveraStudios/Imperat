@@ -37,9 +37,9 @@ import java.io.OutputStream;
  * @since 1.0
  * @author Imperat Framework
  * @see CommandLineConfigBuilder
- * @see ConsoleSource
+ * @see ConsoleCommandSource
  */
-public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
+public final class CommandLineImperat extends BaseImperat<ConsoleCommandSource> {
 
     private InputStream input;
 
@@ -50,7 +50,7 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
      * @param inputStream the input stream for command reading
      * @param config the Imperat configuration
      */
-    CommandLineImperat(InputStream inputStream, ImperatConfig<ConsoleSource> config) {
+    CommandLineImperat(InputStream inputStream, ImperatConfig<ConsoleCommandSource> config) {
         super(config);
         this.input = inputStream;
     }
@@ -87,20 +87,20 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
     }
 
     @Override
-    public ConsoleSource createDummySender() {
-        return new ConsoleSource(ConsoleLogger.SYSTEM);
+    public ConsoleCommandSource createDummySender() {
+        return new ConsoleCommandSource(ConsoleLogger.SYSTEM);
     }
 
     /**
-     * Wraps a sender object into a ConsoleSource.
+     * Wraps a sender object into a ConsoleCommandSource.
      * For CLI applications, all sources are console sources.
      *
      * @param sender the sender object (typically a ConsoleLogger)
-     * @return a new ConsoleSource wrapping the sender
+     * @return a new ConsoleCommandSource wrapping the sender
      */
     @Override
-    public ConsoleSource wrapSender(Object sender) {
-        return new ConsoleSource((ConsoleLogger) sender);
+    public ConsoleCommandSource wrapSender(Object sender) {
+        return new ConsoleCommandSource((ConsoleLogger) sender);
     }
 
     /**
@@ -111,7 +111,7 @@ public final class CommandLineImperat extends BaseImperat<ConsoleSource> {
     public void dispatch(ConsoleLogger consoleLogger) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
             String line = reader.readLine();
-            ConsoleSource prompt = wrapSender(consoleLogger);
+            ConsoleCommandSource prompt = wrapSender(consoleLogger);
             super.execute(prompt, line);
         } catch (IOException e) {
             throw new RuntimeException(e);

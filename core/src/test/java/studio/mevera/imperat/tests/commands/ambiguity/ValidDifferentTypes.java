@@ -2,7 +2,7 @@ package studio.mevera.imperat.tests.commands.ambiguity;
 
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * VALID: Two execute methods with different types at the first parameter is NOT ambiguous.
@@ -12,12 +12,12 @@ import studio.mevera.imperat.tests.TestSource;
 public class ValidDifferentTypes {
 
     @Execute
-    public void withString(TestSource source, String name) {
+    public void withString(TestCommandSource source, String name) {
         source.reply("Name: " + name);
     }
 
     @Execute
-    public void withInt(TestSource source, int age) {
+    public void withInt(TestCommandSource source, int age) {
         source.reply("Age: " + age);
     }
 }

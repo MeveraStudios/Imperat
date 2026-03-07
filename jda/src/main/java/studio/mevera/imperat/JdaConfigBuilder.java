@@ -18,7 +18,7 @@ import studio.mevera.imperat.util.TypeWrap;
 /**
  * Configuration builder for {@link JdaImperat}.
  */
-public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat, JdaConfigBuilder> {
+public final class JdaConfigBuilder extends ConfigBuilder<JdaCommandSource, JdaImperat, JdaConfigBuilder> {
 
     private final JDA jda;
 
@@ -33,9 +33,9 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaSource, JdaImperat,
     }
 
     private void registerContextResolvers() {
-        config.registerContextArgumentProvider(new TypeWrap<ExecutionContext<JdaSource>>() {
+        config.registerContextArgumentProvider(new TypeWrap<ExecutionContext<JdaCommandSource>>() {
         }.getType(), (ctx, param) -> ctx);
-        config.registerContextArgumentProvider(new TypeWrap<CommandHelp<JdaSource>>() {
+        config.registerContextArgumentProvider(new TypeWrap<CommandHelp<JdaCommandSource>>() {
         }.getType(), (ctx, param) -> CommandHelp.create(ctx));
         config.registerContextArgumentProvider(SlashCommandInteractionEvent.class, (ctx, param) -> ctx.source().origin());
         config.registerContextArgumentProvider(JDA.class, (ctx, param) -> jda);

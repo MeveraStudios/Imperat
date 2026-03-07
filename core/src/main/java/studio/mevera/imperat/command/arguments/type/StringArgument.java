@@ -6,8 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.Patterns;
@@ -15,7 +15,7 @@ import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.Set;
 
-public final class StringArgument<S extends Source> extends ArgumentType<S, String> {
+public final class StringArgument<S extends CommandSource> extends ArgumentType<S, String> {
 
     StringArgument() {
         super();

@@ -8,15 +8,15 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.math.BigDecimal;
 
-public class BigDecimalParamType extends ArgumentType<TestSource, BigDecimal> {
+public class BigDecimalParamType extends ArgumentType<TestCommandSource, BigDecimal> {
 
 
     @Override
-    public @Nullable BigDecimal parse(@NotNull ExecutionContext<TestSource> context, @NotNull Cursor<TestSource> cursor,
+    public @Nullable BigDecimal parse(@NotNull ExecutionContext<TestCommandSource> context, @NotNull Cursor<TestCommandSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         try {
@@ -28,7 +28,7 @@ public class BigDecimalParamType extends ArgumentType<TestSource, BigDecimal> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<TestSource> context, Argument<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<TestCommandSource> context, Argument<TestCommandSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;

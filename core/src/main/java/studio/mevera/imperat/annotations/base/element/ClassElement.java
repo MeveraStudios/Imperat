@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.types.Dependency;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.UnknownDependencyException;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.reflection.Reflections;
@@ -27,7 +27,7 @@ public non-sealed class ClassElement extends ParseElement<Class<?>> {
     private final Set<ParseElement<?>> children = new LinkedHashSet<>();
     private final Object instance;
 
-    public <S extends Source> ClassElement(
+    public <S extends CommandSource> ClassElement(
             @NotNull AnnotationParser<S> parser,
             @NotNull ClassElement parent,
             @NotNull Class<?> element
@@ -37,7 +37,7 @@ public non-sealed class ClassElement extends ParseElement<Class<?>> {
         this.injectDependencies();
     }
 
-    public <S extends Source> ClassElement(
+    public <S extends CommandSource> ClassElement(
             @NotNull AnnotationParser<S> parser,
             @Nullable ClassElement parent,
             @NotNull Class<?> element,
@@ -48,7 +48,7 @@ public non-sealed class ClassElement extends ParseElement<Class<?>> {
         this.injectDependencies();
     }
 
-    private <S extends Source> void injectDependencies() {
+    private <S extends CommandSource> void injectDependencies() {
         Exception exception = null;
         for (Field field : element.getDeclaredFields()) {
             if (!field.isAnnotationPresent(Dependency.class)) {
@@ -78,7 +78,7 @@ public non-sealed class ClassElement extends ParseElement<Class<?>> {
         }
     }
 
-    private <S extends Source> Object newInstance(ImperatConfig<S> config, ClassElement parent, Object... constructorArgs) {
+    private <S extends CommandSource> Object newInstance(ImperatConfig<S> config, ClassElement parent, Object... constructorArgs) {
 
         InstanceFactory<S> factory = config.getInstanceFactory();
         try {
@@ -155,7 +155,7 @@ public non-sealed class ClassElement extends ParseElement<Class<?>> {
         return instance;
     }
 
-    public <S extends Source, R> R accept(CommandClassParser<S, R> visitor) {
+    public <S extends CommandSource, R> R accept(CommandClassParser<S, R> visitor) {
         try {
             return visitor.visitCommandClass(this);
         } catch (Throwable ex) {

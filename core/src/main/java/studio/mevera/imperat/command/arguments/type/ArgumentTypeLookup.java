@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.reflect.Type;
 import java.util.Optional;
@@ -16,7 +16,7 @@ import java.util.Optional;
  * @param <S> the source type
  */
 @FunctionalInterface
-public interface ArgumentTypeLookup<S extends Source> {
+public interface ArgumentTypeLookup<S extends CommandSource> {
 
     /**
      * Looks up an {@link ArgumentType} for the specified type.

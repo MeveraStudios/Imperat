@@ -12,9 +12,9 @@ import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.events.Event;
 import studio.mevera.imperat.events.EventBus;
@@ -53,7 +53,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 
-public abstract class BaseImperat<S extends Source> implements Imperat<S> {
+public abstract class BaseImperat<S extends CommandSource> implements Imperat<S> {
 
     protected final ImperatConfig<S> config;
     private final Map<String, Command<S>> commands = new HashMap<>();
@@ -205,7 +205,7 @@ public abstract class BaseImperat<S extends Source> implements Imperat<S> {
      */
     @Override
     public boolean canBeSender(Type type) {
-        return TypeWrap.of(Source.class).isSupertypeOf(type);
+        return TypeWrap.of(CommandSource.class).isSupertypeOf(type);
     }
 
     /**

@@ -3,14 +3,14 @@ package studio.mevera.imperat.tests.syntax.commands;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("usagetest")
 public class UsageTestCommand {
 
     @SubCommand("simple")
     public void simpleCommand(
-            TestSource source,
+            TestCommandSource source,
             @Named("name") String name,
             @Named("age") int age
     ) {
@@ -19,7 +19,7 @@ public class UsageTestCommand {
 
     @SubCommand("optional")
     public void optionalCommand(
-            TestSource source,
+            TestCommandSource source,
             @Named("required") String required
     ) {
         source.reply("Optional command executed: required=" + required);
@@ -27,7 +27,7 @@ public class UsageTestCommand {
 
     @SubCommand("optional")
     public void optionalCommandWithOptional(
-            TestSource source,
+            TestCommandSource source,
             @Named("required") String required,
             @Named("optional") String optional
     ) {
@@ -36,7 +36,7 @@ public class UsageTestCommand {
 
     @SubCommand("chain")
     public void chainCommand(
-            TestSource source,
+            TestCommandSource source,
             @Named("required") String required
     ) {
         source.reply("Chain command executed: required=" + required);
@@ -44,7 +44,7 @@ public class UsageTestCommand {
 
     @SubCommand("chain")
     public void chainCommandOpt1(
-            TestSource source,
+            TestCommandSource source,
             @Named("required") String required,
             @Named("opt1") String opt1
     ) {
@@ -53,7 +53,7 @@ public class UsageTestCommand {
 
     @SubCommand("chain")
     public void chainCommandOpt2(
-            TestSource source,
+            TestCommandSource source,
             @Named("required") String required,
             @Named("opt1") String opt1,
             @Named("opt2") String opt2
@@ -63,7 +63,7 @@ public class UsageTestCommand {
 
     @SubCommand("chain")
     public void chainCommandOpt3(
-            TestSource source,
+            TestCommandSource source,
             @Named("required") String required,
             @Named("opt1") String opt1,
             @Named("opt2") String opt2,
@@ -76,7 +76,7 @@ public class UsageTestCommand {
 
     @SubCommand("flags")
     public void flagsCommand(
-            TestSource source,
+            TestCommandSource source,
             @Named("target") String target
     ) {
         source.reply("Flags command executed: target=" + target);
@@ -89,7 +89,7 @@ public class UsageTestCommand {
 
         @SubCommand("sub1")
         public void sub1Command(
-                TestSource source,
+                TestCommandSource source,
                 @Named("param1") String param1
         ) {
             source.reply("Nested sub1 executed: param1=" + param1);
@@ -97,7 +97,7 @@ public class UsageTestCommand {
 
         @SubCommand("sub2")
         public void sub2Command(
-                TestSource source,
+                TestCommandSource source,
                 @Named("param2") int param2
         ) {
             source.reply("Nested sub2 executed: param2=" + param2);
@@ -108,7 +108,7 @@ public class UsageTestCommand {
 
             @SubCommand("deep")
             public void deepCommand(
-                    TestSource source,
+                    TestCommandSource source,
                     @Named("value") String value
             ) {
                 source.reply("Deep nested command executed: value=" + value);
@@ -123,7 +123,7 @@ public class UsageTestCommand {
 
         @SubCommand("add")
         public void addItem(
-                TestSource source,
+                TestCommandSource source,
                 @Named("item") String item
         ) {
             source.reply("Added item: " + item);
@@ -131,19 +131,19 @@ public class UsageTestCommand {
 
         @SubCommand("remove")
         public void removeItem(
-                TestSource source,
+                TestCommandSource source,
                 @Named("item") String item
         ) {
             source.reply("Removed item: " + item);
         }
 
         @SubCommand("list")
-        public void listItems(TestSource source) {
+        public void listItems(TestCommandSource source) {
             source.reply("Listing all items");
         }
 
         @SubCommand("clear")
-        public void clearItems(TestSource source) {
+        public void clearItems(TestCommandSource source) {
             source.reply("Cleared all items");
         }
     }
@@ -155,20 +155,20 @@ public class UsageTestCommand {
 
         @SubCommand("child1")
         public void child1(
-                TestSource source,
+                TestCommandSource source,
                 @Named("arg1") String arg1
         ) {
             source.reply("Child1 executed: arg1=" + arg1);
         }
 
         @SubCommand("child2")
-        public void child2Executable(TestSource source) {
+        public void child2Executable(TestCommandSource source) {
             source.reply("Child2 executed (no args)");
         }
 
         @SubCommand("child3")
         public void child3(
-                TestSource source,
+                TestCommandSource source,
                 @Named("arg3") String arg3
         ) {
             source.reply("Child3 executed: arg3=" + arg3);

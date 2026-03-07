@@ -5,7 +5,7 @@ import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeLookup;
 import studio.mevera.imperat.command.arguments.type.MapArgument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.priority.Priority;
 
@@ -33,7 +33,7 @@ import java.util.function.Supplier;
  * @param <S> the source type
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
-public final class MapArgumentTypeHandler<S extends Source> implements ArgumentTypeHandler<S> {
+public final class MapArgumentTypeHandler<S extends CommandSource> implements ArgumentTypeHandler<S> {
 
     private final Map<Type, Supplier<Map<?, ?>>> initializers = new LinkedHashMap<>();
 

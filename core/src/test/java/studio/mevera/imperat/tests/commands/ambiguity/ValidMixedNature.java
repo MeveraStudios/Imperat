@@ -3,7 +3,7 @@ package studio.mevera.imperat.tests.commands.ambiguity;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * VALID: Two execute methods with mixed nature (required vs optional) is NOT ambiguous
@@ -14,12 +14,12 @@ import studio.mevera.imperat.tests.TestSource;
 public class ValidMixedNature {
 
     @Execute
-    public void withRequired(TestSource source, String required) {
+    public void withRequired(TestCommandSource source, String required) {
         source.reply("Required: " + required);
     }
 
     @Execute
-    public void withOptional(TestSource source, @Optional String optional) {
+    public void withOptional(TestCommandSource source, @Optional String optional) {
         source.reply("Optional: " + optional);
     }
 }

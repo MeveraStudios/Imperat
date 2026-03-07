@@ -8,8 +8,8 @@ import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -30,7 +30,7 @@ import java.util.List;
  * @param <S> The type of the source from which the command originates.
  * @param <T> The type of the parameter being handled.
  */
-public abstract class ArgumentType<S extends Source, T>
+public abstract class ArgumentType<S extends CommandSource, T>
         extends TypeCapturer{
 
     /**

@@ -4,7 +4,7 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.util.List;
 import java.util.Map;
@@ -14,13 +14,13 @@ public class Test2Command {
 
     @Execute
     @SubCommand("help")
-    public void def(TestSource source) {
+    public void def(TestCommandSource source) {
         source.reply("Send help input");
         // /test2
     }
 
     @SubCommand("array")
-    public void def(TestSource source, @Named("myArray") String[] array) {
+    public void def(TestCommandSource source, @Named("myArray") String[] array) {
         source.reply("SIZE= " + array.length);
         for (var entry : array) {
             source.reply("-> " + entry);
@@ -29,7 +29,7 @@ public class Test2Command {
     }
 
     @SubCommand("collection")
-    public void def(TestSource source, @Named("myCollection") List<String> collection) {
+    public void def(TestCommandSource source, @Named("myCollection") List<String> collection) {
         source.reply("SIZE= " + collection.size());
         for (var entry : collection) {
             source.reply("-> " + entry);
@@ -37,7 +37,7 @@ public class Test2Command {
     }
 
     @SubCommand("map")
-    public void def(TestSource source, @Named("myMap") Map<String, String> map) {
+    public void def(TestCommandSource source, @Named("myMap") Map<String, String> map) {
         source.reply("SIZE= " + map.size());
         for (var entry : map.entrySet()) {
             source.reply("-> " + entry.getKey() + ":" + entry.getValue());

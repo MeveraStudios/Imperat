@@ -1,11 +1,11 @@
 package studio.mevera.imperat;
 
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.io.PrintStream;
 
 /**
- * A command-line interface implementation of {@link Source} that wraps a {@link PrintStream}.
+ * A command-line interface implementation of {@link CommandSource} that wraps a {@link PrintStream}.
  * This class provides a bridge between command-line applications and the Imperat framework,
  * enabling console-based command execution and output.
  *
@@ -22,24 +22,24 @@ import java.io.PrintStream;
  * CommandLineImperat imperat = CommandLineImperat.builder(System.in)
  *     .build();
  *
- * // The ConsoleSource will automatically use System.out for output
+ * // The ConsoleCommandSource will automatically use System.out for output
  * }</pre>
  *
  * @since 1.0
  * @author Imperat Framework
- * @see Source
+ * @see CommandSource
  * @see PrintStream
  */
-public class ConsoleSource implements Source {
+public class ConsoleCommandSource implements CommandSource {
 
     private final ConsoleLogger consoleLogger;
 
     /**
-     * Creates a new ConsoleSource that outputs to the specified PrintStream.
+     * Creates a new ConsoleCommandSource that outputs to the specified PrintStream.
      *
      * @param consoleLogger the logger to write output to (e.g., ConsoleLogger.SYSTEM)
      */
-    public ConsoleSource(final ConsoleLogger consoleLogger) {
+    public ConsoleCommandSource(final ConsoleLogger consoleLogger) {
         this.consoleLogger = consoleLogger;
     }
 
@@ -55,7 +55,7 @@ public class ConsoleSource implements Source {
     }
 
     /**
-     * Gets the original ConsoleLogger that this ConsoleSource wraps.
+     * Gets the original ConsoleLogger that this ConsoleCommandSource wraps.
      *
      * @return the underlying ConsoleLogger
      */
@@ -98,7 +98,7 @@ public class ConsoleSource implements Source {
 
     /**
      * Checks if this command source is the console.
-     * For ConsoleSource, this always returns true.
+     * For ConsoleCommandSource, this always returns true.
      *
      * @return true (always, since this is a console source)
      */

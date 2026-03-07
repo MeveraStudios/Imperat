@@ -3,7 +3,7 @@ package studio.mevera.imperat.type;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BungeeSource;
+import studio.mevera.imperat.BungeeCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
@@ -17,7 +17,7 @@ import studio.mevera.imperat.responses.BungeeResponseKey;
 
 import java.util.List;
 
-public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, ProxiedPlayer> {
+public final class ProxiedPlayerArgument extends ArgumentType<BungeeCommandSource, ProxiedPlayer> {
 
     private final ProxiedPlayerSuggestionProvider PROXIED_PLAYER_SUGGESTION_RESOLVER = new ProxiedPlayerSuggestionProvider();
 
@@ -27,8 +27,8 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
 
     @Override
     public @NotNull ProxiedPlayer parse(
-            @NotNull ExecutionContext<BungeeSource> context,
-            @NotNull Cursor<BungeeSource> cursor,
+            @NotNull ExecutionContext<BungeeCommandSource> context,
+            @NotNull Cursor<BungeeCommandSource> cursor,
             @NotNull String correspondingInput) throws CommandException {
 
         if (correspondingInput.equalsIgnoreCase("me")) {
@@ -46,7 +46,7 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<BungeeSource> context, Argument<BungeeSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<BungeeCommandSource> context, Argument<BungeeCommandSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
@@ -61,11 +61,11 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionProvider<BungeeSource> getSuggestionProvider() {
+    public SuggestionProvider<BungeeCommandSource> getSuggestionProvider() {
         return PROXIED_PLAYER_SUGGESTION_RESOLVER;
     }
 
-    private final static class ProxiedPlayerSuggestionProvider implements SuggestionProvider<BungeeSource> {
+    private final static class ProxiedPlayerSuggestionProvider implements SuggestionProvider<BungeeCommandSource> {
 
         /**
          * @param context   the context for suggestions
@@ -73,7 +73,7 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeSource, Prox
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<BungeeSource> context, Argument<BungeeSource> parameter) {
+        public List<String> provide(SuggestionContext<BungeeCommandSource> context, Argument<BungeeCommandSource> parameter) {
             return ProxyServer.getInstance().getPlayers().stream()
                            .map(ProxiedPlayer::getName)
                            .toList();

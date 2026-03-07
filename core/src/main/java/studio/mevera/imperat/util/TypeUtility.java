@@ -3,8 +3,8 @@ package studio.mevera.imperat.util;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
@@ -235,7 +235,7 @@ public final class TypeUtility {
         return false;
     }
 
-    public static <S extends Source> boolean areTrueFlagsOfSameInputType(Set<FlagArgument<S>> flagArgumentDataSet) {
+    public static <S extends CommandSource> boolean areTrueFlagsOfSameInputType(Set<FlagArgument<S>> flagArgumentDataSet) {
         ArgumentType<S, ?> inputType = null;
         for (FlagArgument<S> flagArgumentParam : flagArgumentDataSet) {
             FlagData<S> flagData = flagArgumentParam.flagData();

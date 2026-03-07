@@ -5,7 +5,7 @@ import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeLookup;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.priority.Priority;
 
@@ -18,7 +18,7 @@ import java.util.Optional;
  * @param <S> the source type
  */
 @SuppressWarnings("unchecked")
-public final class OptionalArgumentTypeHandler<S extends Source> implements ArgumentTypeHandler<S> {
+public final class OptionalArgumentTypeHandler<S extends CommandSource> implements ArgumentTypeHandler<S> {
 
     @Override
     public boolean canHandle(@NotNull Type type, @NotNull TypeWrap<?> wrap) {

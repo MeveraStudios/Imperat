@@ -3,7 +3,7 @@ package studio.mevera.imperat.type;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.JdaSource;
+import studio.mevera.imperat.JdaCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
@@ -13,7 +13,7 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.responses.JdaResponseKey;
 
-public final class UserArgument extends ArgumentType<JdaSource, User> {
+public final class UserArgument extends ArgumentType<JdaCommandSource, User> {
 
     private final JDA jda;
 
@@ -22,7 +22,7 @@ public final class UserArgument extends ArgumentType<JdaSource, User> {
     }
 
     @Override
-    public @NotNull User parse(@NotNull ExecutionContext<JdaSource> context, @NotNull Cursor<JdaSource> cursor,
+    public @NotNull User parse(@NotNull ExecutionContext<JdaCommandSource> context, @NotNull Cursor<JdaCommandSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         String userId = correspondingInput.replaceAll("\\D", "");
@@ -39,7 +39,7 @@ public final class UserArgument extends ArgumentType<JdaSource, User> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<JdaSource> context, Argument<JdaSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<JdaCommandSource> context, Argument<JdaCommandSource> parameter) {
         String arg = context.arguments().get(rawPosition);
         return arg != null;
     }

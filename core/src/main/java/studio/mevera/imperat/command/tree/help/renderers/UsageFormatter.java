@@ -5,8 +5,8 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.help.theme.HelpComponent;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 /**
  * Interface for formatting command usage paths into displayable help components.
@@ -15,7 +15,7 @@ import studio.mevera.imperat.context.Source;
  * @param <S> the source type
  * @param <C> the component type
  */
-public interface UsageFormatter<S extends Source, C> {
+public interface UsageFormatter<S extends CommandSource, C> {
 
     /**
      * Formats a command usage pathway into a help component.

@@ -13,9 +13,9 @@ import studio.mevera.imperat.command.tree.help.HelpFilter;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionChecker;
@@ -36,7 +36,7 @@ import java.util.Set;
  * N-ary tree implementation focused on maximum performance
  * @author Mqzen
  */
-final class StandardCommandTree<S extends Source> implements CommandTree<S> {
+final class StandardCommandTree<S extends CommandSource> implements CommandTree<S> {
 
     // Pre-computed immutable collections to eliminate allocations
     private final static int INITIAL_SUGGESTIONS_CAPACITY = 20;

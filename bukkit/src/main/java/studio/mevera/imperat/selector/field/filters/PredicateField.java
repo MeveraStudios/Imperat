@@ -2,7 +2,7 @@ package studio.mevera.imperat.selector.field.filters;
 
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
@@ -40,10 +40,10 @@ public abstract class PredicateField<V> extends AbstractField<V> implements Pred
      * @return The condition that will be used to filter entities based on the value and input data.
      */
     @NotNull
-    protected abstract EntityCondition getCondition(V value, Cursor<BukkitSource> cursor, CommandContext<BukkitSource> context);
+    protected abstract EntityCondition getCondition(V value, Cursor<BukkitCommandSource> cursor, CommandContext<BukkitCommandSource> context);
 
-    public final boolean isApplicable(BukkitSource sender, Entity entity, V value, Cursor<BukkitSource> cursor,
-            CommandContext<BukkitSource> ctx) throws
+    public final boolean isApplicable(BukkitCommandSource sender, Entity entity, V value, Cursor<BukkitCommandSource> cursor,
+            CommandContext<BukkitCommandSource> ctx) throws
             CommandException {
         EntityCondition condition = getCondition(value, cursor, ctx);
         return condition.test(sender, entity);

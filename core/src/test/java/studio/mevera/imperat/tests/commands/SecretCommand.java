@@ -6,7 +6,7 @@ import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Secret;
 import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.annotations.types.Suggest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * Test command with secret subcommands for verifying that secret commands
@@ -16,7 +16,7 @@ import studio.mevera.imperat.tests.TestSource;
 public class SecretCommand {
 
     @Execute
-    public void defaultUsage(TestSource source) {
+    public void defaultUsage(TestCommandSource source) {
         source.reply("secrettest default");
     }
 
@@ -27,7 +27,7 @@ public class SecretCommand {
     public static class VisibleSub {
 
         @Execute
-        public void run(TestSource source) {
+        public void run(TestCommandSource source) {
             source.reply("visible executed");
         }
 
@@ -35,7 +35,7 @@ public class SecretCommand {
         public static class VisibleChild {
 
             @Execute
-            public void run(TestSource source, @Named("arg") @Suggest({"alpha", "beta"}) String arg) {
+            public void run(TestCommandSource source, @Named("arg") @Suggest({"alpha", "beta"}) String arg) {
                 source.reply("visible child arg=" + arg);
             }
         }
@@ -49,7 +49,7 @@ public class SecretCommand {
     public static class HiddenSub {
 
         @Execute
-        public void run(TestSource source) {
+        public void run(TestCommandSource source) {
             source.reply("hidden executed");
         }
 
@@ -57,7 +57,7 @@ public class SecretCommand {
         public static class HiddenDeep {
 
             @Execute
-            public void run(TestSource source, @Named("val") @Suggest({"x", "y", "z"}) String val) {
+            public void run(TestCommandSource source, @Named("val") @Suggest({"x", "y", "z"}) String val) {
                 source.reply("hidden deep val=" + val);
             }
         }
@@ -70,7 +70,7 @@ public class SecretCommand {
     public static class PublicSub {
 
         @Execute
-        public void run(TestSource source, @Named("name") @Suggest({"alice", "bob"}) String name) {
+        public void run(TestCommandSource source, @Named("name") @Suggest({"alice", "bob"}) String name) {
             source.reply("public name=" + name);
         }
     }

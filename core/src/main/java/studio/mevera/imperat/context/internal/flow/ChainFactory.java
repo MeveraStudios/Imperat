@@ -1,6 +1,6 @@
 package studio.mevera.imperat.context.internal.flow;
 
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.internal.flow.handlers.EmptyInputHandler;
 import studio.mevera.imperat.context.internal.flow.handlers.OptionalParameterHandler;
 import studio.mevera.imperat.context.internal.flow.handlers.ParameterHandler;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ChainFactory {
 
-    public static <S extends Source> ParameterChain<S> createDefaultChain() {
+    public static <S extends CommandSource> ParameterChain<S> createDefaultChain() {
         return ChainFactory.<S>builder()
                        .withHandler(new EmptyInputHandler<>())
                        .withHandler(new SubCommandHandler<>())
@@ -23,11 +23,11 @@ public class ChainFactory {
                        .build();
     }
 
-    public static <S extends Source> ChainBuilder<S> builder() {
+    public static <S extends CommandSource> ChainBuilder<S> builder() {
         return new ChainBuilder<>();
     }
 
-    public static class ChainBuilder<S extends Source> {
+    public static class ChainBuilder<S extends CommandSource> {
 
         private final List<ParameterHandler<S>> handlers = new ArrayList<>();
 

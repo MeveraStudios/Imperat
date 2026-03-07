@@ -3,7 +3,7 @@ package studio.mevera.imperat;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.command.tree.LiteralCommandNode;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.util.priority.Priority;
 
@@ -19,7 +19,7 @@ final class AmbiguityChecker {
         throw new AssertionError();
     }
 
-    static <S extends Source> void checkAmbiguity(Command<S> command) {
+    static <S extends CommandSource> void checkAmbiguity(Command<S> command) {
         command.visualizeTree();
         var rootNode = command.tree().rootNode();
         checkAmbiguity(
@@ -28,7 +28,7 @@ final class AmbiguityChecker {
         );
     }
 
-    static <S extends Source> void checkAmbiguity(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
+    static <S extends CommandSource> void checkAmbiguity(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
         AmbiguityResult<S> result = checkIsNodeAmbiguous(root, node);
         if(result.isAmbiguous()) {
             throw new AmbiguousCommandException(root.getData(), node, result.argumentNodes());
@@ -39,7 +39,7 @@ final class AmbiguityChecker {
         }
     }
 
-    static <S extends Source> AmbiguityResult<S> checkIsNodeAmbiguous(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
+    static <S extends CommandSource> AmbiguityResult<S> checkIsNodeAmbiguous(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
         if (node.isGreedyParam() && !node.isLast()) {
             // Limited greedy (limit != -1) is allowed to have trailing args — the cap is enforced at parse time
             boolean isUnlimited = node.getData().greedyLimit() == -1;
@@ -59,7 +59,7 @@ final class AmbiguityChecker {
         return detectAmbiguity(children);
     }
 
-    private static <S extends Source> AmbiguityResult<S> detectAmbiguity(Collection<CommandNode<S, ?>> nodes) {
+    private static <S extends CommandSource> AmbiguityResult<S> detectAmbiguity(Collection<CommandNode<S, ?>> nodes) {
         Set<Type> types = new HashSet<>();
         Set<Priority> priorities = new HashSet<>();
         int requiredCount = 0;
@@ -84,14 +84,14 @@ final class AmbiguityChecker {
         );
     }
 
-    record AmbiguityResult<S extends Source>(
+    record AmbiguityResult<S extends CommandSource>(
             Collection<CommandNode<S, ?>> argumentNodes,
             boolean allSameNature,
             boolean hasDuplicateTypes,
             boolean hasDuplicatePriorities
     ) {
 
-        public static <S extends Source> AmbiguityResult<S> failure() {
+        public static <S extends CommandSource> AmbiguityResult<S> failure() {
             return new AmbiguityResult<>(Collections.emptyList(), false, false, false);
         }
 

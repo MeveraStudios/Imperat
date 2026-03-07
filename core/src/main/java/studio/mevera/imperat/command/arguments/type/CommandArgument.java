@@ -5,14 +5,14 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 
 import java.util.List;
 
-public final class CommandArgument<S extends Source> extends ArgumentType<S, Command<S>> {
+public final class CommandArgument<S extends CommandSource> extends ArgumentType<S, Command<S>> {
 
     private final String name;
 

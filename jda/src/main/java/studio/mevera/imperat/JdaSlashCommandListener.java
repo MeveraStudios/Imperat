@@ -27,14 +27,14 @@ final class JdaSlashCommandListener implements EventListener {
     }
 
     private void handleSlashCommand(SlashCommandInteractionEvent event) {
-        Command<JdaSource> command = imperat.getCommand(event.getName());
+        Command<JdaCommandSource> command = imperat.getCommand(event.getName());
         if (command == null) {
             return;
         }
 
         event.deferReply().queue();
 
-        JdaSource source = imperat.wrapSender(event);
+        JdaCommandSource source = imperat.wrapSender(event);
         if (!imperat.config().getPermissionChecker().hasPermission(
                 source,
                 command.getPrimaryPermission()

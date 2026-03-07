@@ -9,7 +9,7 @@ import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
 
@@ -20,11 +20,11 @@ import java.util.Set;
  * Represents a tree structure for commands, providing methods for parsing, matching,
  * and tab-completion functionality within a command framework.
  *
- * @param <S> the type of source that commands and nodes operate on, must extend {@link Source}
+ * @param <S> the type of source that commands and nodes operate on, must extend {@link CommandSource}
  */
-public interface CommandTree<S extends Source> {
+public interface CommandTree<S extends CommandSource> {
 
-    static <S extends Source> CommandTree<S> create(ImperatConfig<S> imperatConfig, Command<S> command) {
+    static <S extends CommandSource> CommandTree<S> create(ImperatConfig<S> imperatConfig, Command<S> command) {
         return new StandardCommandTree<>(imperatConfig, command);
     }
 

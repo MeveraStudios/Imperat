@@ -3,7 +3,7 @@ package studio.mevera.imperat.tests.commands.ambiguity;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * AMBIGUOUS: Three execute methods with conflicting first parameter (all optional String).
@@ -14,17 +14,17 @@ import studio.mevera.imperat.tests.TestSource;
 public class AmbiguousThreeOptional {
 
     @Execute
-    public void withFirst(TestSource source, @Optional String first) {
+    public void withFirst(TestCommandSource source, @Optional String first) {
         source.reply("First: " + first);
     }
 
     @Execute
-    public void withSecond(TestSource source, @Optional String second) {
+    public void withSecond(TestCommandSource source, @Optional String second) {
         source.reply("Second: " + second);
     }
 
     @Execute
-    public void withThird(TestSource source, @Optional String third) {
+    public void withThird(TestCommandSource source, @Optional String third) {
         source.reply("Third: " + third);
     }
 }

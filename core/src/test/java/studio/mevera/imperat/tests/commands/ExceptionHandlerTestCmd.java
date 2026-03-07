@@ -4,7 +4,7 @@ import studio.mevera.imperat.annotations.types.ExceptionHandler;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * A command that always throws a custom exception, used to test
@@ -17,7 +17,7 @@ public class ExceptionHandlerTestCmd {
     public static volatile Class<?> lastHandledType = null;
 
     @Execute
-    public void run(TestSource source, String action) throws TestCommandException {
+    public void run(TestCommandSource source, String action) throws TestCommandException {
         if ("crash".equalsIgnoreCase(action)) {
             throw new TestCommandException("Something went wrong in errtest");
         }
@@ -25,7 +25,7 @@ public class ExceptionHandlerTestCmd {
     }
 
     @ExceptionHandler(TestCommandException.class)
-    public void handleTestException(TestCommandException exception, CommandContext<TestSource> context) {
+    public void handleTestException(TestCommandException exception, CommandContext<TestCommandSource> context) {
         lastHandledMessage = exception.getMessage();
         lastHandledType = TestCommandException.class;
         context.source().reply("Caught locally: " + exception.getMessage());

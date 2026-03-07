@@ -1,11 +1,11 @@
 package studio.mevera.imperat.annotations.base.parsers;
 
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.util.asm.MethodCaller;
 
-public final class MethodCommandExceptionHandler<E extends Throwable, S extends Source> implements CommandExceptionHandler<E, S> {
+public final class MethodCommandExceptionHandler<E extends Throwable, S extends CommandSource> implements CommandExceptionHandler<E, S> {
 
     private final MethodCaller.BoundMethodCaller caller;
     private final Class<E> exceptionType;

@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -13,7 +13,7 @@ import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Optional;
 
-public final class OptionalArgument<S extends Source, T> extends ArgumentType<S, Optional<T>> {
+public final class OptionalArgument<S extends CommandSource, T> extends ArgumentType<S, Optional<T>> {
 
     private final ArgumentType<S, T> typeResolver;
 

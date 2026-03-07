@@ -1,14 +1,14 @@
 package studio.mevera.imperat.command.tree.help.theme;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public abstract class BaseHelpTheme<S extends Source, C> implements HelpTheme<S, C> {
+public abstract class BaseHelpTheme<S extends CommandSource, C> implements HelpTheme<S, C> {
 
     private final @NotNull PresentationStyle style;
     private final int indentMultiplier;

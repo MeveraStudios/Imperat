@@ -4,15 +4,15 @@ import net.kyori.adventure.text.ComponentLike;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.adventure.AdventureProvider;
-import studio.mevera.imperat.adventure.AdventureSource;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Objects;
 import java.util.UUID;
 
 /**
- * A Bukkit-specific implementation of {@link Source} that wraps a Bukkit {@link CommandSender}.
+ * A Bukkit-specific implementation of {@link CommandSource} that wraps a Bukkit {@link CommandSender}.
  * This class provides a bridge between Bukkit's command system and the Imperat framework,
  * supporting both legacy Bukkit messaging and modern Adventure API components.
  *
@@ -29,7 +29,7 @@ import java.util.UUID;
  * <pre>{@code
  * // In a command method
  * @Command("teleport")
- * public void teleport(BukkitSource source, Player target) {
+ * public void teleport(BukkitCommandSource source, Player target) {
  *     if (source.isConsole()) {
  *         source.error("Only players can teleport!");
  *         return;
@@ -41,21 +41,21 @@ import java.util.UUID;
  *
  * @since 1.0
  * @author Imperat Framework
- * @see Source
+ * @see CommandSource
  * @see CommandSender
  */
-public class BukkitSource implements AdventureSource {
+public class BukkitCommandSource implements AdventureCommandSource {
 
     protected final CommandSender sender;
     protected final AdventureProvider<CommandSender> provider;
 
     /**
-     * Creates a new BukkitSource wrapping the specified CommandSender.
+     * Creates a new BukkitCommandSource wrapping the specified CommandSender.
      *
      * @param sender the Bukkit CommandSender to wrap (player or console)
      * @param provider the Adventure provider for rich text support
      */
-    protected BukkitSource(
+    protected BukkitCommandSource(
             final CommandSender sender,
             final AdventureProvider<CommandSender> provider
     ) {
@@ -183,7 +183,7 @@ public class BukkitSource implements AdventureSource {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof BukkitSource source)) {
+        if (!(o instanceof BukkitCommandSource source)) {
             return false;
         }
         return Objects.equals(sender, source.sender);

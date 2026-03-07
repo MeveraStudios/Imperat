@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 /**
  * Represents the result of a direct tree execution.
@@ -15,7 +15,7 @@ import studio.mevera.imperat.context.Source;
  * @param <S> the source type
  * @author Mqzen
  */
-public final class TreeExecutionResult<S extends Source> {
+public final class TreeExecutionResult<S extends CommandSource> {
 
     private final @NotNull Status status;
     private final @Nullable ExecutionContext<S> executionContext;
@@ -40,7 +40,7 @@ public final class TreeExecutionResult<S extends Source> {
     /**
      * Creates a successful execution result.
      */
-    public static <S extends Source> TreeExecutionResult<S> success(
+    public static <S extends CommandSource> TreeExecutionResult<S> success(
             @NotNull ExecutionContext<S> executionContext,
             @NotNull CommandPathway<S> matchedPathway,
             @NotNull Command<S> lastCommand
@@ -51,7 +51,7 @@ public final class TreeExecutionResult<S extends Source> {
     /**
      * Creates a result indicating permission was denied.
      */
-    public static <S extends Source> TreeExecutionResult<S> permissionDenied(
+    public static <S extends CommandSource> TreeExecutionResult<S> permissionDenied(
             @Nullable CommandPathway<S> closestUsage,
             @NotNull Command<S> lastCommand
     ) {
@@ -61,7 +61,7 @@ public final class TreeExecutionResult<S extends Source> {
     /**
      * Creates a result indicating no matching pathway was found.
      */
-    public static <S extends Source> TreeExecutionResult<S> noMatch(
+    public static <S extends CommandSource> TreeExecutionResult<S> noMatch(
             @Nullable CommandPathway<S> closestUsage,
             @NotNull Command<S> lastCommand
     ) {

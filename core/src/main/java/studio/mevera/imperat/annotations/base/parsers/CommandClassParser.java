@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.element.selector.MethodRules;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Set;
 
@@ -18,7 +18,7 @@ import java.util.Set;
  *
  * @param <S> the command source
  */
-public abstract class CommandClassParser<S extends Source, R> {
+public abstract class CommandClassParser<S extends CommandSource, R> {
 
     public final static ElementSelector<MethodElement> ERROR_HANDLING_METHOD_SELECTOR =
             ElementSelector.<MethodElement>create()
@@ -39,7 +39,7 @@ public abstract class CommandClassParser<S extends Source, R> {
         this.methodSelector = methodSelector;
     }
 
-    public static <S extends Source> CommandClassParser<S, Set<Command<S>>> newCommandParsingVisitor(
+    public static <S extends CommandSource> CommandClassParser<S, Set<Command<S>>> newCommandParsingVisitor(
         Imperat<S> imperat,
         AnnotationParser<S> parser
     ) {
@@ -60,7 +60,7 @@ public abstract class CommandClassParser<S extends Source, R> {
         };
     }
 
-    public static <S extends Source> CommandClassParser<S, Set<MethodCommandExceptionHandler<?, S>>> newThrowableParsingVisitor(
+    public static <S extends CommandSource> CommandClassParser<S, Set<MethodCommandExceptionHandler<?, S>>> newThrowableParsingVisitor(
             Imperat<S> imperat,
             AnnotationParser<S> parser
     ) {
@@ -72,7 +72,7 @@ public abstract class CommandClassParser<S extends Source, R> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <S extends Source> CommandClassParser<S, Set<Command<S>>> createKotlinVisitorReflectively(
+    private static <S extends CommandSource> CommandClassParser<S, Set<Command<S>>> createKotlinVisitorReflectively(
         Imperat<S> imperat,
         AnnotationParser<S> parser
     ) {

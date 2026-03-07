@@ -1,14 +1,14 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
 
-public final class CharacterArgument<S extends Source> extends ArgumentType<S, Character> {
+public final class CharacterArgument<S extends CommandSource> extends ArgumentType<S, Character> {
 
     @Override
     public @NotNull Character parse(

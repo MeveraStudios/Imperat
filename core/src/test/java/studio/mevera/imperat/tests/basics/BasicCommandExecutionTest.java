@@ -8,7 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @DisplayName("Basic RootCommand Execution Tests")
 public class BasicCommandExecutionTest extends BaseImperatTest {
@@ -16,7 +16,7 @@ public class BasicCommandExecutionTest extends BaseImperatTest {
     @Test
     @DisplayName("Should execute simple command successfully")
     void testSimpleCommandExecution() {
-        ExecutionResult<TestSource> result = execute("test");
+        ExecutionResult<TestCommandSource> result = execute("test");
         assertSuccess(result);
     }
 
@@ -33,7 +33,7 @@ public class BasicCommandExecutionTest extends BaseImperatTest {
     @Test
     @DisplayName("Should execute test command with arguments")
     void testCommandWithArguments() {
-        ExecutionResult<TestSource> result = execute("test hello world");
+        ExecutionResult<TestCommandSource> result = execute("test hello world");
         assertSuccess(result);
         assertArgument(result, "otherText", "hello");
         assertArgument(result, "otherText2", "world");
@@ -43,7 +43,7 @@ public class BasicCommandExecutionTest extends BaseImperatTest {
     @ValueSource(strings = {"upper_case", "UPPER_CASE", "Upper_Case"})
     @DisplayName("Should handle case-insensitive command names")
     void testCaseInsensitiveCommands(String commandName) {
-        ExecutionResult<TestSource> result = execute(commandName.toLowerCase());
+        ExecutionResult<TestCommandSource> result = execute(commandName.toLowerCase());
         assertSuccess(result);
     }
 }

@@ -1,6 +1,6 @@
 package studio.mevera.imperat.permissions;
 
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,7 +97,7 @@ public class CommandPermissionCondition {
     public static CommandPermissionCondition empty() {
         return new CommandPermissionCondition() {
             @Override
-            public <S extends Source> boolean has(S source, PermissionChecker<S> checker) {
+            public <S extends CommandSource> boolean has(S source, PermissionChecker<S> checker) {
                 return true;
             }
 
@@ -223,7 +223,7 @@ public class CommandPermissionCondition {
     }
 
     // --- Evaluate ---
-    public <S extends Source> boolean has(S source, PermissionChecker<S> checker) {
+    public <S extends CommandSource> boolean has(S source, PermissionChecker<S> checker) {
 
         if (permission != null) {
             return checker.hasPermission(source, permission);
@@ -250,7 +250,7 @@ public class CommandPermissionCondition {
         };
     }
 
-    /*private <S extends Source> boolean has0(CommandPermissionCondition permissionCondition, S source, PermissionChecker<S> checker) {
+    /*private <S extends CommandSource> boolean has0(CommandPermissionCondition permissionCondition, S source, PermissionChecker<S> checker) {
         boolean res =
 
     }*/

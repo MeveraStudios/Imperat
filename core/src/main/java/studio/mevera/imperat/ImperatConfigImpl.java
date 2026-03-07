@@ -18,8 +18,8 @@ import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.CommandException;
@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
+final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<S> {
 
     private EventBus eventBus;
     private CommandParsingMode parsingMode = CommandParsingMode.JAVA;
@@ -117,7 +117,7 @@ final class ImperatConfigImpl<S extends Source> implements ImperatConfig<S> {
 
         // register some defaults:
         this.regDefThrowableResolvers();
-        this.registerSourceProvider(Source.class, (source, ctx) -> source);
+        this.registerSourceProvider(CommandSource.class, (source, ctx) -> source);
 
         this.eventBus = EventBus.createDummy();
     }

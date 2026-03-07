@@ -6,7 +6,7 @@ import studio.mevera.imperat.annotations.types.Processor;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,19 +30,19 @@ public class FailingPostProcessorCommand {
     }
 
     @Processor
-    public void failingPostProcessor(ExecutionContext<TestSource> context) throws CommandException {
+    public void failingPostProcessor(ExecutionContext<TestCommandSource> context) throws CommandException {
         CALL_LOG.add("post:threw");
         throw new CommandException("Post-processor failure");
     }
 
     @Execute
-    public void defaultUsage(TestSource source) {
+    public void defaultUsage(TestCommandSource source) {
         CALL_LOG.add("exec:default");
         source.reply("proctestpostfail default");
     }
 
     @Execute
-    public void withArg(TestSource source, @Named("arg") String arg) {
+    public void withArg(TestCommandSource source, @Named("arg") String arg) {
         CALL_LOG.add("exec:arg=" + arg);
         source.reply("proctestpostfail arg=" + arg);
     }

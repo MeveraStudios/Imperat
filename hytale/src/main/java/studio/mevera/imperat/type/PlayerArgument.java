@@ -5,7 +5,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.HytaleSource;
+import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.context.CommandContext;
@@ -30,8 +30,8 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
 
     @Override
     public @Nullable PlayerRef parse(
-            @NotNull ExecutionContext<HytaleSource> context,
-            @NotNull Cursor<HytaleSource> cursor,
+            @NotNull ExecutionContext<HytaleCommandSource> context,
+            @NotNull Cursor<HytaleCommandSource> cursor,
             @NotNull String correspondingInput) throws CommandException {
 
         if (correspondingInput.equalsIgnoreCase("me") || correspondingInput.equalsIgnoreCase("~")) {
@@ -55,7 +55,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionProvider<HytaleSource> getSuggestionProvider() {
+    public SuggestionProvider<HytaleCommandSource> getSuggestionProvider() {
         return SUGGESTION_RESOLVER;
     }
 
@@ -71,7 +71,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<HytaleSource> context, Argument<HytaleSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<HytaleCommandSource> context, Argument<HytaleCommandSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
@@ -80,7 +80,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
         return PlayerUtil.getPlayerRefByName(input) != null;
     }
 
-    private final static class PlayerSuggestionProvider implements SuggestionProvider<HytaleSource> {
+    private final static class PlayerSuggestionProvider implements SuggestionProvider<HytaleCommandSource> {
 
         /**
          * @param context   the context for suggestions
@@ -88,7 +88,7 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<HytaleSource> context, Argument<HytaleSource> parameter) {
+        public List<String> provide(SuggestionContext<HytaleCommandSource> context, Argument<HytaleCommandSource> parameter) {
             return Universe.get().getPlayers().stream().map(PlayerRef::getUsername).toList();
         }
     }

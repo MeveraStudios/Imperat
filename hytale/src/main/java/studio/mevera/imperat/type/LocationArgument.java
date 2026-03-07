@@ -7,7 +7,7 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.HytaleSource;
+import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
@@ -20,12 +20,12 @@ import studio.mevera.imperat.util.TypeUtility;
 
 import java.util.Objects;
 
-public class LocationArgument extends ArgumentType<HytaleSource, Location> {
+public class LocationArgument extends ArgumentType<HytaleCommandSource, Location> {
 
     private final static String SINGLE_STRING_SEPARATOR = ";";
     private final static String SELF_LOCATION_SYMBOL = "~";
 
-    private final ArgumentType<HytaleSource, Double> doubleParser;
+    private final ArgumentType<HytaleCommandSource, Double> doubleParser;
 
     public LocationArgument() {
         super();
@@ -42,7 +42,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public @Nullable Location parse(@NotNull ExecutionContext<HytaleSource> context, @NotNull Cursor<HytaleSource> cursor,
+    public @Nullable Location parse(@NotNull ExecutionContext<HytaleCommandSource> context, @NotNull Cursor<HytaleCommandSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         try {
@@ -65,8 +65,8 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
                 world = context.source().asPlayer().getWorld();
             }
 
-            ArgumentType<HytaleSource, Double> doubleParser =
-                    (ArgumentType<HytaleSource, Double>) context.imperatConfig().getArgumentType(Double.class);
+            ArgumentType<HytaleCommandSource, Double> doubleParser =
+                    (ArgumentType<HytaleCommandSource, Double>) context.imperatConfig().getArgumentType(Double.class);
             if (doubleParser == null) {
                 throw new IllegalArgumentException("Failed to find a parser for type '" + Double.class.getTypeName() + "'");
             }
@@ -175,7 +175,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
         }
     }
 
-    private @NotNull Location locFromStr(ExecutionContext<HytaleSource> context, Cursor<HytaleSource> stream, String currentRaw) throws
+    private @NotNull Location locFromStr(ExecutionContext<HytaleCommandSource> context, Cursor<HytaleCommandSource> stream, String currentRaw) throws
             CommandException {
         String[] split = currentRaw.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
@@ -262,7 +262,7 @@ public class LocationArgument extends ArgumentType<HytaleSource, Location> {
     }
 
     @Override
-    public boolean isGreedy(Argument<HytaleSource> parameter) {
+    public boolean isGreedy(Argument<HytaleCommandSource> parameter) {
         return true;
     }
 }

@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.types.ExceptionHandler;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.asm.DefaultMethodCallerFactory;
 import studio.mevera.imperat.util.asm.MethodCaller;
@@ -17,7 +17,7 @@ import studio.mevera.imperat.util.asm.MethodCaller;
 import java.util.HashSet;
 import java.util.Set;
 
-final class ErrorHandlerParsingVisitor<S extends Source> extends CommandClassParser<S, Set<MethodCommandExceptionHandler<?, S>>> {
+final class ErrorHandlerParsingVisitor<S extends CommandSource> extends CommandClassParser<S, Set<MethodCommandExceptionHandler<?, S>>> {
 
     ErrorHandlerParsingVisitor(
             Imperat<S> imperat,
@@ -28,7 +28,7 @@ final class ErrorHandlerParsingVisitor<S extends Source> extends CommandClassPar
     }
 
     @SuppressWarnings("unchecked")
-    public static <S extends Source, E extends Throwable> @Nullable MethodCommandExceptionHandler<E, S> loadErrorHandler(
+    public static <S extends CommandSource, E extends Throwable> @Nullable MethodCommandExceptionHandler<E, S> loadErrorHandler(
             ImperatConfig<S> cfg,
             ClassElement owner,
             MethodElement methodElement

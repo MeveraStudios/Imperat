@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -15,7 +15,7 @@ import java.util.Collection;
  * from using annotation parser
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface AnnotatedArgument<S extends Source> extends Argument<S> {
+public interface AnnotatedArgument<S extends CommandSource> extends Argument<S> {
 
     @NotNull ParseElement<?> getParsedElement();
 

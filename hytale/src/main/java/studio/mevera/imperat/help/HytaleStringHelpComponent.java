@@ -1,10 +1,10 @@
 package studio.mevera.imperat.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.HytaleSource;
+import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
-public class HytaleStringHelpComponent extends StringHelpComponent<HytaleSource> {
+public class HytaleStringHelpComponent extends StringHelpComponent<HytaleCommandSource> {
 
     protected HytaleStringHelpComponent(@NotNull String componentValue) {
         super(componentValue);

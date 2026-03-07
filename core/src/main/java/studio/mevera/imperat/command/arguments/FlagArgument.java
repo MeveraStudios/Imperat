@@ -2,13 +2,13 @@ package studio.mevera.imperat.command.arguments;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.providers.SuggestionProvider;
 
 import java.lang.reflect.Type;
 
-public interface FlagArgument<S extends Source> extends Argument<S> {
+public interface FlagArgument<S extends CommandSource> extends Argument<S> {
 
     /**
      * @return The flag's data

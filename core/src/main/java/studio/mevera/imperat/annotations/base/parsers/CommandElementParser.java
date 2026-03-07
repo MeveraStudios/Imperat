@@ -32,8 +32,8 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
 import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.exception.InvalidSourceException;
 import studio.mevera.imperat.permissions.PermissionsData;
@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class CommandElementParser<S extends Source> extends CommandClassParser<S, Set<Command<S>>> {
+public class CommandElementParser<S extends CommandSource> extends CommandClassParser<S, Set<Command<S>>> {
 
     private final ImperatConfig<S> config;
     private final ElementSelector<MethodElement> methodSelector;
@@ -275,7 +275,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         return 3;
     }
 
-    static final class MethodPostProcessor<S extends Source> implements CommandPostProcessor<S> {
+    static final class MethodPostProcessor<S extends CommandSource> implements CommandPostProcessor<S> {
 
         private final Priority priority;
 
@@ -531,7 +531,7 @@ public class CommandElementParser<S extends Source> extends CommandClassParser<S
         return shortcut;
     }
 
-    static final class MethodPreProcessor<S extends Source> implements CommandPreProcessor<S> {
+    static final class MethodPreProcessor<S extends CommandSource> implements CommandPreProcessor<S> {
 
         private final Priority priority;
         private final MethodCaller.BoundMethodCaller boundMethodCaller;

@@ -6,9 +6,9 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
-class ContextImpl<S extends Source> implements CommandContext<S> {
+class ContextImpl<S extends CommandSource> implements CommandContext<S> {
 
     protected final Imperat<S> imperat;
     protected final ImperatConfig<S> imperatConfig;
@@ -49,7 +49,7 @@ class ContextImpl<S extends Source> implements CommandContext<S> {
     }
 
     /**
-     * @return the root command entered by the {@link Source}
+     * @return the root command entered by the {@link CommandSource}
      */
     @Override
     public @NotNull String getRootCommandLabelUsed() {

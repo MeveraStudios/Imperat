@@ -4,13 +4,13 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.InheritedArg;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @SubCommand(value = "second", attachTo = "<arg1>")
 public class SecondSub {
 
     @Execute
-    public void defaultUsage(TestSource source,
+    public void defaultUsage(TestCommandSource source,
             @InheritedArg @Named("otherText") String otherText,
             @InheritedArg @Named("otherText2") String otherText2,
             @InheritedArg @Named("arg1") String arg1
@@ -19,7 +19,7 @@ public class SecondSub {
     }
 
     @Execute
-    public void cmdUsage(TestSource source,
+    public void cmdUsage(TestCommandSource source,
             @InheritedArg @Named("otherText") String otherText,
             @InheritedArg @Named("otherText2") String otherText2,
             @InheritedArg @Named("arg1") String arg1,

@@ -60,9 +60,9 @@ import java.util.jar.JarFile;
  * @since 1.0
  * @author Imperat Framework
  * @see BukkitConfigBuilder
- * @see BukkitSource
+ * @see BukkitCommandSource
  */
-public final class BukkitImperat extends BaseImperat<BukkitSource> {
+public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
 
     private final Plugin plugin;
     private final boolean paperPlugin;
@@ -74,7 +74,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
             Plugin plugin,
             AdventureProvider<CommandSender> adventureProvider,
             boolean supportBrigadier,
-            ImperatConfig<BukkitSource> config
+            ImperatConfig<BukkitCommandSource> config
     ) {
         super(config);
         this.plugin = plugin;
@@ -110,8 +110,8 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
     }
 
     @Override
-    public BukkitSource createDummySender() {
-        return new BukkitSource(Bukkit.getConsoleSender(), adventureProvider);
+    public BukkitCommandSource createDummySender() {
+        return new BukkitCommandSource(Bukkit.getConsoleSender(), adventureProvider);
     }
 
     /**
@@ -121,8 +121,8 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
      * @return the wrapped command-sender valueType
      */
     @Override
-    public BukkitSource wrapSender(Object sender) {
-        return new BukkitSource((CommandSender) sender, adventureProvider);
+    public BukkitCommandSource wrapSender(Object sender) {
+        return new BukkitCommandSource((CommandSender) sender, adventureProvider);
     }
 
     /**
@@ -145,7 +145,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
      * @param command the command to register
      */
     @Override
-    public void registerSimpleCommand(Command<BukkitSource> command) {
+    public void registerSimpleCommand(Command<BukkitCommandSource> command) {
         super.registerSimpleCommand(command);
 
         //let's make a safety check for the plugin.yml
@@ -172,7 +172,7 @@ public final class BukkitImperat extends BaseImperat<BukkitSource> {
      */
     @Override
     public void unregisterCommand(String name) {
-        Command<BukkitSource> imperatCmd = getCommand(name);
+        Command<BukkitCommandSource> imperatCmd = getCommand(name);
         super.unregisterCommand(name);
 
         if (imperatCmd == null) {

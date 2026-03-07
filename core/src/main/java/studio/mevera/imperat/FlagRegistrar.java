@@ -1,8 +1,8 @@
 package studio.mevera.imperat;
 
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 
 import java.util.Set;
 
@@ -11,10 +11,10 @@ import java.util.Set;
  * of free flags in the Imperat command framework. Free flags are flags that can be used anywhere
  * in the command syntax, without being tied to a specific position or index.
  *
- * @param <S> the type of source that extends the {@code Source} class, representing the origin
+ * @param <S> the type of source that extends the {@code CommandSource} class, representing the origin
  *            or context of the command (e.g., a user, a system, etc.).
  */
-public interface FlagRegistrar<S extends Source> {
+public interface FlagRegistrar<S extends CommandSource> {
 
     /**
      * Retrieves all registered flags in the system.

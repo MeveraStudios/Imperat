@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -34,14 +34,14 @@ import java.util.Optional;
  *
  * <p><strong>Usage Example:</strong>
  * <pre>{@code
- * CommandInputStream<Source> stream = CommandInputStream.of(
+ * CommandInputStream<CommandSource> stream = CommandInputStream.of(
  *     ArgumentInput.of("player", "give", "diamond", "64"),
  *     detectedUsage
  * );
  *
  * // Navigate through parameters
  * while (stream.isCurrentParameterAvailable()) {
- *     Argument<Source> param = stream.currentParameterIfPresent();
+ *     Argument<CommandSource> param = stream.currentParameterIfPresent();
  *     String rawValue = stream.currentRawIfPresent();
  *
  *     // Process parameter...
@@ -62,7 +62,7 @@ import java.util.Optional;
  * @see ArgumentInput
  * @see StreamPosition
  */
-public interface Cursor<S extends Source> {
+public interface Cursor<S extends CommandSource> {
 
     // ========================================
     // CORE POSITION AND STATE METHODS
@@ -83,7 +83,7 @@ public interface Cursor<S extends Source> {
      *         provided data
      * @throws IllegalArgumentException if queue or usage is {@code null}
      */
-    static <S extends Source> Cursor<S> of(ArgumentInput queue, CommandPathway<S> usage) {
+    static <S extends CommandSource> Cursor<S> of(ArgumentInput queue, CommandPathway<S> usage) {
         return new CursorImpl<>(queue, usage);
     }
 
@@ -98,7 +98,7 @@ public interface Cursor<S extends Source> {
      * @return a new {@link Cursor} instance containing the single input
      * @throws IllegalArgumentException if parameter or str is {@code null}
      */
-    static <S extends Source> Cursor<S> ofSingleString(@NotNull Argument<S> parameter, @NotNull String str) {
+    static <S extends CommandSource> Cursor<S> ofSingleString(@NotNull Argument<S> parameter, @NotNull String str) {
         return new CursorImpl<>(ArgumentInput.of(str), List.of(parameter));
     }
 
@@ -121,7 +121,7 @@ public interface Cursor<S extends Source> {
      * @throws NoSuchElementException if the parent stream has no current parameter available
      * @throws IllegalArgumentException if stream or input is {@code null}
      */
-    static <S extends Source> Cursor<S> subStream(@NotNull Cursor<S> stream, @NotNull String input) {
+    static <S extends CommandSource> Cursor<S> subStream(@NotNull Cursor<S> stream, @NotNull String input) {
         Argument<S> param = stream.currentParameterIfPresent();
         if (param == null) {
             throw new NoSuchElementException("No current parameter available");

@@ -5,7 +5,7 @@ import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Switch;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * /shout <message...> [-loud/-l] [-bold/-b]
@@ -19,7 +19,7 @@ public class ShoutCommand {
 
     @Execute
     public void shout(
-            TestSource source,
+            TestCommandSource source,
             @Named("message") @Greedy String message,
             @Switch({"loud", "l"}) boolean loud,
             @Switch({"bold", "b"}) boolean bold

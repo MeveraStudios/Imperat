@@ -4,7 +4,7 @@ import com.hypixel.hytale.server.core.command.system.ParseResult;
 import com.hypixel.hytale.server.core.command.system.suggestion.SuggestionResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.HytaleSource;
+import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -14,11 +14,11 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseKey;
 
-public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
+public class HytaleArgumentType<T> extends ArgumentType<HytaleCommandSource, T> {
 
     private final com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType<T> hytaleArgType;
     private final ExceptionProvider exceptionProvider;
-    private final SuggestionProvider<HytaleSource> suggestionProvider;
+    private final SuggestionProvider<HytaleCommandSource> suggestionProvider;
 
     public HytaleArgumentType(Class<T> type, com.hypixel.hytale.server.core.command.system.arguments.types.ArgumentType<T> hytaleArgType, ExceptionProvider provider) {
         super(type);
@@ -38,8 +38,8 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
 
     @Override
     public @Nullable T parse(
-            @NotNull ExecutionContext<HytaleSource> context,
-            @NotNull Cursor<HytaleSource> cursor,
+            @NotNull ExecutionContext<HytaleCommandSource> context,
+            @NotNull Cursor<HytaleCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
         String[] rawInput = context.arguments().toArray(String[]::new);
@@ -58,12 +58,12 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
     }
 
     @Override
-    public int getNumberOfParametersToConsume(Argument<HytaleSource> argument) {
+    public int getNumberOfParametersToConsume(Argument<HytaleCommandSource> argument) {
         return hytaleArgType.getNumberOfParameters();
     }
 
     @Override
-    public SuggestionProvider<HytaleSource> getSuggestionProvider() {
+    public SuggestionProvider<HytaleCommandSource> getSuggestionProvider() {
         return suggestionProvider;
     }
 
@@ -72,7 +72,7 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleSource, T> {
     }
 
     @Override
-    public boolean isGreedy(Argument<HytaleSource> parameter) {
+    public boolean isGreedy(Argument<HytaleCommandSource> parameter) {
         return hytaleArgType.isListArgument();
     }
 

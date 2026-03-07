@@ -7,7 +7,7 @@ package studio.mevera.imperat.responses;
  */
 public interface VelocityResponseKey extends ResponseKey {
 
-    // Source restrictions
+    // CommandSource restrictions
     VelocityResponseKey ONLY_PLAYER = () -> "commands.conditions.only-player";
     VelocityResponseKey ONLY_CONSOLE = () -> "commands.conditions.only-console";
 

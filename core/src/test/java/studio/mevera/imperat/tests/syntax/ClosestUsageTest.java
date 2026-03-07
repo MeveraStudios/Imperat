@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.tests.BaseImperatTest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * Tests for the accuracy of closest usage retrieval when CommandException with INVALID_SYNTAX is thrown.
@@ -28,7 +28,7 @@ public class ClosestUsageTest extends BaseImperatTest {
         // Input: /usagetest simple
         // Expected: Should suggest proper usage
 
-        ExecutionResult<TestSource> result = execute("req hi iam idk");
+        ExecutionResult<TestCommandSource> result = execute("req hi iam idk");
         assertFailure(result, InvalidSyntaxException.class);
 
         InvalidSyntaxException ex = (InvalidSyntaxException) result.getError();

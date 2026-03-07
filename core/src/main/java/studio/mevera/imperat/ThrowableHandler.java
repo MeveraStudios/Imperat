@@ -2,7 +2,7 @@ package studio.mevera.imperat;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 
 /**
@@ -11,9 +11,9 @@ import studio.mevera.imperat.exception.CommandExceptionHandler;
  * resolvers for throwable types and handle execution throwable with detailed context
  * information.
  *
- * @param <S> The valueType extending {@link Source} that acts as the source of a command.
+ * @param <S> The valueType extending {@link CommandSource} that acts as the source of a command.
  */
-public sealed interface ThrowableHandler<S extends Source> permits BaseThrowableHandler {
+public sealed interface ThrowableHandler<S extends CommandSource> permits BaseThrowableHandler {
 
     /**
      * Registers a {@link CommandExceptionHandler} for a specific exception type and returns

@@ -2,7 +2,7 @@ package studio.mevera.imperat.help;
 
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BungeeSource;
+import studio.mevera.imperat.BungeeCommandSource;
 import studio.mevera.imperat.adventure.AdventureHelpComponent;
 
 import java.util.function.BiConsumer;
@@ -15,7 +15,7 @@ import java.util.function.BiConsumer;
  * <p>Features:</p>
  * <ul>
  *   <li>Rich text formatting with Adventure Components</li>
- *   <li>Automatic integration with BungeeSource messaging</li>
+ *   <li>Automatic integration with BungeeCommandSource messaging</li>
  *   <li>Support for clickable, hoverable, and styled text</li>
  *   <li>Cross-server help system integration</li>
  *   <li>Modern messaging for BungeeCord networks</li>
@@ -30,28 +30,28 @@ import java.util.function.BiConsumer;
  * }</pre>
  *
  * @author Imperat Framework
- * @see BungeeSource
+ * @see BungeeCommandSource
  * @see AdventureHelpComponent
  * @since 2.1.0
  */
-public class BungeeAdventureHelpComponent extends AdventureHelpComponent<BungeeSource> {
+public class BungeeAdventureHelpComponent extends AdventureHelpComponent<BungeeCommandSource> {
 
     /**
      * Creates a new BungeeAdventureHelpComponent with the specified component and message sender.
      *
      * @param componentValue          the Adventure Component to display as help
-     * @param sendMessageToSourceFunc function to send the component to a BungeeSource
+     * @param sendMessageToSourceFunc function to send the component to a BungeeCommandSource
      */
     protected BungeeAdventureHelpComponent(
             @NotNull Component componentValue,
-            BiConsumer<BungeeSource, Component> sendMessageToSourceFunc
+            BiConsumer<BungeeCommandSource, Component> sendMessageToSourceFunc
     ) {
         super(componentValue, sendMessageToSourceFunc);
     }
 
     /**
      * Creates a new BungeeAdventureHelpComponent with the specified Adventure Component.
-     * Uses the default BungeeSource reply method for sending messages.
+     * Uses the default BungeeCommandSource reply method for sending messages.
      *
      * @param componentValue the Adventure Component to display as help
      * @return a new BungeeAdventureHelpComponent instance
@@ -59,6 +59,6 @@ public class BungeeAdventureHelpComponent extends AdventureHelpComponent<BungeeS
     public static BungeeAdventureHelpComponent of(
             @NotNull Component componentValue
     ) {
-        return new BungeeAdventureHelpComponent(componentValue, BungeeSource::reply);
+        return new BungeeAdventureHelpComponent(componentValue, BungeeCommandSource::reply);
     }
 }

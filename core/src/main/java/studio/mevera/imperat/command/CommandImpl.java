@@ -16,9 +16,9 @@ import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ParsedArgument;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.exception.ProcessorException;
@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @ApiStatus.Internal
-final class CommandImpl<S extends Source> implements Command<S> {
+final class CommandImpl<S extends CommandSource> implements Command<S> {
 
     private final Imperat<S> imperat;
 

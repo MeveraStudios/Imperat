@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Represents a custom data structure made specifically
- * for handling the arguments entered by the {@link Source}
+ * for handling the arguments entered by the {@link CommandSource}
  */
 @ApiStatus.AvailableSince("1.0.0")
 @Context

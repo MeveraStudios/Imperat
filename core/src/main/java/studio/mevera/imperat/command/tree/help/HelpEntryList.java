@@ -1,6 +1,6 @@
 package studio.mevera.imperat.command.tree.help;
 
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -16,7 +16,7 @@ import java.util.NoSuchElementException;
  * @param <S> the source type
  * @author Mqzen
  */
-public final class HelpEntryList<S extends Source> implements Iterable<HelpEntry<S>> {
+public final class HelpEntryList<S extends CommandSource> implements Iterable<HelpEntry<S>> {
 
     private static final int DEFAULT_CAPACITY = 16;
     private static final float GROWTH_FACTOR = 1.2f;
@@ -47,7 +47,7 @@ public final class HelpEntryList<S extends Source> implements Iterable<HelpEntry
         this.size = 0;
     }
 
-    public static <S extends Source> HelpEntryList<S> empty() {
+    public static <S extends CommandSource> HelpEntryList<S> empty() {
         return (HelpEntryList<S>) EMPTY_HELP_LIST;
     }
 

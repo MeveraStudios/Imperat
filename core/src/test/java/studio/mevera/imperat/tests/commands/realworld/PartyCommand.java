@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Shortcut;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand({"party", "p"})
 //@Permission("voxy.party")
@@ -17,40 +17,40 @@ public class PartyCommand {
     @SubCommand(value = "help")
     @Description("Sends a help message")
     public void help(
-            final TestSource player,
+            final TestCommandSource player,
             final @Named("page") @Default("1") int page
     ) {
     }
 
     @SubCommand(value = "list")
     @Description("List of all players in your party")
-    public void list(final TestSource player) {
+    public void list(final TestCommandSource player) {
     }
 
     @SubCommand(value = "invite")
     @Description("Invites a player to your party")
     @Shortcut("pinvite")
-    public void invite(final TestSource sender, @Named("receiver") final String receiver) {
+    public void invite(final TestCommandSource sender, @Named("receiver") final String receiver) {
         System.out.println("Inviting " + receiver + " to " + sender.name() + "'s party");
     }
 
     @SubCommand(value = "accept")
     @Description("Accepts a party invite")
-    public void accept(final TestSource receiver, @Named("sender") final String sender) {
+    public void accept(final TestCommandSource receiver, @Named("sender") final String sender) {
     }
 
     @SubCommand(value = "deny")
     @Description("Denies a party invite")
-    public void deny(final TestSource receiver, @Named("sender") final String sender) {
+    public void deny(final TestCommandSource receiver, @Named("sender") final String sender) {
     }
 
     @SubCommand(value = "leave")
     @Description("Leave your current party")
-    public void leave(final TestSource player) {
+    public void leave(final TestCommandSource player) {
     }
 
     @SubCommand(value = "disband")
     @Description("Disband a party")
-    public void disband(final TestSource owner) {
+    public void disband(final TestCommandSource owner) {
     }
 }

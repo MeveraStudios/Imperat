@@ -1,13 +1,13 @@
 package studio.mevera.imperat.command;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-final class CommandPathwaySet<S extends Source> implements Iterable<CommandPathway<S>> {
+final class CommandPathwaySet<S extends CommandSource> implements Iterable<CommandPathway<S>> {
 
     private final LinkedHashSet<CommandPathway<S>> sort = new LinkedHashSet<>();
 

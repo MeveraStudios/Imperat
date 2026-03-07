@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 
 import java.lang.annotation.Annotation;
@@ -19,7 +19,7 @@ import java.lang.annotation.Annotation;
  *
  * @param <S> the command-sender valueType
  */
-public abstract class AnnotationParser<S extends Source> {
+public abstract class AnnotationParser<S extends CommandSource> {
 
     protected final Imperat<S> imperat;
 
@@ -27,7 +27,7 @@ public abstract class AnnotationParser<S extends Source> {
         this.imperat = imperat;
     }
 
-    public static <S extends Source> AnnotationParser<S> defaultParser(
+    public static <S extends CommandSource> AnnotationParser<S> defaultParser(
             @NotNull Imperat<S> dispatcher
     ) {
         return new AnnotationParserImpl<>(dispatcher);

@@ -2,15 +2,15 @@ package studio.mevera.imperat.command.arguments;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.util.Preconditions;
 
 public interface DefaultValueProvider {
 
     DefaultValueProvider EMPTY = new DefaultValueProvider() {
         @Override
-        public @Nullable <S extends Source> String provide(ExecutionContext<S> context, Argument<S> parameter) {
+        public @Nullable <S extends CommandSource> String provide(ExecutionContext<S> context, Argument<S> parameter) {
             return null;
         }
     };
@@ -20,7 +20,7 @@ public interface DefaultValueProvider {
         return new DefaultValueProvider() {
             private final String cachedValue = value;
             @Override
-            public <S extends Source> @NotNull String provide(ExecutionContext<S> context, Argument<S> parameter) {
+            public <S extends CommandSource> @NotNull String provide(ExecutionContext<S> context, Argument<S> parameter) {
                 return cachedValue;
             }
         };
@@ -43,6 +43,6 @@ public interface DefaultValueProvider {
      * @return the resolved default value
      */
     @Nullable
-    <S extends Source> String provide(ExecutionContext<S> context, Argument<S> parameter);
+    <S extends CommandSource> String provide(ExecutionContext<S> context, Argument<S> parameter);
 
 }

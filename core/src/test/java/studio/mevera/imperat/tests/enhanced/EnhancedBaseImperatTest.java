@@ -8,9 +8,9 @@ import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.context.ParsedArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestImperatConfig;
-import studio.mevera.imperat.tests.TestSource;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,20 +24,20 @@ import java.util.function.Predicate;
 public abstract class EnhancedBaseImperatTest {
 
     protected static final TestImperat IMPERAT = ImperatTestGlobals.IMPERAT;
-    protected static final TestSource SOURCE = ImperatTestGlobals.GLOBAL_TEST_SOURCE;
+    protected static final TestCommandSource SOURCE = ImperatTestGlobals.GLOBAL_TEST_SOURCE;
 
     @BeforeEach
     void setUp() {
         ImperatTestGlobals.resetTestState();
     }
 
-    protected ExecutionResult<TestSource> execute(String commandLine) {
+    protected ExecutionResult<TestCommandSource> execute(String commandLine) {
         return IMPERAT.execute(SOURCE, commandLine);
     }
 
-    protected ExecutionResult<TestSource> execute(
+    protected ExecutionResult<TestCommandSource> execute(
             Class<?> cmdClass,
-            Consumer<ImperatConfig<TestSource>> cfgConsumer,
+            Consumer<ImperatConfig<TestCommandSource>> cfgConsumer,
             String commandLine
     ) {
         TestImperat newImperat = TestImperatConfig.builder()
@@ -51,7 +51,7 @@ public abstract class EnhancedBaseImperatTest {
         return IMPERAT.autoComplete(SOURCE, commandLine).join();
     }
 
-    protected List<String> tabComplete(Class<?> cmd, Consumer<ImperatConfig<TestSource>> cfgConsumer, String commandLine) {
+    protected List<String> tabComplete(Class<?> cmd, Consumer<ImperatConfig<TestCommandSource>> cfgConsumer, String commandLine) {
         TestImperat newImperat = TestImperatConfig.builder()
                                          .applyOnConfig(cfgConsumer)
                                          .build();
@@ -62,16 +62,16 @@ public abstract class EnhancedBaseImperatTest {
     /**
      * Creates a fluent assertion for ExecutionResult.
      */
-    protected ExecutionResultAssert assertThat(ExecutionResult<TestSource> result) {
+    protected ExecutionResultAssert assertThat(ExecutionResult<TestCommandSource> result) {
         return new ExecutionResultAssert(result);
     }
 
     /**
      * Custom AssertJ assertion class for ExecutionResult with fluent API.
      */
-    public static class ExecutionResultAssert extends org.assertj.core.api.AbstractAssert<ExecutionResultAssert, ExecutionResult<TestSource>> {
+    public static class ExecutionResultAssert extends org.assertj.core.api.AbstractAssert<ExecutionResultAssert, ExecutionResult<TestCommandSource>> {
 
-        public ExecutionResultAssert(ExecutionResult<TestSource> actual) {
+        public ExecutionResultAssert(ExecutionResult<TestCommandSource> actual) {
             super(actual, ExecutionResultAssert.class);
         }
 
@@ -151,15 +151,15 @@ public abstract class EnhancedBaseImperatTest {
             return this;
         }
 
-        public ExecutionResultAssert satisfies(org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestSource>> requirements) {
+        public ExecutionResultAssert satisfies(org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestCommandSource>> requirements) {
             isNotNull();
             Assertions.assertThat(actual).satisfies(requirements);
             return this;
         }
 
-        public ExecutionResultAssert satisfiesAll(org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestSource>>... requirements) {
+        public ExecutionResultAssert satisfiesAll(org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestCommandSource>>... requirements) {
             isNotNull();
-            for (org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestSource>> requirement : requirements) {
+            for (org.assertj.core.api.ThrowingConsumer<ExecutionResult<TestCommandSource>> requirement : requirements) {
                 Assertions.assertThat(actual).satisfies(requirement);
             }
             return this;

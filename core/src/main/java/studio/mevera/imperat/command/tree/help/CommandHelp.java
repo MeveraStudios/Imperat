@@ -3,11 +3,11 @@ package studio.mevera.imperat.command.tree.help;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.tree.help.theme.HelpTheme;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 @Context
-public final class CommandHelp<S extends Source> {
+public final class CommandHelp<S extends CommandSource> {
 
     private final @NotNull ExecutionContext<S> context;
     private final @NotNull HelpCoordinator<S> coordinator;
@@ -17,7 +17,7 @@ public final class CommandHelp<S extends Source> {
         this.coordinator = context.imperatConfig().getHelpCoordinator();
     }
 
-    public static <S extends Source> CommandHelp<S> create(ExecutionContext<S> context) {
+    public static <S extends CommandSource> CommandHelp<S> create(ExecutionContext<S> context) {
         return new CommandHelp<>(context);
     }
 

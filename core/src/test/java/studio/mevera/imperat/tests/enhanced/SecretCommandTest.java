@@ -8,7 +8,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -153,17 +153,17 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
     @DisplayName("Help Entry Hiding")
     class HelpEntryHiding {
 
-        private HelpEntryList<TestSource> querySecretTestHelp() {
-            Command<TestSource> cmd = IMPERAT.getCommand("secrettest");
+        private HelpEntryList<TestCommandSource> querySecretTestHelp() {
+            Command<TestCommandSource> cmd = IMPERAT.getCommand("secrettest");
             Assertions.assertThat(cmd).as("Command 'secrettest' must be registered").isNotNull();
             assert cmd != null;
-            HelpQuery<TestSource> query = HelpQuery.<TestSource>builder().build();
+            HelpQuery<TestCommandSource> query = HelpQuery.<TestCommandSource>builder().build();
             return cmd.tree().queryHelp(query);
         }
 
-        private List<String> formattedUsages(HelpEntryList<TestSource> entries) {
+        private List<String> formattedUsages(HelpEntryList<TestCommandSource> entries) {
             List<String> usages = new ArrayList<>();
-            for (HelpEntry<TestSource> entry : entries) {
+            for (HelpEntry<TestCommandSource> entry : entries) {
                 usages.add(entry.getPathway().formatted());
             }
             return usages;
@@ -217,7 +217,7 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Help entry count should exclude all secret entries")
         void helpEntryCountShouldExcludeSecret() {
-            HelpEntryList<TestSource> entries = querySecretTestHelp();
+            HelpEntryList<TestCommandSource> entries = querySecretTestHelp();
 
             // secrettest has: root default, visible, visible child <arg>, public <name>
             // hidden and hidden deep <val> should be excluded

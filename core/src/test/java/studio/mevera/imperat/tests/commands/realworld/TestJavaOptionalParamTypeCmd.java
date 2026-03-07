@@ -3,7 +3,7 @@ package studio.mevera.imperat.tests.commands.realworld;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.util.Optional;
 
@@ -11,7 +11,7 @@ import java.util.Optional;
 public class TestJavaOptionalParamTypeCmd {
 
     @Execute
-    public void test(TestSource source, @Greedy Optional<String> text) {
+    public void test(TestCommandSource source, @Greedy Optional<String> text) {
         text.ifPresent(source::reply);
     }
 

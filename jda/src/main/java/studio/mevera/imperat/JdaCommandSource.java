@@ -7,7 +7,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.UUID;
 
@@ -16,12 +16,12 @@ import java.util.UUID;
  * Handles sending replies back to the invoking user and exposes
  * the underlying {@link SlashCommandInteractionEvent} for advanced usage.
  */
-public final class JdaSource implements Source {
+public final class JdaCommandSource implements CommandSource {
 
     private final SlashCommandInteractionEvent event;
     private final InteractionHook hook;
 
-    JdaSource(SlashCommandInteractionEvent event) {
+    JdaCommandSource(SlashCommandInteractionEvent event) {
         this.event = event;
         this.hook = event.getHook();
     }

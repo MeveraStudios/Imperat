@@ -1,7 +1,7 @@
 package studio.mevera.imperat.command.tree.help;
 
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * Provides help data by visiting the command tree, node by node.
@@ -9,9 +9,9 @@ import studio.mevera.imperat.context.Source;
  *
  * @param <S> the source type
  */
-public interface TreeHelpVisitor<S extends Source> {
+public interface TreeHelpVisitor<S extends CommandSource> {
 
-    static <S extends Source> TreeHelpVisitor<S> defaultProvider() {
+    static <S extends CommandSource> TreeHelpVisitor<S> defaultProvider() {
         return new StandardTreeHelpVisitor<>();
     }
 

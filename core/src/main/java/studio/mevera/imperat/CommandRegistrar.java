@@ -3,12 +3,12 @@ package studio.mevera.imperat;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 
 import java.util.Collection;
 
-public sealed interface CommandRegistrar<S extends Source> permits Imperat {
+public sealed interface CommandRegistrar<S extends CommandSource> permits Imperat {
 
     /**
      * Registering a command into the global registry,

@@ -2,10 +2,10 @@ package studio.mevera.imperat.annotations.base;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.UnknownDependencyException;
 
-final class DefaultInstanceFactory<S extends Source> implements InstanceFactory<S> {
+final class DefaultInstanceFactory<S extends CommandSource> implements InstanceFactory<S> {
 
     @Override
     @SuppressWarnings("unchecked")

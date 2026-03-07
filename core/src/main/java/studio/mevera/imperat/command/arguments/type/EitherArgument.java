@@ -3,15 +3,15 @@ package studio.mevera.imperat.command.arguments.type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Either;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
 
-public class EitherArgument<S extends Source, A, B> extends ArgumentType<S, Either<A, B>> {
+public class EitherArgument<S extends CommandSource, A, B> extends ArgumentType<S, Either<A, B>> {
 
     private final TypeWrap<A> primaryType;
     private final TypeWrap<B> fallbackType;

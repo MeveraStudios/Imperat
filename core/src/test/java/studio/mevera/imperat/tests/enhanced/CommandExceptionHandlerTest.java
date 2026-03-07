@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.commands.BuyCommand;
 import studio.mevera.imperat.tests.commands.ExceptionHandlerTestCmd;
 import studio.mevera.imperat.tests.commands.TestCommandException;
@@ -18,7 +18,7 @@ class CommandExceptionHandlerTest extends EnhancedBaseImperatTest {
         // buy <item> <quantity:1-50> — quantity 100 is out of range
         // BuyCommand has @ExceptionHandler(ResponseException.class) which should catch
         // the NUMBER_OUT_OF_RANGE ResponseException thrown by RangeValidator
-        ExecutionResult<TestSource> result = execute("buy sword 100");
+        ExecutionResult<TestCommandSource> result = execute("buy sword 100");
 
         // The error is handled by the command-local handler, so execution should not propagate as a failure
         assertThat(result).hasFailed();
@@ -34,7 +34,7 @@ class CommandExceptionHandlerTest extends EnhancedBaseImperatTest {
     void shouldInvokeCommandHandlerOnCustomException() {
         // errtest <action> — passing "crash" causes a TestCommandException to be thrown
         // ExceptionHandlerTestCmd has @ExceptionHandler(TestCommandException.class)
-        ExecutionResult<TestSource> result = execute("errtest crash");
+        ExecutionResult<TestCommandSource> result = execute("errtest crash");
 
         // The exception is thrown and caught by the command-specific handler
         assertThat(result).hasFailed();

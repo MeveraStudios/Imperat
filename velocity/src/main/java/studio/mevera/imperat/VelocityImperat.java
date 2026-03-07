@@ -47,9 +47,9 @@ import java.util.concurrent.ExecutorService;
  * @since 1.0
  * @author Imperat Framework
  * @see VelocityConfigBuilder
- * @see VelocitySource
+ * @see VelocityCommandSource
  */
-public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
+public final class VelocityImperat<P> extends BaseImperat<VelocityCommandSource> {
 
     private final P plugin;
     private final ProxyServer proxyServer;
@@ -65,7 +65,7 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
     VelocityImperat(
             @NotNull P plugin,
             @NotNull ProxyServer proxyServer,
-            @NotNull ImperatConfig<VelocitySource> config
+            @NotNull ImperatConfig<VelocityCommandSource> config
     ) {
         super(config);
         this.plugin = plugin;
@@ -100,7 +100,7 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
     }
 
     @Override
-    public void registerSimpleCommand(Command<VelocitySource> command) {
+    public void registerSimpleCommand(Command<VelocityCommandSource> command) {
         super.registerSimpleCommand(command);
         CommandManager manager = proxyServer.getCommandManager();
         try {
@@ -135,12 +135,12 @@ public final class VelocityImperat<P> extends BaseImperat<VelocitySource> {
     }
 
     @Override
-    public VelocitySource createDummySender() {
-        return new VelocitySource(proxyServer.getConsoleCommandSource());
+    public VelocityCommandSource createDummySender() {
+        return new VelocityCommandSource(proxyServer.getConsoleCommandSource());
     }
 
     @Override
-    public VelocitySource wrapSender(Object sender) {
-        return new VelocitySource((CommandSource) sender);
+    public VelocityCommandSource wrapSender(Object sender) {
+        return new VelocityCommandSource((CommandSource) sender);
     }
 }

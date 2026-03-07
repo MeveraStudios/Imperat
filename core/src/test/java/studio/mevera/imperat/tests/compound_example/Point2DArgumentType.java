@@ -7,15 +7,15 @@ import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
-public class Point2DArgumentType extends ArgumentType<TestSource, Point2D> {
+public class Point2DArgumentType extends ArgumentType<TestCommandSource, Point2D> {
 
 
     @Override
     public @Nullable Point2D parse(
-            @NotNull ExecutionContext<TestSource> context,
-            @NotNull Cursor<TestSource> cursor,
+            @NotNull ExecutionContext<TestCommandSource> context,
+            @NotNull Cursor<TestCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
         //example input: '/teleport 10 20'
@@ -34,7 +34,7 @@ public class Point2DArgumentType extends ArgumentType<TestSource, Point2D> {
     }
 
     @Override
-    public int getNumberOfParametersToConsume(Argument<TestSource> argument) {
+    public int getNumberOfParametersToConsume(Argument<TestCommandSource> argument) {
         return 2;
     }
 }

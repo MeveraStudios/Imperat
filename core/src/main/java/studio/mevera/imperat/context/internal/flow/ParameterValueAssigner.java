@@ -2,8 +2,8 @@ package studio.mevera.imperat.context.internal.flow;
 
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.flow.handlers.EmptyInputHandler;
 import studio.mevera.imperat.context.internal.flow.handlers.OptionalParameterHandler;
@@ -12,7 +12,7 @@ import studio.mevera.imperat.context.internal.flow.handlers.SubCommandHandler;
 import studio.mevera.imperat.exception.CommandException;
 
 @SuppressWarnings("unchecked")
-public final class ParameterValueAssigner<S extends Source> {
+public final class ParameterValueAssigner<S extends CommandSource> {
 
     private static final ParameterChain<?> DEFAULT_CHAIN = createDefaultChain();
 
@@ -30,7 +30,7 @@ public final class ParameterValueAssigner<S extends Source> {
         this.stream = Cursor.of(context.arguments(), usage);
     }
 
-    private static <S extends Source> ParameterChain<S> createDefaultChain() {
+    private static <S extends CommandSource> ParameterChain<S> createDefaultChain() {
         return ChainFactory.<S>builder()
                        .withHandler(new EmptyInputHandler<>())
                        .withHandler(new SubCommandHandler<>())
@@ -40,14 +40,14 @@ public final class ParameterValueAssigner<S extends Source> {
                        .build();
     }
 
-    public static <S extends Source> ParameterValueAssigner<S> create(
+    public static <S extends CommandSource> ParameterValueAssigner<S> create(
             ExecutionContext<S> context,
             CommandPathway<S> usage
     ) {
         return new ParameterValueAssigner<>(context, usage);
     }
 
-    public static <S extends Source> ParameterValueAssigner<S> createWithCustomChain(
+    public static <S extends CommandSource> ParameterValueAssigner<S> createWithCustomChain(
             ExecutionContext<S> context,
             CommandPathway<S> usage,
             ParameterChain<S> customChain

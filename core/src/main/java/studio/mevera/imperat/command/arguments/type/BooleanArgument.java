@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
@@ -15,7 +15,7 @@ import studio.mevera.imperat.util.priority.Priority;
 import java.util.Locale;
 import java.util.Map;
 
-public final class BooleanArgument<S extends Source> extends ArgumentType<S, Boolean> {
+public final class BooleanArgument<S extends CommandSource> extends ArgumentType<S, Boolean> {
 
     private final static Map<String, Boolean> VARIANTS = Map.of(
             "t", true, "f", false,

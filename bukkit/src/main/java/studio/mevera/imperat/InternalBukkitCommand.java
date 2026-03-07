@@ -15,13 +15,13 @@ import java.util.List;
 @ApiStatus.Internal
 final class InternalBukkitCommand extends org.bukkit.command.Command implements PluginIdentifiableCommand {
 
-    @NotNull final Command<BukkitSource> imperatCommand;
+    @NotNull final Command<BukkitCommandSource> imperatCommand;
     @NotNull
     private final BukkitImperat dispatcher;
 
     InternalBukkitCommand(
             final @NotNull BukkitImperat dispatcher,
-            final @NotNull Command<BukkitSource> imperatCommand
+            final @NotNull Command<BukkitCommandSource> imperatCommand
     ) {
         super(
                 imperatCommand.getName(),
@@ -51,7 +51,7 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
     public boolean execute(@NotNull CommandSender sender,
             @NotNull String label,
             String[] raw) {
-        BukkitSource source = dispatcher.wrapSender(sender);
+        BukkitCommandSource source = dispatcher.wrapSender(sender);
         dispatcher.execute(source, this.imperatCommand, label, raw);
         return true;
     }
@@ -67,7 +67,7 @@ final class InternalBukkitCommand extends org.bukkit.command.Command implements 
             //we will tab complete from the async tab completion event
             return Collections.emptyList();
         }
-        BukkitSource source = dispatcher.wrapSender(sender);
+        BukkitCommandSource source = dispatcher.wrapSender(sender);
         StringBuilder builder = new StringBuilder(alias).append(" ");
         for (String arg : args) {
             builder.append(arg).append(" ");

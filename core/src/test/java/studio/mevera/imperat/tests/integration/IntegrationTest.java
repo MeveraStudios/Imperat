@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.tests.BaseImperatTest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.time.Duration;
 
@@ -19,7 +19,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle complete setrank command")
         void testCompleteSetrankCommand() {
-            ExecutionResult<TestSource> result = execute((src) -> src.withPerm("voxy.grant"), "setrank mqzen admin permanent Promotion -e");
+            ExecutionResult<TestCommandSource> result = execute((src) -> src.withPerm("voxy.grant"), "setrank mqzen admin permanent Promotion -e");
             assertSuccess(result);
             assertArgument(result, "target", "mqzen");
             assertArgument(result, "rank", "admin");
@@ -33,7 +33,7 @@ public class IntegrationTest extends BaseImperatTest {
         void testBanCommandAllFeatures() {
             //Todo: change how flags parsing works in tree.
             // The current implementation requires flags to be placed after all arguments, which is not ideal for user experience.
-            ExecutionResult<TestSource> result = execute("ban griefer123 -s -ip 7d Griefing spawn area");
+            ExecutionResult<TestCommandSource> result = execute("ban griefer123 -s -ip 7d Griefing spawn area");
             assertSuccess(result);
             assertArgument(result, "target", "griefer123");
             assertFlag(result, "silent", true);
@@ -45,7 +45,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle minimum required ban parameters")
         void testBanCommandMinimalParameters() {
-            ExecutionResult<TestSource> result = execute("ban troublemaker");
+            ExecutionResult<TestCommandSource> result = execute("ban troublemaker");
             assertSuccess(result);
             assertArgument(result, "target", "troublemaker");
             assertFlag(result, "silent", false);
@@ -62,7 +62,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle party invite")
         void testPartyInvite() {
-            ExecutionResult<TestSource> result = execute("party invite friend123");
+            ExecutionResult<TestCommandSource> result = execute("party invite friend123");
             assertSuccess(result);
             assertArgument(result, "receiver", "friend123");
         }
@@ -70,7 +70,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle party help with pagination")
         void testPartyHelpWithPagination() {
-            ExecutionResult<TestSource> result = execute("party help 2");
+            ExecutionResult<TestCommandSource> result = execute("party help 2");
             assertSuccess(result);
             assertArgument(result, "page", 2);
         }
@@ -78,7 +78,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle simple party commands")
         void testSimplePartyCommands() {
-            ExecutionResult<TestSource> result = execute("party list");
+            ExecutionResult<TestCommandSource> result = execute("party list");
             assertSuccess(result);
 
             result = execute("party leave");
@@ -91,7 +91,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle party accept and deny")
         void testPartyAcceptDeny() {
-            ExecutionResult<TestSource> result = execute("party accept sender123");
+            ExecutionResult<TestCommandSource> result = execute("party accept sender123");
             assertSuccess(result);
             assertArgument(result, "sender", "sender123");
 
@@ -108,7 +108,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle rank permission assignment")
         void testRankPermissionAssignment() {
-            ExecutionResult<TestSource> result = execute("rank addperm moderator worldedit.use");
+            ExecutionResult<TestCommandSource> result = execute("rank addperm moderator worldedit.use");
             assertSuccess(result);
             assertArgument(result, "rank", "moderator");
             assertArgument(result, "permission", "worldedit.use");
@@ -118,7 +118,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle rank permission with force flag")
         void testRankPermissionWithForce() {
-            ExecutionResult<TestSource> result = execute("rank addperm moderator worldedit.use -force");
+            ExecutionResult<TestCommandSource> result = execute("rank addperm moderator worldedit.use -force");
             assertSuccess(result);
             assertArgument(result, "rank", "moderator");
             assertArgument(result, "permission", "worldedit.use");
@@ -128,7 +128,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle temporary rank permissions")
         void testTemporaryRankPermissions() {
-            ExecutionResult<TestSource> result = execute("rank addperm helper kick.player -customDuration 30d");
+            ExecutionResult<TestCommandSource> result = execute("rank addperm helper kick.player -customDuration 30d");
             assertSuccess(result);
             assertArgument(result, "rank", "helper");
             assertArgument(result, "permission", "kick.player");
@@ -139,7 +139,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle rank permissions with all flags")
         void testRankPermissionsAllFlags() {
-            ExecutionResult<TestSource> result = execute("rank addperm mod server.fly -customDuration 1d -force");
+            ExecutionResult<TestCommandSource> result = execute("rank addperm mod server.fly -customDuration 1d -force");
             assertSuccess(result);
             assertArgument(result, "rank", "mod");
             assertArgument(result, "permission", "server.fly");
@@ -155,7 +155,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle MOTD with default time")
         void testMOTDDefaultTime() {
-            ExecutionResult<TestSource> result = execute("motd Hello world, this is a test message");
+            ExecutionResult<TestCommandSource> result = execute("motd Hello world, this is a test message");
             assertSuccess(result);
             assertArgument(result, "message", "Hello world, this is a test message");
         }
@@ -163,7 +163,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle MOTD with custom time")
         void testMOTDCustomTime() {
-            ExecutionResult<TestSource> result = execute("motd -time 1h Hello world, this is a test message");
+            ExecutionResult<TestCommandSource> result = execute("motd -time 1h Hello world, this is a test message");
             assertSuccess(result);
             assertArgument(result, "message", "Hello world, this is a test message");
         }
@@ -171,7 +171,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle MOTD default execution")
         void testMOTDDefaultExecution() {
-            ExecutionResult<TestSource> result = execute("motd");
+            ExecutionResult<TestCommandSource> result = execute("motd");
             assertSuccess(result);
         }
     }
@@ -183,7 +183,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle first optional argument with no args")
         void testFirstOptionalArgumentNoArgs() {
-            ExecutionResult<TestSource> result = execute("foa");
+            ExecutionResult<TestCommandSource> result = execute("foa");
             assertSuccess(result);
             assertArgument(result, "num", 1); // Default value
         }
@@ -191,7 +191,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle first optional argument with value")
         void testFirstOptionalArgumentWithValue() {
-            ExecutionResult<TestSource> result = execute("foa 5");
+            ExecutionResult<TestCommandSource> result = execute("foa 5");
             assertSuccess(result);
             assertArgument(result, "num", 5);
         }
@@ -199,7 +199,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle first optional argument with subcommand")
         void testFirstOptionalArgumentWithSubcommand() {
-            ExecutionResult<TestSource> result = execute("foa 3 sub 7");
+            ExecutionResult<TestCommandSource> result = execute("foa 3 sub 7");
             assertSuccess(result);
             assertArgument(result, "num", 3);
             assertArgument(result, "num2", 7);
@@ -208,7 +208,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle first optional argument subcommand default")
         void testFirstOptionalArgumentSubcommandDefault() {
-            ExecutionResult<TestSource> result = execute("foa 3 sub");
+            ExecutionResult<TestCommandSource> result = execute("foa 3 sub");
             assertSuccess(result);
             assertArgument(result, "num", 3);
         }
@@ -221,14 +221,14 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle kingdomchat default")
         void testKingdomChatDefault() {
-            ExecutionResult<TestSource> result = execute("kingdomchat");
+            ExecutionResult<TestCommandSource> result = execute("kingdomchat");
             assertSuccess(result);
         }
 
         @Test
         @DisplayName("Should handle greedy argument as the first argument")
         void testKingdomChatWithMessage() {
-            ExecutionResult<TestSource> result = execute("kingdomchat hello world everyone");
+            ExecutionResult<TestCommandSource> result = execute("kingdomchat hello world everyone");
             assertSuccess(result);
             assertArgument(result, "message", "hello world everyone");
         }
@@ -241,7 +241,7 @@ public class IntegrationTest extends BaseImperatTest {
         @Test
         @DisplayName("Should handle context resolved parameters")
         void testContextResolvedParameters() {
-            ExecutionResult<TestSource> result = execute("ctx");
+            ExecutionResult<TestCommandSource> result = execute("ctx");
             assertSuccess(result);
             // PlayerData should be context-resolved from the test source
         }

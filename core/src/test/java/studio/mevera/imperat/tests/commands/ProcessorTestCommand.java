@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,27 +46,27 @@ public class ProcessorTestCommand {
     // ── Pre-processor (runs BEFORE argument resolution) ──────────────────
 
     @Processor
-    public void onPreProcess(CommandContext<TestSource> context) {
+    public void onPreProcess(CommandContext<TestCommandSource> context) {
         CALL_LOG.add("root:pre");
     }
 
     // ── Post-processor (runs AFTER argument resolution) ──────────────────
 
     @Processor
-    public void onPostProcess(ExecutionContext<TestSource> context) {
+    public void onPostProcess(ExecutionContext<TestCommandSource> context) {
         CALL_LOG.add("root:post");
     }
 
     // ── Execute methods ─────────────────────────────────────────────────
 
     @Execute
-    public void defaultUsage(TestSource source) {
+    public void defaultUsage(TestCommandSource source) {
         CALL_LOG.add("root:exec:default");
         source.reply("proctest default");
     }
 
     @Execute
-    public void withName(TestSource source, @Named("name") String name) {
+    public void withName(TestCommandSource source, @Named("name") String name) {
         CALL_LOG.add("root:exec:name=" + name);
         source.reply("proctest name=" + name);
     }
@@ -78,13 +78,13 @@ public class ProcessorTestCommand {
 
 
         @Execute
-        public void defaultUsage(TestSource source) {
+        public void defaultUsage(TestCommandSource source) {
             CALL_LOG.add("sub1:exec:default");
             source.reply("proctest sub1 default");
         }
 
         @Execute
-        public void withValue(TestSource source, @Named("value") String value) {
+        public void withValue(TestCommandSource source, @Named("value") String value) {
             CALL_LOG.add("sub1:exec:value=" + value);
             source.reply("proctest sub1 value=" + value);
         }

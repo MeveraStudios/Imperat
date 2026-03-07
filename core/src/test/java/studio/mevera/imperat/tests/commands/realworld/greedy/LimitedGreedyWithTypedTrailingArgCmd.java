@@ -4,7 +4,7 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * /broadcast <message...(limit=3)> <repeat:int>
@@ -15,7 +15,7 @@ import studio.mevera.imperat.tests.TestSource;
 public class LimitedGreedyWithTypedTrailingArgCmd {
 
     @Execute
-    public void exec(TestSource source,
+    public void exec(TestCommandSource source,
             @Named("message") @Greedy(limit = 3) String message,
             @Named("repeat") int repeat) {
         source.reply("message=" + message + " repeat=" + repeat);

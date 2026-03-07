@@ -9,7 +9,7 @@ import com.velocitypowered.api.proxy.config.ProxyConfig;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.util.ProxyVersion;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.adventure.AdventureSource;
+import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.ResponseException;
@@ -28,7 +28,7 @@ import studio.mevera.imperat.util.TypeWrap;
  * <ul>
  *   <li>Velocity-specific parameter types (Player, ServerInfo)</li>
  *   <li>Exception handlers for common Velocity scenarios</li>
- *   <li>Source resolvers for type-safe command source handling</li>
+ *   <li>CommandSource resolvers for type-safe command source handling</li>
  *   <li>CommandContext resolvers for dependency injection</li>
  * </ul>
  *
@@ -43,7 +43,7 @@ import studio.mevera.imperat.util.TypeWrap;
  * @author Imperat Framework
  * @see VelocityImperat
  */
-public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource, VelocityImperat<P>, VelocityConfigBuilder<P>> {
+public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocityCommandSource, VelocityImperat<P>, VelocityConfigBuilder<P>> {
 
     private final P plugin;
     private final ProxyServer proxyServer;
@@ -76,12 +76,12 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      */
     private void registerContextResolvers() {
         config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<VelocitySource>>() {
+                new TypeWrap<ExecutionContext<VelocityCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<VelocitySource>>() {
+                new TypeWrap<CommandHelp<VelocityCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
@@ -89,14 +89,14 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
         config.registerContextArgumentProvider(ProxyConfig.class, (ctx, paramElement) -> proxyServer.getConfiguration());
         config.registerContextArgumentProvider(ProxyVersion.class, (ctx, paramElement) -> proxyServer.getVersion());
         config.registerContextArgumentProvider(ServerInfo.class, (ctx, paramElement) -> {
-            VelocitySource source = ctx.source();
+            VelocityCommandSource source = ctx.source();
             if (source.isConsole()) {
                 throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER);
             }
             Player player = source.asPlayer();
             return player.getCurrentServer()
                            .map(serverConnection -> serverConnection.getServer().getServerInfo())
-                           .orElseThrow(() -> new IllegalStateException("Source is not connected to any server"));
+                           .orElseThrow(() -> new IllegalStateException("CommandSource is not connected to any server"));
         });
         config.registerContextArgumentProvider(PluginContainer.class,
                 (ctx, paramElement) -> proxyServer.getPluginManager().fromInstance(plugin).orElseThrow(
@@ -108,7 +108,7 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocitySource
      * This enables automatic casting and validation of command sources.
      */
     private void registerSourceResolvers() {
-        config.registerSourceProvider(AdventureSource.class, (velocitySource, ctx) -> velocitySource);
+        config.registerSourceProvider(AdventureCommandSource.class, (velocitySource, ctx) -> velocitySource);
         config.registerSourceProvider(ConsoleCommandSource.class, (velocitySource, ctx) -> {
             if (!velocitySource.isConsole()) {
                 throw ResponseException.of(VelocityResponseKey.ONLY_CONSOLE);

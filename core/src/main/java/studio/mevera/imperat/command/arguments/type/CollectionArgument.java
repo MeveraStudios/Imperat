@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.Patterns;
@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class CollectionArgument<S extends Source, E, C extends Collection<E>> extends ArgumentType<S, C> {
+public class CollectionArgument<S extends CommandSource, E, C extends Collection<E>> extends ArgumentType<S, C> {
 
     private final Supplier<C> collectionSupplier;
     private final ArgumentType<S, E> componentResolver;

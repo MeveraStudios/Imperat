@@ -7,14 +7,14 @@ import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.CommandExecution;
 import studio.mevera.imperat.command.returns.ReturnResolver;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.asm.DefaultMethodCallerFactory;
 import studio.mevera.imperat.util.asm.MethodCaller;
 
 @ApiStatus.Internal
-public class MethodCommandExecutor<S extends Source> implements CommandExecution<S> {
+public class MethodCommandExecutor<S extends CommandSource> implements CommandExecution<S> {
 
     private final Imperat<S> dispatcher;
     private final MethodElement method;
@@ -43,7 +43,7 @@ public class MethodCommandExecutor<S extends Source> implements CommandExecution
         this(executor.dispatcher, executor.method);
     }
 
-    public static <S extends Source> MethodCommandExecutor<S> of(
+    public static <S extends CommandSource> MethodCommandExecutor<S> of(
             Imperat<S> imperat,
             MethodElement method
     ) {

@@ -11,12 +11,12 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p><strong>Thread Safety:</strong> This class is immutable and thread-safe once constructed.</p>
  *
- * @param <S> the type of command source that extends {@link Source}
+ * @param <S> the type of command source that extends {@link CommandSource}
  * @since 1.0.0
  * @see ExecutionContext
- * @see Source
+ * @see CommandSource
  */
-public final class ExecutionResult<S extends Source> {
+public final class ExecutionResult<S extends CommandSource> {
 
     private final CommandContext<S> context;
     private @Nullable Throwable error;
@@ -40,7 +40,7 @@ public final class ExecutionResult<S extends Source> {
      * @param context          the original context
      * @return a new {@code ExecutionResult} instance representing successful execution
      */
-    public static <S extends Source> ExecutionResult<S> of(
+    public static <S extends CommandSource> ExecutionResult<S> of(
             ExecutionContext<S> executionContext,
             CommandContext<S> context
     ) {
@@ -55,7 +55,7 @@ public final class ExecutionResult<S extends Source> {
      * @param context the context
      * @return a new {@code ExecutionResult} instance representing failed execution
      */
-    public static <S extends Source> ExecutionResult<S> failure(@Nullable Throwable error, CommandContext<S> context) {
+    public static <S extends CommandSource> ExecutionResult<S> failure(@Nullable Throwable error, CommandContext<S> context) {
         return new ExecutionResult<>(error, context);
     }
 
@@ -66,7 +66,7 @@ public final class ExecutionResult<S extends Source> {
      * @param context the context
      * @return a new {@code ExecutionResult} instance representing a generic failed execution
      */
-    public static <S extends Source> ExecutionResult<S> failure(CommandContext<S> context) {
+    public static <S extends CommandSource> ExecutionResult<S> failure(CommandContext<S> context) {
         return failure(null, context);
     }
 

@@ -9,17 +9,17 @@ import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Shortcut;
 import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("group")
 public final class AnnotatedGroupCommand {
 
     @Execute
-    public void defaultUsage(TestSource source, @Context CommandHelp<TestSource> commandHelp) {
+    public void defaultUsage(TestCommandSource source, @Context CommandHelp<TestCommandSource> commandHelp) {
         //default execution = no args
         // /group help
         /*commandHelp.display(
-                HelpQuery.<TestSource>builder()
+                HelpQuery.<TestCommandSource>builder()
                         .filter(HelpFilters.hasPermission(source, commandHelp.getContext()))
                         .build(),
                 
@@ -32,7 +32,7 @@ public final class AnnotatedGroupCommand {
     @Execute
     @Description("Shows sub-commands.")
     public void mainUsage(
-            TestSource source,
+            TestCommandSource source,
             @Named("group") Group group
     ) {
         //when he does "/group <group>"
@@ -43,7 +43,7 @@ public final class AnnotatedGroupCommand {
     @Description("Sets permission for a group.")
     @Shortcut("setgroupperm")
     public void setGroupPermission(
-            TestSource source,
+            TestCommandSource source,
             @InheritedArg @Named("group") Group group,
             @Named("permission") String permission) {
         // /group <group> setperm <permission>
@@ -55,7 +55,7 @@ public final class AnnotatedGroupCommand {
     @Description("Sets prefix for a group.")
     @Shortcut("setgroupprefix")
     public void setPrefix(
-            TestSource source,
+            TestCommandSource source,
             @InheritedArg @Named("group") Group group,
             @Named("prefix") String prefix
     ) {

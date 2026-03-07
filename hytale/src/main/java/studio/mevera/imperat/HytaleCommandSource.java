@@ -6,16 +6,16 @@ import com.hypixel.hytale.server.core.console.ConsoleSender;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.awt.Color;
 import java.util.UUID;
 
-public class HytaleSource implements Source {
+public class HytaleCommandSource implements CommandSource {
 
     private final CommandSender sender;
 
-    HytaleSource(CommandSender sender) {
+    HytaleCommandSource(CommandSender sender) {
         this.sender = sender;
     }
 

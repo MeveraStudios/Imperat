@@ -1,7 +1,7 @@
 package studio.mevera.imperat.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BungeeSource;
+import studio.mevera.imperat.BungeeCommandSource;
 import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
 /**
@@ -13,7 +13,7 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * <ul>
  *   <li>Simple string-based help messages</li>
  *   <li>Legacy color code support for backward compatibility</li>
- *   <li>Automatic integration with BungeeSource messaging</li>
+ *   <li>Automatic integration with BungeeCommandSource messaging</li>
  *   <li>Cross-server command help display</li>
  * </ul>
  *
@@ -25,11 +25,11 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * }</pre>
  *
  * @author Imperat Framework
- * @see BungeeSource
+ * @see BungeeCommandSource
  * @see StringHelpComponent
  * @since 2.1.0
  */
-public class BungeeStringHelpComponent extends StringHelpComponent<BungeeSource> {
+public class BungeeStringHelpComponent extends StringHelpComponent<BungeeCommandSource> {
 
     /**
      * Creates a new BungeeStringHelpComponent with the specified string content.

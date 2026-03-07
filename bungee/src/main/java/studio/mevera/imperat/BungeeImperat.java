@@ -49,10 +49,10 @@ import java.util.HashSet;
  *
  * @author Imperat Framework
  * @see BungeeConfigBuilder
- * @see BungeeSource
+ * @see BungeeCommandSource
  * @since 1.0
  */
-public final class BungeeImperat extends BaseImperat<BungeeSource> {
+public final class BungeeImperat extends BaseImperat<BungeeCommandSource> {
 
     private final Plugin plugin;
     private final AdventureProvider<CommandSender> adventureProvider;
@@ -68,7 +68,7 @@ public final class BungeeImperat extends BaseImperat<BungeeSource> {
     BungeeImperat(
             Plugin plugin,
             @NotNull AdventureProvider<CommandSender> adventureProvider,
-            ImperatConfig<BungeeSource> config
+            ImperatConfig<BungeeCommandSource> config
     ) {
         super(config);
         this.plugin = plugin;
@@ -88,14 +88,14 @@ public final class BungeeImperat extends BaseImperat<BungeeSource> {
     }
 
     @Override
-    public void registerSimpleCommand(Command<BungeeSource> command) {
+    public void registerSimpleCommand(Command<BungeeCommandSource> command) {
         super.registerSimpleCommand(command);
         plugin.getProxy().getPluginManager().registerCommand(plugin, new InternalBungeeCommand(this, command));
     }
 
     @Override
     public void unregisterCommand(String name) {
-        Command<BungeeSource> imperatCmd = getCommand(name);
+        Command<BungeeCommandSource> imperatCmd = getCommand(name);
         super.unregisterCommand(name);
         if (imperatCmd == null) {
             return;
@@ -111,13 +111,13 @@ public final class BungeeImperat extends BaseImperat<BungeeSource> {
     }
 
     @Override
-    public BungeeSource createDummySender() {
-        return new BungeeSource(adventureProvider, plugin.getProxy().getConsole());
+    public BungeeCommandSource createDummySender() {
+        return new BungeeCommandSource(adventureProvider, plugin.getProxy().getConsole());
     }
 
     @Override
-    public BungeeSource wrapSender(Object sender) {
-        return new BungeeSource(adventureProvider, (CommandSender) sender);
+    public BungeeCommandSource wrapSender(Object sender) {
+        return new BungeeCommandSource(adventureProvider, (CommandSender) sender);
     }
 
     @Override

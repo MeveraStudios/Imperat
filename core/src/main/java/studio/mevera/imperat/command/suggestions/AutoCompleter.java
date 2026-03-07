@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 
 import java.util.Collections;
@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
  * tab-completion per one command, regardless of the sender valueType
  */
 @ApiStatus.AvailableSince("1.0.0")
-public abstract class AutoCompleter<S extends Source> {
+public abstract class AutoCompleter<S extends CommandSource> {
 
     protected final Command<S> command;
 
@@ -26,7 +26,7 @@ public abstract class AutoCompleter<S extends Source> {
         this.command = command;
     }
 
-    public static <S extends Source> AutoCompleter<S> createNative(Command<S> command) {
+    public static <S extends CommandSource> AutoCompleter<S> createNative(Command<S> command) {
         return new NativeAutoCompleter<>(command);
     }
 

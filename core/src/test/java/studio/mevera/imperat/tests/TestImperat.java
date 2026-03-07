@@ -6,15 +6,15 @@ import studio.mevera.imperat.command.Command;
 
 import java.io.PrintStream;
 
-public final class TestImperat extends BaseImperat<TestSource> {
+public final class TestImperat extends BaseImperat<TestCommandSource> {
 
-    TestImperat(ImperatConfig<TestSource> config) {
+    TestImperat(ImperatConfig<TestCommandSource> config) {
         super(config);
     }
 
     @Override
-    public TestSource createDummySender() {
-        return new TestSource(System.out);
+    public TestCommandSource createDummySender() {
+        return new TestCommandSource(System.out);
     }
 
     /**
@@ -24,8 +24,8 @@ public final class TestImperat extends BaseImperat<TestSource> {
      * @return the wrapped command-sender valueType
      */
     @Override
-    public TestSource wrapSender(Object sender) {
-        return new TestSource((PrintStream) sender);
+    public TestCommandSource wrapSender(Object sender) {
+        return new TestCommandSource((PrintStream) sender);
     }
 
     /**
@@ -47,7 +47,7 @@ public final class TestImperat extends BaseImperat<TestSource> {
 
 
     @Override
-    public void registerSimpleCommand(Command<TestSource> command) {
+    public void registerSimpleCommand(Command<TestCommandSource> command) {
         super.registerSimpleCommand(command);
         command.visualizeTree();
     }

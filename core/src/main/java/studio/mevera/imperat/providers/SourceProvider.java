@@ -2,7 +2,7 @@ package studio.mevera.imperat.providers;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandException;
 
 /**
@@ -12,7 +12,7 @@ import studio.mevera.imperat.exception.CommandException;
  * @param <S> the default platform source
  * @param <R> the resulting source
  */
-public interface SourceProvider<S extends Source, R> {
+public interface SourceProvider<S extends CommandSource, R> {
 
     /**
      * Resolves {@link S} into {@link R}

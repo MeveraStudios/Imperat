@@ -9,17 +9,17 @@ import studio.mevera.imperat.permissions.CommandPermissionCondition;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.TestImperat;
-import studio.mevera.imperat.tests.TestSource;
 
 @DisplayName("CommandPermissionCondition Tests")
 public class CommandPermissionConditionTest extends BaseImperatTest {
 
     private final static TestImperat IMPERAT = ImperatTestGlobals.IMPERAT;
-    private final static PermissionChecker<TestSource> CHECKER = IMPERAT.config().getPermissionChecker();
-    
-    private static TestSource user(String... perms) {
-        TestSource src = new TestSource(System.out);
+    private final static PermissionChecker<TestCommandSource> CHECKER = IMPERAT.config().getPermissionChecker();
+
+    private static TestCommandSource user(String... perms) {
+        TestCommandSource src = new TestCommandSource(System.out);
         for (String perm : perms) {
             src.withPerm(perm);
         }

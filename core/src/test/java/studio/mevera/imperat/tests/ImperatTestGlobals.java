@@ -81,9 +81,9 @@ public class ImperatTestGlobals {
                                                       .argType(BigDecimal.class, new BigDecimalParamType())
                                                       .argType(Currency.class, new CurrencyParamType())
                                                       .handleMiddleOptionalArgSkipping(true)
-                                                      .contextArgumentProvider(new TypeWrap<CommandHelp<TestSource>>() {
+                                                      .contextArgumentProvider(new TypeWrap<CommandHelp<TestCommandSource>>() {
                                                       }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
-                                                      .contextArgumentProvider(new TypeWrap<CommandContext<TestSource>>() {
+                                                      .contextArgumentProvider(new TypeWrap<CommandContext<TestCommandSource>>() {
                                                       }.getType(), (ctx, pe) -> ctx)
                                                       .contextArgumentProvider(PlayerData.class, new PlayerDataContextArgumentResolver())
                                                       .contextArgumentProvider(SomeData.class, new SomeDataCR())
@@ -94,7 +94,7 @@ public class ImperatTestGlobals {
                                                       })
                                                       .build();
 
-    public static final TestSource GLOBAL_TEST_SOURCE = new TestSource(System.out);
+    public static final TestCommandSource GLOBAL_TEST_SOURCE = new TestCommandSource(System.out);
 
     static {
         System.out.println("=== ImperatTestGlobals static initializer START ===");

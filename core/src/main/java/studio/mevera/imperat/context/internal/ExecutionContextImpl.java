@@ -6,10 +6,10 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.ParsedArgument;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 
 @ApiStatus.Internal
-final class ExecutionContextImpl<S extends Source> extends ContextImpl<S> implements ExecutionContext<S> {
+final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S> implements ExecutionContext<S> {
 
     private final CommandPathway<S> usage;
     private final Registry<String, ParsedFlagArgument<S>> flagRegistry = new Registry<>();

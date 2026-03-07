@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.Permission;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Switch;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("setrank")
 public class SetRankCmd {
@@ -15,7 +15,7 @@ public class SetRankCmd {
     @Execute
     @Permission("voxy.grant")
     public void execute(
-            final TestSource actor,
+            final TestCommandSource actor,
             @Named("target") String data,
             final @Named("rank") String rank,
             final @Named("duration") String duration,

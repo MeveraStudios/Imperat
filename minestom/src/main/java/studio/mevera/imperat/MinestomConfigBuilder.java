@@ -5,7 +5,7 @@ import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.adventure.AdventureSource;
+import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.ResponseException;
@@ -36,7 +36,7 @@ import studio.mevera.imperat.util.TypeWrap;
  * @see MinestomImperat
  * @since 1.0
  */
-public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, MinestomImperat, MinestomConfigBuilder> {
+public final class MinestomConfigBuilder extends ConfigBuilder<MinestomCommandSource, MinestomImperat, MinestomConfigBuilder> {
 
     private final ServerProcess serverProcess;
 
@@ -59,12 +59,12 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
      */
     private void registerContextResolvers() {
         config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<MinestomSource>>() {
+                new TypeWrap<ExecutionContext<MinestomCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<MinestomSource>>() {
+                new TypeWrap<CommandHelp<MinestomCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
@@ -81,7 +81,7 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomSource, M
         config.registerSourceProvider(CommandSender.class, (minestomSource, ctx) -> minestomSource.origin());
 
         // Enhanced source resolver for console similar to Velocity
-        config.registerSourceProvider(AdventureSource.class, (minestomSource, ctx) -> minestomSource);
+        config.registerSourceProvider(AdventureCommandSource.class, (minestomSource, ctx) -> minestomSource);
         config.registerSourceProvider(ConsoleSender.class, (minestomSource, ctx) -> {
             if (!minestomSource.isConsole()) {
                 throw ResponseException.of(MinestomResponseKey.ONLY_CONSOLE);

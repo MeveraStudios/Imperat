@@ -2,7 +2,7 @@ package studio.mevera.imperat.help;
 
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.VelocitySource;
+import studio.mevera.imperat.VelocityCommandSource;
 import studio.mevera.imperat.adventure.AdventureHelpComponent;
 
 import java.util.function.BiConsumer;
@@ -15,7 +15,7 @@ import java.util.function.BiConsumer;
  * <p>Features:</p>
  * <ul>
  *   <li>Rich text formatting with Adventure Components</li>
- *   <li>Automatic integration with VelocitySource messaging</li>
+ *   <li>Automatic integration with VelocityCommandSource messaging</li>
  *   <li>Support for clickable, hoverable, and styled text</li>
  *   <li>Seamless help system integration</li>
  * </ul>
@@ -29,27 +29,27 @@ import java.util.function.BiConsumer;
  *
  * @since 2.1.0
  * @author Imperat Framework
- * @see VelocitySource
+ * @see VelocityCommandSource
  * @see AdventureHelpComponent
  */
-public class VelocityAdventureHelpComponent extends AdventureHelpComponent<VelocitySource> {
+public class VelocityAdventureHelpComponent extends AdventureHelpComponent<VelocityCommandSource> {
 
     /**
      * Creates a new VelocityAdventureHelpComponent with the specified component and message sender.
      *
      * @param componentValue the Adventure Component to display as help
-     * @param sendMessageToSourceFunc function to send the component to a VelocitySource
+     * @param sendMessageToSourceFunc function to send the component to a VelocityCommandSource
      */
     protected VelocityAdventureHelpComponent(
             @NotNull Component componentValue,
-            BiConsumer<VelocitySource, Component> sendMessageToSourceFunc
+            BiConsumer<VelocityCommandSource, Component> sendMessageToSourceFunc
     ) {
         super(componentValue, sendMessageToSourceFunc);
     }
 
     /**
      * Creates a new VelocityAdventureHelpComponent with the specified Adventure Component.
-     * Uses the default VelocitySource reply method for sending messages.
+     * Uses the default VelocityCommandSource reply method for sending messages.
      *
      * @param componentValue the Adventure Component to display as help
      * @return a new VelocityAdventureHelpComponent instance
@@ -57,6 +57,6 @@ public class VelocityAdventureHelpComponent extends AdventureHelpComponent<Veloc
     public static VelocityAdventureHelpComponent of(
             @NotNull Component componentValue
     ) {
-        return new VelocityAdventureHelpComponent(componentValue, VelocitySource::reply);
+        return new VelocityAdventureHelpComponent(componentValue, VelocityCommandSource::reply);
     }
 }

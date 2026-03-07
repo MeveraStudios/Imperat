@@ -8,12 +8,12 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 
 @ApiStatus.Internal
-final class DefaultContextFactory<S extends Source> extends ContextFactory<S> {
+final class DefaultContextFactory<S extends CommandSource> extends ContextFactory<S> {
 
 
     DefaultContextFactory() {
@@ -24,7 +24,7 @@ final class DefaultContextFactory<S extends Source> extends ContextFactory<S> {
      * @param source  the sender/source of this command execution
      * @param command the command label used
      * @param queue   the args input
-     * @return new context from the command and args used by {@link Source}
+     * @return new context from the command and args used by {@link CommandSource}
      */
     @Override
     public @NotNull CommandContext<S> createContext(

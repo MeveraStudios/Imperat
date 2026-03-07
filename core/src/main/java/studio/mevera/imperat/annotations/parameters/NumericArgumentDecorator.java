@@ -7,10 +7,10 @@ import studio.mevera.imperat.command.arguments.InputParameter;
 import studio.mevera.imperat.command.arguments.NumericParameter;
 import studio.mevera.imperat.command.arguments.NumericRange;
 import studio.mevera.imperat.command.arguments.validator.RangeValidator;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.providers.SuggestionProvider;
 
-public final class NumericArgumentDecorator<S extends Source> extends InputParameter<S> implements NumericParameter<S> {
+public final class NumericArgumentDecorator<S extends CommandSource> extends InputParameter<S> implements NumericParameter<S> {
 
     private final Argument<S> parameter;
     private final NumericRange range;
@@ -31,11 +31,11 @@ public final class NumericArgumentDecorator<S extends Source> extends InputParam
     }
 
 
-    public static <S extends Source> NumericArgumentDecorator<S> decorate(@NotNull Argument<S> parameter, @NotNull NumericRange range) {
+    public static <S extends CommandSource> NumericArgumentDecorator<S> decorate(@NotNull Argument<S> parameter, @NotNull NumericRange range) {
         return new NumericArgumentDecorator<>(parameter, range);
     }
 
-    private static <S extends Source> SuggestionProvider<S> loadSuggestionResolver(Argument<S> parameter, NumericRange range) {
+    private static <S extends CommandSource> SuggestionProvider<S> loadSuggestionResolver(Argument<S> parameter, NumericRange range) {
         var def = parameter.getSuggestionResolver();
         if (parameter.getSuggestionResolver() != null || (range.getMin() == Double.MIN_VALUE && range.getMax() == Double.MAX_VALUE)) {
             return def;

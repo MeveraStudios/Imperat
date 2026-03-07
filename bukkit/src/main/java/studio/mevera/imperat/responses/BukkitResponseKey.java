@@ -7,7 +7,7 @@ package studio.mevera.imperat.responses;
  */
 public interface BukkitResponseKey extends ResponseKey {
 
-    // Source restrictions
+    // CommandSource restrictions
     BukkitResponseKey ONLY_PLAYER = () -> "only-player";
     BukkitResponseKey ONLY_CONSOLE = () -> "only-console";
 

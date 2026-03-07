@@ -3,8 +3,8 @@ package studio.mevera.imperat.context.internal.flow;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.context.internal.flow.handlers.ParameterHandler;
@@ -20,7 +20,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ParameterChain<S extends Source> {
+public class ParameterChain<S extends CommandSource> {
 
     private final List<ParameterHandler<S>> handlers;
 

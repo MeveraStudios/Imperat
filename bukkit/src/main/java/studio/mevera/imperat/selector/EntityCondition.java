@@ -1,7 +1,7 @@
 package studio.mevera.imperat.selector;
 
 import org.bukkit.entity.Entity;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.exception.CommandException;
 
 /**
@@ -19,7 +19,7 @@ public interface EntityCondition {
      * @return true if the entity meets the condition based on the source, false otherwise
      * @throws CommandException if there is an error during the evaluation
      */
-    boolean test(BukkitSource sender, Entity entity) throws CommandException;
+    boolean test(BukkitCommandSource sender, Entity entity) throws CommandException;
 
     default EntityCondition and(EntityCondition other) {
         return (sender, entity) -> EntityCondition.this.test(sender, entity) && other.test(sender, entity);

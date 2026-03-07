@@ -3,21 +3,21 @@ package studio.mevera.imperat.annotations.base;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.UnknownDependencyException;
 
 /**
  * Functional interface for creating instances of a given class.
  */
-public interface InstanceFactory<S extends Source> {
+public interface InstanceFactory<S extends CommandSource> {
 
     /**
      * Creates a default instance factory that uses the provided ImperatConfig for dependency resolution.
      *
-     * @param <S>    the type of Source
+     * @param <S>    the type of CommandSource
      * @return a default InstanceFactory
      */
-    static <S extends Source> InstanceFactory<S> defaultFactory() {
+    static <S extends CommandSource> InstanceFactory<S> defaultFactory() {
         return new DefaultInstanceFactory<>();
     }
 

@@ -2,9 +2,9 @@ package studio.mevera.imperat.command.tree.help.theme;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
-public abstract class HelpComponent<S extends Source, C> {
+public abstract class HelpComponent<S extends CommandSource, C> {
 
     protected @NotNull C componentValue;
 
@@ -12,7 +12,7 @@ public abstract class HelpComponent<S extends Source, C> {
         this.componentValue = componentValue;
     }
 
-    public static <S extends Source> StringHelpComponent<S> plainText(@NotNull String text) {
+    public static <S extends CommandSource> StringHelpComponent<S> plainText(@NotNull String text) {
         return new StringHelpComponent<>(text);
     }
 

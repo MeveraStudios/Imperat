@@ -4,12 +4,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.StringUtils;
 
-class NormalArgument<S extends Source> extends InputParameter<S> {
+class NormalArgument<S extends CommandSource> extends InputParameter<S> {
 
     NormalArgument(String name,
             ArgumentType<S, ?> type,

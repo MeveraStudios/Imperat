@@ -5,16 +5,16 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @SuppressWarnings("unused")
 public final class TestCommands {
 
-    public final static Command<TestSource> GROUP_CMD = Command.create(ImperatTestGlobals.IMPERAT, "group")
+    public final static Command<TestCommandSource> GROUP_CMD = Command.create(ImperatTestGlobals.IMPERAT, "group")
                                                                 .defaultExecution((source, context) -> {
                                                                     source.reply("/group <group>");
                                                                 })
-                                                                .pathway(CommandPathway.<TestSource>builder()
+                                                                       .pathway(CommandPathway.<TestCommandSource>builder()
                                                                                .parameters(Argument.requiredText("group"))
                                                                                .execute((source, context) -> {
                                                                                    source.reply("Executing /group " + context.getArgument("group")
@@ -24,10 +24,10 @@ public final class TestCommands {
                                                                 )
                                                                 .subCommand(
                                                                         Command.create(ImperatTestGlobals.IMPERAT, "setperm")
-                                                                                .pathway(CommandPathway.<TestSource>builder()
+                                                                                .pathway(CommandPathway.<TestCommandSource>builder()
                                                                                                .parameters(
                                                                                                        Argument.requiredText("permission"),
-                                                                                                       Argument.<TestSource>optionalBoolean(
+                                                                                                       Argument.<TestCommandSource>optionalBoolean(
                                                                                                                "value").defaultValue(false)
                                                                                                )
                                                                                                .execute((source, ctx) -> {
@@ -44,7 +44,7 @@ public final class TestCommands {
                                                                 )
                                                                 .subCommand(Command.create(ImperatTestGlobals.IMPERAT, "setprefix")
                                                                                     .pathway(
-                                                                                            CommandPathway.<TestSource>builder()
+                                                                                            CommandPathway.<TestCommandSource>builder()
                                                                                                     .parameters(
                                                                                                             Argument.requiredText("prefix")
                                                                                                     )
@@ -60,9 +60,9 @@ public final class TestCommands {
                                                                 )
                                                                 .subCommand(Command.create(ImperatTestGlobals.IMPERAT, "help")
                                                                                     .pathway(
-                                                                                            CommandPathway.<TestSource>builder()
+                                                                                            CommandPathway.<TestCommandSource>builder()
                                                                                                     .parameters(
-                                                                                                            Argument.<TestSource>optionalInt(
+                                                                                                            Argument.<TestCommandSource>optionalInt(
                                                                                                                     "page").defaultValue(1)
                                                                                                     )
                                                                                                     .execute((source, context) -> {
@@ -81,14 +81,14 @@ public final class TestCommands {
                                                                 )
                                                                 .build();
 
-    public final static Command<TestSource> CHAINED_SUBCOMMANDS_CMD =
+    public final static Command<TestCommandSource> CHAINED_SUBCOMMANDS_CMD =
             Command.create(ImperatTestGlobals.IMPERAT, "subs")
                     .subCommand(
                             Command.create(ImperatTestGlobals.IMPERAT, "first")
                                     .defaultExecution((source, context) -> {
                                         source.reply("FIRST, DEF EXEC");
                                     })
-                                    .pathway(CommandPathway.<TestSource>builder()
+                                    .pathway(CommandPathway.<TestCommandSource>builder()
                                                    .parameters(Argument.requiredText("arg1"))
                                                    .execute((source, context) -> source.reply("Arg1= " + context.getArgument("arg1")))
 
@@ -96,7 +96,7 @@ public final class TestCommands {
                                     .subCommand(
                                             Command.create(ImperatTestGlobals.IMPERAT, "second")
                                                     .defaultExecution((source, context) -> source.reply("SECOND, DEF EXEC"))
-                                                    .pathway(CommandPathway.<TestSource>builder()
+                                                    .pathway(CommandPathway.<TestCommandSource>builder()
                                                                    .parameters(Argument.requiredText("arg2"))
                                                                    .execute((source, ctx) -> source.reply(
                                                                            "Arg1= " + ctx.getArgument("arg1") + ", Arg2= " + ctx.getArgument("arg2")))
@@ -104,7 +104,7 @@ public final class TestCommands {
                                                     .subCommand(
                                                             Command.create(ImperatTestGlobals.IMPERAT, "third")
                                                                     .defaultExecution((source, context) -> source.reply("THIRD, DEF EXEC"))
-                                                                    .pathway(CommandPathway.<TestSource>builder()
+                                                                    .pathway(CommandPathway.<TestCommandSource>builder()
                                                                                    .parameters(Argument.requiredText("arg3"))
                                                                                    .execute((source, ctx) -> source.reply(
                                                                                            "Arg1= " + ctx.getArgument("arg1") + ", " +
@@ -120,10 +120,10 @@ public final class TestCommands {
 
                     .build();
 
-    public final static Command<TestSource> MULTIPLE_OPTIONAL_CMD =
+    public final static Command<TestCommandSource> MULTIPLE_OPTIONAL_CMD =
             Command.create(ImperatTestGlobals.IMPERAT, "ot")
                     .pathway(
-                            CommandPathway.<TestSource>builder()
+                            CommandPathway.<TestCommandSource>builder()
                                     .parameters(
                                             Argument.requiredText("r1"),
                                             Argument.optionalText("o1"),
@@ -135,19 +135,19 @@ public final class TestCommands {
                     .build();
 
 
-    public final static Command<TestSource> BAN_COMMAND = Command.create(ImperatTestGlobals.IMPERAT, "ban")
+    public final static Command<TestCommandSource> BAN_COMMAND = Command.create(ImperatTestGlobals.IMPERAT, "ban")
                                                                   .permission(
                                                                           PermissionsData.of("command.ban")
                                                                   )
                                                                   .description("Main command for banning players")
                                                                   .pathway(
-                                                                          CommandPathway.<TestSource>builder()
+                                                                          CommandPathway.<TestCommandSource>builder()
                                                                                   .parameters(
                                                                                           Argument.requiredText("player"),
-                                                                                          Argument.<TestSource>flagSwitch("silent")
+                                                                                          Argument.<TestCommandSource>flagSwitch("silent")
                                                                                                   .aliases("s"),
                                                                                           Argument.optionalText("duration"),
-                                                                                          Argument.<TestSource>optionalGreedy("reason")
+                                                                                          Argument.<TestCommandSource>optionalGreedy("reason")
                                                                                                   .defaultValue("Breaking server laws")
                                                                                   )
                                                                                   .execute((source, context) -> {

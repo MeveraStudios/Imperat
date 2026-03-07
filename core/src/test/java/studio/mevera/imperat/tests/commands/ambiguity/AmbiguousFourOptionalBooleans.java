@@ -3,7 +3,7 @@ package studio.mevera.imperat.tests.commands.ambiguity;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * AMBIGUOUS: Four execute methods with conflicting first parameter (all optional Boolean).
@@ -14,22 +14,22 @@ import studio.mevera.imperat.tests.TestSource;
 public class AmbiguousFourOptionalBooleans {
 
     @Execute
-    public void withFlag1(TestSource source, @Optional Boolean flag1) {
+    public void withFlag1(TestCommandSource source, @Optional Boolean flag1) {
         source.reply("Flag1: " + flag1);
     }
 
     @Execute
-    public void withFlag2(TestSource source, @Optional Boolean flag2) {
+    public void withFlag2(TestCommandSource source, @Optional Boolean flag2) {
         source.reply("Flag2: " + flag2);
     }
 
     @Execute
-    public void withFlag3(TestSource source, @Optional Boolean flag3) {
+    public void withFlag3(TestCommandSource source, @Optional Boolean flag3) {
         source.reply("Flag3: " + flag3);
     }
 
     @Execute
-    public void withFlag4(TestSource source, @Optional Boolean flag4) {
+    public void withFlag4(TestCommandSource source, @Optional Boolean flag4) {
         source.reply("Flag4: " + flag4);
     }
 }

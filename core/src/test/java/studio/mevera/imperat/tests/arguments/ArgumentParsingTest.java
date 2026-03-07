@@ -6,7 +6,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.tests.BaseImperatTest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @DisplayName("Argument Parsing Tests")
 public class ArgumentParsingTest extends BaseImperatTest {
@@ -14,7 +14,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should parse required string arguments correctly")
     void testRequiredStringArguments() {
-        ExecutionResult<TestSource> result = execute("test hello world");
+        ExecutionResult<TestCommandSource> result = execute("test hello world");
         assertSuccess(result);
         assertArgument(result, "otherText", "hello");
         assertArgument(result, "otherText2", "world");
@@ -23,7 +23,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should parse sub-command arguments correctly")
     void testSubCommandArguments() {
-        ExecutionResult<TestSource> result = execute("test hello world first");
+        ExecutionResult<TestCommandSource> result = execute("test hello world first");
         assertSuccess(result);
         assertArgument(result, "otherText", "hello");
         assertArgument(result, "otherText2", "world");
@@ -52,7 +52,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle optional arguments with defaults")
     void testOptionalArgumentsWithDefaults() {
-        ExecutionResult<TestSource> result = execute("give apple");
+        ExecutionResult<TestCommandSource> result = execute("give apple");
         assertSuccess(result);
         assertArgument(result, "item", "apple");
         assertArgument(result, "amount", 1);
@@ -61,7 +61,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should parse custom parameter types")
     void testCustomArgumentTypes() {
-        ExecutionResult<TestSource> result = execute("give apple mqzen 5");
+        ExecutionResult<TestCommandSource> result = execute("give apple mqzen 5");
         assertSuccess(result);
         assertArgument(result, "item", "apple");
         assertArgument(result, "player", new TestPlayer("mqzen"));
@@ -77,7 +77,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @DisplayName("Should handle various optional argument combinations")
     void testOptionalArgumentCombinations(String commandLine, String expectedItem,
             String expectedPlayer, Integer expectedAmount) {
-        ExecutionResult<TestSource> result = execute(commandLine);
+        ExecutionResult<TestCommandSource> result = execute(commandLine);
         assertSuccess(result);
         assertArgument(result, "item", expectedItem);
         TestPlayer expectedPlayerObj = expectedPlayer.equals("null") ? null : new TestPlayer(expectedPlayer);
@@ -88,7 +88,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle greedy arguments")
     void testGreedyArguments() {
-        ExecutionResult<TestSource> result = execute("message target this is a long message");
+        ExecutionResult<TestCommandSource> result = execute("message target this is a long message");
         assertSuccess(result);
         assertArgument(result, "target", "target");
         assertArgument(result, "message", "this is a long message");
@@ -97,7 +97,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should parse array parameters")
     void testArrayParameters() {
-        ExecutionResult<TestSource> result = execute("test2 array member mod srmod owner");
+        ExecutionResult<TestCommandSource> result = execute("test2 array member mod srmod owner");
         assertSuccess(result);
 
         String[] expectedArray = {"member", "mod", "srmod", "owner"};
@@ -107,7 +107,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle collection parameters")
     void testCollectionParameters() {
-        ExecutionResult<TestSource> result = execute("test2 collection hello world test");
+        ExecutionResult<TestCommandSource> result = execute("test2 collection hello world test");
         assertSuccess(result);
         // The collection should contain the parsed elements
     }
@@ -115,7 +115,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle map parameters")
     void testMapParameters() {
-        ExecutionResult<TestSource> result = execute("test2 map key1,value1 key2,value2");
+        ExecutionResult<TestCommandSource> result = execute("test2 map key1,value1 key2,value2");
         assertSuccess(result);
         // The map should contain the parsed key-value pairs
     }

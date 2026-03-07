@@ -8,15 +8,15 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
-public final class CurrencyParamType extends ArgumentType<TestSource, Currency> {
+public final class CurrencyParamType extends ArgumentType<TestCommandSource, Currency> {
 
 
     @Override
     public Currency parse(
-            @NotNull ExecutionContext<TestSource> context,
-            @NotNull Cursor<TestSource> cursor,
+            @NotNull ExecutionContext<TestCommandSource> context,
+            @NotNull Cursor<TestCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
         Currency currency = CurrencyManager.getInstance().getCurrencyByName(correspondingInput.toLowerCase());
@@ -27,7 +27,7 @@ public final class CurrencyParamType extends ArgumentType<TestSource, Currency> 
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<TestSource> context, Argument<TestSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<TestCommandSource> context, Argument<TestCommandSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
@@ -37,7 +37,7 @@ public final class CurrencyParamType extends ArgumentType<TestSource, Currency> 
     }
 
     @Override
-    public SuggestionProvider<TestSource> getSuggestionProvider() {
+    public SuggestionProvider<TestCommandSource> getSuggestionProvider() {
         return (ctx, parameter) ->
                        CurrencyManager.getInstance().getAllCurrencies()
                                .stream()

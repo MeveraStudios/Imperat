@@ -5,10 +5,10 @@ import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 
-final class SuggestionContextImpl<S extends Source> extends ContextImpl<S> implements SuggestionContext<S> {
+final class SuggestionContextImpl<S extends CommandSource> extends ContextImpl<S> implements SuggestionContext<S> {
 
     private final CompletionArg completionArg;
 

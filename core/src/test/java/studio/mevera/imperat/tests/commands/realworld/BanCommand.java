@@ -10,20 +10,20 @@ import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.Range;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Switch;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("ban")
 @Description("Main command for banning players")
 public final class BanCommand {
 
     @Execute
-    public void showUsage(TestSource source) {
+    public void showUsage(TestCommandSource source) {
         source.reply("/ban <player> [-silent] [duration] [reason...]");
     }
 
     @Execute
     public void ban(
-            TestSource source,
+            TestCommandSource source,
             @Named("target") String player,
             @Switch({"silent", "s"}) boolean silent,
             @Switch("ip") boolean ip,
@@ -45,7 +45,7 @@ public final class BanCommand {
     }
 
     @RootCommand("printnum")
-    public void printNum(TestSource source, @Named("num") @Range(min = 1.0) int num) {
+    public void printNum(TestCommandSource source, @Named("num") @Range(min = 1.0) int num) {
         source.reply("NUM= " + num);
     }
 

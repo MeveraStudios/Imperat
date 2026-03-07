@@ -3,13 +3,13 @@ package studio.mevera.imperat.brigadier;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 
-public class BukkitArgumentType<T> extends ArgumentType<BukkitSource, T> {
+public class BukkitArgumentType<T> extends ArgumentType<BukkitCommandSource, T> {
 
     private final MinecraftArgumentType minecraftArgumentType;
     private final com.mojang.brigadier.arguments.ArgumentType<T> argumentType;
@@ -29,8 +29,8 @@ public class BukkitArgumentType<T> extends ArgumentType<BukkitSource, T> {
 
     @Override
     public @Nullable T parse(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull Cursor<BukkitSource> cursor,
+            @NotNull ExecutionContext<BukkitCommandSource> context,
+            @NotNull Cursor<BukkitCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
 

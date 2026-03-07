@@ -3,15 +3,15 @@ package studio.mevera.imperat.command.arguments;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.providers.SuggestionProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, ParsedFlagArgument<S>> {
+public final class FlagBuilder<S extends CommandSource, T> extends ArgumentBuilder<S, ParsedFlagArgument<S>> {
 
     private final ArgumentType<S, T> inputType;
     private final List<String> aliases = new ArrayList<>();
@@ -29,11 +29,11 @@ public final class FlagBuilder<S extends Source, T> extends ArgumentBuilder<S, P
         this(name, null);
     }
 
-    public static <S extends Source, T> FlagBuilder<S, T> ofFlag(String name, ArgumentType<S, T> inputType) {
+    public static <S extends CommandSource, T> FlagBuilder<S, T> ofFlag(String name, ArgumentType<S, T> inputType) {
         return new FlagBuilder<>(name, inputType);
     }
 
-    public static <S extends Source, T> FlagBuilder<S, T> ofSwitch(String name) {
+    public static <S extends CommandSource, T> FlagBuilder<S, T> ofSwitch(String name) {
         return new FlagBuilder<>(name);
     }
 

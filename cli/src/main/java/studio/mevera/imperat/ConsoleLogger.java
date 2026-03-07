@@ -1,10 +1,11 @@
 package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
- * Represents a simple console logger invoked by {@link studio.mevera.imperat.context.Source}
- * output methods (e.g. {@code Source#reply}, {@code Source#error}).
+ * Represents a simple console logger invoked by {@link CommandSource}
+ * output methods (e.g. {@code CommandSource#reply}, {@code CommandSource#error}).
  * <p>
  * Applications may implement their preferred solution, such as Java's
  * {@link java.util.logging.Logger} or SLF4J.

@@ -7,8 +7,8 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.adventure.AdventureProvider;
-import studio.mevera.imperat.adventure.AdventureSource;
 import studio.mevera.imperat.adventure.BungeeAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
@@ -30,7 +30,7 @@ import studio.mevera.imperat.util.reflection.Reflections;
  * <ul>
  *   <li>BungeeCord-specific parameter types (ProxiedPlayer, ServerInfo)</li>
  *   <li>Exception handlers for common BungeeCord scenarios</li>
- *   <li>Source resolvers for type-safe command source handling</li>
+ *   <li>CommandSource resolvers for type-safe command source handling</li>
  *   <li>Adventure API integration with automatic detection</li>
  *   <li>Cross-server functionality support</li>
  *   <li>Permission system integration</li>
@@ -46,7 +46,7 @@ import studio.mevera.imperat.util.reflection.Reflections;
  * @see BungeeImperat
  * @since 1.0
  */
-public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, BungeeImperat, BungeeConfigBuilder> {
+public final class BungeeConfigBuilder extends ConfigBuilder<BungeeCommandSource, BungeeImperat, BungeeConfigBuilder> {
 
     private final static BungeePermissionChecker DEFAULT_PERMISSION_RESOLVER = new BungeePermissionChecker();
     private final Plugin plugin;
@@ -65,12 +65,12 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
 
     private void registerContextResolvers() {
         config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<BungeeSource>>() {
+                new TypeWrap<ExecutionContext<BungeeCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<BungeeSource>>() {
+                new TypeWrap<CommandHelp<BungeeCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );
@@ -79,7 +79,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
         config.registerContextArgumentProvider(Plugin.class, (ctx, paramElement) -> plugin);
         config.registerContextArgumentProvider(ProxyServer.class, (ctx, paramElement) -> ProxyServer.getInstance());
         config.registerContextArgumentProvider(ServerInfo.class, (ctx, paramElement) -> {
-            BungeeSource source = ctx.source();
+            BungeeCommandSource source = ctx.source();
             if (source.isConsole()) {
                 throw ResponseException.of(BungeeResponseKey.ONLY_PLAYER);
             }
@@ -100,7 +100,7 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeSource, Bunge
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceProvider(AdventureSource.class, (bungeeSource, ctx) -> bungeeSource);
+        config.registerSourceProvider(AdventureCommandSource.class, (bungeeSource, ctx) -> bungeeSource);
         config.registerSourceProvider(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
         config.registerSourceProvider(ProxiedPlayer.class, (source, ctx) -> {
             if (source.isConsole()) {

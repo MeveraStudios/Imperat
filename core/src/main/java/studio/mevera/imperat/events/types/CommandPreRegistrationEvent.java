@@ -1,7 +1,7 @@
 package studio.mevera.imperat.events.types;
 
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.events.CancellableEvent;
 import studio.mevera.imperat.events.CommandEvent;
 
@@ -94,7 +94,7 @@ import studio.mevera.imperat.events.CommandEvent;
  * @see CommandPostRegistrationEvent
  * @see Command
  */
-public final class CommandPreRegistrationEvent<S extends Source> extends CommandEvent<S> implements CancellableEvent {
+public final class CommandPreRegistrationEvent<S extends CommandSource> extends CommandEvent<S> implements CancellableEvent {
 
     /**
      * Whether this event has been cancelled.

@@ -4,7 +4,7 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * /mixed <target> <prefix> <suffix>
@@ -15,7 +15,7 @@ import studio.mevera.imperat.tests.TestSource;
 public class LimitedGreedyWithTrailingArgCmd {
 
     @Execute
-    public void exec(TestSource source,
+    public void exec(TestCommandSource source,
             @Named("target") String target,
             @Named("prefix") @Greedy(limit = 2) String prefix,
             @Named("suffix") String suffix) {

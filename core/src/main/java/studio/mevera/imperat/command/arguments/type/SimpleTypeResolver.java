@@ -2,7 +2,7 @@ package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.priority.Priority;
@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  * @param <S> the source type
  * @param <T> the argument type
  */
-public final class SimpleTypeResolver<S extends Source, T> implements ArgumentTypeHandler<S> {
+public final class SimpleTypeResolver<S extends CommandSource, T> implements ArgumentTypeHandler<S> {
 
     private final Type targetType;
     private final Supplier<ArgumentType<S, T>> supplier;

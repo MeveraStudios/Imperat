@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.BukkitImperat;
-import studio.mevera.imperat.BukkitSource;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ class BukkitImperatTest {
         String[] aliases = {"tell", "msg", "t", "w", "whisper", "pm"};
 
         PlayerMock player = server.addPlayer("TestPlayer");
-        BukkitSource source = imperat.wrapSender(player);
+        BukkitCommandSource source = imperat.wrapSender(player);
 
         ImperatDebugger.setEnabled(true);
         for (String alias : aliases) {
@@ -70,7 +70,7 @@ class BukkitImperatTest {
         for (String alias : aliases) {
             // Verify that the "name" argument suggestions are provided for all aliases
             PlayerMock player = server.addPlayer("TestPlayer");
-            BukkitSource source = imperat.wrapSender(player);
+            BukkitCommandSource source = imperat.wrapSender(player);
 
             var results = imperat.autoComplete(source, alias + " ")
                                      .join();

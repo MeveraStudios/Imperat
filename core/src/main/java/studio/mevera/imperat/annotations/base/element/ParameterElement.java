@@ -8,7 +8,7 @@ import studio.mevera.imperat.annotations.types.DefaultProvider;
 import studio.mevera.imperat.annotations.types.Flag;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.Switch;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.annotation.Annotation;
@@ -23,7 +23,7 @@ public final class ParameterElement extends ParseElement<Parameter> {
     private final ClassElement owningClass;
     private final boolean contextResolved;
 
-    <S extends Source> ParameterElement(
+    <S extends CommandSource> ParameterElement(
             final AnnotationParser<S> parser,
             final ClassElement owningClass,
             final MethodElement method,

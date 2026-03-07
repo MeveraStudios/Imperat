@@ -7,7 +7,7 @@ package studio.mevera.imperat.responses;
  */
 public interface BungeeResponseKey extends ResponseKey {
 
-    // Source restrictions
+    // CommandSource restrictions
     BungeeResponseKey ONLY_PLAYER = () -> "commands.conditions.only-player";
     BungeeResponseKey ONLY_CONSOLE = () -> "commands.conditions.only-console";
 

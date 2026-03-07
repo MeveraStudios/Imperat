@@ -1,9 +1,9 @@
 package studio.mevera.imperat.command.tree.help.theme;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
-public abstract class TextHelpTheme<S extends Source> extends BaseHelpTheme<S, String> {
+public abstract class TextHelpTheme<S extends CommandSource> extends BaseHelpTheme<S, String> {
 
     protected TextHelpTheme(
             @NotNull PresentationStyle style,

@@ -2,7 +2,7 @@ package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.exception.SelfHandlingException;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -44,7 +44,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
  * }</pre>
  *
  * @param <S> the type of command source that provides context for exception handling,
- *            must extend {@link Source}
+ *            must extend {@link CommandSource}
  *
  * @since 1.0
  * @see ThrowableHandler
@@ -52,7 +52,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
  * @see SelfHandlingException
  * @see CommandContext
  */
-public non-sealed interface BaseThrowableHandler<S extends Source> extends ThrowableHandler<S> {
+public non-sealed interface BaseThrowableHandler<S extends CommandSource> extends ThrowableHandler<S> {
 
     /**
      * Handles exceptions that occur during command execution by traversing the

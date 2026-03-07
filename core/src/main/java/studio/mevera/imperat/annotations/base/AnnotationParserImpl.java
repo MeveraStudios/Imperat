@@ -11,13 +11,13 @@ import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.parsers.MethodCommandExceptionHandler;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
 @ApiStatus.Internal
-final class AnnotationParserImpl<S extends Source> extends AnnotationParser<S> {
+final class AnnotationParserImpl<S extends CommandSource> extends AnnotationParser<S> {
 
     final AnnotationRegistry annotationRegistry;
     private final ElementSelector<MethodElement> methodSelector;

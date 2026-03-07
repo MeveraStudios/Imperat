@@ -3,14 +3,14 @@ package studio.mevera.imperat.permissions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * Represents a functional way of checking for the permissions
  * of the command source/sender.
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface PermissionChecker<S extends Source> {
+public interface PermissionChecker<S extends CommandSource> {
 
     /**
      * @param source     the source of the command (console or other)

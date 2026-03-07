@@ -8,8 +8,8 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.SuggestionContext;
 
 /**
@@ -19,13 +19,13 @@ import studio.mevera.imperat.context.SuggestionContext;
  * @param <S>
  */
 @ApiStatus.AvailableSince("1.0.0")
-public abstract class ContextFactory<S extends Source> {
+public abstract class ContextFactory<S extends CommandSource> {
 
     protected ContextFactory() {
     }
 
 
-    public static <S extends Source> ContextFactory<S> defaultFactory() {
+    public static <S extends CommandSource> ContextFactory<S> defaultFactory() {
         return new DefaultContextFactory<>();
     }
 
@@ -34,7 +34,7 @@ public abstract class ContextFactory<S extends Source> {
      * @param source  the sender/source of this command execution
      * @param command the command label used
      * @param queue   the args input
-     * @return new context from the command and args used by {@link Source}
+     * @return new context from the command and args used by {@link CommandSource}
      */
     @NotNull
     public abstract CommandContext<S> createContext(

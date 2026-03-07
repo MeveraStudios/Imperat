@@ -2,7 +2,7 @@ package studio.mevera.imperat.util;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
@@ -43,7 +43,7 @@ public abstract class TypeWrap<T> {
         return new Bounds(bounds, true);
     }
 
-    public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, List<ArgumentType<S, ?>> genericParamTypes) {
+    public static <S extends CommandSource> TypeWrap<?> ofParameterized(Type rawClass, List<ArgumentType<S, ?>> genericParamTypes) {
         if (!(rawClass instanceof Class<?>)) {
             throw new IllegalArgumentException("Raw class must be a class.");
         }
@@ -61,7 +61,7 @@ public abstract class TypeWrap<T> {
 
     }
 
-    public static <S extends Source> TypeWrap<?> ofParameterized(Type rawClass, Type... genericTypes) {
+    public static <S extends CommandSource> TypeWrap<?> ofParameterized(Type rawClass, Type... genericTypes) {
         if (!(rawClass instanceof Class<?> clazz)) {
             throw new IllegalArgumentException("Raw class must be a class.");
         }

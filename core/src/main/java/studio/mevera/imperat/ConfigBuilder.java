@@ -10,7 +10,7 @@ import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
@@ -38,7 +38,7 @@ import java.util.function.Supplier;
  * @param <I> the implementation type that extends Imperat
  */
 @SuppressWarnings("unchecked")
-public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B extends ConfigBuilder<S, I, B>> {
+public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S>, B extends ConfigBuilder<S, I, B>> {
 
     protected final ImperatConfig<S> config;
     protected ConfigBuilder() {
@@ -343,7 +343,7 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      * @param sourceProvider the source resolver instance that converts the source
      * @return the current {@link ConfigBuilder} instance for method chaining
      */
-    // Source Resolver
+    // CommandSource Resolver
     public <R> B sourceProvider(Type type, SourceProvider<S, R> sourceProvider) {
         config.registerSourceProvider(type, sourceProvider);
         return (B) this;

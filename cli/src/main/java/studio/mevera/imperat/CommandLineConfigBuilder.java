@@ -31,7 +31,7 @@ import java.io.PrintStream;
  * @author Imperat Framework
  * @see CommandLineImperat
  */
-public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleSource, CommandLineImperat, CommandLineConfigBuilder> {
+public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleCommandSource, CommandLineImperat, CommandLineConfigBuilder> {
 
     private final InputStream inputStream;
 
@@ -60,12 +60,12 @@ public final class CommandLineConfigBuilder extends ConfigBuilder<ConsoleSource,
      */
     private void registerContextResolvers() {
         config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<ConsoleSource>>() {
+                new TypeWrap<ExecutionContext<ConsoleCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> ctx
         );
         config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<ConsoleSource>>() {
+                new TypeWrap<CommandHelp<ConsoleCommandSource>>() {
                 }.getType(),
                 (ctx, paramElement) -> CommandHelp.create(ctx)
         );

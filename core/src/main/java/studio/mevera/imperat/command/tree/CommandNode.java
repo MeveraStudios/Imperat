@@ -7,7 +7,7 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.util.priority.Prioritizable;
 import studio.mevera.imperat.util.priority.PriorityList;
@@ -15,7 +15,7 @@ import studio.mevera.imperat.util.priority.PriorityList;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public abstract class CommandNode<S extends Source, T extends Argument<S>> implements Comparable<CommandNode<S, ?>>, Prioritizable {
+public abstract class CommandNode<S extends CommandSource, T extends Argument<S>> implements Comparable<CommandNode<S, ?>>, Prioritizable {
 
     protected final @NotNull T data;
     private final PriorityList<CommandNode<S, ?>> children = new PriorityList<>();
@@ -30,7 +30,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         this.executableUsage = executableUsage;
     }
 
-    public static <S extends Source> LiteralCommandNode<S> createCommandNode(
+    public static <S extends CommandSource> LiteralCommandNode<S> createCommandNode(
             @Nullable CommandNode<S, ?> parent,
             @NotNull Command<S> data,
             int depth,
@@ -39,7 +39,7 @@ public abstract class CommandNode<S extends Source, T extends Argument<S>> imple
         return new LiteralCommandNode<>(parent, data, depth, executableUsage);
     }
 
-    public static <S extends Source> ArgumentNode<S> createArgumentNode(
+    public static <S extends CommandSource> ArgumentNode<S> createArgumentNode(
             CommandNode<S, ?> parent,
             Argument<S> data,
             int depth,

@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.Version;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
@@ -26,12 +26,12 @@ import studio.mevera.imperat.selector.field.operators.OperatorField;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class TargetSelectorArgument extends ArgumentType<BukkitSource, TargetSelector> {
+public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSource, TargetSelector> {
 
     private final static char PARAMETER_START = '[';
     private final static char PARAMETER_END = ']';
 
-    private final SuggestionProvider<BukkitSource> suggestionProvider;
+    private final SuggestionProvider<BukkitCommandSource> suggestionProvider;
 
     public TargetSelectorArgument() {
         super();
@@ -43,8 +43,8 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
     }
 
     @SuppressWarnings("unchecked")
-    private static @NotNull <V> EntityCondition getEntityPredicate(@NotNull Cursor<BukkitSource> cursor,
-            List<SelectionParameterInput<?>> inputParameters, CommandContext<BukkitSource> ctx) {
+    private static @NotNull <V> EntityCondition getEntityPredicate(@NotNull Cursor<BukkitCommandSource> cursor,
+            List<SelectionParameterInput<?>> inputParameters, CommandContext<BukkitCommandSource> ctx) {
         EntityCondition entityPredicted = (sender, entity) -> true;
         for (var input : inputParameters) {
             if (!(input.getField() instanceof PredicateField<?>)) {
@@ -71,8 +71,8 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
 
     @Override
     public @NotNull TargetSelector parse(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull Cursor<BukkitSource> cursor,
+            @NotNull ExecutionContext<BukkitCommandSource> context,
+            @NotNull Cursor<BukkitCommandSource> cursor,
             @NotNull String correspondingInput) throws CommandException {
 
         String raw = cursor.currentRaw().orElse(null);
@@ -137,11 +137,11 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionProvider<BukkitSource> getSuggestionProvider() {
+    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
         return suggestionProvider;
     }
 
-    private final class TargetSelectorSuggestionProvider implements SuggestionProvider<BukkitSource> {
+    private final class TargetSelectorSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
 
         /**
          * @param context   the context for suggestions
@@ -150,8 +150,8 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitSource, Tar
          */
         @Override
         public List<String> provide(
-                SuggestionContext<BukkitSource> context,
-                Argument<BukkitSource> parameter
+                SuggestionContext<BukkitCommandSource> context,
+                Argument<BukkitCommandSource> parameter
         ) {
             List<String> completions = new ArrayList<>(suggestions);
             Bukkit.getOnlinePlayers().stream().

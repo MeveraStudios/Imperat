@@ -2,7 +2,7 @@ package studio.mevera.imperat.tests.commands.ambiguity;
 
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * AMBIGUOUS: Two execute methods with conflicting first parameter (both required int).
@@ -13,12 +13,12 @@ import studio.mevera.imperat.tests.TestSource;
 public class AmbiguousSameTypeInt {
 
     @Execute
-    public void withCount(TestSource source, int count) {
+    public void withCount(TestCommandSource source, int count) {
         source.reply("Count: " + count);
     }
 
     @Execute
-    public void withLimit(TestSource source, int limit) {
+    public void withLimit(TestCommandSource source, int limit) {
         source.reply("Limit: " + limit);
     }
 }

@@ -40,9 +40,9 @@ import java.util.List;
  * @since 1.0
  * @author Imperat Framework
  * @see MinestomConfigBuilder
- * @see MinestomSource
+ * @see MinestomCommandSource
  */
-public final class MinestomImperat extends BaseImperat<MinestomSource> {
+public final class MinestomImperat extends BaseImperat<MinestomCommandSource> {
 
     private final ServerProcess serverProcess;
 
@@ -53,7 +53,7 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
      * @param serverProcess the Minestom ServerProcess instance
      * @param config the Imperat configuration
      */
-    MinestomImperat(@NotNull ServerProcess serverProcess, @NotNull ImperatConfig<MinestomSource> config) {
+    MinestomImperat(@NotNull ServerProcess serverProcess, @NotNull ImperatConfig<MinestomCommandSource> config) {
         super(config);
         this.serverProcess = serverProcess;
         SyntaxDataLoader.migrateToImperatTypeData(this);
@@ -90,8 +90,8 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
     }
 
     @Override
-    public MinestomSource createDummySender() {
-        return new MinestomSource(MinecraftServer.getCommandManager().getConsoleSender());
+    public MinestomCommandSource createDummySender() {
+        return new MinestomCommandSource(MinecraftServer.getCommandManager().getConsoleSender());
     }
 
     /**
@@ -101,11 +101,11 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
      * @return the wrapped command-sender valueType
      */
     @Override
-    public MinestomSource wrapSender(Object sender) {
+    public MinestomCommandSource wrapSender(Object sender) {
         if (!(sender instanceof CommandSender commandSender)) {
             throw new IllegalArgumentException("platform sender is not of valueType `" + CommandSender.class.getName() + "`");
         }
-        return new MinestomSource(commandSender);
+        return new MinestomCommandSource(commandSender);
     }
 
     /**
@@ -114,7 +114,7 @@ public final class MinestomImperat extends BaseImperat<MinestomSource> {
      * @param command the command to register
      */
     @Override
-    public void registerSimpleCommand(Command<MinestomSource> command) {
+    public void registerSimpleCommand(Command<MinestomCommandSource> command) {
         super.registerSimpleCommand(command);
         MinecraftServer.getCommandManager().register(new InternalMinestomCommand(this, command));
     }

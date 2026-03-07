@@ -9,9 +9,9 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseKey;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestImperatConfig;
-import studio.mevera.imperat.tests.TestSource;
 
 import java.util.concurrent.TimeUnit;
 
@@ -43,10 +43,10 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
     ) {
         TestImperat imperat = TestImperatConfig.builder().build();
 
-        Command<TestSource> cmd = Command.<TestSource>create(imperat, cmdName)
+        Command<TestCommandSource> cmd = Command.<TestCommandSource>create(imperat, cmdName)
                                           .defaultExecution((source, context) -> source.reply("executed " + cmdName))
                                           .pathway(
-                                                  CommandPathway.<TestSource>builder()
+                                                  CommandPathway.<TestCommandSource>builder()
                                                           .parameters(Argument.requiredText("target"))
                                                           .cooldown(cooldownValue, cooldownUnit, cooldownPermission)
                                                           .execute((source, context) -> {
@@ -71,9 +71,9 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
     ) {
         TestImperat imperat = TestImperatConfig.builder().build();
 
-        Command<TestSource> cmd = Command.<TestSource>create(imperat, cmdName)
+        Command<TestCommandSource> cmd = Command.<TestCommandSource>create(imperat, cmdName)
                                           .pathway(
-                                                  CommandPathway.<TestSource>builder()
+                                                  CommandPathway.<TestCommandSource>builder()
                                                           .cooldown(cooldownValue, cooldownUnit)
                                                           .execute((source, context) -> source.reply("executed " + cmdName))
                                           )
@@ -89,9 +89,9 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
     private static TestImperat buildImperatWithSubcommandCooldowns() {
         TestImperat imperat = TestImperatConfig.builder().build();
 
-        Command<TestSource> sub = Command.<TestSource>create(imperat, "action")
+        Command<TestCommandSource> sub = Command.<TestCommandSource>create(imperat, "action")
                                           .pathway(
-                                                  CommandPathway.<TestSource>builder()
+                                                  CommandPathway.<TestCommandSource>builder()
                                                           .parameters(Argument.requiredText("value"))
                                                           .cooldown(10, TimeUnit.SECONDS)
                                                           .execute((source, context) -> {
@@ -100,7 +100,7 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
                                           )
                                           .build();
 
-        Command<TestSource> root = Command.<TestSource>create(imperat, "coolsub")
+        Command<TestCommandSource> root = Command.<TestCommandSource>create(imperat, "coolsub")
                                            .defaultExecution((source, context) -> source.reply("coolsub default"))
                                            .subCommand(sub)
                                            .build();
@@ -121,9 +121,9 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         @DisplayName("First execution should always succeed")
         void firstExecutionShouldSucceed() {
             TestImperat imperat = buildImperatWithCooldownCommand("cd1", 10, TimeUnit.SECONDS, null);
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
-            ExecutionResult<TestSource> result = imperat.execute(source, "cd1 player1");
+            ExecutionResult<TestCommandSource> result = imperat.execute(source, "cd1 player1");
             assertThat(result).isSuccessful();
         }
 
@@ -131,14 +131,14 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         @DisplayName("Second immediate execution should fail with cooldown error")
         void secondImmediateExecutionShouldFail() {
             TestImperat imperat = buildImperatWithCooldownCommand("cd2", 10, TimeUnit.SECONDS, null);
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
             // First execution — succeeds
-            ExecutionResult<TestSource> first = imperat.execute(source, "cd2 player1");
+            ExecutionResult<TestCommandSource> first = imperat.execute(source, "cd2 player1");
             assertThat(first).isSuccessful();
 
             // Second execution — should be blocked by cooldown
-            ExecutionResult<TestSource> second = imperat.execute(source, "cd2 player1");
+            ExecutionResult<TestCommandSource> second = imperat.execute(source, "cd2 player1");
             assertThat(second).hasFailed();
         }
 
@@ -146,20 +146,20 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         @DisplayName("Cooldown should apply per-source — different sources should not block each other")
         void cooldownShouldBePerSource() {
             TestImperat imperat = buildImperatWithCooldownCommand("cd3", 10, TimeUnit.SECONDS, null);
-            TestSource source1 = new TestSource(System.out);
-            TestSource source2 = new TestSource(System.out) {
+            TestCommandSource source1 = new TestCommandSource(System.out);
+            TestCommandSource source2 = new TestCommandSource(System.out) {
                 @Override
                 public String name() {
                     return "PLAYER2";
                 }
             };
 
-            // Source 1 executes
-            ExecutionResult<TestSource> r1 = imperat.execute(source1, "cd3 target1");
+            // CommandSource 1 executes
+            ExecutionResult<TestCommandSource> r1 = imperat.execute(source1, "cd3 target1");
             assertThat(r1).isSuccessful();
 
-            // Source 2 should still be able to execute
-            ExecutionResult<TestSource> r2 = imperat.execute(source2, "cd3 target1");
+            // CommandSource 2 should still be able to execute
+            ExecutionResult<TestCommandSource> r2 = imperat.execute(source2, "cd3 target1");
             assertThat(r2).isSuccessful();
         }
 
@@ -167,12 +167,12 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         @DisplayName("Default (no-arg) pathway with cooldown should block repeat execution")
         void defaultPathwayCooldownShouldBlock() {
             TestImperat imperat = buildImperatWithDefaultCooldown("cd4", 10, TimeUnit.SECONDS);
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
-            ExecutionResult<TestSource> first = imperat.execute(source, "cd4");
+            ExecutionResult<TestCommandSource> first = imperat.execute(source, "cd4");
             assertThat(first).isSuccessful();
 
-            ExecutionResult<TestSource> second = imperat.execute(source, "cd4");
+            ExecutionResult<TestCommandSource> second = imperat.execute(source, "cd4");
             assertThat(second).hasFailed();
         }
     }
@@ -190,15 +190,15 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         void afterCooldownExpiresExecutionShouldSucceed() throws InterruptedException {
             // Use a very short cooldown (1 second) so the test doesn't stall
             TestImperat imperat = buildImperatWithCooldownCommand("cd5", 1, TimeUnit.SECONDS, null);
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
-            ExecutionResult<TestSource> first = imperat.execute(source, "cd5 player1");
+            ExecutionResult<TestCommandSource> first = imperat.execute(source, "cd5 player1");
             assertThat(first).isSuccessful();
 
             // Wait for cooldown to expire
             Thread.sleep(1100);
 
-            ExecutionResult<TestSource> second = imperat.execute(source, "cd5 player1");
+            ExecutionResult<TestCommandSource> second = imperat.execute(source, "cd5 player1");
             assertThat(second).isSuccessful();
         }
 
@@ -206,15 +206,15 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         @DisplayName("Execution within cooldown period should still fail")
         void executionWithinCooldownPeriodShouldFail() throws InterruptedException {
             TestImperat imperat = buildImperatWithCooldownCommand("cd6", 2, TimeUnit.SECONDS, null);
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
-            ExecutionResult<TestSource> first = imperat.execute(source, "cd6 target");
+            ExecutionResult<TestCommandSource> first = imperat.execute(source, "cd6 target");
             assertThat(first).isSuccessful();
 
             // Wait less than cooldown
             Thread.sleep(500);
 
-            ExecutionResult<TestSource> second = imperat.execute(source, "cd6 target");
+            ExecutionResult<TestCommandSource> second = imperat.execute(source, "cd6 target");
             assertThat(second).hasFailed();
         }
     }
@@ -228,17 +228,17 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
     class CooldownPermissionBypass {
 
         @Test
-        @DisplayName("Source with cooldown-bypass permission should not be blocked")
+        @DisplayName("CommandSource with cooldown-bypass permission should not be blocked")
         void sourceWithBypassPermissionShouldNotBeBlocked() {
             String bypassPerm = "cooldown.bypass";
             TestImperat imperat = TestImperatConfig.builder()
                                           .permissionChecker((src, perm) -> perm == null || src.hasPermission(perm))
                                           .build();
 
-            Command<TestSource> cmd = Command.<TestSource>create(imperat, "cd7")
+            Command<TestCommandSource> cmd = Command.<TestCommandSource>create(imperat, "cd7")
                                               .defaultExecution((source, context) -> source.reply("cd7 default"))
                                               .pathway(
-                                                      CommandPathway.<TestSource>builder()
+                                                      CommandPathway.<TestCommandSource>builder()
                                                               .parameters(Argument.requiredText("target"))
                                                               .cooldown(10, TimeUnit.SECONDS, bypassPerm)
                                                               .execute((source, context) -> source.reply(
@@ -248,29 +248,29 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
 
             imperat.registerSimpleCommand(cmd);
 
-            TestSource source = new TestSource(System.out).withPerm(bypassPerm);
+            TestCommandSource source = new TestCommandSource(System.out).withPerm(bypassPerm);
 
             // First execution
-            ExecutionResult<TestSource> first = imperat.execute(source, "cd7 player1");
+            ExecutionResult<TestCommandSource> first = imperat.execute(source, "cd7 player1");
             assertThat(first).isSuccessful();
 
             // Second execution — source has bypass permission, should succeed
-            ExecutionResult<TestSource> second = imperat.execute(source, "cd7 player1");
+            ExecutionResult<TestCommandSource> second = imperat.execute(source, "cd7 player1");
             assertThat(second).isSuccessful();
         }
 
         @Test
-        @DisplayName("Source WITHOUT cooldown-bypass permission should be blocked")
+        @DisplayName("CommandSource WITHOUT cooldown-bypass permission should be blocked")
         void sourceWithoutBypassPermissionShouldBeBlocked() {
             String bypassPerm = "cooldown.bypass";
             TestImperat imperat = TestImperatConfig.builder()
                                           .permissionChecker((src, perm) -> perm == null || src.hasPermission(perm))
                                           .build();
 
-            Command<TestSource> cmd = Command.<TestSource>create(imperat, "cd8")
+            Command<TestCommandSource> cmd = Command.<TestCommandSource>create(imperat, "cd8")
                                               .defaultExecution((source, context) -> source.reply("cd8 default"))
                                               .pathway(
-                                                      CommandPathway.<TestSource>builder()
+                                                      CommandPathway.<TestCommandSource>builder()
                                                               .parameters(Argument.requiredText("target"))
                                                               .cooldown(10, TimeUnit.SECONDS, bypassPerm)
                                                               .execute((source, context) -> source.reply(
@@ -280,13 +280,13 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
 
             imperat.registerSimpleCommand(cmd);
 
-            // Source does NOT have the bypass permission
-            TestSource source = new TestSource(System.out);
+            // CommandSource does NOT have the bypass permission
+            TestCommandSource source = new TestCommandSource(System.out);
 
-            ExecutionResult<TestSource> first = imperat.execute(source, "cd8 player1");
+            ExecutionResult<TestCommandSource> first = imperat.execute(source, "cd8 player1");
             assertThat(first).isSuccessful();
 
-            ExecutionResult<TestSource> second = imperat.execute(source, "cd8 player1");
+            ExecutionResult<TestCommandSource> second = imperat.execute(source, "cd8 player1");
             assertThat(second).hasFailed();
         }
     }
@@ -303,12 +303,12 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         @DisplayName("Subcommand cooldown should block repeated subcommand execution")
         void subcommandCooldownShouldBlock() {
             TestImperat imperat = buildImperatWithSubcommandCooldowns();
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
-            ExecutionResult<TestSource> first = imperat.execute(source, "coolsub action hello");
+            ExecutionResult<TestCommandSource> first = imperat.execute(source, "coolsub action hello");
             assertThat(first).isSuccessful();
 
-            ExecutionResult<TestSource> second = imperat.execute(source, "coolsub action hello");
+            ExecutionResult<TestCommandSource> second = imperat.execute(source, "coolsub action hello");
             assertThat(second).hasFailed();
         }
 
@@ -316,14 +316,14 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         @DisplayName("Root default execution should not be affected by subcommand cooldown")
         void rootDefaultShouldNotBeAffectedBySubcommandCooldown() {
             TestImperat imperat = buildImperatWithSubcommandCooldowns();
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
             // Execute subcommand (triggers cooldown on subcommand pathway)
-            ExecutionResult<TestSource> subResult = imperat.execute(source, "coolsub action hello");
+            ExecutionResult<TestCommandSource> subResult = imperat.execute(source, "coolsub action hello");
             assertThat(subResult).isSuccessful();
 
             // Root default should still work — different pathway, no cooldown
-            ExecutionResult<TestSource> rootResult = imperat.execute(source, "coolsub");
+            ExecutionResult<TestCommandSource> rootResult = imperat.execute(source, "coolsub");
             assertThat(rootResult).isSuccessful();
         }
     }
@@ -341,20 +341,20 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         void commandsWithoutCooldownShouldNotBlock() {
             TestImperat imperat = TestImperatConfig.builder().build();
 
-            Command<TestSource> cmd = Command.<TestSource>create(imperat, "nocd")
+            Command<TestCommandSource> cmd = Command.<TestCommandSource>create(imperat, "nocd")
                                               .defaultExecution((source, context) -> source.reply("nocd executed"))
                                               .pathway(
-                                                      CommandPathway.<TestSource>builder()
+                                                      CommandPathway.<TestCommandSource>builder()
                                                               .parameters(Argument.requiredText("name"))
                                                               .execute((source, context) -> source.reply("nocd name=" + context.getArgument("name")))
                                               )
                                               .build();
 
             imperat.registerSimpleCommand(cmd);
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
             for (int i = 0; i < 5; i++) {
-                ExecutionResult<TestSource> result = imperat.execute(source, "nocd player" + i);
+                ExecutionResult<TestCommandSource> result = imperat.execute(source, "nocd player" + i);
                 assertThat(result).isSuccessful();
             }
         }
@@ -372,13 +372,13 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         @DisplayName("Cooldown should persist even when argument values differ")
         void cooldownShouldPersistWithDifferentArgValues() {
             TestImperat imperat = buildImperatWithCooldownCommand("cd9", 10, TimeUnit.SECONDS, null);
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
-            ExecutionResult<TestSource> first = imperat.execute(source, "cd9 player1");
+            ExecutionResult<TestCommandSource> first = imperat.execute(source, "cd9 player1");
             assertThat(first).isSuccessful();
 
             // Same pathway, different argument value — should still be on cooldown
-            ExecutionResult<TestSource> second = imperat.execute(source, "cd9 player2");
+            ExecutionResult<TestCommandSource> second = imperat.execute(source, "cd9 player2");
             assertThat(second).hasFailed();
         }
     }
@@ -396,14 +396,14 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         void differentPathwaysShouldHaveIndependentCooldowns() {
             TestImperat imperat = TestImperatConfig.builder().build();
 
-            Command<TestSource> cmd = Command.<TestSource>create(imperat, "multi")
+            Command<TestCommandSource> cmd = Command.<TestCommandSource>create(imperat, "multi")
                                               .pathway(
-                                                      CommandPathway.<TestSource>builder()
+                                                      CommandPathway.<TestCommandSource>builder()
                                                               .cooldown(10, TimeUnit.SECONDS)
                                                               .execute((source, context) -> source.reply("multi default"))
                                               )
                                               .pathway(
-                                                      CommandPathway.<TestSource>builder()
+                                                      CommandPathway.<TestCommandSource>builder()
                                                               .parameters(Argument.requiredText("target"))
                                                               .cooldown(10, TimeUnit.SECONDS)
                                                               .execute((source, context) -> source.reply(
@@ -412,22 +412,22 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
                                               .build();
 
             imperat.registerSimpleCommand(cmd);
-            TestSource source = new TestSource(System.out);
+            TestCommandSource source = new TestCommandSource(System.out);
 
             // Execute default pathway
-            ExecutionResult<TestSource> defaultResult = imperat.execute(source, "multi");
+            ExecutionResult<TestCommandSource> defaultResult = imperat.execute(source, "multi");
             assertThat(defaultResult).isSuccessful();
 
             // Execute target pathway — different pathway, should succeed
-            ExecutionResult<TestSource> targetResult = imperat.execute(source, "multi someTarget");
+            ExecutionResult<TestCommandSource> targetResult = imperat.execute(source, "multi someTarget");
             assertThat(targetResult).isSuccessful();
 
             // Execute default pathway again — should be on cooldown
-            ExecutionResult<TestSource> defaultAgain = imperat.execute(source, "multi");
+            ExecutionResult<TestCommandSource> defaultAgain = imperat.execute(source, "multi");
             assertThat(defaultAgain).hasFailed();
 
             // Execute target pathway again — should also be on cooldown
-            ExecutionResult<TestSource> targetAgain = imperat.execute(source, "multi anotherTarget");
+            ExecutionResult<TestCommandSource> targetAgain = imperat.execute(source, "multi anotherTarget");
             assertThat(targetAgain).hasFailed();
         }
     }

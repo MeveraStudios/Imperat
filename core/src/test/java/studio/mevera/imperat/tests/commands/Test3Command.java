@@ -5,23 +5,23 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("test3")
 public class Test3Command {
 
     @Execute
-    public void def(TestSource source, @Named("input") @Default("hello") String input) {
+    public void def(TestCommandSource source, @Named("input") @Default("hello") String input) {
         source.reply("input=" + input);
     }
 
     @SubCommand(value = "sub")
-    public void subDefaultExecution(TestSource source) {
+    public void subDefaultExecution(TestCommandSource source) {
         source.reply("subcommand - default execution !");
     }
 
     @SubCommand(value = "sub")
-    public void subMainExecution(TestSource source, @Named("sub-input") String subInput) {
+    public void subMainExecution(TestCommandSource source, @Named("sub-input") String subInput) {
         source.reply("sub command input= " + subInput);
     }
 

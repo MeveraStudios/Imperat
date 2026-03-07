@@ -2,7 +2,7 @@ package studio.mevera.imperat.type;
 
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.JdaSource;
+import studio.mevera.imperat.JdaCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
@@ -13,10 +13,10 @@ import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.exception.NoDMSException;
 import studio.mevera.imperat.responses.JdaResponseKey;
 
-public final class RoleArgument extends ArgumentType<JdaSource, Role> {
+public final class RoleArgument extends ArgumentType<JdaCommandSource, Role> {
 
     @Override
-    public @NotNull Role parse(@NotNull ExecutionContext<JdaSource> context, @NotNull Cursor<JdaSource> cursor,
+    public @NotNull Role parse(@NotNull ExecutionContext<JdaCommandSource> context, @NotNull Cursor<JdaCommandSource> cursor,
             @NotNull String correspondingInput) throws
             CommandException {
         var guild = context.source().origin().getGuild();
@@ -38,7 +38,7 @@ public final class RoleArgument extends ArgumentType<JdaSource, Role> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<JdaSource> context, Argument<JdaSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<JdaCommandSource> context, Argument<JdaCommandSource> parameter) {
         String arg = context.arguments().get(rawPosition);
         return arg != null;
     }

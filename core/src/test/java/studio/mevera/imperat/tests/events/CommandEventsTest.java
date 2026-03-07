@@ -14,7 +14,7 @@ import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.events.types.CommandPostRegistrationEvent;
 import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class CommandEventsTest {
 
     private EventBus eventBus;
-    private Command<TestSource> testCommand;
+    private Command<TestCommandSource> testCommand;
 
     @BeforeEach
     void setUp() {
@@ -56,7 +56,7 @@ public class CommandEventsTest {
     @Test
     @DisplayName("Should provide correct command in PreRegistrationEvent")
     void testPreRegistrationEventCommand() {
-        AtomicReference<Command<TestSource>> receivedCommand = new AtomicReference<>();
+        AtomicReference<Command<TestCommandSource>> receivedCommand = new AtomicReference<>();
 
         eventBus.register(CommandPreRegistrationEvent.class, event -> {
             receivedCommand.set(event.getCommand());
@@ -70,7 +70,7 @@ public class CommandEventsTest {
     @Test
     @DisplayName("Should allow cancelling command registration")
     void testCancelRegistration() {
-        CommandPreRegistrationEvent<TestSource> event = new CommandPreRegistrationEvent<>(testCommand);
+        CommandPreRegistrationEvent<TestCommandSource> event = new CommandPreRegistrationEvent<>(testCommand);
 
         eventBus.register(CommandPreRegistrationEvent.class, e -> {
             e.setCancelled(true);
@@ -85,7 +85,7 @@ public class CommandEventsTest {
     @DisplayName("Should check cancellation status before registration")
     void testCancellationBeforeRegistration() {
         List<String> actions = new ArrayList<>();
-        CommandPreRegistrationEvent<TestSource> event = new CommandPreRegistrationEvent<>(testCommand);
+        CommandPreRegistrationEvent<TestCommandSource> event = new CommandPreRegistrationEvent<>(testCommand);
 
         eventBus.register(CommandPreRegistrationEvent.class, e -> {
             e.setCancelled(true);
@@ -146,7 +146,7 @@ public class CommandEventsTest {
     @Test
     @DisplayName("Should indicate success when no failure cause")
     void testSuccessIndicator() {
-        CommandPostRegistrationEvent<TestSource> event =
+        CommandPostRegistrationEvent<TestCommandSource> event =
             new CommandPostRegistrationEvent<>(testCommand, null);
 
         assertTrue(event.isSuccessful());
@@ -158,7 +158,7 @@ public class CommandEventsTest {
     @DisplayName("Should indicate failure when failure cause present")
     void testFailureIndicator() {
         RuntimeException cause = new RuntimeException("Error");
-        CommandPostRegistrationEvent<TestSource> event =
+        CommandPostRegistrationEvent<TestCommandSource> event =
             new CommandPostRegistrationEvent<>(testCommand, cause);
 
         assertFalse(event.isSuccessful());
@@ -182,13 +182,13 @@ public class CommandEventsTest {
         });
 
         // Simulate registration lifecycle
-        CommandPreRegistrationEvent<TestSource> preEvent =
+        CommandPreRegistrationEvent<TestCommandSource> preEvent =
             new CommandPreRegistrationEvent<>(testCommand);
         eventBus.post(preEvent);
 
         if (!preEvent.isCancelled()) {
             // Registration would happen here
-            CommandPostRegistrationEvent<TestSource> postEvent =
+            CommandPostRegistrationEvent<TestCommandSource> postEvent =
                 new CommandPostRegistrationEvent<>(testCommand, null);
             eventBus.post(postEvent);
         }
@@ -217,13 +217,13 @@ public class CommandEventsTest {
         });
 
         // Simulate cancelled registration
-        CommandPreRegistrationEvent<TestSource> preEvent =
+        CommandPreRegistrationEvent<TestCommandSource> preEvent =
             new CommandPreRegistrationEvent<>(testCommand);
         eventBus.post(preEvent);
 
         if (preEvent.isCancelled()) {
             // Registration blocked, fire failure event
-            CommandPostRegistrationEvent<TestSource> postEvent =
+            CommandPostRegistrationEvent<TestCommandSource> postEvent =
                 new CommandPostRegistrationEvent<>(testCommand,
                     new IllegalStateException("Registration cancelled"));
             eventBus.post(postEvent);
@@ -237,7 +237,7 @@ public class CommandEventsTest {
     @DisplayName("Should allow multiple validators in PreRegistration")
     void testMultipleValidators() {
         AtomicInteger validatorCount = new AtomicInteger(0);
-        CommandPreRegistrationEvent<TestSource> event = new CommandPreRegistrationEvent<>(testCommand);
+        CommandPreRegistrationEvent<TestCommandSource> event = new CommandPreRegistrationEvent<>(testCommand);
 
         // Validator 1
         eventBus.register(CommandPreRegistrationEvent.class, e -> {
@@ -279,7 +279,7 @@ public class CommandEventsTest {
         eventBus.post(new CommandPostRegistrationEvent<>(testCommand, null));
 
         // Test failure
-        Command<TestSource> failedCommand = Command.create(ImperatTestGlobals.IMPERAT, "failedcommand")
+        Command<TestCommandSource> failedCommand = Command.create(ImperatTestGlobals.IMPERAT, "failedcommand")
                                                     .build();
         eventBus.post(new CommandPostRegistrationEvent<>(failedCommand,
             new RuntimeException("Conflict")));
@@ -292,8 +292,8 @@ public class CommandEventsTest {
     @Test
     @DisplayName("Should maintain command reference through events")
     void testCommandReferenceConsistency() {
-        AtomicReference<Command<TestSource>> preCommand = new AtomicReference<>();
-        AtomicReference<Command<TestSource>> postCommand = new AtomicReference<>();
+        AtomicReference<Command<TestCommandSource>> preCommand = new AtomicReference<>();
+        AtomicReference<Command<TestCommandSource>> postCommand = new AtomicReference<>();
 
         eventBus.register(CommandPreRegistrationEvent.class, event -> {
             preCommand.set(event.getCommand());
@@ -314,8 +314,8 @@ public class CommandEventsTest {
     @Test
     @DisplayName("Should support conditional registration based on command properties")
     void testConditionalRegistration() {
-        Command<TestSource> adminCommand = Command.create(ImperatTestGlobals.IMPERAT, "admin").build();
-        Command<TestSource> userCommand = Command.create(ImperatTestGlobals.IMPERAT, "user").build();
+        Command<TestCommandSource> adminCommand = Command.create(ImperatTestGlobals.IMPERAT, "admin").build();
+        Command<TestCommandSource> userCommand = Command.create(ImperatTestGlobals.IMPERAT, "user").build();
 
         List<String> registeredCommands = new ArrayList<>();
 
@@ -334,14 +334,14 @@ public class CommandEventsTest {
         });
 
         // Simulate registration attempts
-        CommandPreRegistrationEvent<TestSource> adminPreEvent =
+        CommandPreRegistrationEvent<TestCommandSource> adminPreEvent =
             new CommandPreRegistrationEvent<>(adminCommand);
         eventBus.post(adminPreEvent);
         if (!adminPreEvent.isCancelled()) {
             eventBus.post(new CommandPostRegistrationEvent<>(adminCommand, null));
         }
 
-        CommandPreRegistrationEvent<TestSource> userPreEvent =
+        CommandPreRegistrationEvent<TestCommandSource> userPreEvent =
             new CommandPreRegistrationEvent<>(userCommand);
         eventBus.post(userPreEvent);
         if (!userPreEvent.isCancelled()) {

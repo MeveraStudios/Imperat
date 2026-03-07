@@ -5,13 +5,13 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
 @Deprecated(forRemoval = true)
-final class CommandPathSearch<S extends Source> {
+final class CommandPathSearch<S extends CommandSource> {
 
     private final LiteralCommandNode<S> root;
 
@@ -37,22 +37,22 @@ final class CommandPathSearch<S extends Source> {
         this.lastLiteralNode = root;
     }
 
-    public static <S extends Source> CommandPathSearch<S> of(LiteralCommandNode<S> root, final Result result) {
+    public static <S extends CommandSource> CommandPathSearch<S> of(LiteralCommandNode<S> root, final Result result) {
         return new CommandPathSearch<>(root, result);
     }
 
-    public static <S extends Source> CommandPathSearch<S> unknown(LiteralCommandNode<S> root) {
+    public static <S extends CommandSource> CommandPathSearch<S> unknown(LiteralCommandNode<S> root) {
         return of(root, Result.UNKNOWN);
     }
 
-    public static <S extends Source> CommandPathSearch<S> freshlyNew(Command<S> command) {
+    public static <S extends CommandSource> CommandPathSearch<S> freshlyNew(Command<S> command) {
         CommandPathSearch<S> dispatch = of(command.tree().rootNode(), Result.UNKNOWN);
         dispatch.append(command.tree().rootNode());
         dispatch.setFoundPath(command.getDefaultPathway());
         return dispatch;
     }
 
-    public static <S extends Source> CommandPathSearch<S> paused(Command<S> command) {
+    public static <S extends CommandSource> CommandPathSearch<S> paused(Command<S> command) {
         CommandPathSearch<S> dispatch = of(command.tree().rootNode(), Result.PAUSE);
         Command<S> target = null;
         if (command.tree() != null) {

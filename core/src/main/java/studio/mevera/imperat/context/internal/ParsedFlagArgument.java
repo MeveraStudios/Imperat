@@ -2,12 +2,12 @@ package studio.mevera.imperat.context.internal;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ParsedArgument;
-import studio.mevera.imperat.context.Source;
 
 import java.util.Objects;
 
-public final class ParsedFlagArgument<S extends Source> extends ParsedArgument<S> {
+public final class ParsedFlagArgument<S extends CommandSource> extends ParsedArgument<S> {
 
     private final @Nullable String flagRawInput;
     private final int flagPosition, inputPosition;
@@ -33,7 +33,7 @@ public final class ParsedFlagArgument<S extends Source> extends ParsedArgument<S
         this(flag, flagRaw, null, flagPosition, -1, false);
     }
 
-    public static <S extends Source> ParsedFlagArgument<S> forFlag(
+    public static <S extends CommandSource> ParsedFlagArgument<S> forFlag(
             FlagArgument<S> flag,
             String flagRaw,
             String flagRawInput,
@@ -44,7 +44,7 @@ public final class ParsedFlagArgument<S extends Source> extends ParsedArgument<S
         return new ParsedFlagArgument<>(flag, flagRaw, flagRawInput, flagPosition, inputPosition, inputValue);
     }
 
-    public static <S extends Source> ParsedFlagArgument<S> forDefaultFlag(
+    public static <S extends CommandSource> ParsedFlagArgument<S> forDefaultFlag(
             FlagArgument<S> flag,
             String defaultValueRaw,
             Object defaultParsedValue
@@ -52,7 +52,7 @@ public final class ParsedFlagArgument<S extends Source> extends ParsedArgument<S
         return new ParsedFlagArgument<>(flag, "", defaultValueRaw, -1, -1, defaultParsedValue);
     }
 
-    public static <S extends Source> ParsedFlagArgument<S> forSwitch(
+    public static <S extends CommandSource> ParsedFlagArgument<S> forSwitch(
             FlagArgument<S> flag,
             String flagRaw,
             int flagPosition
@@ -60,7 +60,7 @@ public final class ParsedFlagArgument<S extends Source> extends ParsedArgument<S
         return new ParsedFlagArgument<>(flag, flagRaw, flagPosition);
     }
 
-    public static <S extends Source> ParsedFlagArgument<S> forDefaultSwitch(
+    public static <S extends CommandSource> ParsedFlagArgument<S> forDefaultSwitch(
             FlagArgument<S> flag
     ) {
         return new ParsedFlagArgument<>(flag, "", -1);

@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Suggest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 
 @RootCommand("give")
@@ -15,7 +15,7 @@ public class GiveCmd {
 
     @Execute
     public void sword(
-            TestSource sender,
+            TestCommandSource sender,
             @NotNull @Named("item") @Suggest("lightning") String item,
             @Named("player") @Optional TestPlayer player,
             @Named("amount") @Default("1") @Suggest({"1", "2", "3"}) Integer amount

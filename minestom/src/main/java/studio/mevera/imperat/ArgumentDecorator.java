@@ -9,10 +9,10 @@ import org.jspecify.annotations.NonNull;
 
 final class ArgumentDecorator<T> extends Argument<T> {
 
-    private final studio.mevera.imperat.command.arguments.Argument<MinestomSource> imperatArg;
+    private final studio.mevera.imperat.command.arguments.Argument<MinestomCommandSource> imperatArg;
     private final Argument<T> argument;
 
-    ArgumentDecorator(studio.mevera.imperat.command.arguments.Argument<MinestomSource> imperatArg, Argument<T> minestomArg) {
+    ArgumentDecorator(studio.mevera.imperat.command.arguments.Argument<MinestomCommandSource> imperatArg, Argument<T> minestomArg) {
         super(minestomArg.getId(), minestomArg.allowSpace(), minestomArg.useRemaining());
         this.imperatArg = imperatArg;
         this.argument = minestomArg;

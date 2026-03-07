@@ -2,7 +2,7 @@ package studio.mevera.imperat.tests.commands.ambiguity;
 
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * AMBIGUOUS: Two execute methods with conflicting first parameter (both required String).
@@ -13,12 +13,12 @@ import studio.mevera.imperat.tests.TestSource;
 public class AmbiguousSameTypeRequired {
 
     @Execute
-    public void withName(TestSource source, String name) {
+    public void withName(TestCommandSource source, String name) {
         source.reply("Name: " + name);
     }
 
     @Execute
-    public void withTitle(TestSource source, String title) {
+    public void withTitle(TestCommandSource source, String title) {
         source.reply("Title: " + title);
     }
 }

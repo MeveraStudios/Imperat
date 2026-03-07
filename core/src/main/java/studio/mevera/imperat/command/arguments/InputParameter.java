@@ -11,9 +11,9 @@ import studio.mevera.imperat.command.arguments.type.CollectionArgument;
 import studio.mevera.imperat.command.arguments.type.CommandArgument;
 import studio.mevera.imperat.command.arguments.type.MapArgument;
 import studio.mevera.imperat.command.arguments.validator.ArgValidator;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ParsedArgument;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -24,7 +24,7 @@ import studio.mevera.imperat.util.priority.PriorityList;
 import java.util.Objects;
 
 @ApiStatus.Internal
-public abstract class InputParameter<S extends Source> implements Argument<S> {
+public abstract class InputParameter<S extends CommandSource> implements Argument<S> {
 
     protected final String name;
     protected final ArgumentType<S, ?> type;

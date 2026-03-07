@@ -3,7 +3,7 @@ package studio.mevera.imperat.responses;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderDataProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
@@ -59,7 +59,7 @@ public class Response {
                        .addPlaceholder("source");
     }
 
-    public <S extends Source> CompletableFuture<Void> sendContent(CommandContext<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
+    public <S extends CommandSource> CompletableFuture<Void> sendContent(CommandContext<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
         var src = ctx.source();
         return getContent(ctx, placeholders)
                 .thenAccept((content) -> {
@@ -71,7 +71,7 @@ public class Response {
                 });
     }
 
-    private <S extends Source> CompletableFuture<String> getContent(CommandContext<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
+    private <S extends CommandSource> CompletableFuture<String> getContent(CommandContext<S> ctx, @Nullable PlaceholderDataProvider placeholders) {
         var cfg = ctx.imperatConfig();
         ResponseRegistry responseRegistry = cfg.getResponseRegistry();
 

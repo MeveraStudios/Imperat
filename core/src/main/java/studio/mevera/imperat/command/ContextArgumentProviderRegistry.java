@@ -5,8 +5,8 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.util.Registry;
 import studio.mevera.imperat.util.TypeWrap;
@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
 import java.util.Optional;
 
 @ApiStatus.AvailableSince("1.0.0")
-public final class ContextArgumentProviderRegistry<S extends Source> extends Registry<Type, ContextArgumentProvider<S, ?>> {
+public final class ContextArgumentProviderRegistry<S extends CommandSource> extends Registry<Type, ContextArgumentProvider<S, ?>> {
 
     private final Registry<Type, ContextArgumentProviderFactory<S, ?>> factories = new Registry<>();
 
@@ -28,7 +28,7 @@ public final class ContextArgumentProviderRegistry<S extends Source> extends Reg
         }.getType(), (ctx, param) -> ctx.arguments());
     }
 
-    public static <S extends Source> ContextArgumentProviderRegistry<S> createDefault() {
+    public static <S extends CommandSource> ContextArgumentProviderRegistry<S> createDefault() {
         return new ContextArgumentProviderRegistry<>();
     }
 

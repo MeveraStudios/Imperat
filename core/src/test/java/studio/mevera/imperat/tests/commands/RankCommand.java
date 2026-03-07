@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.annotations.types.Switch;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.time.Duration;
 
@@ -17,7 +17,7 @@ public class RankCommand {
     @SubCommand(value = "addperm")
     @Description("Adds a permission")
     public void addPerm(
-            final TestSource actor,
+            final TestCommandSource actor,
             @Named("rank") final String rank,
             @Named("permission") String permission,
             @Flag("customDuration") @Default("permanent") Duration customDuration,

@@ -11,7 +11,7 @@ import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.UnknownCommandException;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @DisplayName("Enhanced Error Validation Tests")
 class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
@@ -34,7 +34,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Should fail for incomplete required arguments")
         void testIncompleteRequiredArguments() {
-            ExecutionResult<TestSource> result = execute("test hello"); // Missing second required arg
+            ExecutionResult<TestCommandSource> result = execute("test hello"); // Missing second required arg
 
             assertThat(result)
                     .hasFailed();
@@ -43,7 +43,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Should fail for incomplete subcommands")
         void testIncompleteSubcommands() {
-            ExecutionResult<TestSource> result = execute("group member setperm"); // Missing permission
+            ExecutionResult<TestCommandSource> result = execute("group member setperm"); // Missing permission
 
             Assertions.assertNotNull(result.getError());
             Assertions.assertTrue(result.getError() instanceof InvalidSyntaxException);
@@ -57,7 +57,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Should handle invalid enum values gracefully")
         void testInvalidEnumValues() throws CommandException {
-            ExecutionResult<TestSource> result = execute("customenum COMPLETELY_INVALID_ENUM_VALUE");
+            ExecutionResult<TestCommandSource> result = execute("customenum COMPLETELY_INVALID_ENUM_VALUE");
 
             assertThat(result)
                     .hasFailed();
@@ -82,7 +82,7 @@ class EnhancedErrorValidationTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Should fail when context resolution is impossible")
         void testImpossibleContextResolution() throws CommandException {
-            ExecutionResult<TestSource> result = execute("ctx sub"); // Requires Group context which isn't available
+            ExecutionResult<TestCommandSource> result = execute("ctx sub"); // Requires Group context which isn't available
 
             assertThat(result)
                     .hasFailed();

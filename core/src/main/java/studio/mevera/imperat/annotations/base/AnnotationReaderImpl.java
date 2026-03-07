@@ -12,7 +12,7 @@ import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.parsers.MethodCommandExceptionHandler;
 import studio.mevera.imperat.annotations.types.ExternalSubCommand;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.lang.reflect.Method;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 @ApiStatus.Internal
-final class AnnotationReaderImpl<S extends Source> implements AnnotationReader<S> {
+final class AnnotationReaderImpl<S extends CommandSource> implements AnnotationReader<S> {
 
     //private final Comparator<Method> METHOD_COMPARATOR;
 

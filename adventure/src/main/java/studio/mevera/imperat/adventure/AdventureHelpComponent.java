@@ -3,11 +3,11 @@ package studio.mevera.imperat.adventure;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.theme.HelpComponent;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.function.BiConsumer;
 
-public class AdventureHelpComponent<S extends Source> extends HelpComponent<S, Component> {
+public class AdventureHelpComponent<S extends CommandSource> extends HelpComponent<S, Component> {
 
     private final BiConsumer<S, Component> sendMessageToSourceFunc;
 

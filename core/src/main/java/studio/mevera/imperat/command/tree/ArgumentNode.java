@@ -6,11 +6,11 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.priority.Priority;
 
 @ApiStatus.Internal
-public final class ArgumentNode<S extends Source> extends CommandNode<S, Argument<S>> {
+public final class ArgumentNode<S extends CommandSource> extends CommandNode<S, Argument<S>> {
 
     private final Priority priority;
 
@@ -19,7 +19,7 @@ public final class ArgumentNode<S extends Source> extends CommandNode<S, Argumen
         priority = Priority.of(loadPriority(data));
     }
 
-    private static <S extends Source> int loadPriority(Argument<S> Argument) {
+    private static <S extends CommandSource> int loadPriority(Argument<S> Argument) {
         int base = Argument.type().priority().getLevel();
         int res = 5;
 

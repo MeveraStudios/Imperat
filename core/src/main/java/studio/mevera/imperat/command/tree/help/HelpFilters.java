@@ -3,7 +3,7 @@ package studio.mevera.imperat.command.tree.help;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.permissions.PermissionChecker;
 
 import java.util.regex.Pattern;
@@ -21,21 +21,21 @@ public final class HelpFilters {
     /**
      * Creates a filter that only includes executable nodes.
      */
-    public static <S extends Source> HelpFilter<S> executable() {
+    public static <S extends CommandSource> HelpFilter<S> executable() {
         return CommandNode::isExecutable;
     }
 
     /**
      * Creates a filter that only includes command nodes.
      */
-    public static <S extends Source> HelpFilter<S> commands() {
+    public static <S extends CommandSource> HelpFilter<S> commands() {
         return CommandNode::isLiteral;
     }
 
     /**
      * Creates a filter that excludes command nodes (only arguments).
      */
-    public static <S extends Source> HelpFilter<S> arguments() {
+    public static <S extends CommandSource> HelpFilter<S> arguments() {
         return node -> !node.isLiteral();
     }
 
@@ -45,7 +45,7 @@ public final class HelpFilters {
      * @param minDepth minimum depth (inclusive)
      * @param maxDepth maximum depth (inclusive)
      */
-    public static <S extends Source> HelpFilter<S> depth(int minDepth, int maxDepth) {
+    public static <S extends CommandSource> HelpFilter<S> depth(int minDepth, int maxDepth) {
         return node -> {
             int depth = node.getDepth();
             return depth >= minDepth && depth <= maxDepth;
@@ -58,7 +58,7 @@ public final class HelpFilters {
      * @param source the source to check permissions for
      * @param checker the permission checker
      */
-    public static <S extends Source> HelpFilter<S> hasPermission(S source, PermissionChecker<S> checker) {
+    public static <S extends CommandSource> HelpFilter<S> hasPermission(S source, PermissionChecker<S> checker) {
         return node -> checker.hasPermission(source, node.getData());
     }
 
@@ -68,7 +68,7 @@ public final class HelpFilters {
      * @param source the source to check permissions for
      * @param context the context.
      */
-    public static <S extends Source> HelpFilter<S> hasPermission(S source, CommandContext<S> context) {
+    public static <S extends CommandSource> HelpFilter<S> hasPermission(S source, CommandContext<S> context) {
         return hasPermission(source, context.imperatConfig().getPermissionChecker());
     }
 
@@ -78,7 +78,7 @@ public final class HelpFilters {
      * @param source the source to check permissions for
      * @param help the command help.
      */
-    public static <S extends Source> HelpFilter<S> hasPermission(S source, CommandHelp<S> help) {
+    public static <S extends CommandSource> HelpFilter<S> hasPermission(S source, CommandHelp<S> help) {
         return hasPermission(source, help.getContext());
     }
 
@@ -87,14 +87,14 @@ public final class HelpFilters {
      *
      * @param permission the required permission
      */
-    public static <S extends Source> HelpFilter<S> withPermission(String permission) {
+    public static <S extends CommandSource> HelpFilter<S> withPermission(String permission) {
         return node -> node.getPermissionsData().getPermissions().contains(permission);
     }
 
     /**
      * Creates a filter that only includes nodes without any permission requirement.
      */
-    public static <S extends Source> HelpFilter<S> noPermission() {
+    public static <S extends CommandSource> HelpFilter<S> noPermission() {
         return node -> node.getPermissionsData().isEmpty();
     }
 
@@ -103,7 +103,7 @@ public final class HelpFilters {
      *
      * @param pattern regex pattern to match
      */
-    public static <S extends Source> HelpFilter<S> nameMatches(String pattern) {
+    public static <S extends CommandSource> HelpFilter<S> nameMatches(String pattern) {
         Pattern regex = Pattern.compile(pattern);
         return node -> regex.matcher(node.getData().getName()).matches();
     }
@@ -113,7 +113,7 @@ public final class HelpFilters {
      *
      * @param substring the substring to search for (case-insensitive)
      */
-    public static <S extends Source> HelpFilter<S> nameContains(String substring) {
+    public static <S extends CommandSource> HelpFilter<S> nameContains(String substring) {
         String lower = substring.toLowerCase();
         return node -> node.getData().getName().toLowerCase().contains(lower);
     }
@@ -121,28 +121,28 @@ public final class HelpFilters {
     /**
      * Creates a filter for optional parameters only.
      */
-    public static <S extends Source> HelpFilter<S> optional() {
+    public static <S extends CommandSource> HelpFilter<S> optional() {
         return CommandNode::isOptional;
     }
 
     /**
      * Creates a filter for required parameters only.
      */
-    public static <S extends Source> HelpFilter<S> required() {
+    public static <S extends CommandSource> HelpFilter<S> required() {
         return CommandNode::isRequired;
     }
 
     /**
      * Creates a filter that always passes (includes all nodes).
      */
-    public static <S extends Source> HelpFilter<S> all() {
+    public static <S extends CommandSource> HelpFilter<S> all() {
         return node -> true;
     }
 
     /**
      * Creates a filter that never passes (excludes all nodes).
      */
-    public static <S extends Source> HelpFilter<S> none() {
+    public static <S extends CommandSource> HelpFilter<S> none() {
         return node -> false;
     }
 
@@ -152,7 +152,7 @@ public final class HelpFilters {
      * @param filters the filters to combine
      */
     @SafeVarargs
-    public static <S extends Source> HelpFilter<S> allOf(HelpFilter<S>... filters) {
+    public static <S extends CommandSource> HelpFilter<S> allOf(HelpFilter<S>... filters) {
         return node -> {
             for (HelpFilter<S> filter : filters) {
                 if (!filter.filter(node)) {
@@ -169,7 +169,7 @@ public final class HelpFilters {
      * @param filters the filters to combine
      */
     @SafeVarargs
-    public static <S extends Source> HelpFilter<S> anyOf(HelpFilter<S>... filters) {
+    public static <S extends CommandSource> HelpFilter<S> anyOf(HelpFilter<S>... filters) {
         return node -> {
             for (HelpFilter<S> filter : filters) {
                 if (filter.filter(node)) {
@@ -180,7 +180,7 @@ public final class HelpFilters {
         };
     }
 
-    public static <S extends Source> @NotNull HelpFilter<S> childrenOnly() {
+    public static <S extends CommandSource> @NotNull HelpFilter<S> childrenOnly() {
         return node -> node.getParent() != null;
     }
 }

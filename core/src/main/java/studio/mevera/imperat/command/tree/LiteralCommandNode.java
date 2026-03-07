@@ -6,14 +6,14 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
 @ApiStatus.Internal
-public final class LiteralCommandNode<S extends Source> extends CommandNode<S, Command<S>> {
+public final class LiteralCommandNode<S extends CommandSource> extends CommandNode<S, Command<S>> {
 
     LiteralCommandNode(@Nullable CommandNode<S, ?> parent, @NotNull Command<S> data, int depth, @Nullable CommandPathway<S> usage) {
         super(parent, data, depth, usage);
@@ -33,7 +33,8 @@ public final class LiteralCommandNode<S extends Source> extends CommandNode<S, C
         return new LiteralCommandNode<>(this.getParent(), this.data, getDepth(), executableUsage);
     }
 
-    private static <S extends Source> @Nullable CommandNode<S, ?> findNodeForPathway(Queue<Argument<S>> pathwayArgs, CommandNode<S, ?> currentNode) {
+    private static <S extends CommandSource> @Nullable CommandNode<S, ?> findNodeForPathway(Queue<Argument<S>> pathwayArgs,
+            CommandNode<S, ?> currentNode) {
 
         if (pathwayArgs.isEmpty()) {
             return currentNode;

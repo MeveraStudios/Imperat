@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.types.RootCommand;
 public class ReqCmd {
 
     @Execute
-    public void exec(TestSource source, String a, String b, String c, String d) {
+    public void exec(TestCommandSource source, String a, String b, String c, String d) {
         source.reply("ReqCmd executed with a=" + a + ", b=" + b + ", c=" + c + ", d=" + d);
     }
 

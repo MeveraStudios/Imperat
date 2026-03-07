@@ -1,7 +1,7 @@
 package studio.mevera.imperat.selector.field.filters;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.selector.EntityCondition;
@@ -15,8 +15,8 @@ final class TagField extends PredicateField<String> {
 
 
     @Override
-    protected @NotNull EntityCondition getCondition(String value, Cursor<BukkitSource> cursor,
-            CommandContext<BukkitSource> context) {
+    protected @NotNull EntityCondition getCondition(String value, Cursor<BukkitCommandSource> cursor,
+            CommandContext<BukkitCommandSource> context) {
         return ((sender, entity) -> entity.hasMetadata(value));
     }
 
@@ -28,7 +28,7 @@ final class TagField extends PredicateField<String> {
      * @return the parsed value of the field's type
      */
     @Override
-    public String parseFieldValue(String value, CommandContext<BukkitSource> context) {
+    public String parseFieldValue(String value, CommandContext<BukkitCommandSource> context) {
         return value;
     }
 }

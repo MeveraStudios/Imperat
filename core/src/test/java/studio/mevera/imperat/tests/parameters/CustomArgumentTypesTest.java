@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.tests.BaseImperatTest;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @DisplayName("Custom Parameter Types Tests")
 public class CustomArgumentTypesTest extends BaseImperatTest {
@@ -16,7 +16,7 @@ public class CustomArgumentTypesTest extends BaseImperatTest {
     @EnumSource(CustomEnum.class)
     @DisplayName("Should parse custom enum values correctly")
     void testCustomEnumParsing(CustomEnum expectedEnum) {
-        ExecutionResult<TestSource> result = execute("customenum " + expectedEnum.name());
+        ExecutionResult<TestCommandSource> result = execute("customenum " + expectedEnum.name());
         assertSuccess(result);
         assertArgument(result, "enumHere", expectedEnum);
     }
@@ -24,7 +24,7 @@ public class CustomArgumentTypesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should fail for invalid enum values")
     void testInvalidEnumValues() {
-        ExecutionResult<TestSource> result = execute("customenum INVALID_VALUE");
+        ExecutionResult<TestCommandSource> result = execute("customenum INVALID_VALUE");
         assertFailure(result);
     }
 
@@ -32,7 +32,7 @@ public class CustomArgumentTypesTest extends BaseImperatTest {
     @ValueSource(strings = {"1d", "24h", "30m", "permanent"})
     @DisplayName("Should parse duration values correctly")
     void testDurationParsing(String durationStr) {
-        ExecutionResult<TestSource> result = execute("rank addperm mod server.fly -customDuration " + durationStr);
+        ExecutionResult<TestCommandSource> result = execute("rank addperm mod server.fly -customDuration " + durationStr);
         assertSuccess(result);
         assertArgument(result, "rank", "mod");
         assertArgument(result, "permission", "server.fly");
@@ -41,21 +41,21 @@ public class CustomArgumentTypesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle CompletableFuture parameter types")
     void testCompletableFutureArgumentType() {
-        ExecutionResult<TestSource> result = execute("testcf Thor is the best hero");
+        ExecutionResult<TestCommandSource> result = execute("testcf Thor is the best hero");
         assertSuccess(result);
     }
 
     @Test
     @DisplayName("Should handle Optional parameter types")
     void testOptionalArgumentType() {
-        ExecutionResult<TestSource> result = execute("testoptional Hulk is always angry");
+        ExecutionResult<TestCommandSource> result = execute("testoptional Hulk is always angry");
         assertSuccess(result);
     }
 
     @Test
     @DisplayName("Should handle group parameter type")
     void testGroupArgumentType() {
-        ExecutionResult<TestSource> result = execute("group member");
+        ExecutionResult<TestCommandSource> result = execute("group member");
         assertSuccess(result);
         // Group parameter should resolve to a Group object
     }
@@ -63,7 +63,7 @@ public class CustomArgumentTypesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle group subcommands")
     void testGroupSubcommands() {
-        ExecutionResult<TestSource> result = execute("group member setperm command.test");
+        ExecutionResult<TestCommandSource> result = execute("group member setperm command.test");
         assertSuccess(result);
         assertArgument(result, "permission", "command.test");
     }

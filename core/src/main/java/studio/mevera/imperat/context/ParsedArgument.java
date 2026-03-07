@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 
-public class ParsedArgument<S extends Source> {
+public class ParsedArgument<S extends CommandSource> {
 
     protected final @Nullable String raw;
     protected final Argument<S> originalArgument;

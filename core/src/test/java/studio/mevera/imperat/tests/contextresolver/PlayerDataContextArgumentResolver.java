@@ -6,9 +6,9 @@ import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
-public class PlayerDataContextArgumentResolver implements ContextArgumentProvider<TestSource, PlayerData> {
+public class PlayerDataContextArgumentResolver implements ContextArgumentProvider<TestCommandSource, PlayerData> {
 
     /**
      * Resolves a parameter's default value
@@ -20,10 +20,10 @@ public class PlayerDataContextArgumentResolver implements ContextArgumentProvide
      */
     @Override
     public @Nullable PlayerData provide(
-            @NotNull ExecutionContext<TestSource> context,
+            @NotNull ExecutionContext<TestCommandSource> context,
             @Nullable ParameterElement parameter
     ) throws CommandException {
-        TestSource source = context.source();
+        TestCommandSource source = context.source();
         return new PlayerData(source.name(), source.uuid());
     }
 

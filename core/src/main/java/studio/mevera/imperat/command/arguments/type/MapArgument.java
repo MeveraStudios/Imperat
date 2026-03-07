@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class MapArgument<S extends Source, K, V, M extends Map<K, V>> extends ArgumentType<S, M> {
+public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> extends ArgumentType<S, M> {
 
     private final static String ENTRY_SEPARATOR = ",";
 

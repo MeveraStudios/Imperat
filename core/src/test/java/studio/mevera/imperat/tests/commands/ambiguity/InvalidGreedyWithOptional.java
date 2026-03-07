@@ -4,7 +4,7 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 /**
  * INVALID: Greedy parameter with another parameter after it.
@@ -14,7 +14,7 @@ import studio.mevera.imperat.tests.TestSource;
 public class InvalidGreedyWithOptional {
 
     @Execute
-    public void execute(TestSource source, 
+    public void execute(TestCommandSource source,
                        @Greedy String message, 
                        @Optional String suffix) {
         source.reply("Message: " + message + ", Suffix: " + suffix);

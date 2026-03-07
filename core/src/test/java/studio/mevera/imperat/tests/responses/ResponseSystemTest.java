@@ -19,9 +19,9 @@ import studio.mevera.imperat.responses.ResponseContentFetcher;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.TestImperat;
 import studio.mevera.imperat.tests.TestImperatConfig;
-import studio.mevera.imperat.tests.TestSource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -42,9 +42,9 @@ import java.util.function.Supplier;
 class ResponseSystemTest {
 
     private TestImperat imperat;
-    private ImperatConfig<TestSource> config;
+    private ImperatConfig<TestCommandSource> config;
     private ResponseRegistry responseRegistry;
-    private TestSource source;
+    private TestCommandSource source;
     private List<String> capturedMessages;
 
     @BeforeEach
@@ -56,7 +56,7 @@ class ResponseSystemTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // Create test source that captures messages
-        source = new TestSource(new PrintStream(outputStream)) {
+        source = new TestCommandSource(new PrintStream(outputStream)) {
             @Override
             public void reply(String message) {
                 capturedMessages.add(message);
@@ -70,11 +70,11 @@ class ResponseSystemTest {
     }
 
     // Helper method to create context with custom source
-    private CommandContext<TestSource> createContext() {
+    private CommandContext<TestCommandSource> createContext() {
         return config.getContextFactory().createContext(
                 imperat,
                 source,
-                Command.<TestSource>create(imperat, "test").build(),
+                Command.<TestCommandSource>create(imperat, "test").build(),
                 "test",
                 ArgumentInput.of("test")
         );
@@ -149,7 +149,7 @@ class ResponseSystemTest {
                                               .build());
 
         // Create a dummy context
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         // Send content
         response.sendContent(context, placeholders);
@@ -186,7 +186,7 @@ class ResponseSystemTest {
                                               .resolver(id -> "arg1 arg2")
                                               .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -215,7 +215,7 @@ class ResponseSystemTest {
                                                  .resolver(id -> "value")
                                                  .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         // sendContent() is async, so the validation happens asynchronously
         // When validation fails, the CompletableFuture completes exceptionally
@@ -234,7 +234,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         response.sendContent(context, null);
         Thread.sleep(100);
@@ -256,7 +256,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         response.sendContent(context, null);
         Thread.sleep(50);
@@ -284,7 +284,7 @@ class ResponseSystemTest {
     //
     //        responseRegistry.registerResponse(response);
     //
-    //        CommandContext<TestSource> context = createContext();
+    //        CommandContext<TestCommandSource> context = createContext();
     //
     //        response.sendContent(context, null);
     //        Thread.sleep(200); // Wait for async operation
@@ -303,7 +303,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         response.sendContent(context, null);
         Thread.sleep(50);
@@ -326,7 +326,7 @@ class ResponseSystemTest {
         Response response = new TestResponse(testKey, () -> "Custom", customFetcher);
         responseRegistry.registerResponse(response);
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         response.sendContent(context, null)
                 .whenComplete((result, throwable) -> {
@@ -354,7 +354,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(errorKey)
                                              .withPlaceholder("message", "Something went wrong");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         // Simulate exception handling
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
@@ -379,7 +379,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(errorKey)
                                              .withPlaceholder("command", "test");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
@@ -403,7 +403,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(errorKey)
                                              .withPlaceholder("value", () -> String.valueOf(System.currentTimeMillis() / 1000));
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
@@ -477,7 +477,7 @@ class ResponseSystemTest {
                                                .resolver(id -> "maybe")
                                                .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         Response retrieved = responseRegistry.getResponse(key);
         retrieved.sendContent(context, placeholders);
@@ -505,7 +505,7 @@ class ResponseSystemTest {
                                                .resolver(id -> "")
                                                .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -538,7 +538,7 @@ class ResponseSystemTest {
                                                  .resolver(id -> "Hello \"World\" & <stuff>")
                                                  .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         response.sendContent(context, placeholders);
         Thread.sleep(100);
@@ -566,7 +566,7 @@ class ResponseSystemTest {
         // Just registering shouldn't call the supplier
         assertThat(supplierCalled[0]).isFalse();
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         // Sending content should call it
         response.sendContent(context, null);
@@ -592,7 +592,7 @@ class ResponseSystemTest {
                                               .resolver(id -> "Steve")
                                               .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         response.sendContent(context, placeholders);
         Thread.sleep(100);
 
@@ -625,7 +625,7 @@ class ResponseSystemTest {
                                               .resolver(id -> "diamond 64")
                                               .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         response.sendContent(context, placeholders);
         Thread.sleep(100);
 
@@ -652,7 +652,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("reason", "player not found")
                                              .withPlaceholder("input", "notch123");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -680,7 +680,7 @@ class ResponseSystemTest {
                                                  .resolver(id -> "give")
                                                  .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
 
         Response retrieved = responseRegistry.getResponse(ResponseKey.INVALID_NUMBER_FORMAT);
         retrieved.sendContent(context, placeholders);
@@ -707,7 +707,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("remaining", () -> "42")
                                              .withPlaceholder("player", () -> "Notch");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -732,7 +732,7 @@ class ResponseSystemTest {
                                               .resolver(id -> "Alex")
                                               .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         response.sendContent(context, placeholders);
         Thread.sleep(100);
 
@@ -750,7 +750,7 @@ class ResponseSystemTest {
 
         responseRegistry.registerResponse(response);
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         response.sendContent(context, null);
         Thread.sleep(100);
 
@@ -783,7 +783,7 @@ class ResponseSystemTest {
                                                .resolver(id -> "C")
                                                .build());
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         response.sendContent(context, placeholders);
         Thread.sleep(100);
 
@@ -804,7 +804,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(ResponseKey.INVALID_BOOLEAN)
                                              .withPlaceholder("input", "maybe");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -823,7 +823,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("input", "FLYING")
                                              .withPlaceholder("enum_type", "GameMode");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -842,7 +842,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("input", "abc")
                                              .withPlaceholder("number_type", "integer");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -860,7 +860,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(ResponseKey.INVALID_CHARACTER)
                                              .withPlaceholder("input", "hello");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -879,7 +879,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("input", "badentry")
                                              .withPlaceholder("extra_msg", ", entry doesn't contain '='");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -897,7 +897,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(ResponseKey.INVALID_UUID)
                                              .withPlaceholder("input", "not-a-uuid");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -916,7 +916,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("input", "diamond")
                                              .withPlaceholder("allowed_values", "gold,silver,bronze");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -934,7 +934,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(ResponseKey.UNKNOWN_FLAG)
                                              .withPlaceholder("input", "--verbose");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -952,7 +952,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(ResponseKey.MISSING_FLAG_INPUT)
                                              .withPlaceholder("flags", "-time");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -971,7 +971,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("flag_input", "-c")
                                              .withPlaceholder("wrong_cmd", "ban");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -996,7 +996,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("range_min", "1.0")
                                              .withPlaceholder("range_max", "50.0");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -1017,7 +1017,7 @@ class ResponseSystemTest {
                                              .withPlaceholder("cooldown_duration", "PT10S")
                                              .withPlaceholder("last_executed", "2026-03-07T08:00:00Z");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -1034,7 +1034,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(ResponseKey.NO_HELP)
                                              .withPlaceholder("command", "ban");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 
@@ -1051,7 +1051,7 @@ class ResponseSystemTest {
         CommandException exception = ResponseException.of(ResponseKey.NO_HELP_PAGE)
                                              .withPlaceholder("page", "99");
 
-        CommandContext<TestSource> context = createContext();
+        CommandContext<TestCommandSource> context = createContext();
         config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
         Thread.sleep(100);
 

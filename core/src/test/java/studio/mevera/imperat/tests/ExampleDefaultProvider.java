@@ -3,13 +3,13 @@ package studio.mevera.imperat.tests;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 public class ExampleDefaultProvider implements DefaultValueProvider {
 
     @Override
-    public @Nullable <S extends Source> String provide(
+    public @Nullable <S extends CommandSource> String provide(
             ExecutionContext<S> context,
             Argument<S> parameter
     ) {

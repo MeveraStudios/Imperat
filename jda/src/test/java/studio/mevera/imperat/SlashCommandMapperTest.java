@@ -28,8 +28,8 @@ class SlashCommandMapperTest {
 
     @Test
     void flattensOptionalParametersAfterRequiredOnRoot() {
-        Command<JdaSource> command = Command.create(imperat, "mix")
-                                             .pathway(CommandPathway.<JdaSource>builder()
+        Command<JdaCommandSource> command = Command.create(imperat, "mix")
+                                                    .pathway(CommandPathway.<JdaCommandSource>builder()
                                                             .parameters(
                                                                     Argument.requiredText("first"),
                                                                     Argument.optionalText("middle"),
@@ -59,24 +59,24 @@ class SlashCommandMapperTest {
 
     @Test
     void preservesDeepSubcommandPaths() {
-        Command<JdaSource> command = Command.create(imperat, "root")
+        Command<JdaCommandSource> command = Command.create(imperat, "root")
                                              .subCommand(
                                                      Command.create(imperat, "alpha")
-                                                             .pathway(CommandPathway.<JdaSource>builder()
+                                                             .pathway(CommandPathway.<JdaCommandSource>builder()
                                                                             .parameters(Argument.requiredText("alphaArg"))
                                                                             .execute((source, ctx) -> {
                                                                             })
                                                              )
                                                              .subCommand(
                                                                      Command.create(imperat, "beta")
-                                                                             .pathway(CommandPathway.<JdaSource>builder()
+                                                                             .pathway(CommandPathway.<JdaCommandSource>builder()
                                                                                             .parameters(Argument.requiredText("betaArg"))
                                                                                             .execute((source, ctx) -> {
                                                                                             })
                                                                              )
                                                                              .subCommand(
                                                                                      Command.create(imperat, "gamma")
-                                                                                             .pathway(CommandPathway.<JdaSource>builder()
+                                                                                             .pathway(CommandPathway.<JdaCommandSource>builder()
                                                                                                             .parameters(Argument.requiredText(
                                                                                                                     "gammaArg"))
                                                                                                             .execute((source, ctx) -> {
@@ -113,13 +113,13 @@ class SlashCommandMapperTest {
 
     @Test
     void combinesMultipleGetAllPossiblePathwaysIntoOptionalOptions() {
-        Command<JdaSource> command = Command.create(imperat, "variants")
-                                             .pathway(CommandPathway.<JdaSource>builder()
+        Command<JdaCommandSource> command = Command.create(imperat, "variants")
+                                                    .pathway(CommandPathway.<JdaCommandSource>builder()
                                                             .parameters(Argument.requiredText("first"))
                                                             .execute((source, ctx) -> {
                                                             })
                                              )
-                                             .pathway(CommandPathway.<JdaSource>builder()
+                                                    .pathway(CommandPathway.<JdaCommandSource>builder()
                                                             .parameters(Argument.optionalText("second"))
                                                             .execute((source, ctx) -> {
                                                             })

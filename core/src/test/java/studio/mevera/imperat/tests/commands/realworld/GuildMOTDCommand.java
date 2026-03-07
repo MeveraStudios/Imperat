@@ -5,7 +5,7 @@ import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.Flag;
 import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.parameters.JavaDurationParser;
 
 import java.time.Duration;
@@ -14,13 +14,13 @@ import java.time.Duration;
 public class GuildMOTDCommand {
 
     @Execute
-    public void def(TestSource source) {
+    public void def(TestCommandSource source) {
         source.reply("Default motd execution");
     }
 
     @Execute
     public void mainUsage(
-            TestSource source,
+            TestCommandSource source,
             @Flag("time") @Default("24h") Duration time,
             @Greedy String message
     ) {

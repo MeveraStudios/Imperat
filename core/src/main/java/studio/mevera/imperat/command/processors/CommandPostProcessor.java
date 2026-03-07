@@ -1,8 +1,8 @@
 package studio.mevera.imperat.command.processors;
 
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 
 /**
@@ -11,7 +11,7 @@ import studio.mevera.imperat.exception.CommandException;
  *
  * @param <S> the command sender valueType
  */
-public interface CommandPostProcessor<S extends Source> extends CommandProcessor {
+public interface CommandPostProcessor<S extends CommandSource> extends CommandProcessor {
 
     /**
      * Processes context AFTER the resolving operation.

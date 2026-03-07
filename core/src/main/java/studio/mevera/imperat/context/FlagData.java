@@ -11,20 +11,20 @@ import java.util.List;
 
 /**
  * Represents a flag that has been parsed/read/loaded from a
- * context of a command entered by the {@link Source}
+ * context of a command entered by the {@link CommandSource}
  * <p>
  * A flag has merely 2 types:
  * 1) A true flag is a flag that has an input value next to it in the raw input
  * 2) A switch (flag that it's value input is represented by its mere presence
  */
 @ApiStatus.AvailableSince("1.0.0")
-public interface FlagData<S extends Source> {
+public interface FlagData<S extends CommandSource> {
 
-    static <S extends Source, T> FlagData<S> create(String name, List<String> alias, ArgumentType<S, T> inputType) {
+    static <S extends CommandSource, T> FlagData<S> create(String name, List<String> alias, ArgumentType<S, T> inputType) {
         return new FlagDataImpl<>(name, alias, inputType);
     }
 
-    static <S extends Source> FlagData<S> createSwitch(String name, List<String> aliases) {
+    static <S extends CommandSource> FlagData<S> createSwitch(String name, List<String> aliases) {
         return create(name, aliases, null);
     }
 
@@ -69,7 +69,7 @@ public interface FlagData<S extends Source> {
         return inputType() == null;
     }
 
-    record FlagDataImpl<S extends Source>(String name, List<String> aliases, ArgumentType<S, ?> inputType) implements FlagData<S> {
+    record FlagDataImpl<S extends CommandSource>(String name, List<String> aliases, ArgumentType<S, ?> inputType) implements FlagData<S> {
 
     }
 

@@ -3,7 +3,7 @@ package studio.mevera.imperat.type;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.VelocitySource;
+import studio.mevera.imperat.VelocityCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
@@ -17,7 +17,7 @@ import studio.mevera.imperat.responses.VelocityResponseKey;
 
 import java.util.List;
 
-public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
+public final class PlayerArgument extends ArgumentType<VelocityCommandSource, Player> {
 
     private final ProxyServer proxyServer;
     private final PlayerSuggestionProvider playerSuggestionResolver;
@@ -30,8 +30,8 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
 
     @Override
     public @NotNull Player parse(
-            @NotNull ExecutionContext<VelocitySource> context,
-            @NotNull Cursor<VelocitySource> cursor,
+            @NotNull ExecutionContext<VelocityCommandSource> context,
+            @NotNull Cursor<VelocityCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
 
@@ -51,7 +51,7 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<VelocitySource> context, Argument<VelocitySource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<VelocityCommandSource> context, Argument<VelocityCommandSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
@@ -66,11 +66,11 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionProvider<VelocitySource> getSuggestionProvider() {
+    public SuggestionProvider<VelocityCommandSource> getSuggestionProvider() {
         return playerSuggestionResolver;
     }
 
-    private final static class PlayerSuggestionProvider implements SuggestionProvider<VelocitySource> {
+    private final static class PlayerSuggestionProvider implements SuggestionProvider<VelocityCommandSource> {
 
         private final ProxyServer proxyServer;
 
@@ -84,7 +84,7 @@ public final class PlayerArgument extends ArgumentType<VelocitySource, Player> {
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<VelocitySource> context, Argument<VelocitySource> parameter) {
+        public List<String> provide(SuggestionContext<VelocityCommandSource> context, Argument<VelocityCommandSource> parameter) {
             return proxyServer.getAllPlayers().stream().map(Player::getUsername).toList();
         }
     }

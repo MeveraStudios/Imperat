@@ -9,7 +9,7 @@ import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.Optional;
 import studio.mevera.imperat.annotations.types.RootCommand;
-import studio.mevera.imperat.tests.TestSource;
+import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("ban2")
 //@Permission("command.ban")
@@ -17,13 +17,13 @@ import studio.mevera.imperat.tests.TestSource;
 public final class Ban2Command {
 
     @Execute
-    public void showUsage(TestSource source) {
+    public void showUsage(TestCommandSource source) {
         source.reply("/ban <player> [-silent] [duration] [reason...]");
     }
 
     @Execute
     public void ban(
-            TestSource source,
+            TestCommandSource source,
             @Named("target") String player,
             @Flag({"time", "t"}) @Nullable String time,
             @Named("reason") @Default("Breaking server laws") @Optional @Greedy String reason

@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
@@ -13,14 +13,14 @@ import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.priority.Priority;
 
-public abstract class NumberArgument<S extends Source, N extends Number> extends ArgumentType<S, N> {
+public abstract class NumberArgument<S extends CommandSource, N extends Number> extends ArgumentType<S, N> {
 
     protected NumberArgument() {
         super();
     }
 
     @SuppressWarnings("unchecked")
-    static <S extends Source, N extends Number> NumberArgument<S, N> from(Class<N> numType) {
+    static <S extends CommandSource, N extends Number> NumberArgument<S, N> from(Class<N> numType) {
         if (TypeUtility.matches(numType, Integer.class)) {
             return (NumberArgument<S, N>) new IntArgument<>();
         } else if (TypeUtility.matches(numType, Long.class)) {
@@ -72,7 +72,7 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
 
     public abstract N parse(String input) throws NumberFormatException;
 
-    static class IntArgument<S extends Source> extends NumberArgument<S, Integer> {
+    static class IntArgument<S extends CommandSource> extends NumberArgument<S, Integer> {
 
         protected IntArgument() {
             super();
@@ -94,7 +94,7 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class FloatArgument<S extends Source> extends NumberArgument<S, Float> {
+    static class FloatArgument<S extends CommandSource> extends NumberArgument<S, Float> {
 
         protected FloatArgument() {
             super();
@@ -115,7 +115,7 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class LongArgument<S extends Source> extends NumberArgument<S, Long> {
+    static class LongArgument<S extends CommandSource> extends NumberArgument<S, Long> {
 
         protected LongArgument() {
             super();
@@ -136,7 +136,7 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class DoubleArgument<S extends Source> extends NumberArgument<S, Double> {
+    static class DoubleArgument<S extends CommandSource> extends NumberArgument<S, Double> {
 
         protected DoubleArgument() {
             super();
@@ -159,7 +159,7 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
 
     //create for Byte, Short, BigInteger, BigDecimal
     //do it for me
-    static class ByteArgument<S extends Source> extends NumberArgument<S, Byte> {
+    static class ByteArgument<S extends CommandSource> extends NumberArgument<S, Byte> {
 
         protected ByteArgument() {
             super();
@@ -180,7 +180,7 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class ShortArgument<S extends Source> extends NumberArgument<S, Short> {
+    static class ShortArgument<S extends CommandSource> extends NumberArgument<S, Short> {
 
         protected ShortArgument() {
             super();
@@ -201,7 +201,7 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class BigIntegerArgument<S extends Source> extends NumberArgument<S, java.math.BigInteger> {
+    static class BigIntegerArgument<S extends CommandSource> extends NumberArgument<S, java.math.BigInteger> {
 
         protected BigIntegerArgument() {
             super();
@@ -222,7 +222,7 @@ public abstract class NumberArgument<S extends Source, N extends Number> extends
         }
     }
 
-    static class BigDecimalArgument<S extends Source> extends NumberArgument<S, java.math.BigDecimal> {
+    static class BigDecimalArgument<S extends CommandSource> extends NumberArgument<S, java.math.BigDecimal> {
 
         protected BigDecimalArgument() {
             super();

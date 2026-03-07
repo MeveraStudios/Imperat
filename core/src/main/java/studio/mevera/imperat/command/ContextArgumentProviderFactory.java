@@ -2,7 +2,7 @@ package studio.mevera.imperat.command;
 
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 
 import java.lang.reflect.Type;
@@ -13,7 +13,7 @@ import java.lang.reflect.Type;
  *
  * @param <S> the command-sender valueType
  */
-public interface ContextArgumentProviderFactory<S extends Source, T> {
+public interface ContextArgumentProviderFactory<S extends CommandSource, T> {
 
     /**
      * Creates a context resolver based on the parameter

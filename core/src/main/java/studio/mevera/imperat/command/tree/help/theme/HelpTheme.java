@@ -2,15 +2,15 @@ package studio.mevera.imperat.command.tree.help.theme;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.renderers.UsageFormatter;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 
 /**
  * A theme for help documentation generation and presentation.
  * @param <S> the type of command source/console
  * @param <C> the type of the entries in the help component (can be String, Component, etc.)
  */
-public interface HelpTheme<S extends Source, C> {
+public interface HelpTheme<S extends CommandSource, C> {
 
     HelpComponent<S, C> createEmptyComponent();
 

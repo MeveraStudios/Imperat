@@ -14,8 +14,8 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
@@ -43,9 +43,9 @@ import java.util.Optional;
  * the specified configurations.
  * </p>
  *
- * @param <S> The type of the source object used by the configuration, which implements the {@link Source} interface.
+ * @param <S> The type of the source object used by the configuration, which implements the {@link CommandSource} interface.
  */
-public sealed interface ImperatConfig<S extends Source> extends ResolverRegistrar<S>, BaseThrowableHandler<S>
+public sealed interface ImperatConfig<S extends CommandSource> extends ResolverRegistrar<S>, BaseThrowableHandler<S>
         permits ImperatConfigImpl {
 
     /**

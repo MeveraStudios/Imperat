@@ -9,9 +9,9 @@ import net.minestom.server.command.builder.Command;
 final class InternalMinestomCommand extends Command {
 
     MinestomImperat imperat;
-    studio.mevera.imperat.command.Command<MinestomSource> imperatCommand;
+    studio.mevera.imperat.command.Command<MinestomCommandSource> imperatCommand;
 
-    InternalMinestomCommand(MinestomImperat imperat, studio.mevera.imperat.command.Command<MinestomSource> imperatCommand) {
+    InternalMinestomCommand(MinestomImperat imperat, studio.mevera.imperat.command.Command<MinestomCommandSource> imperatCommand) {
         super(imperatCommand.getName(), imperatCommand.aliases().toArray(new String[0]));
         this.imperat = imperat;
         this.imperatCommand = imperatCommand;

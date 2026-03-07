@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.BukkitSource;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.BukkitUtil;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
@@ -20,7 +20,7 @@ import studio.mevera.imperat.responses.BukkitResponseKey;
 
 import java.util.List;
 
-public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
+public class PlayerArgument extends ArgumentType<BukkitCommandSource, Player> {
 
     private final PlayerSuggestionProvider SUGGESTION_RESOLVER = new PlayerSuggestionProvider();
     private final DefaultValueProvider DEFAULT_VALUE_SUPPLIER = DefaultValueProvider.of("~");
@@ -31,8 +31,8 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
 
     @Override
     public @Nullable Player parse(
-            @NotNull ExecutionContext<BukkitSource> context,
-            @NotNull Cursor<BukkitSource> cursor,
+            @NotNull ExecutionContext<BukkitCommandSource> context,
+            @NotNull Cursor<BukkitCommandSource> cursor,
             @NotNull String correspondingInput
     ) throws CommandException {
 
@@ -57,7 +57,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionProvider<BukkitSource> getSuggestionProvider() {
+    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
         return SUGGESTION_RESOLVER;
     }
 
@@ -73,7 +73,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<BukkitSource> context, Argument<BukkitSource> parameter) {
+    public boolean matchesInput(int rawPosition, CommandContext<BukkitCommandSource> context, Argument<BukkitCommandSource> parameter) {
         String input = context.arguments().get(rawPosition);
         if (input == null) {
             return false;
@@ -83,7 +83,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
                        && Bukkit.getPlayer(input) != null;
     }
 
-    private final static class PlayerSuggestionProvider implements SuggestionProvider<BukkitSource> {
+    private final static class PlayerSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
 
         /**
          * @param context   the context for suggestions
@@ -91,7 +91,7 @@ public class PlayerArgument extends ArgumentType<BukkitSource, Player> {
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<BukkitSource> context, Argument<BukkitSource> parameter) {
+        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> parameter) {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         }
     }

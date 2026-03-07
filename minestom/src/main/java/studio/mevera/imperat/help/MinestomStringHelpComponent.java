@@ -1,7 +1,7 @@
 package studio.mevera.imperat.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.MinestomSource;
+import studio.mevera.imperat.MinestomCommandSource;
 import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
 
 /**
@@ -12,7 +12,7 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * <p>Features:</p>
  * <ul>
  *   <li>Simple string-based help messages</li>
- *   <li>Automatic integration with MinestomSource messaging</li>
+ *   <li>Automatic integration with MinestomCommandSource messaging</li>
  *   <li>Modern Minecraft server help display</li>
  *   <li>Lightweight alternative to Adventure Component-based help</li>
  * </ul>
@@ -25,11 +25,11 @@ import studio.mevera.imperat.command.tree.help.theme.StringHelpComponent;
  * }</pre>
  *
  * @author Imperat Framework
- * @see MinestomSource
+ * @see MinestomCommandSource
  * @see StringHelpComponent
  * @since 2.1.0
  */
-public class MinestomStringHelpComponent extends StringHelpComponent<MinestomSource> {
+public class MinestomStringHelpComponent extends StringHelpComponent<MinestomCommandSource> {
 
     /**
      * Creates a new MinestomStringHelpComponent with the specified string content.

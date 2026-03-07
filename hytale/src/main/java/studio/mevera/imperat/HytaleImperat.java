@@ -10,11 +10,11 @@ import studio.mevera.imperat.command.Command;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HytaleImperat extends BaseImperat<HytaleSource> {
+public class HytaleImperat extends BaseImperat<HytaleCommandSource> {
 
     protected final JavaPlugin plugin;
 
-    HytaleImperat(JavaPlugin plugin, @NotNull ImperatConfig<HytaleSource> config) {
+    HytaleImperat(JavaPlugin plugin, @NotNull ImperatConfig<HytaleCommandSource> config) {
         super(config);
         this.plugin = plugin;
     }
@@ -35,7 +35,7 @@ public class HytaleImperat extends BaseImperat<HytaleSource> {
     }
 
     @Override
-    public void registerSimpleCommand(Command<HytaleSource> command) {
+    public void registerSimpleCommand(Command<HytaleCommandSource> command) {
         super.registerSimpleCommand(command);
         registerHytaleCommand(
                 new InternalHytaleCommand(this, command)
@@ -48,7 +48,7 @@ public class HytaleImperat extends BaseImperat<HytaleSource> {
 
     @Override
     public void unregisterCommand(String name) {
-        final Command<HytaleSource> command = getCommand(name);
+        final Command<HytaleCommandSource> command = getCommand(name);
         if (command == null) {
             return;
         }
@@ -65,16 +65,16 @@ public class HytaleImperat extends BaseImperat<HytaleSource> {
     }
 
     @Override
-    public HytaleSource createDummySender() {
-        return new HytaleSource(ConsoleSender.INSTANCE);
+    public HytaleCommandSource createDummySender() {
+        return new HytaleCommandSource(ConsoleSender.INSTANCE);
     }
 
     @Override
-    public HytaleSource wrapSender(Object sender) {
+    public HytaleCommandSource wrapSender(Object sender) {
         if (!(sender instanceof CommandSender cmdSender)) {
             throw new IllegalArgumentException("Sender object is not of type '" + CommandSender.class.getName() + "'");
         }
-        return new HytaleSource(cmdSender);
+        return new HytaleCommandSource(cmdSender);
     }
 }
 

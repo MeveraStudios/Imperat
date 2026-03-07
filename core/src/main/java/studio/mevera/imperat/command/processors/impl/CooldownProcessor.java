@@ -1,8 +1,8 @@
 package studio.mevera.imperat.command.processors.impl;
 
 import studio.mevera.imperat.command.processors.CommandPostProcessor;
+import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.Source;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseKey;
@@ -10,7 +10,7 @@ import studio.mevera.imperat.responses.ResponseKey;
 import java.time.Duration;
 import java.time.Instant;
 
-public final class CooldownProcessor<S extends Source> implements CommandPostProcessor<S> {
+public final class CooldownProcessor<S extends CommandSource> implements CommandPostProcessor<S> {
 
     CooldownProcessor() {
 

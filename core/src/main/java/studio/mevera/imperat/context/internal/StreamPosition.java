@@ -1,10 +1,10 @@
 package studio.mevera.imperat.context.internal;
 
-import studio.mevera.imperat.context.Source;
+import studio.mevera.imperat.context.CommandSource;
 
 import java.util.function.IntUnaryOperator;
 
-public final class StreamPosition<S extends Source> {
+public final class StreamPosition<S extends CommandSource> {
 
     int maxParamLength, maxRawLength;
     int parameter, raw;
