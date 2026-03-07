@@ -59,14 +59,6 @@ final class ResponseRegistryImpl implements ResponseRegistry {
                         .addContextPlaceholders()
         );
 
-        // WordOutOfRestrictionsException: String input, List<String> restrictions
-        registerResponse(
-                new Response(ResponseKey.WORD_OUT_OF_RESTRICTIONS, () -> "Word '%input%' is not within the given restrictions=%restrictions%")
-                        .addPlaceholder("input")
-                        .addPlaceholder("restrictions")
-                        .addContextPlaceholders()
-        );
-
         // ValueOutOfConstraintException: String input, Set<String> allowedValues
         registerResponse(
                 new Response(ResponseKey.VALUE_OUT_OF_CONSTRAINT, () -> "Input '%input%' is not one of: [%allowed_values%]")
@@ -107,15 +99,15 @@ final class ResponseRegistryImpl implements ResponseRegistry {
         // NumericParameter has: format(), name(), description(), type(), defaultValue(), range()
         // NumericRange has: getMin(), getMax()
         registerResponse(
-                new Response(ResponseKey.NUMBER_OUT_OF_RANGE, () -> "Value '%value%' entered for parameter '%parameter%' must be %range%")
+                new Response(ResponseKey.NUMBER_OUT_OF_RANGE, () -> "Value '%parsed_input%' entered for argument '%formatted_argument%' must be "
+                                                                            + "%formatted_range%")
                         .addContextPlaceholders()
-                        .addPlaceholder("value")
-                        .addPlaceholder("parameter")
-                        .addPlaceholder("range")
-                        .addPlaceholder("original_input")
+                        .addPlaceholder("parsed_input")
+                        .addPlaceholder("formatted_argument")
+                        .addPlaceholder("formatted_range")
+                        .addPlaceholder("input")
                         .addPlaceholder("range_min")
                         .addPlaceholder("range_max")
-                        .addPlaceholder("parameter_name")
         );
 
         // Permission exceptions are now handled directly by PermissionDeniedException

@@ -20,11 +20,14 @@ import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.DependencySupplier;
 import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
+import studio.mevera.imperat.responses.Response;
+import studio.mevera.imperat.responses.ResponseKey;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * A generic abstract builder class for configuring instances of ImperatConfig and creating
@@ -72,6 +75,16 @@ public abstract class ConfigBuilder<S extends Source, I extends Imperat<S>, B ex
      */
     public B throwablePrinter(ThrowablePrinter printer) {
         config.setThrowablePrinter(printer);
+        return (B) this;
+    }
+
+    public B response(Response response) {
+        config.getResponseRegistry().registerResponse(response);
+        return (B) this;
+    }
+
+    public B response(ResponseKey key, Supplier<String> contentSupplier, String... placeholders) {
+        config.getResponseRegistry().registerResponse(key, contentSupplier, placeholders);
         return (B) this;
     }
 

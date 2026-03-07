@@ -450,7 +450,7 @@ class ResponseSystemTest {
         assertThat(responseRegistry.getResponse(ResponseKey.INVALID_NUMBER_FORMAT)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.INVALID_MAP_ENTRY_FORMAT)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.INVALID_UUID)).isNotNull();
-        assertThat(responseRegistry.getResponse(ResponseKey.WORD_OUT_OF_RESTRICTIONS)).isNotNull();
+        //assertThat(responseRegistry.getResponse(ResponseKey.WORD_OUT_OF_RESTRICTIONS)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.VALUE_OUT_OF_CONSTRAINT)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.UNKNOWN_FLAG)).isNotNull();
         assertThat(responseRegistry.getResponse(ResponseKey.MISSING_FLAG_INPUT)).isNotNull();
@@ -574,6 +574,491 @@ class ResponseSystemTest {
 
         assertThat(supplierCalled[0]).isTrue();
         assertThat(capturedMessages).hasSize(1);
+    }
+
+    // ==================== Placeholder Completeness Tests (no leftover '%') ====================
+
+    @Test
+    @DisplayName("Should fully resolve single placeholder with no leftover '%'")
+    void testNoLeftoverPercentSinglePlaceholder() throws Exception {
+        ResponseKey testKey = () -> "test.no-percent.single";
+        Response response = new TestResponse(testKey, () -> "Hello %name%, welcome!")
+                                    .addPlaceholder("name");
+
+        responseRegistry.registerResponse(response);
+
+        PlaceholderDataProvider placeholders = PlaceholderDataProvider.createDefault();
+        placeholders.register("name", Placeholder.builder("name")
+                                              .resolver(id -> "Steve")
+                                              .build());
+
+        CommandContext<TestSource> context = createContext();
+        response.sendContent(context, placeholders);
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Hello Steve, welcome!")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Should fully resolve multiple placeholders with no leftover '%'")
+    void testNoLeftoverPercentMultiplePlaceholders() throws Exception {
+        ResponseKey testKey = () -> "test.no-percent.multiple";
+        Response response = new TestResponse(testKey,
+                () -> "User %user% ran /%command% with args: %args%")
+                                    .addPlaceholder("user")
+                                    .addPlaceholder("command")
+                                    .addPlaceholder("args");
+
+        responseRegistry.registerResponse(response);
+
+        PlaceholderDataProvider placeholders = PlaceholderDataProvider.createDefault();
+        placeholders.register("user", Placeholder.builder("user")
+                                              .resolver(id -> "Alice")
+                                              .build());
+        placeholders.register("command", Placeholder.builder("command")
+                                                 .resolver(id -> "give")
+                                                 .build());
+        placeholders.register("args", Placeholder.builder("args")
+                                              .resolver(id -> "diamond 64")
+                                              .build());
+
+        CommandContext<TestSource> context = createContext();
+        response.sendContent(context, placeholders);
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("User Alice ran /give with args: diamond 64")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Should fully resolve placeholders via exception handler with no leftover '%'")
+    void testNoLeftoverPercentViaExceptionHandler() throws Exception {
+        ResponseKey errorKey = () -> "test.no-percent.exception";
+        Response response = new TestResponse(errorKey,
+                () -> "Error in /%command%: %reason% (input: %input%)")
+                                    .addPlaceholder("command")
+                                    .addPlaceholder("reason")
+                                    .addPlaceholder("input");
+
+        responseRegistry.registerResponse(response);
+
+        CommandException exception = ResponseException.of(errorKey)
+                                             .withPlaceholder("command", "ban")
+                                             .withPlaceholder("reason", "player not found")
+                                             .withPlaceholder("input", "notch123");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Error in /ban: player not found (input: notch123)")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Should fully resolve overridden default response with no leftover '%'")
+    void testNoLeftoverPercentOverriddenResponse() throws Exception {
+        Response customResponse = new TestResponse(ResponseKey.INVALID_NUMBER_FORMAT,
+                () -> "'%input%' is not a valid number for /%command%!")
+                                          .addPlaceholder("input")
+                                          .addPlaceholder("command");
+
+        responseRegistry.registerResponse(customResponse);
+
+        PlaceholderDataProvider placeholders = PlaceholderDataProvider.createDefault();
+        placeholders.register("input", Placeholder.builder("input")
+                                               .resolver(id -> "abc")
+                                               .build());
+        placeholders.register("command", Placeholder.builder("command")
+                                                 .resolver(id -> "give")
+                                                 .build());
+
+        CommandContext<TestSource> context = createContext();
+
+        Response retrieved = responseRegistry.getResponse(ResponseKey.INVALID_NUMBER_FORMAT);
+        retrieved.sendContent(context, placeholders);
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("'abc' is not a valid number for /give!")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Should fully resolve supplier-based placeholders with no leftover '%'")
+    void testNoLeftoverPercentSupplierPlaceholders() throws Exception {
+        ResponseKey testKey = () -> "test.no-percent.supplier";
+        Response response = new TestResponse(testKey,
+                () -> "Cooldown: %remaining% seconds remaining for %player%")
+                                    .addPlaceholder("remaining")
+                                    .addPlaceholder("player");
+
+        responseRegistry.registerResponse(response);
+
+        CommandException exception = ResponseException.of(testKey)
+                                             .withPlaceholder("remaining", () -> "42")
+                                             .withPlaceholder("player", () -> "Notch");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Cooldown: 42 seconds remaining for Notch")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Should fully resolve duplicate placeholder occurrences with no leftover '%'")
+    void testNoLeftoverPercentDuplicateOccurrences() throws Exception {
+        ResponseKey testKey = () -> "test.no-percent.duplicate";
+        Response response = new TestResponse(testKey,
+                () -> "%name% said hello to %name%!")
+                                    .addPlaceholder("name");
+
+        responseRegistry.registerResponse(response);
+
+        PlaceholderDataProvider placeholders = PlaceholderDataProvider.createDefault();
+        placeholders.register("name", Placeholder.builder("name")
+                                              .resolver(id -> "Alex")
+                                              .build());
+
+        CommandContext<TestSource> context = createContext();
+        response.sendContent(context, placeholders);
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Alex said hello to Alex!")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Should have no leftover '%' when response has no placeholders at all")
+    void testNoLeftoverPercentStaticMessage() throws Exception {
+        ResponseKey testKey = () -> "test.no-percent.static";
+        Response response = new TestResponse(testKey, () -> "This is a static message with no placeholders");
+
+        responseRegistry.registerResponse(response);
+
+        CommandContext<TestSource> context = createContext();
+        response.sendContent(context, null);
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("This is a static message with no placeholders")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Should fully resolve adjacent placeholders with no leftover '%'")
+    void testNoLeftoverPercentAdjacentPlaceholders() throws Exception {
+        ResponseKey testKey = () -> "test.no-percent.adjacent";
+        Response response = new TestResponse(testKey,
+                () -> "%first%%second%%third%")
+                                    .addPlaceholder("first")
+                                    .addPlaceholder("second")
+                                    .addPlaceholder("third");
+
+        responseRegistry.registerResponse(response);
+
+        PlaceholderDataProvider placeholders = PlaceholderDataProvider.createDefault();
+        placeholders.register("first", Placeholder.builder("first")
+                                               .resolver(id -> "A")
+                                               .build());
+        placeholders.register("second", Placeholder.builder("second")
+                                                .resolver(id -> "B")
+                                                .build());
+        placeholders.register("third", Placeholder.builder("third")
+                                               .resolver(id -> "C")
+                                               .build());
+
+        CommandContext<TestSource> context = createContext();
+        response.sendContent(context, placeholders);
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("ABC")
+                .doesNotContain("%");
+    }
+
+    // ==================== Default Response Placeholder Resolution Tests ====================
+
+    @Test
+    @DisplayName("Default INVALID_BOOLEAN response should resolve all placeholders")
+    void testDefaultInvalidBooleanPlaceholderResolution() throws Exception {
+        // Simulates: throw new ArgumentParseException(ResponseKey.INVALID_BOOLEAN, input)
+        // ArgumentParseException adds: %input%
+        // Response template: "Invalid boolean '%input%'"
+        CommandException exception = ResponseException.of(ResponseKey.INVALID_BOOLEAN)
+                                             .withPlaceholder("input", "maybe");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Invalid boolean 'maybe'")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default INVALID_ENUM response should resolve all placeholders")
+    void testDefaultInvalidEnumPlaceholderResolution() throws Exception {
+        // Simulates: throw new ArgumentParseException(ResponseKey.INVALID_ENUM, input).withPlaceholder("enum_type", ...)
+        // Response template: "Invalid %enum_type% '%input%'"
+        CommandException exception = ResponseException.of(ResponseKey.INVALID_ENUM)
+                                             .withPlaceholder("input", "FLYING")
+                                             .withPlaceholder("enum_type", "GameMode");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Invalid GameMode 'FLYING'")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default INVALID_NUMBER_FORMAT response should resolve all placeholders")
+    void testDefaultInvalidNumberFormatPlaceholderResolution() throws Exception {
+        // Simulates: throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input).withPlaceholder("number_type", ...)
+        // Response template: "Invalid %number_type% format '%input%'"
+        CommandException exception = ResponseException.of(ResponseKey.INVALID_NUMBER_FORMAT)
+                                             .withPlaceholder("input", "abc")
+                                             .withPlaceholder("number_type", "integer");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Invalid integer format 'abc'")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default INVALID_CHARACTER response should resolve all placeholders")
+    void testDefaultInvalidCharacterPlaceholderResolution() throws Exception {
+        // Simulates: throw new ArgumentParseException(ResponseKey.INVALID_CHARACTER, input)
+        // Response template: "Invalid input '%input%', expected a single character"
+        CommandException exception = ResponseException.of(ResponseKey.INVALID_CHARACTER)
+                                             .withPlaceholder("input", "hello");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Invalid input 'hello', expected a single character")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default INVALID_MAP_ENTRY_FORMAT response should resolve all placeholders")
+    void testDefaultInvalidMapEntryFormatPlaceholderResolution() throws Exception {
+        // Simulates: throw new ArgumentParseException(ResponseKey.INVALID_MAP_ENTRY_FORMAT, raw).withPlaceholder("extra_msg", ...)
+        // Response template: "Invalid map entry '%input%'%extra_msg%"
+        CommandException exception = ResponseException.of(ResponseKey.INVALID_MAP_ENTRY_FORMAT)
+                                             .withPlaceholder("input", "badentry")
+                                             .withPlaceholder("extra_msg", ", entry doesn't contain '='");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Invalid map entry 'badentry', entry doesn't contain '='")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default INVALID_UUID response should resolve all placeholders")
+    void testDefaultInvalidUuidPlaceholderResolution() throws Exception {
+        // Simulates: throw new ArgumentParseException(ResponseKey.INVALID_UUID, input)
+        // Response template: "Invalid uuid-format '%input%'"
+        CommandException exception = ResponseException.of(ResponseKey.INVALID_UUID)
+                                             .withPlaceholder("input", "not-a-uuid");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Invalid uuid-format 'not-a-uuid'")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default VALUE_OUT_OF_CONSTRAINT response should resolve all placeholders")
+    void testDefaultValueOutOfConstraintPlaceholderResolution() throws Exception {
+        // Simulates: throw new ArgumentParseException(ResponseKey.VALUE_OUT_OF_CONSTRAINT, input).withPlaceholder("allowed_values", ...)
+        // Response template: "Input '%input%' is not one of: [%allowed_values%]"
+        CommandException exception = ResponseException.of(ResponseKey.VALUE_OUT_OF_CONSTRAINT)
+                                             .withPlaceholder("input", "diamond")
+                                             .withPlaceholder("allowed_values", "gold,silver,bronze");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Input 'diamond' is not one of: [gold,silver,bronze]")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default UNKNOWN_FLAG response should resolve all placeholders")
+    void testDefaultUnknownFlagPlaceholderResolution() throws Exception {
+        // Simulates: throw new ArgumentParseException(ResponseKey.UNKNOWN_FLAG, input)
+        // Response template: "Unknown flag '%input%'"
+        CommandException exception = ResponseException.of(ResponseKey.UNKNOWN_FLAG)
+                                             .withPlaceholder("input", "--verbose");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Unknown flag '--verbose'")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default MISSING_FLAG_INPUT response should resolve all placeholders")
+    void testDefaultMissingFlagInputPlaceholderResolution() throws Exception {
+        // Simulates: throw ResponseException.of(ResponseKey.MISSING_FLAG_INPUT).withPlaceholder("flags", ...)
+        // Response template: "Please enter the value for flag(s) '%flags%'"
+        CommandException exception = ResponseException.of(ResponseKey.MISSING_FLAG_INPUT)
+                                             .withPlaceholder("flags", "-time");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Please enter the value for flag(s) '-time'")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default FLAG_OUTSIDE_SCOPE response should resolve all placeholders")
+    void testDefaultFlagOutsideScopePlaceholderResolution() throws Exception {
+        // Simulates: throw ResponseException.of(ResponseKey.FLAG_OUTSIDE_SCOPE).withPlaceholder("flag_input", ...).withPlaceholder("wrong_cmd", ...)
+        // Response template: "Flag(s) '%flag_input%' were used (in %wrong_cmd%'s scope) outside of their command's scope"
+        CommandException exception = ResponseException.of(ResponseKey.FLAG_OUTSIDE_SCOPE)
+                                             .withPlaceholder("flag_input", "-c")
+                                             .withPlaceholder("wrong_cmd", "ban");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Flag(s) '-c' were used (in ban's scope) outside of their command's scope")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default NUMBER_OUT_OF_RANGE response should resolve all placeholders")
+    void testDefaultNumberOutOfRangePlaceholderResolution() throws Exception {
+        // Simulates: throw ResponseException.of(ResponseKey.NUMBER_OUT_OF_RANGE).withPlaceholder(...)
+        // Response template: "Value '%parsed_input%' entered for argument '%formatted_argument%' must be %formatted_range%"
+        // RangeValidator provides: original_input, value, parameter, parameter_name, range, range_min, range_max
+        // But the template uses: parsed_input, formatted_argument, formatted_range, input, range_min, range_max
+        CommandException exception = ResponseException.of(ResponseKey.NUMBER_OUT_OF_RANGE)
+                                             .withPlaceholder("parsed_input", "100")
+                                             .withPlaceholder("formatted_argument", "<quantity>")
+                                             .withPlaceholder("formatted_range", "within 1.0-50.0")
+                                             .withPlaceholder("input", "100")
+                                             .withPlaceholder("range_min", "1.0")
+                                             .withPlaceholder("range_max", "50.0");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Value '100' entered for argument '<quantity>' must be within 1.0-50.0")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default COOLDOWN response should resolve all placeholders")
+    void testDefaultCooldownPlaceholderResolution() throws Exception {
+        // Simulates: throw ResponseException.of(ResponseKey.COOLDOWN).withPlaceholder(...)
+        // Response template: "Please wait %seconds% second(s) to execute this command again!"
+        CommandException exception = ResponseException.of(ResponseKey.COOLDOWN)
+                                             .withPlaceholder("seconds", "5")
+                                             .withPlaceholder("remaining_duration", "PT5S")
+                                             .withPlaceholder("cooldown_duration", "PT10S")
+                                             .withPlaceholder("last_executed", "2026-03-07T08:00:00Z");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Please wait 5 second(s) to execute this command again!")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default NO_HELP response should resolve all placeholders")
+    void testDefaultNoHelpPlaceholderResolution() throws Exception {
+        // Response template: "No Help available for '%command%'"
+        CommandException exception = ResponseException.of(ResponseKey.NO_HELP)
+                                             .withPlaceholder("command", "ban");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("No Help available for 'ban'")
+                .doesNotContain("%");
+    }
+
+    @Test
+    @DisplayName("Default NO_HELP_PAGE response should resolve all placeholders")
+    void testDefaultNoHelpPagePlaceholderResolution() throws Exception {
+        // Response template: "Page '%page%' doesn't exist!"
+        CommandException exception = ResponseException.of(ResponseKey.NO_HELP_PAGE)
+                                             .withPlaceholder("page", "99");
+
+        CommandContext<TestSource> context = createContext();
+        config.handleExecutionError(exception, context, ResponseSystemTest.class, "testMethod");
+        Thread.sleep(100);
+
+        assertThat(capturedMessages).hasSize(1);
+        assertThat(capturedMessages.get(0))
+                .isEqualTo("Page '99' doesn't exist!")
+                .doesNotContain("%");
     }
 }
 

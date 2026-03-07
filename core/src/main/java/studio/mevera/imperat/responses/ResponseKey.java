@@ -11,7 +11,6 @@ public interface ResponseKey extends Keyed<String> {
     ResponseKey INVALID_CHARACTER = () -> "args.parsing.invalid-character";
     ResponseKey INVALID_MAP_ENTRY_FORMAT = () -> "args.parsing.invalid-map-entry-format";
     ResponseKey INVALID_UUID = () -> "args.parsing.invalid-uuid";
-    ResponseKey WORD_OUT_OF_RESTRICTIONS = () -> "args.parsing.word-out-of-restrictions";
     ResponseKey VALUE_OUT_OF_CONSTRAINT = () -> "args.parsing.value-out-of-constraint";
 
     // Flag-related exceptions
