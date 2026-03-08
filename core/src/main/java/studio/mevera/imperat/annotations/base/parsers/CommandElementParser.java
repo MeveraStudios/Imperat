@@ -473,7 +473,6 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             var shortcut = loadPathwayShortcut(method, parsedMethodArgs, owningCommand, builder, shortcutAnn);
             owningCommand.addShortcut(shortcut);
         }
-
         return builder;
     }
 

@@ -66,7 +66,7 @@ public class MethodCommandExecutor<S extends CommandSource> implements CommandEx
             return;
         }
 
-        ReturnResolver<S, Object> returnResolver = context.imperatConfig().getReturnResolver(method.getReturnType());
+        ReturnResolver<S, Object> returnResolver = context.imperatConfig().getReturnResolver(method);
         if (returnResolver == null) {
             return;
         }

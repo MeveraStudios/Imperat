@@ -2,6 +2,7 @@ package studio.mevera.imperat;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
@@ -160,10 +161,10 @@ public sealed interface ResolverRegistrar<S extends CommandSource> permits Imper
     /**
      * Fetches the {@link ReturnResolver} from an internal registry.
      *
-     * @param type the target type
+     * @param method
      * @return the {@link ReturnResolver} for specific type
      */
-    <T> @Nullable ReturnResolver<S, T> getReturnResolver(Type type);
+    <T> @Nullable ReturnResolver<S, T> getReturnResolver(MethodElement method);
 
     /**
      * Registers the {@link ReturnResolver} into an internal registry

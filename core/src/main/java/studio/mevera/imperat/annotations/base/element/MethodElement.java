@@ -3,6 +3,8 @@ package studio.mevera.imperat.annotations.base.element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
+import studio.mevera.imperat.annotations.types.ExplicitReturnResolver;
+import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.reflect.Method;
@@ -15,13 +17,15 @@ public final class MethodElement extends ParseElement<Method> {
     private final List<ParameterElement> parameters = new ArrayList<>();
     private int inputCount = 0;
     private int optionalCount = 0;
-
+    private final ReturnResolver<?, ?> returnResolver;
     public <S extends CommandSource> MethodElement(
             @NotNull AnnotationParser<S> parser,
             @Nullable ClassElement owningElement,
-            @NotNull Method element
+            @NotNull Method element,
+            @Nullable ReturnResolver<?, ?> returnResolver
     ) {
         super(parser, owningElement, element);
+        this.returnResolver = returnResolver;
         var params = element.getParameters();
         for (int i = 0; i < params.length; i++) {
             var parameter = params[i];
@@ -40,6 +44,37 @@ public final class MethodElement extends ParseElement<Method> {
             }
         }
 
+    }
+
+    public <S extends CommandSource> MethodElement(
+            @NotNull AnnotationParser<S> parser,
+            @Nullable ClassElement owningElement,
+            @NotNull Method element
+    ) {
+        this(parser, owningElement, element, deduceReturnResolver(parser, element));
+    }
+
+    private static <S extends CommandSource> @Nullable ReturnResolver<?, ?> deduceReturnResolver(AnnotationParser<S> parser, Method method) {
+        var annotation = method.getAnnotation(ExplicitReturnResolver.class);
+        if (annotation != null) {
+            if (method.getReturnType() == void.class) {
+                throw new IllegalStateException(
+                        "Method '%s' is annotated with @ExplicitReturnResolver but has a void return type".formatted(method.getName()));
+            }
+            try {
+                var cfg = parser.getImperat().config();
+                return cfg.getInstanceFactory().createInstance(cfg, annotation.value());
+            } catch (Exception e) {
+                throw new RuntimeException(
+                        "Failed to instantiate return resolver '%s' for method '%s'".formatted(annotation.value().getTypeName(), method.getName()),
+                        e);
+            }
+        }
+        return null;
+    }
+
+    public ReturnResolver<?, ?> getSpecificReturnResolver() {
+        return returnResolver;
     }
 
     public @Nullable ParameterElement getParameterAt(int index) {

@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
+import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
@@ -488,8 +489,12 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     }
 
     @Override
-    public @Nullable <T> ReturnResolver<S, T> getReturnResolver(Type type) {
-        return returnResolverRegistry.getReturnResolver(type);
+    public @Nullable <T> ReturnResolver<S, T> getReturnResolver(MethodElement method) {
+        if (method.getSpecificReturnResolver() != null) {
+            // If the method has a specific return resolver (via annotation), use it directly
+            return (ReturnResolver<S, T>) method.getSpecificReturnResolver();
+        }
+        return returnResolverRegistry.getReturnResolver(method.getReturnType());
     }
 
     @Override

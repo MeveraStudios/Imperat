@@ -260,7 +260,7 @@ internal abstract class AbstractKotlinCommandClassParser<S : CommandSource>(
             }
             @Suppress("UNCHECKED_CAST")
             val returnResolver = context.imperatConfig()
-                .getReturnResolver<Any>(method.returnType)
+                .getReturnResolver<Any>(method)
                 ?: return
 
             returnResolver.handle(context, method, returned)
