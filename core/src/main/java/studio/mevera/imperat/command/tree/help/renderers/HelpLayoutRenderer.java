@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.ExecutionContext;
 
 /**
  * Interface for rendering help documentation.
- * Simplified to use HelpTheme directly instead of HelpRenderOptions.
+ * Simplified to use HelpTheme directly.
  *
  * @param <S> the source type
  * @param <C> the component type

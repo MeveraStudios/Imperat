@@ -10,8 +10,6 @@ import java.util.function.Function;
 
 public abstract class BaseHelpTheme<S extends CommandSource, C> implements HelpTheme<S, C> {
 
-    private final @NotNull PresentationStyle style;
-    private final int indentMultiplier;
     private final Function<C, HelpComponent<S, C>> componentFactory;
     private final Map<Option<?>, Object> optionValues = new HashMap<>();
 
@@ -20,44 +18,12 @@ public abstract class BaseHelpTheme<S extends CommandSource, C> implements HelpT
         optionValues.put(Option.SHOW_FOOTER, true);
     }
 
-    protected BaseHelpTheme(
-            @NotNull PresentationStyle style,
-            int indentMultiplier,
-            Function<C, HelpComponent<S, C>> componentFactory
-    ) {
-        this.style = style;
-        this.indentMultiplier = indentMultiplier;
+    protected BaseHelpTheme(Function<C, HelpComponent<S, C>> componentFactory) {
         this.componentFactory = componentFactory;
-    }
-
-    protected BaseHelpTheme(
-            PresentationStyle style,
-            Function<C, HelpComponent<S, C>> componentFactory
-    ) {
-        this(style, 1, componentFactory);
-    }
-
-
-    @Override
-    public @NotNull PresentationStyle getPreferredStyle() {
-        return style;
-    }
-
-    @Override
-    public int getIndentMultiplier() {
-        return indentMultiplier;
     }
 
     // Abstract content methods for subclasses to implement
     public abstract @NotNull C createEmptyContent();
-
-    public abstract @NotNull C getBranchContent();
-
-    public abstract @NotNull C getLastBranchContent();
-
-    public abstract @NotNull C getIndentContent();
-
-    public abstract @NotNull C getEmptyIndentContent();
 
     public abstract @NotNull C getHeaderContent(ExecutionContext<S> context);
 
@@ -69,25 +35,6 @@ public abstract class BaseHelpTheme<S extends CommandSource, C> implements HelpT
         return componentFactory.apply(createEmptyContent());
     }
 
-    @Override
-    public final @NotNull HelpComponent<S, C> getBranch() {
-        return componentFactory.apply(getBranchContent());
-    }
-
-    @Override
-    public final @NotNull HelpComponent<S, C> getLastBranch() {
-        return componentFactory.apply(getLastBranchContent());
-    }
-
-    @Override
-    public final @NotNull HelpComponent<S, C> getIndent() {
-        return componentFactory.apply(getIndentContent());
-    }
-
-    @Override
-    public final @NotNull HelpComponent<S, C> getEmptyIndent() {
-        return componentFactory.apply(getEmptyIndentContent());
-    }
 
     @Override
     public final @NotNull HelpComponent<S, C> getHeader(ExecutionContext<S> context) {

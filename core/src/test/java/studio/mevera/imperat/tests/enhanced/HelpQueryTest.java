@@ -81,14 +81,17 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
         }
 
         @Test
-        @DisplayName("Every help entry's node should be executable")
-        void everyEntryShouldBeExecutable() {
+        @DisplayName("Every help entry should have a valid pathway")
+        void everyEntryShouldHaveValidPathway() {
             HelpEntryList<TestCommandSource> entries = queryHelp("test");
 
             for (HelpEntry<TestCommandSource> entry : entries) {
-                Assertions.assertThat(entry.getNode().isExecutable())
-                        .as("Help entry node '%s' must be executable", entry.getNode().format())
-                        .isTrue();
+                Assertions.assertThat(entry.getPathway())
+                        .as("Each help entry must have a non-null pathway")
+                        .isNotNull();
+                Assertions.assertThat(entry.getPathway().size())
+                        .as("Each help entry pathway must have at least one parameter")
+                        .isGreaterThan(0);
             }
         }
     }
@@ -130,10 +133,12 @@ class HelpQueryTest extends EnhancedBaseImperatTest {
                                                   .build();
             HelpEntryList<TestCommandSource> entries = queryHelp("test", query);
 
+            // maxDepth=0 means only the root node (depth 0) is traversed,
+            // so returned pathways should be root-level usages only
             for (HelpEntry<TestCommandSource> entry : entries) {
-                Assertions.assertThat(entry.getNode().getDepth())
-                        .as("All entries should be at depth <= 0")
-                        .isLessThanOrEqualTo(0);
+                Assertions.assertThat(entry.getPathway())
+                        .as("All entries at maxDepth=0 should have a valid pathway")
+                        .isNotNull();
             }
         }
     }

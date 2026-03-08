@@ -1,11 +1,11 @@
 package studio.mevera.imperat.command.tree.help;
 
-import studio.mevera.imperat.command.tree.CommandNode;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandSource;
 
 /**
  * A functional interface for filtering help entries during query operations.
- * Filters are applied during tree traversal to determine which nodes
+ * Filters are applied to {@link CommandPathway}s to determine which usages
  * should be included in help results.
  *
  * <p>Filters can be chained together to create complex filtering logic,
@@ -18,13 +18,13 @@ import studio.mevera.imperat.context.CommandSource;
 public interface HelpFilter<S extends CommandSource> {
 
     /**
-     * Determines whether a node should be included in help results.
+     * Determines whether a pathway should be included in help results.
      *
-     * @param node the node to evaluate
-     * @return {@code true} if the node passes the filter and should be included,
+     * @param pathway the command pathway to evaluate
+     * @return {@code true} if the pathway passes the filter and should be included,
      *         {@code false} if it should be excluded
      */
-    boolean filter(CommandNode<S, ?> node);
+    boolean filter(CommandPathway<S> pathway);
 
     /**
      * Creates a composite filter that requires both this and another filter to pass.
@@ -33,7 +33,7 @@ public interface HelpFilter<S extends CommandSource> {
      * @return a new filter that passes only if both filters pass
      */
     default HelpFilter<S> and(HelpFilter<S> other) {
-        return node -> this.filter(node) && other.filter(node);
+        return pathway -> this.filter(pathway) && other.filter(pathway);
     }
 
     /**
@@ -43,7 +43,7 @@ public interface HelpFilter<S extends CommandSource> {
      * @return a new filter that passes if either filter passes
      */
     default HelpFilter<S> or(HelpFilter<S> other) {
-        return node -> this.filter(node) || other.filter(node);
+        return pathway -> this.filter(pathway) || other.filter(pathway);
     }
 
     /**
@@ -52,6 +52,6 @@ public interface HelpFilter<S extends CommandSource> {
      * @return a new filter with inverted logic
      */
     default HelpFilter<S> negate() {
-        return node -> !this.filter(node);
+        return pathway -> !this.filter(pathway);
     }
 }

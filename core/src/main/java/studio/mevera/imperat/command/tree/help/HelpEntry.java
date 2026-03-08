@@ -2,7 +2,6 @@ package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Objects;
@@ -10,32 +9,22 @@ import java.util.Objects;
 /**
  * Represents a final, immutable entry for a single executable command in the help system.
  * <p>
- * This class encapsulates a {@link CommandNode} that represents an executable command,
- * along with its corresponding {@link CommandPathway} pathway. It ensures that only
- * executable nodes can be used to create a help entry, making it a reliable data
- * model for displaying help information.
+ * This class encapsulates a {@link CommandPathway} that represents an executable command usage.
+ * It serves as a reliable data model for displaying help information.
  *
  * @param <S> The type of {@link CommandSource} from which the command was executed.
  */
 public final class HelpEntry<S extends CommandSource> {
 
-    private final CommandNode<S, ?> node;
     private final @NotNull CommandPathway<S> pathway;
 
     /**
-     * Constructs a new HelpEntry from an executable {@link CommandNode}.
+     * Constructs a new HelpEntry from a {@link CommandPathway}.
      *
-     * @param node The executable node for which to create a help entry.
-     * @throws IllegalArgumentException if the provided node is not executable.
+     * @param pathway The command pathway for which to create a help entry.
      */
-    HelpEntry(CommandNode<S, ?> node) {
-        if (!node.isExecutable()) {
-            throw new IllegalArgumentException("Node '" + node.format() + "' is not executable");
-        }
-        this.node = node;
-
-        assert node.getExecutableUsage() != null;
-        this.pathway = node.getExecutableUsage();
+    HelpEntry(@NotNull CommandPathway<S> pathway) {
+        this.pathway = pathway;
     }
 
     /**
@@ -48,18 +37,9 @@ public final class HelpEntry<S extends CommandSource> {
     }
 
     /**
-     * Retrieves the parameter node associated with this help entry.
-     *
-     * @return The parameter node.
-     */
-    public CommandNode<S, ?> getNode() {
-        return node;
-    }
-
-    /**
      * Compares this HelpEntry to another object for equality.
      * <p>
-     * Two help entries are considered equal if their underlying parameter nodes are equal.
+     * Two help entries are considered equal if their underlying pathways are equal.
      *
      * @param object The object to compare with.
      * @return {@code true} if the objects are equal, {@code false} otherwise.
@@ -69,16 +49,16 @@ public final class HelpEntry<S extends CommandSource> {
         if (!(object instanceof HelpEntry<?> helpEntry)) {
             return false;
         }
-        return Objects.equals(node, helpEntry.node);
+        return Objects.equals(pathway, helpEntry.pathway);
     }
 
     /**
-     * Computes the hash code for this HelpEntry based on its parameter node.
+     * Computes the hash code for this HelpEntry based on its pathway.
      *
      * @return The hash code.
      */
     @Override
     public int hashCode() {
-        return Objects.hashCode(node);
+        return Objects.hashCode(pathway);
     }
 }

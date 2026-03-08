@@ -291,7 +291,7 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
         return format((String) null, this);
     }
 
-    default Argument<S> getLastParam() {
+    default Argument<S> getLastArgument() {
         return getArgumentAt(getArguments().size() - 1);
     }
 

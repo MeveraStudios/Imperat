@@ -14,38 +14,7 @@ public interface HelpTheme<S extends CommandSource, C> {
 
     HelpComponent<S, C> createEmptyComponent();
 
-    /**
-     * Gets the preferred presentation style for this theme.
-     *
-     * @return the presentation style to use
-     */
-    @NotNull PresentationStyle getPreferredStyle();
-
-    int getIndentMultiplier();
-
-    // FOR TREE LAYOUTS
-
-    @NotNull HelpComponent<S, C> getBranch();
-
-    @NotNull HelpComponent<S, C> getLastBranch();
-
-    @NotNull HelpComponent<S, C> getIndent();
-
-    @NotNull HelpComponent<S, C> getEmptyIndent();
-
     <T> void setOptionValue(@NotNull Option<T> option, T value);
-
-    default @NotNull HelpComponent<S, C> getTreeBranch(boolean isLast) {
-        return isLast ? getLastBranch() : getBranch();
-    }
-
-    default @NotNull HelpComponent<S, C> getTreeIndent(boolean hasMore) {
-        HelpComponent<S, C> base = hasMore ? getIndent() : getEmptyIndent();
-        if (getIndentMultiplier() > 1) {
-            return base.repeat(getIndentMultiplier());
-        }
-        return base;
-    }
 
     //GENERAL HELP PARTS
     @NotNull HelpComponent<S, C> getHeader(ExecutionContext<S> context);
@@ -56,16 +25,6 @@ public interface HelpTheme<S extends CommandSource, C> {
 
     @NotNull UsageFormatter<S, C> getUsageFormatter();
 
-    /**
-     * Available presentation styles for help display.
-     */
-    enum PresentationStyle {
-        /** Tree structure view that shows command nesting and hierarchy. */
-        TREE,
-
-        /** Simple flat list where commands are displayed one after another. */
-        FLAT
-    }
 
     interface Option<T> {
 

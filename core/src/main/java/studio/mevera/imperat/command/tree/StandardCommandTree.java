@@ -881,15 +881,15 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return;
         }
 
-        // Apply filters to current node
-        if (!passesFilters(node, query.getFilters())) {
-            return;
-        }
-
-        // Add current node ONLY if it has executableUsage (truly executable)
+        // Add current node ONLY if it has executableUsage (truly executable) and passes filters
         if (node.isExecutable()) {
-            if (!node.isRoot() || /*Root Node :D*/ query.getRootUsagePredicate().test(node.getExecutableUsage())) {
-                results.add(helpEntryFactory.createEntry(node));
+            CommandPathway<S> pathway = node.getExecutableUsage();
+            assert pathway != null;
+
+            if (!node.isRoot() || query.getRootUsagePredicate().test(pathway)) {
+                if (passesFilters(pathway, query.getFilters())) {
+                    results.add(helpEntryFactory.createEntry(pathway));
+                }
             }
         }
 
@@ -900,12 +900,12 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     }
 
     /**
-     * Applies all filters to a node
-     * Short-circuits on first failed filter for efficiency
+     * Applies all filters to a pathway.
+     * Short-circuits on first failed filter for efficiency.
      */
-    private boolean passesFilters(CommandNode<S, ?> node, Queue<HelpFilter<S>> filters) {
+    private boolean passesFilters(CommandPathway<S> pathway, Queue<HelpFilter<S>> filters) {
         for (HelpFilter<S> filter : filters) {
-            if (!filter.filter(node)) {
+            if (!filter.filter(pathway)) {
                 return false;
             }
         }

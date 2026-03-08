@@ -1,12 +1,12 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.tree.CommandNode;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandSource;
 
 /**
- * Factory interface for creating {@link HelpEntry} instances from parameter nodes.
- * Allows customization of how help entries are constructed from the command tree.
+ * Factory interface for creating {@link HelpEntry} instances from command pathways.
+ * Allows customization of how help entries are constructed.
  *
  * @param <S> the source type
  * @author Mqzen
@@ -18,11 +18,10 @@ public interface HelpEntryFactory<S extends CommandSource> {
     }
 
     /**
-     * Creates a help entry from the given parameter node.
+     * Creates a help entry from the given command pathway.
      *
-     * @param node the parameter node to convert into a help entry
-     * @return a new help entry representing the node
-     * @throws IllegalArgumentException if the node cannot be converted to a help entry
+     * @param pathway the command pathway to convert into a help entry
+     * @return a new help entry representing the pathway
      */
-    HelpEntry<S> createEntry(@NotNull CommandNode<S, ?> node);
+    HelpEntry<S> createEntry(@NotNull CommandPathway<S> pathway);
 }

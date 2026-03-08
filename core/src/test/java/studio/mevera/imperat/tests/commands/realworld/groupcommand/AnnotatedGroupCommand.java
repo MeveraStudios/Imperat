@@ -9,6 +9,7 @@ import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.annotations.types.Shortcut;
 import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
+import studio.mevera.imperat.command.tree.help.HelpQuery;
 import studio.mevera.imperat.tests.TestCommandSource;
 
 @RootCommand("group")
@@ -18,15 +19,16 @@ public final class AnnotatedGroupCommand {
     public void defaultUsage(TestCommandSource source, @Context CommandHelp<TestCommandSource> commandHelp) {
         //default execution = no args
         // /group help
-        /*commandHelp.display(
+        commandHelp.display(
                 HelpQuery.<TestCommandSource>builder()
-                        .filter(HelpFilters.hasPermission(source, commandHelp.getContext()))
+                        .filter((pathway) -> {
+                            //last node
+                            return !pathway.getLastArgument().isCommand();
+                        })
+                        //.filter(HelpFilters.hasPermission(source, commandHelp.getContext()))
                         .build(),
-                
-                HelpRenderOptions.of(
-                
-                )
-        );*/
+                new ExampleHelpTheme()
+        );
     }
 
     @Execute
