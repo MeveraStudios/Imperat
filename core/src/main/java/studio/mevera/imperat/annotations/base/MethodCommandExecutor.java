@@ -72,7 +72,7 @@ public class MethodCommandExecutor<S extends CommandSource> implements CommandEx
             return;
         }
 
-        if (TypeUtility.matches(returnResolver.getType(), method.getReturnType())) {
+        if (!TypeUtility.matches(returnResolver.getType(), method.getReturnType())) {
             throw new IllegalStateException(
                     "The return resolver '%s' for method '%s' is not compatible with the method's return type".formatted(
                             returnResolver.getClass().getTypeName(),
