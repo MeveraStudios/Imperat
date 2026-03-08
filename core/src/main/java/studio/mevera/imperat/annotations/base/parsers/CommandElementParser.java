@@ -71,6 +71,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         return commands;
     }
 
+    @SuppressWarnings("unchecked")
     protected <E extends Throwable> Command<S> parseSpecificClass(@Nullable Command<S> parent, ClassElement clazz) {
         //core
         //two possibilities, either this class is a root command, or it's not. If it is, we parse it as a root command,
