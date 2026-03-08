@@ -424,13 +424,19 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
     }
 
     private CommandPathway.Builder<S> processedPathway(MethodElement method, CommandPathway.Builder<S> builder) {
-        if (method.isAnnotationPresent(Permission.class)) {
-            Permission ann = method.getAnnotation(Permission.class);
-            assert ann != null;
+        Permission[] permissionsAnnotations = method.getAnnotationsByType(Permission.class);
+
+        PermissionsData data = null;
+        for (Permission ann : permissionsAnnotations) {
             String permLine = config.replacePlaceholders(ann.value());
-            PermissionsData data = PermissionsData.fromText(permLine);
+            if (data == null) {
+                data = PermissionsData.fromText(permLine);
+            } else {
+                data.append(PermissionsData.fromText(permLine));
+            }
             builder.permission(data);
         }
+
 
         if (method.isAnnotationPresent(Description.class)) {
             Description ann = method.getAnnotation(Description.class);
