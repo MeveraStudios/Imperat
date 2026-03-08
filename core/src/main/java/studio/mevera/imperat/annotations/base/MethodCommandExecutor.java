@@ -10,6 +10,7 @@ import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.asm.DefaultMethodCallerFactory;
 import studio.mevera.imperat.util.asm.MethodCaller;
 
@@ -69,6 +70,14 @@ public class MethodCommandExecutor<S extends CommandSource> implements CommandEx
         ReturnResolver<S, Object> returnResolver = context.imperatConfig().getReturnResolver(method);
         if (returnResolver == null) {
             return;
+        }
+
+        if (TypeUtility.matches(returnResolver.getType(), method.getReturnType())) {
+            throw new IllegalStateException(
+                    "The return resolver '%s' for method '%s' is not compatible with the method's return type".formatted(
+                            returnResolver.getClass().getTypeName(),
+                            method.getElement().getName()
+                    ));
         }
 
         returnResolver.handle(context, method, returned);
