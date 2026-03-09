@@ -108,7 +108,7 @@ public final class CommandLineImperat extends BaseImperat<ConsoleCommandSource> 
      *
      * @param consoleLogger the console logger to write to
      */
-    public void dispatch(ConsoleLogger consoleLogger) {
+    public void execute(ConsoleLogger consoleLogger) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
             String line = reader.readLine();
             ConsoleCommandSource prompt = wrapSender(consoleLogger);
@@ -122,18 +122,18 @@ public final class CommandLineImperat extends BaseImperat<ConsoleCommandSource> 
      * Dispatches the command-line from the input stream provided
      *
      * @param outputStream the output stream/command-source origin
-     * @deprecated Use {@link #dispatch(ConsoleLogger)} instead
+     * @deprecated Use {@link #execute(ConsoleLogger)} instead
      */
     @Deprecated
-    public void dispatch(OutputStream outputStream) {
-        dispatch(ConsoleLogger.SYSTEM);
+    public void execute(OutputStream outputStream) {
+        execute(ConsoleLogger.SYSTEM);
     }
 
     /**
      * Dispatches the command-line from the input stream provided
      * while using {@link ConsoleLogger#SYSTEM} for output.
      */
-    public void dispatch() {
-        dispatch(ConsoleLogger.SYSTEM);
+    public void execute() {
+        execute(ConsoleLogger.SYSTEM);
     }
 }
