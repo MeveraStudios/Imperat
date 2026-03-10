@@ -97,7 +97,7 @@ public sealed interface ResolverRegistrar<S extends CommandSource> permits Imper
      *
      * @param defaultSuggestionProvider the {@link SuggestionProvider} to be set as default
      */
-    void setDefaultSuggestionResolver(SuggestionProvider<S> defaultSuggestionProvider);
+    void setDefaultSuggestionProvider(SuggestionProvider<S> defaultSuggestionProvider);
 
     /**
      * Fetches the suggestion provider/resolver for a specific valueType of

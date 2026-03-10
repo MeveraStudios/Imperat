@@ -320,7 +320,7 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
      * @param defaultSuggestionProvider the {@link SuggestionProvider} to be set as default
      */
     @Override
-    public void setDefaultSuggestionResolver(@NotNull SuggestionProvider<S> defaultSuggestionProvider) {
+    public void setDefaultSuggestionProvider(@NotNull SuggestionProvider<S> defaultSuggestionProvider) {
         this.defaultSuggestionProvider = defaultSuggestionProvider;
     }
 
@@ -551,7 +551,7 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     }
 
     @Override
-    public void setGlobalDefaultUsage(CommandPathway.@NotNull Builder<S> globalDefaultUsage) {
+    public void setGlobalDefaultPathway(CommandPathway.@NotNull Builder<S> globalDefaultUsage) {
         this.globalDefaultUsage = globalDefaultUsage;
     }
 

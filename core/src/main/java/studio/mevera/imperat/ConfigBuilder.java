@@ -59,7 +59,7 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
     /**
      * Sets the command prefix for the command processing chain.
      *
-     * @param cmdPrefix the prefix string to be used before commands
+     * @param cmdPrefix the prefix string to be used before <strong>root</strong> commands
      * @return the updated instance of the ConfigBuilder to allow for method chaining
      */
     public B commandPrefix(String cmdPrefix) {
@@ -330,8 +330,8 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
      *                           used as the default resolver for suggestions
      * @return the current {@link ConfigBuilder} instance for method chaining
      */
-    public B defaultSuggestionResolver(@NotNull SuggestionProvider<S> suggestionProvider) {
-        config.setDefaultSuggestionResolver(suggestionProvider);
+    public B defaultSuggestionProvider(@NotNull SuggestionProvider<S> suggestionProvider) {
+        config.setDefaultSuggestionProvider(suggestionProvider);
         return (B) this;
     }
 
@@ -384,8 +384,8 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
      *
      * @since 1.0.0
      */
-    public B globalDefaultUsageBuilder(CommandPathway.Builder<S> usage) {
-        config.setGlobalDefaultUsage(usage);
+    public B globalDefaultPathwayBuilder(CommandPathway.Builder<S> usage) {
+        config.setGlobalDefaultPathway(usage);
         return (B) this;
     }
 

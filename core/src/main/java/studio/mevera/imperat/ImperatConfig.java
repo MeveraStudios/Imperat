@@ -316,7 +316,7 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      * the default-usage for a {@link Command}
      * @param globalDefaultUsage the global default usage BUILDER.
      */
-    void setGlobalDefaultUsage(@NotNull CommandPathway.Builder<S> globalDefaultUsage);
+    void setGlobalDefaultPathway(@NotNull CommandPathway.Builder<S> globalDefaultUsage);
 
 
     /**
