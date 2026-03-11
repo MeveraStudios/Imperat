@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class CommandPermissionCondition {
+public class CommandPermissionCondition {
 
     private final static String AND_SYMBOL = "&";
     private final static String OR_SYMBOL = "|";
