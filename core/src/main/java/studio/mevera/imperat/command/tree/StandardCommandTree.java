@@ -270,7 +270,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             @NotNull List<Argument<S>> prefix
     ) {
         var builder = CommandPathway.<S>builder(original.getMethodElement())
-                              .parameters(mergedArgs)
+                              .arguments(mergedArgs)
                               .execute(original.getExecution())
                               .permission(original.getPermissionsData())
                               .description(original.getDescription())

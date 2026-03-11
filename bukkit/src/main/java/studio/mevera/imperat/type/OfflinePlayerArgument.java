@@ -49,11 +49,11 @@ public class OfflinePlayerArgument extends ArgumentType<BukkitCommandSource, Off
 
         /**
          * @param context   the context for suggestions
-         * @param parameter the parameter of the value to complete
+         * @param argument the parameter of the value to complete
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> parameter) {
+        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument) {
             return Arrays.stream(Bukkit.getOfflinePlayers())
                            .map(OfflinePlayer::getName)
                            .toList();

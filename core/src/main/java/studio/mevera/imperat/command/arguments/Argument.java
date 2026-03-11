@@ -91,8 +91,8 @@ public interface Argument<S extends CommandSource> extends PermissionHolder, Des
         return new ArgumentBuilder<>(name, ArgumentTypes.string(), false, true);
     }
 
-    static <S extends CommandSource, T> ArgumentBuilder<S, T> optional(String name, ArgumentType<S, T> token) {
-        return new ArgumentBuilder<>(name, token, true);
+    static <S extends CommandSource, T> ArgumentBuilder<S, T> optional(String name, ArgumentType<S, T> type) {
+        return new ArgumentBuilder<>(name, type, true);
     }
 
 

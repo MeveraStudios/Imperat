@@ -87,11 +87,11 @@ public class PlayerArgument extends ArgumentType<BukkitCommandSource, Player> {
 
         /**
          * @param context   the context for suggestions
-         * @param parameter the parameter of the value to complete
+         * @param argument the parameter of the value to complete
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> parameter) {
+        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument) {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         }
     }

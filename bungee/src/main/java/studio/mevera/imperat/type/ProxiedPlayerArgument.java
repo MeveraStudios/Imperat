@@ -69,11 +69,11 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeCommandSourc
 
         /**
          * @param context   the context for suggestions
-         * @param parameter the parameter of the value to complete
+         * @param argument the parameter of the value to complete
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<BungeeCommandSource> context, Argument<BungeeCommandSource> parameter) {
+        public List<String> provide(SuggestionContext<BungeeCommandSource> context, Argument<BungeeCommandSource> argument) {
             return ProxyServer.getInstance().getPlayers().stream()
                            .map(ProxiedPlayer::getName)
                            .toList();

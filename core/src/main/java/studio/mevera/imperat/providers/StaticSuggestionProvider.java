@@ -18,7 +18,7 @@ final class StaticSuggestionProvider<S extends CommandSource> implements Suggest
     @Override
     public List<String> provide(
             SuggestionContext<S> context,
-            Argument<S> parameter
+            Argument<S> argument
     ) {
         return suggestions;
     }

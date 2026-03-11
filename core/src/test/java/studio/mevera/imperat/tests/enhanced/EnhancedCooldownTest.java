@@ -47,7 +47,7 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
                                           .defaultExecution((source, context) -> source.reply("executed " + cmdName))
                                           .pathway(
                                                   CommandPathway.<TestCommandSource>builder()
-                                                          .parameters(Argument.requiredText("target"))
+                                                          .arguments(Argument.requiredText("target"))
                                                           .cooldown(cooldownValue, cooldownUnit, cooldownPermission)
                                                           .execute((source, context) -> {
                                                               String target = context.getArgument("target");
@@ -92,7 +92,7 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
         Command<TestCommandSource> sub = Command.<TestCommandSource>create(imperat, "action")
                                           .pathway(
                                                   CommandPathway.<TestCommandSource>builder()
-                                                          .parameters(Argument.requiredText("value"))
+                                                          .arguments(Argument.requiredText("value"))
                                                           .cooldown(10, TimeUnit.SECONDS)
                                                           .execute((source, context) -> {
                                                               source.reply("action value=" + context.getArgument("value"));
@@ -239,7 +239,7 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
                                               .defaultExecution((source, context) -> source.reply("cd7 default"))
                                               .pathway(
                                                       CommandPathway.<TestCommandSource>builder()
-                                                              .parameters(Argument.requiredText("target"))
+                                                              .arguments(Argument.requiredText("target"))
                                                               .cooldown(10, TimeUnit.SECONDS, bypassPerm)
                                                               .execute((source, context) -> source.reply(
                                                                       "cd7 target=" + context.getArgument("target")))
@@ -271,7 +271,7 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
                                               .defaultExecution((source, context) -> source.reply("cd8 default"))
                                               .pathway(
                                                       CommandPathway.<TestCommandSource>builder()
-                                                              .parameters(Argument.requiredText("target"))
+                                                              .arguments(Argument.requiredText("target"))
                                                               .cooldown(10, TimeUnit.SECONDS, bypassPerm)
                                                               .execute((source, context) -> source.reply(
                                                                       "cd8 target=" + context.getArgument("target")))
@@ -345,7 +345,7 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
                                               .defaultExecution((source, context) -> source.reply("nocd executed"))
                                               .pathway(
                                                       CommandPathway.<TestCommandSource>builder()
-                                                              .parameters(Argument.requiredText("name"))
+                                                              .arguments(Argument.requiredText("name"))
                                                               .execute((source, context) -> source.reply("nocd name=" + context.getArgument("name")))
                                               )
                                               .build();
@@ -404,7 +404,7 @@ class EnhancedCooldownTest extends EnhancedBaseImperatTest {
                                               )
                                               .pathway(
                                                       CommandPathway.<TestCommandSource>builder()
-                                                              .parameters(Argument.requiredText("target"))
+                                                              .arguments(Argument.requiredText("target"))
                                                               .cooldown(10, TimeUnit.SECONDS)
                                                               .execute((source, context) -> source.reply(
                                                                       "multi target=" + context.getArgument("target")))

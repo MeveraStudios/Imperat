@@ -411,7 +411,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         return processedPathway(
                 method,
                 CommandPathway.<S>builder(method)
-                        .parameters(personalParams)
+                        .arguments(personalParams)
                         .examples(
                                 (method.isAnnotationPresent(Execute.class) ?
                                          config.replacePlaceholders(Objects.requireNonNull(method.getAnnotation(Execute.class)).examples()) :
@@ -527,7 +527,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         }
 
         CommandPathway<S> fabricated = CommandPathway.<S>builder()
-                                               .parameters(parseMethodParameters)
+                                               .arguments(parseMethodParameters)
                                                .execute(originalPathway.getExecution())
                                                .permission(originalPathway.getPermission())
                                                .description(originalPathway.getDescription())

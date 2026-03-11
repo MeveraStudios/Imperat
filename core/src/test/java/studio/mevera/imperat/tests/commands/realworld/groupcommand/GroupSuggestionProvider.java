@@ -13,7 +13,7 @@ public class GroupSuggestionProvider implements SuggestionProvider<TestCommandSo
     @Override
     public List<String> provide(
             SuggestionContext<TestCommandSource> context,
-            Argument<TestCommandSource> parameter
+            Argument<TestCommandSource> argument
     ) {
         return GroupRegistry.getInstance().getAll()
                        .stream().map(Group::name)

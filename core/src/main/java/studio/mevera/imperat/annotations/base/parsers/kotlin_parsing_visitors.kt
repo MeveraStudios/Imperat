@@ -182,7 +182,7 @@ internal abstract class AbstractKotlinCommandClassParser<S : CommandSource>(
         )
 
         return CommandPathway.builder<S>(method)
-            .parameters(basePathway.parameters)
+            .arguments(basePathway.parameters)
             .execute(wrappedExecutor)
             .permission(basePathway.permission)
             .description(basePathway.description)
@@ -213,7 +213,7 @@ internal abstract class AbstractKotlinCommandClassParser<S : CommandSource>(
         )
 
         return CommandPathway.builder<S>(method)
-            .parameters(basePathway.parameters)
+            .arguments(basePathway.parameters)
             .execute(wrappedExecutor)
             .permission(basePathway.permission)
             .description(basePathway.description)

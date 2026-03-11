@@ -80,11 +80,11 @@ public final class PlayerArgument extends ArgumentType<VelocityCommandSource, Pl
 
         /**
          * @param context   the context for suggestions
-         * @param parameter the parameter of the value to complete
+         * @param argument the parameter of the value to complete
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<VelocityCommandSource> context, Argument<VelocityCommandSource> parameter) {
+        public List<String> provide(SuggestionContext<VelocityCommandSource> context, Argument<VelocityCommandSource> argument) {
             return proxyServer.getAllPlayers().stream().map(Player::getUsername).toList();
         }
     }

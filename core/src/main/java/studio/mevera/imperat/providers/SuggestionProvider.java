@@ -39,10 +39,10 @@ public interface SuggestionProvider<S extends CommandSource> {
 
     /**
      * @param context   the context for suggestions
-     * @param parameter the parameter of the value to complete
+     * @param argument the argument of the value to complete
      * @return the auto-completed suggestions of the current argument
      */
-    List<String> provide(SuggestionContext<S> context, Argument<S> parameter);
+    List<String> provide(SuggestionContext<S> context, Argument<S> argument);
 
     default CompletableFuture<List<String>> provideAsynchronously(SuggestionContext<S> context, Argument<S> parameter) {
         return CompletableFuture.supplyAsync(() -> provide(context, parameter));

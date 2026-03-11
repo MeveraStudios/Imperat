@@ -7,6 +7,7 @@ import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.ArgumentBuilder;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.arguments.FlagBuilder;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.CooldownRecord;
 import studio.mevera.imperat.command.flags.FlagExtractor;
@@ -370,24 +371,24 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
         }
 
         @SafeVarargs
-        public final Builder<S> parameters(ArgumentBuilder<S, ?>... builders) {
-            return parameters(
+        public final Builder<S> arguments(ArgumentBuilder<S, ?>... builders) {
+            return arguments(
                     Arrays.stream(builders).map(ArgumentBuilder::build).toList()
             );
         }
 
-        public final Builder<S> parameterBuilders(List<? extends ArgumentBuilder<S, ?>> builders) {
-            return parameters(
+        public final Builder<S> argBuilders(List<? extends ArgumentBuilder<S, ?>> builders) {
+            return arguments(
                     builders.stream().map(ArgumentBuilder::build).toList()
             );
         }
 
         @SafeVarargs
-        public final Builder<S> parameters(Argument<S>... params) {
-            return parameters(List.of(params));
+        public final Builder<S> arguments(Argument<S>... params) {
+            return arguments(List.of(params));
         }
 
-        public Builder<S> parameters(List<Argument<S>> params) {
+        public Builder<S> arguments(List<Argument<S>> params) {
             for (int i = 0; i < params.size(); i++) {
                 Argument<S> parameter = params.get(i);
                 if (!parameter.isCommand() && !parameter.isFlag()) {
@@ -400,8 +401,20 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
         }
 
 
-        public Builder<S> registerFlags(Set<FlagArgument<S>> flagArguments) {
+        public Builder<S> withFlags(Set<FlagArgument<S>> flagArguments) {
             this.flagArguments.addAll(flagArguments);
+            return this;
+        }
+
+        @SafeVarargs
+        public final Builder<S> withFlags(FlagArgument<S>... flagArguments) {
+            this.flagArguments.addAll(List.of(flagArguments));
+            return this;
+        }
+
+        @SafeVarargs
+        public final Builder<S> withFlags(FlagBuilder<S, ?>... flagBuilders) {
+            this.flagArguments.addAll(Arrays.stream(flagBuilders).map(FlagBuilder::build).toList());
             return this;
         }
 

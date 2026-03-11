@@ -145,13 +145,13 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSour
 
         /**
          * @param context   the context for suggestions
-         * @param parameter the parameter of the value to complete
+         * @param argument the parameter of the value to complete
          * @return the auto-completed suggestions of the current argument
          */
         @Override
         public List<String> provide(
                 SuggestionContext<BukkitCommandSource> context,
-                Argument<BukkitCommandSource> parameter
+                Argument<BukkitCommandSource> argument
         ) {
             List<String> completions = new ArrayList<>(suggestions);
             Bukkit.getOnlinePlayers().stream().

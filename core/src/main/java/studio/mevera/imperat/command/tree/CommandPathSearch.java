@@ -128,13 +128,13 @@ final class CommandPathSearch<S extends CommandSource> {
             }
 
             return CommandPathway.<S>builder(executableUsage.getMethodElement())
-                           .parameters(args)
+                           .arguments(args)
                            .execute(executableUsage.getExecution())
                            .cooldown(executableUsage.getCooldown())
                            .description(executableUsage.getDescription())
                            .permission(executableUsage.getPermissionsData())
                            .examples(executableUsage.getExamples())
-                           .registerFlags(executableUsage.getFlagExtractor().getRegisteredFlags())
+                           .withFlags(executableUsage.getFlagExtractor().getRegisteredFlags())
                            .coordinator(executableUsage.getCoordinator())
                            .build(root.data);
 

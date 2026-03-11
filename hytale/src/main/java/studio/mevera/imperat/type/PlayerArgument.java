@@ -84,11 +84,11 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
 
         /**
          * @param context   the context for suggestions
-         * @param parameter the parameter of the value to complete
+         * @param argument the parameter of the value to complete
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<HytaleCommandSource> context, Argument<HytaleCommandSource> parameter) {
+        public List<String> provide(SuggestionContext<HytaleCommandSource> context, Argument<HytaleCommandSource> argument) {
             return Universe.get().getPlayers().stream().map(PlayerRef::getUsername).toList();
         }
     }
