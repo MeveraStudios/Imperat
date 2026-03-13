@@ -21,13 +21,13 @@ public final class TreeExecutionResult<S extends CommandSource> {
     private final @NotNull Status status;
     private final @Nullable ExecutionContext<S> executionContext;
     private final @Nullable CommandPathway<S> matchedPathway;
-    private final @Nullable CommandPathway<S> closestUsage;
+    private final @NotNull CommandPathway<S> closestUsage;
     private final @NotNull Command<S> lastCommand;
 
     private TreeExecutionResult(
             @NotNull Status status,
             @Nullable ExecutionContext<S> executionContext,
-            @Nullable CommandPathway<S> closestUsage,
+            @NotNull CommandPathway<S> closestUsage,
             @Nullable CommandPathway<S> matchedPathway,
             @NotNull Command<S> lastCommand
     ) {
@@ -54,20 +54,20 @@ public final class TreeExecutionResult<S extends CommandSource> {
      * Creates a result indicating permission was denied.
      */
     public static <S extends CommandSource> TreeExecutionResult<S> permissionDenied(
-            @Nullable CommandPathway<S> closestUsage,
+            @NotNull CommandPathway<S> closestUsage,
             @NotNull Command<S> lastCommand
     ) {
-        return new TreeExecutionResult<>(Status.PERMISSION_DENIED, null, null, closestUsage, lastCommand);
+        return new TreeExecutionResult<>(Status.PERMISSION_DENIED, null, closestUsage, closestUsage, lastCommand);
     }
 
     /**
      * Creates a result indicating no matching pathway was found.
      */
     public static <S extends CommandSource> TreeExecutionResult<S> noMatch(
-            @Nullable CommandPathway<S> closestUsage,
+            @NotNull CommandPathway<S> closestUsage,
             @NotNull Command<S> lastCommand
     ) {
-        return new TreeExecutionResult<>(Status.NO_MATCH, null, null, closestUsage, lastCommand);
+        return new TreeExecutionResult<>(Status.NO_MATCH, null, closestUsage, closestUsage, lastCommand);
     }
 
     public @NotNull Status getStatus() {
@@ -82,7 +82,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
         return matchedPathway;
     }
 
-    public @Nullable CommandPathway<S> getClosestUsage() {
+    public @NotNull CommandPathway<S> getClosestUsage() {
         return closestUsage;
     }
     public @NotNull Command<S> getLastCommand() {
