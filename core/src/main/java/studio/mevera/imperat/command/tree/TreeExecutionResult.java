@@ -94,10 +94,9 @@ public final class TreeExecutionResult<S extends CommandSource> {
     }
 
     public void resolveContext() throws CommandException {
-        if (executionContext == null) {
-            throw new NullPointerException("Execution context is null");
+        if (executionContext != null) {
+            executionContext.resolve(this);
         }
-        executionContext.resolve(this);
     }
 
     /**
