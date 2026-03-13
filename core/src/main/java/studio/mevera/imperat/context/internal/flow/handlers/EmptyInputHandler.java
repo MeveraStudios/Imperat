@@ -1,10 +1,10 @@
 package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
@@ -18,7 +18,7 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 public final class EmptyInputHandler<S extends CommandSource> implements ParameterHandler<S> {
 
     @Override
-    public @NotNull HandleResult handle(ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
+    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
         Argument<S> currentParameter = stream.currentParameterIfPresent();
         if (currentParameter == null) {
             return HandleResult.TERMINATE;
@@ -38,13 +38,12 @@ public final class EmptyInputHandler<S extends CommandSource> implements Paramet
             }
 
             //required parameter with no input - invalid syntax
-            var command = context.getLastUsedCommand();
-            var usage = command != null ? command.getDefaultPathway() : null;
+            var closestUsage = result.getClosestUsage();
             String invalidUsage = context.imperatConfig().commandPrefix() + context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
-            String closestUsage = usage != null
-                                          ? context.imperatConfig().commandPrefix() + CommandPathway.format(command, usage)
-                                          : null;
-            return HandleResult.failure(new InvalidSyntaxException(invalidUsage, closestUsage));
+            String closestUsageFormat =
+                    context.imperatConfig().commandPrefix() + context.getRootCommandLabelUsed() + (closestUsage != null ?
+                                                                                                           closestUsage.formatted() + " " : "");
+            return HandleResult.failure(new InvalidSyntaxException(invalidUsage, closestUsageFormat));
 
         } catch (CommandException e) {
             return HandleResult.failure(e);

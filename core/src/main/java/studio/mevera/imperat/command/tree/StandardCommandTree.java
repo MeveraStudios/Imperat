@@ -28,6 +28,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -430,7 +431,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             if (defaultPathway == null) {
                 return TreeExecutionResult.noMatch(rootCommand.getDefaultPathway(), rootCommand);
             }
-            return executePathway(context, defaultPathway, rootCommand);
+            return executePathway(context, root, defaultPathway, rootCommand);
         }
 
         // Step 3: Traverse tree children looking for a match
@@ -439,7 +440,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             // No children, but root has a default pathway — execute it
             CommandPathway<S> defaultPathway = root.getExecutableUsage();
             if (defaultPathway != null) {
-                return executePathway(context, defaultPathway, rootCommand);
+                return executePathway(context, root, defaultPathway, rootCommand);
             }
             return TreeExecutionResult.noMatch(rootCommand.getDefaultPathway(), rootCommand);
         }
@@ -532,7 +533,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 // If children didn't match but this node is executable, execute here
                 if (currentNode.isExecutable()) {
                     assert currentNode.getExecutableUsage() != null;
-                    return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
+                    return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
                 }
                 return noMatchFromNode(currentNode);
             }
@@ -540,7 +541,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             // UNLIMITED greedy — consumes all remaining input, short-circuit
             if (currentNode.isExecutable()) {
                 assert currentNode.getExecutableUsage() != null;
-                return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
+                return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
             }
             return noMatchFromNode(currentNode);
         }
@@ -581,7 +582,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             // No children — execute if no unconsumed non-flag input tokens left
             if (currentNode.isExecutable() && nextDepth >= effectiveInputSize) {
                 assert currentNode.getExecutableUsage() != null;
-                return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
+                return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
             }
             return noMatchFromNode(currentNode);
         }
@@ -617,7 +618,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             CommandPathway<S> pathway = currentNode.getExecutableUsage();
             assert pathway != null;
             if (effectiveInputSize <= pathway.getArguments().size()) {
-                return executePathway(context, pathway, getCommandFromNode(currentNode));
+                return executePathway(context, currentNode, pathway, getCommandFromNode(currentNode));
             }
         }
 
@@ -724,7 +725,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         if (node.isExecutable()) {
             assert node.getExecutableUsage() != null;
-            return executePathway(context, node.getExecutableUsage(), getCommandFromNode(node));
+            return executePathway(context, node, node.getExecutableUsage(), getCommandFromNode(node));
         }
 
 
@@ -749,7 +750,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         // Optional node didn't match — if it's executable, we can execute (skipping the optional arg)
         if (currentNode.isExecutable()) {
             assert currentNode.getExecutableUsage() != null;
-            return executePathway(context, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
+            return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
         }
 
         // Try children at the SAME depth (we're skipping this optional node)
@@ -777,6 +778,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      */
     private TreeExecutionResult<S> executePathway(
             CommandContext<S> context,
+            @NotNull CommandNode<S, ?> currentNode,
             @NotNull CommandPathway<S> pathway,
             @NotNull Command<S> lastCommand
     ) throws CommandException {
@@ -785,11 +787,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         // Create the execution context using the factory
         ExecutionContext<S> executionContext = imperatConfig.getContextFactory()
                                                        .createExecutionContext(context, pathway, lastCommand);
-
-        // Resolve all arguments using the ParameterValueAssigner chain
-        executionContext.resolve();
-
-        return TreeExecutionResult.success(executionContext, pathway, lastCommand);
+        CommandPathway<S> closestUsage = findClosestUsage(currentNode);
+        return TreeExecutionResult.success(executionContext, closestUsage, pathway, lastCommand);
     }
 
     /**
@@ -804,29 +803,27 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      * Finds the closest executable usage starting from a node,
      * searching upwards to parents and then down to children.
      */
-    private @Nullable CommandPathway<S> findClosestUsage(CommandNode<S, ?> node) {
-        // First check the node itself
-        if (node.isExecutable()) {
-            return node.getExecutableUsage();
-        }
+    private @Nullable CommandPathway<S> findClosestUsage(CommandNode<S, ?> lastNode) {
+        CommandPathway<S> closestUsage = null;
 
-        // Check parent chain
-        CommandNode<S, ?> parent = node.getParent();
-        while (parent != null) {
-            if (parent.isExecutable()) {
-                return parent.getExecutableUsage();
+        Queue<CommandNode<S, ?>> nodes = new LinkedList<>();
+        nodes.add(lastNode);
+
+        CommandNode<S, ?> curr;
+        while (!nodes.isEmpty()) {
+            curr = nodes.poll();
+            if (!curr.isLiteral() && curr.isExecutable()) {
+                closestUsage = curr.getExecutableUsage();
+                nodes.clear();
+                break;
             }
-            parent = parent.getParent();
-        }
 
-        // Check children (BFS)
-        for (var child : node.getChildren()) {
-            if (child.isExecutable()) {
-                return child.getExecutableUsage();
+            for (CommandNode<S, ?> child : curr.getChildren()) {
+                nodes.add(child);
             }
         }
 
-        return rootCommand.getDefaultPathway();
+        return closestUsage;
     }
 
     /**

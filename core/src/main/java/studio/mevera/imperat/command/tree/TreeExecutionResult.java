@@ -6,6 +6,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.exception.CommandException;
 
 /**
  * Represents the result of a direct tree execution.
@@ -26,14 +27,14 @@ public final class TreeExecutionResult<S extends CommandSource> {
     private TreeExecutionResult(
             @NotNull Status status,
             @Nullable ExecutionContext<S> executionContext,
-            @Nullable CommandPathway<S> matchedPathway,
             @Nullable CommandPathway<S> closestUsage,
+            @Nullable CommandPathway<S> matchedPathway,
             @NotNull Command<S> lastCommand
     ) {
         this.status = status;
         this.executionContext = executionContext;
-        this.matchedPathway = matchedPathway;
         this.closestUsage = closestUsage;
+        this.matchedPathway = matchedPathway;
         this.lastCommand = lastCommand;
     }
 
@@ -42,10 +43,11 @@ public final class TreeExecutionResult<S extends CommandSource> {
      */
     public static <S extends CommandSource> TreeExecutionResult<S> success(
             @NotNull ExecutionContext<S> executionContext,
+            @Nullable CommandPathway<S> closestUsage,
             @NotNull CommandPathway<S> matchedPathway,
             @NotNull Command<S> lastCommand
     ) {
-        return new TreeExecutionResult<>(Status.SUCCESS, executionContext, matchedPathway, matchedPathway, lastCommand);
+        return new TreeExecutionResult<>(Status.SUCCESS, executionContext, closestUsage, matchedPathway, lastCommand);
     }
 
     /**
@@ -83,13 +85,19 @@ public final class TreeExecutionResult<S extends CommandSource> {
     public @Nullable CommandPathway<S> getClosestUsage() {
         return closestUsage;
     }
-
     public @NotNull Command<S> getLastCommand() {
         return lastCommand;
     }
 
     public boolean isSuccess() {
         return status == Status.SUCCESS;
+    }
+
+    public void resolveContext() throws CommandException {
+        if (executionContext == null) {
+            throw new NullPointerException("Execution context is null");
+        }
+        executionContext.resolve(this);
     }
 
     /**

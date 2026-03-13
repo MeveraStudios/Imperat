@@ -3,6 +3,7 @@ package studio.mevera.imperat.context.internal.flow;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -28,14 +29,14 @@ public class ParameterChain<S extends CommandSource> {
         this.handlers = List.copyOf(handlers);
     }
 
-    public void execute(ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
+    public void execute(TreeExecutionResult<S> treeExecutionResult, ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
 
         pipeLine:
         while (stream.isCurrentParameterAvailable()) {
             for (ParameterHandler<S> handler : handlers) {
 
                 // ADD: Time each individual handler
-                HandleResult result = handler.handle(context, stream);
+                HandleResult result = handler.handle(treeExecutionResult, context, stream);
                 switch (result) {
                     case TERMINATE:
                         break pipeLine;

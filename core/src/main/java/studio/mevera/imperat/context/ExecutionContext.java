@@ -8,6 +8,7 @@ import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
@@ -47,6 +48,7 @@ import java.util.Optional;
 @Context
 public interface ExecutionContext<S extends CommandSource> extends CommandContext<S> {
 
+    @NotNull TreeExecutionResult<S> getTreeExecutionResult();
 
     /**
      * Retrieves a flag by its name if it was provided in the command input.
@@ -187,7 +189,7 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
      *
      * @throws CommandException if resolution fails
      */
-    void resolve() throws CommandException;
+    void resolve(TreeExecutionResult<S> result) throws CommandException;
 
     /**
      * Gets a resolved argument by its owning command and parameter name.

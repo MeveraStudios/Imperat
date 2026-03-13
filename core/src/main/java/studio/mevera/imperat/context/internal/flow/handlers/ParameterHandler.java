@@ -1,6 +1,7 @@
 package studio.mevera.imperat.context.internal.flow.handlers;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -14,6 +15,6 @@ public sealed interface ParameterHandler<S extends CommandSource>
                         SubCommandHandler {
 
 
-    @NotNull HandleResult handle(ExecutionContext<S> context, Cursor<S> stream) throws CommandException;
+    @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> stream) throws CommandException;
 
 }

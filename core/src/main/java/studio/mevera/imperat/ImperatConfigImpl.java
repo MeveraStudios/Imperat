@@ -76,13 +76,13 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
                                                                          invalidUsage.append(" ")
                                                                                  .append(String.join(" ", ctx.arguments()));
                                                                      }
-                                                                     var detectedUsage = ctx.getDetectedPathway();
+                                                                     var closestUsage = ctx.getTreeExecutionResult().getClosestUsage();
+                                                                     String closestUsageFormat =
+                                                                             ctx.imperatConfig().commandPrefix() + ctx.getRootCommandLabelUsed() +
+                                                                                     (closestUsage != null ? " " + closestUsage.formatted() : "");
                                                                      throw new InvalidSyntaxException(
                                                                              invalidUsage.toString(),
-                                                                             "/" + ctx.getRootCommandLabelUsed() + " "
-                                                                                     + (detectedUsage != null
-                                                                                                ? detectedUsage.formatted()
-                                                                                                : "")
+                                                                             closestUsageFormat
                                                                      );
                                                                  });
 
@@ -488,7 +488,7 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
         sourceProviderRegistry.setData(type, sourceProvider);
     }
 
-    @Override
+    @Override @SuppressWarnings("unchecked")
     public @Nullable <T> ReturnResolver<S, T> getReturnResolver(MethodElement method) {
         if (method.getSpecificReturnResolver() != null) {
             // If the method has a specific return resolver (via annotation), use it directly

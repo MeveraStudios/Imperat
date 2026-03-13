@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
+import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -37,6 +38,8 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
 
     //last command used
     private final Command<S> lastCommand;
+
+    private TreeExecutionResult<S> treeExecutionResult;
 
     ExecutionContextImpl(
             CommandContext<S> context,
@@ -145,6 +148,13 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
     }
 
 
+    @Override
+    public @NotNull TreeExecutionResult<S> getTreeExecutionResult() {
+        if (treeExecutionResult == null) {
+            throw new IllegalStateException("The ExecutionContext hasn't been resolved yet, please call ExecutionContext#resolve");
+        }
+        return treeExecutionResult;
+    }
 
     @Override
     public Optional<ParsedFlagArgument<S>> getFlag(String flagName) {
@@ -169,9 +179,10 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
 
 
     @Override
-    public void resolve() throws CommandException {
-        var resolver = ParameterValueAssigner.create(this, usage);
+    public void resolve(TreeExecutionResult<S> result) throws CommandException {
+        var resolver = ParameterValueAssigner.create(result, usage);
         resolver.resolve();
+        this.treeExecutionResult = result;
     }
 
 

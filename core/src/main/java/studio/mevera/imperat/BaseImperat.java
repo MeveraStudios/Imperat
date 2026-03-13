@@ -420,6 +420,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
 
         // Direct execution: traverse tree, resolve args, and execute in one step
         TreeExecutionResult<S> treeResult = command.execute(context);
+        treeResult.resolveContext();
         ImperatDebugger.debug("Tree execution status: '%s'", treeResult.getStatus().name());
 
         if (treeResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
