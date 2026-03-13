@@ -119,7 +119,7 @@ final class SlashCommandMapper {
         }
 
         if (command.getSubCommands().isEmpty()) {
-            for (CommandPathway<JdaCommandSource> usage : command.getAllPossiblePathways()) {
+            for (CommandPathway<JdaCommandSource> usage : command.getDedicatedPathways()) {
                 List<Argument<JdaCommandSource>> parameters = new ArrayList<>(inherited);
                 for (Argument<JdaCommandSource> parameter : usage.getArguments()) {
                     if (!parameter.isCommand()) {

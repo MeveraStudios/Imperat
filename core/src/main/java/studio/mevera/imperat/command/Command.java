@@ -261,12 +261,6 @@ public interface Command<S extends CommandSource> extends Argument<S>, BaseThrow
     }
 
     /**
-     * @return All {@link CommandPathway} that were registered
-     * to this command by the user
-     */
-    Collection<? extends CommandPathway<S>> getAllPossiblePathways();
-
-    /**
      * @return the pathways that are directly attached to this command
      * without being inherited from a parent command
      */

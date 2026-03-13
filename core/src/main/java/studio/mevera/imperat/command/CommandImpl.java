@@ -320,15 +320,6 @@ final class CommandImpl<S extends CommandSource> implements Command<S> {
     }
 
     /**
-     * @return all {@link CommandPathway} that were registered
-     * to this command by the user
-     */
-    @Override
-    public Collection<? extends CommandPathway<S>> getAllPossiblePathways() {
-        return Collections.emptyList();
-    }
-
-    /**
      * @return Returns {@link AutoCompleter}
      * that handles all auto-completes for this command
      */
