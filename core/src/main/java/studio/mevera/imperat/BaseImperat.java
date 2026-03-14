@@ -427,9 +427,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
             var closestUsage = treeResult.getClosestUsage();
             throw new PermissionDeniedException(
                     command.getName(),
-                    closestUsage != null
-                            ? CommandPathway.format(command, closestUsage)
-                            : CommandPathway.format(command, command.getDefaultPathway())
+                    CommandPathway.format(command, closestUsage)
             );
         }
 
@@ -439,9 +437,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
             String invalidUsage = context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
             throw new InvalidSyntaxException(
                     invalidUsage,
-                    closestUsage != null
-                            ? CommandPathway.format(command, closestUsage)
-                            : "No usage found"
+                    CommandPathway.format(command, closestUsage)
             );
         }
 
