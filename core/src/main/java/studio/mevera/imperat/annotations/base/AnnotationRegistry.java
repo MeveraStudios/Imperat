@@ -17,6 +17,7 @@ import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.InheritedArg;
 import studio.mevera.imperat.annotations.types.Named;
 import studio.mevera.imperat.annotations.types.Optional;
+import studio.mevera.imperat.annotations.types.PathwayCommand;
 import studio.mevera.imperat.annotations.types.Permission;
 import studio.mevera.imperat.annotations.types.Processor;
 import studio.mevera.imperat.annotations.types.Range;
@@ -50,7 +51,7 @@ final class AnnotationRegistry {
                 Suggest.class, SuggestionProvider.class, Default.class, DefaultProvider.class, Values.class,
                 Switch.class, Flag.class, Greedy.class, Named.class, Optional.class, Context.class, Range.class, Async.class,
                 Processor.class, ExceptionHandler.class,
-                Validators.class, ArgType.class, InheritedArg.class
+                Validators.class, ArgType.class, InheritedArg.class, PathwayCommand.class
         );
     }
 

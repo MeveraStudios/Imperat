@@ -19,6 +19,7 @@ import studio.mevera.imperat.annotations.types.Description;
 import studio.mevera.imperat.annotations.types.ExceptionHandler;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.InheritedArg;
+import studio.mevera.imperat.annotations.types.PathwayCommand;
 import studio.mevera.imperat.annotations.types.Permission;
 import studio.mevera.imperat.annotations.types.Processor;
 import studio.mevera.imperat.annotations.types.RootCommand;
@@ -49,25 +50,32 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CommandElementParser<S extends CommandSource> extends CommandClassParser<S, Set<Command<S>>> {
 
     private final ImperatConfig<S> config;
     private final ElementSelector<MethodElement> methodSelector;
     private final ParameterParser<S> parameterParser;
-
+    private final PathwaySyntaxParser<S> pathwaySyntaxParser;
     CommandElementParser(Imperat<S> imperat, AnnotationParser<S> parser, ElementSelector<MethodElement> methodSelector) {
         super(imperat, parser, methodSelector);
         this.config = imperat.config();
         this.methodSelector = methodSelector;
         this.parameterParser = new ParameterParser<>(config);
+        this.pathwaySyntaxParser = PathwaySyntaxParser.of(imperat, parameterParser);
     }
 
     @Override
     public Set<Command<S>> visitCommandClass(@NotNull ClassElement clazz) {
         Set<Command<S>> commands = new LinkedHashSet<>();
-        commands.add(parseSpecificClass(null, clazz));
-        commands.addAll(parseEmbeddedRoots(clazz));
+        var parsedSpecificCommand = parseSpecificClass(null, clazz);
+        if (parsedSpecificCommand != null) {
+            commands.add(parsedSpecificCommand);
+        }
+        commands.addAll(parseEmbeddedRoots(clazz)
+                                .stream().filter(Objects::nonNull)
+                                .collect(Collectors.toSet()));
         return commands;
     }
 
@@ -118,9 +126,11 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             return null;
         }
 
+        //rootless
         if (clazz.isAnnotationPresent(Secret.class)) {
             currentCommand.setSecret(true);
         }
+
 
         //we process methods first, THEN we process classes inside of this class
         var methods = clazz.getChildren()
@@ -138,7 +148,6 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
 
         for (MethodElement method : methods) {
             //either its @Execute, or its @Subcommand method or BOTH (which is weird but why not)
-
             if (method.isAnnotationPresent(ExceptionHandler.class)) {
                 //we load it as a throwable resolver instead of a processor, and we don't care about the parent command
                 ExceptionHandler ann = method.getAnnotation(ExceptionHandler.class);
@@ -230,6 +239,18 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                 String attachmentNodeFormat = ann.attachTo();
                 verifyAttachmentNodeExistsInParent(currentCommand, attachmentNodeFormat, sub.getName());
                 currentCommand.addSubCommand(sub, attachmentNodeFormat);
+            }
+
+
+            if (method.isAnnotationPresent(PathwayCommand.class)) {
+                PathwayCommand ann = method.getAnnotation(PathwayCommand.class);
+                assert ann != null;
+                var pathway = this.finalizedPathway(
+                        method,
+                        currentCommand,
+                        processedPathway(method, pathwaySyntaxParser.loadPathway(ann.value(), method, true))
+                );
+                currentCommand.addPathway(pathway);
             }
         }
 
@@ -346,9 +367,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                            .aliases(Arrays.asList(values).subList(1, values.length))
                            .supressPermissionsForAutoCompletion(ann.skipSuggestionsChecks())
                            .build();
-        }
-
-        if (method.isAnnotationPresent(SubCommand.class)) {
+        } else if (method.isAnnotationPresent(SubCommand.class)) {
             SubCommand ann = method.getAnnotation(SubCommand.class);
             assert ann != null;
             if (parent == null) {
@@ -362,6 +381,26 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             command = Command.create(imperat, parent, 0, values[0])
                               .aliases(Arrays.asList(values).subList(1, values.length))
                               .build();
+        } else if (method.isAnnotationPresent(PathwayCommand.class)) {
+            PathwayCommand ann = method.getAnnotation(PathwayCommand.class);
+            assert ann != null;
+
+            String syntax = ann.value();
+            String rootFormat = syntax.substring(0, syntax.indexOf(' '));
+
+            List<String> cmdNames = new ArrayList<>(Arrays.asList(rootFormat.split("//|")));
+
+            command = Command.create(imperat, cmdNames.get(0))
+                              .aliases(cmdNames.subList(1, cmdNames.size()))
+                              .supressPermissionsForAutoCompletion(ann.suppressPermissionCheckDuringAutoCompletion())
+                              .build();
+            if (method.isAnnotationPresent(Secret.class)) {
+                command.setSecret(true);
+            }
+            command.addPathway(
+                    pathwaySyntaxParser.loadPathway(syntax, method, true)
+            );
+            return command;
         }
 
         if (command == null) {
@@ -509,19 +548,19 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         return imperat.canBeSender(type) || config.hasSourceResolver(type);
     }
 
-    private studio.mevera.imperat.command.Command<S> loadPathwayShortcut(
+    private Command<S> loadPathwayShortcut(
             @NotNull MethodElement method,
             @NotNull List<Argument<S>> parseMethodParameters,
-            @NotNull studio.mevera.imperat.command.Command<S> originalCommand,
+            @NotNull Command<S> originalCommand,
             @NotNull CommandPathway.Builder<S> originalPathway,
             @NotNull Shortcut shortcutAnn
     ) {
 
         String shortcutValue = config.replacePlaceholders(shortcutAnn.value());
 
-        studio.mevera.imperat.command.Command<S> shortcut = originalCommand.getShortcut(shortcutValue);
+        Command<S> shortcut = originalCommand.getShortcut(shortcutValue);
         if (shortcut == null) {
-            shortcut = studio.mevera.imperat.command.Command.create(imperat, shortcutValue, method)
+            shortcut = Command.create(imperat, shortcutValue, method)
                                .setMetaPropertiesFromOtherCommand(originalCommand)
                                .build();
         }

@@ -136,15 +136,21 @@ public interface Argument<S extends CommandSource> extends PermissionHolder, Des
         return FlagBuilder.ofSwitch(name);
     }
 
-    static <S extends CommandSource> Argument<S> literal(String part) {
-        Preconditions.notNull(part, "part");
-        Preconditions.checkArgument(!part.isEmpty(), "Literal part cannot be empty");
-        Preconditions.checkArgument(part.chars().allMatch(c -> Character.isLetterOrDigit(c) || c == '_'),
-                "Literal part must be alphanumeric or underscore only");
+    static <S extends CommandSource> Argument<S> literal(String... names) {
+        String primaryName = names[0];
+        Preconditions.notNull(primaryName, "part");
+        Preconditions.checkArgument(!primaryName.isEmpty(), "Literal  cannot be empty");
+        Preconditions.checkArgument(primaryName.chars().allMatch(c -> Character.isLetterOrDigit(c) || c == '_'),
+                "Literal  must be alphanumeric or underscore only");
 
-        return of(
-                part,
-                ArgumentTypes.command(part, new ArrayList<>()),
+        List<String> aliases = new ArrayList<>(names.length - 1);
+        for (int i = 1; i < names.length; i++) {
+            String alias = names[i];
+            aliases.add(alias);
+        }
+
+        return of(primaryName,
+                ArgumentTypes.command(primaryName, aliases),
                 PermissionsData.empty(),
                 Description.EMPTY,
                 false,
