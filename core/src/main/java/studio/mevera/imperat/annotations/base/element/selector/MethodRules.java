@@ -41,6 +41,7 @@ public interface MethodRules {
                                                    })
                                                    .build();
 
+
     Rule<MethodElement> HAS_A_MAIN_ANNOTATION = Rule.buildForMethod()
                                                         .condition((imperat, registry, element) -> {
                                                             long count = Arrays.stream(element.getDeclaredAnnotations())

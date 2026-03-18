@@ -37,17 +37,14 @@ public final class BooleanArgument<S extends CommandSource> extends ArgumentType
             throws
             CommandException {
 
-        var raw = cursor.currentRaw().orElse(null);
-        assert raw != null;
-
-        if (raw.equalsIgnoreCase("true") || raw.equalsIgnoreCase("false")) {
-            return Boolean.parseBoolean(raw);
+        if (correspondingInput.equalsIgnoreCase("true") || correspondingInput.equalsIgnoreCase("false")) {
+            return Boolean.parseBoolean(correspondingInput);
         }
 
         if (allowVariants) {
-            return VARIANTS.get(raw.toLowerCase());
+            return VARIANTS.get(correspondingInput.toLowerCase());
         } else {
-            throw new ArgumentParseException(ResponseKey.INVALID_BOOLEAN, raw);
+            throw new ArgumentParseException(ResponseKey.INVALID_BOOLEAN, correspondingInput);
         }
     }
 

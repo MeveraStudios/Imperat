@@ -26,6 +26,8 @@ public final class PathwaySyntaxParser<S extends CommandSource> {
 
     private final static Pattern OPTIONAL_PATTERN = Pattern.compile("\\[([a-zA-Z0-9_]+)]");
 
+    public final static String LITERAL_SPLIT = "\\|";
+
     private final Imperat<S> imperat;
     private final ParameterParser<S> parameterParser;
 
@@ -82,9 +84,6 @@ public final class PathwaySyntaxParser<S extends CommandSource> {
         int i = skipFirst ? 1 : 0;
         for (; i < parts.length; i++) {
             String part = parts[i];
-            if (skipFirst && i == 0) {
-                continue;
-            }
             arguments.add(loadArgument(methodElement, part));
         }
 
@@ -109,7 +108,7 @@ public final class PathwaySyntaxParser<S extends CommandSource> {
     }
 
     private Argument<S> loadLiteralArg(String argName) {
-        String[] names = argName.split("\\|");
+        String[] names = argName.split(LITERAL_SPLIT);
         return Argument.literal(names);
     }
 }

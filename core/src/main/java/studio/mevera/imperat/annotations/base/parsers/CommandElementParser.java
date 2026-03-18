@@ -137,7 +137,10 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                               .stream()
                               .filter((e) -> e instanceof MethodElement)
                               .map((e) -> (MethodElement) e)
-                              .filter((m) -> methodSelector.canBeSelected(imperat, imperat.getAnnotationParser(), m, false))
+                              .filter((m) -> {
+                                  System.out.println("Checking method " + m.getName());
+                                  return methodSelector.canBeSelected(imperat, imperat.getAnnotationParser(), m, false);
+                              })
                               .sorted((m1, m2) -> {
                                   // Order: @Processor first, then @Execute, then @SubCommand, then the rest
                                   int rank1 = methodSortRank(m1);
@@ -251,6 +254,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                         processedPathway(method, pathwaySyntaxParser.loadPathway(ann.value(), method, true))
                 );
                 currentCommand.addPathway(pathway);
+
             }
         }
 
@@ -388,12 +392,13 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             String syntax = ann.value();
             String rootFormat = syntax.substring(0, syntax.indexOf(' '));
 
-            List<String> cmdNames = new ArrayList<>(Arrays.asList(rootFormat.split("//|")));
+            List<String> cmdNames = new ArrayList<>(Arrays.asList(rootFormat.split(PathwaySyntaxParser.LITERAL_SPLIT)));
 
             command = Command.create(imperat, cmdNames.get(0))
                               .aliases(cmdNames.subList(1, cmdNames.size()))
                               .supressPermissionsForAutoCompletion(ann.suppressPermissionCheckDuringAutoCompletion())
                               .build();
+
             if (method.isAnnotationPresent(Secret.class)) {
                 command.setSecret(true);
             }
@@ -535,9 +540,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                 }
                 commands.addAll(parseEmbeddedRoots(classChild));
             } else if (child instanceof MethodElement methodChild) {
-                if (methodChild.getElement().isAnnotationPresent(RootCommand.class)) {
-                    commands.add(parseCommandMethod(null, methodChild));
-                }
+                commands.add(parseCommandMethod(null, methodChild));
             }
         }
         return commands;
