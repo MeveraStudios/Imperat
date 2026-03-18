@@ -103,6 +103,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                                      .supressPermissionsForAutoCompletion(ann.skipSuggestionsChecks())
                                      .build();
 
+
         } else if (clazz.isAnnotationPresent(SubCommand.class)) {
             SubCommand ann = clazz.getAnnotation(SubCommand.class);
             assert ann != null;
@@ -138,7 +139,6 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                               .filter((e) -> e instanceof MethodElement)
                               .map((e) -> (MethodElement) e)
                               .filter((m) -> {
-                                  System.out.println("Checking method " + m.getName());
                                   return methodSelector.canBeSelected(imperat, imperat.getAnnotationParser(), m, false);
                               })
                               .sorted((m1, m2) -> {
@@ -406,13 +406,16 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                     pathwaySyntaxParser.loadPathway(syntax, method, true)
             );
             return command;
+        } else {
+            return null;
         }
 
-        if (command == null) {
+        /*if (command == null) {
             throw new IllegalStateException("Pathway-method '" + method.getName()
-                                                    + "' is neither annotated with @RootCommand nor @SubCommand. Pathway methods must be annotated "
+                                                    + "' is neither annotated with @RootCommand nor @SubCommand nor @PathwayCommand. Pathway "
+                                                    + "methods must be annotated "
                                                     + "with either of these annotations.");
-        }
+        }*/
 
         if (method.isAnnotationPresent(Secret.class)) {
             command.setSecret(true);
@@ -540,7 +543,12 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                 }
                 commands.addAll(parseEmbeddedRoots(classChild));
             } else if (child instanceof MethodElement methodChild) {
-                commands.add(parseCommandMethod(null, methodChild));
+
+                if (methodChild.isAnnotationPresent(RootCommand.class) || methodChild.isAnnotationPresent(PathwayCommand.class)) {
+                    var parsedCmdFromMethod = parseCommandMethod(null, methodChild);
+                    commands.add(parsedCmdFromMethod);
+                }
+
             }
         }
         return commands;
