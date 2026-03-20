@@ -13,7 +13,7 @@ public final class Version {
             Reflections.findClass("com.destroystokyo.paper.event.server.AsyncTabCompleteEvent");
     public static final int MAJOR, MINOR, PATCH;
     // initialize after IS_PAPER is initialized
-    public static final String NMS = findVersion();
+    //public static final String NMS = findVersion();
 
     static {
         final String[] versions = VERSION_EXACT.split("\\.");
@@ -60,25 +60,4 @@ public final class Version {
         return is(major, minor, patch) || isBelow(major, minor, patch);
     }
 
-    private static String findVersion() {
-        if (IS_PAPER && MINOR >= 20) {
-            return switch (VERSION_EXACT) {
-                case "1.20", "1.20.1" -> "1_20_R1";
-                case "1.20.2", "1.20.3" -> "1_20_R2";
-                case "1.20.4" -> "1_20_R3";
-                case "1.20.5", "1.20.6" -> "1_20_R4";
-                case "1.21", "1.21.1" -> "1_21_R1";
-                case "1.21.2", "1.21.3" -> "1_21_R2";
-                case "1.21.4" -> "1_21_R3";
-                case "1.21.5" -> "1_21_R4";
-                case "1.21.6", "1.21.7", "1.21.8" -> "1_21_R5";
-                case "1.21.9", "1.21.10", "1.21.11" -> "1_21_R6";
-                default -> {
-                    String pkg = Bukkit.getServer().getClass().getPackage().getName();
-                    yield pkg.length() > 24 ? pkg.substring(24) : "UNKNOWN";
-                }
-            };
-        }
-        return Bukkit.getServer().getClass().getPackage().getName().substring(24);
-    }
 }

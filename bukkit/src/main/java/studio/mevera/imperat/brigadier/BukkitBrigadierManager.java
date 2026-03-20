@@ -30,7 +30,10 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitCom
 
             for (MinecraftArgumentType type : MinecraftArgumentType.values()) {
                 if (type.isSupported() && !type.requiresParameters()) {
-                    registerAsArgumentType(type.getParsedType(), type);
+                    var parsedType = type.getParsedType();
+                    if (parsedType != null) {
+                        registerAsArgumentType(type.getParsedType(), type);
+                    }
                 }
             }
             //we manually register the entity selector types as they require parameters
