@@ -86,13 +86,26 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
     }
 
     private boolean matchesInput(ArgumentType<S, ?> type, int depth, CommandContext<S> ctx) {
-        // Use parse(execCtx, input) for type discrimination
-        String input = ctx.arguments().getOr(depth, null);
-        if (input == null) {
-            return false;
+
+        var args = ctx.arguments();
+        StringBuilder input = new StringBuilder();
+
+        final int limit = type.getNumberOfParametersToConsume(data);
+        if (limit < 1) {
+            throw new IllegalArgumentException("Number of args to consume for type " + type.getClass().getSimpleName() + " must be at least 1");
         }
+
+        for (int i = depth, consumed = 0; i < args.size() && consumed <= limit; i++, consumed++) {
+            input.append(args.get(i));
+            if (i != args.size() - 1 && consumed + 1 != limit) {
+                input.append(' ');
+            }
+            consumed++;
+        }
+        System.out.println("Checking type '" + type.getClass().getSimpleName() + "' against input '" + input + "' with limit " + limit);
+
         try {
-            type.parse(ctx, input);
+            type.parse(ctx, input.toString());
             return true;
         } catch (Exception e) {
             return false;
@@ -102,7 +115,6 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
     public boolean matchesInput(int depth, CommandContext<S> ctx, boolean strict) {
         var primaryType = data.type();
         boolean primaryMatches = matchesInput(primaryType, depth, ctx);
-
         if (strict || isLiteral()) {
             return primaryMatches;
         }

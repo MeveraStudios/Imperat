@@ -437,7 +437,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
             String invalidUsage = context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
             throw new InvalidSyntaxException(
                     invalidUsage,
-                    CommandPathway.format(command, closestUsage)
+                    CommandPathway.format(command, closestUsage == null ? command.getDefaultPathway() : closestUsage)
             );
         }
 

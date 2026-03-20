@@ -506,13 +506,15 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         // Check permission BEFORE processing
         if (!hasPermission(context.source(), currentNode)) {
             return TreeExecutionResult.permissionDenied(
-                    currentNode.isExecutable() ? currentNode.getExecutableUsage() : null,
+                    Objects.requireNonNull(currentNode.isExecutable() ? currentNode.getExecutableUsage() : root.getData().getDefaultPathway()),
                     getCommandFromNode(currentNode)
             );
         }
 
         // Greedy parameter handling
+        System.out.println("Current noe= '" + currentNode.format() + "'");
         if (currentNode.isGreedyParam()) {
+            System.out.println("Found greedy '" + currentNode.format() + "'");
             int greedyLimit = currentNode.getData().greedyLimit();
 
             // LIMITED greedy with children — reserve tokens for trailing args,
@@ -542,15 +544,17 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
             // UNLIMITED greedy — consumes all remaining input, short-circuit
             if (currentNode.isExecutable()) {
+                System.out.println("Found greedy '" + currentNode.format() + "'");
                 assert currentNode.getExecutableUsage() != null;
                 return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
             }
+            System.out.println("Non executable greedy node '" + currentNode.format() + "'");
             return noMatchFromNode(currentNode);
         }
 
         // Check if current input matches this node
         boolean nodeMatches = currentNode.matchesInput(depth, context, currentNode.isOptional());
-
+        System.out.println("Node matches = " + nodeMatches);
         if (!nodeMatches) {
             // If optional, try to skip this node and check children
             return handleOptionalSkip(context, input, currentNode, depth);
@@ -714,6 +718,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             int depth
     ) throws CommandException {
         if (!node.matchesInput(depth, context)) {
+            System.out.println("Terminal node '" + node.format() + "' doesnt match input");
             return noMatchFromNode(node);
         }
 

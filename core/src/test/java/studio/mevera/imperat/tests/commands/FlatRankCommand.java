@@ -8,12 +8,22 @@ public class FlatRankCommand {
 
     @PathwayCommand("rank <rank> permission set <perm> [value]")
     public void setPermission(TestCommandSource source, String rank, String perm, @Default("true") boolean value) {
-        System.out.println("Set permission " + perm + " to " + value + " for rank " + rank);
+        // set a permission for your rank
     }
 
     @PathwayCommand("rank <rank> permission unset <perm>")
     public void unsetPermission(TestCommandSource source, String rank, String perm) {
-        System.out.println("Unset permission " + perm + " for rank " + rank);
+        // unset a permission from your rank
+    }
+
+    @PathwayCommand("rank <rank> permission list")
+    public void listRankPermissions(TestCommandSource source, String rank) {
+        // list your rank permissions
+    }
+
+    @PathwayCommand("rank <rank> permission clear")
+    public void clearPermissions(TestCommandSource source, String rank) {
+        // clear all permissions of a rank.
     }
 
 }
