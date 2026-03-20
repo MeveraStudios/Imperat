@@ -281,7 +281,7 @@ public interface Command<S extends CommandSource> extends Argument<S>, BaseThrow
 
     /**
      * @param name      the name of the wanted sub-command
-     * @param recursive
+     * @param recursive whether to search for the subcommand deeply not just in the direct subcommands of this command
      * @return the sub-command of specific name
      */
     @Nullable
