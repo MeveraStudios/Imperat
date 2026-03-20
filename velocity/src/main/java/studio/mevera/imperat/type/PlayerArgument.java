@@ -7,9 +7,7 @@ import studio.mevera.imperat.VelocityCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -29,35 +27,17 @@ public final class PlayerArgument extends ArgumentType<VelocityCommandSource, Pl
     }
 
     @Override
-    public @NotNull Player parse(
-            @NotNull ExecutionContext<VelocityCommandSource> context,
-            @NotNull Cursor<VelocityCommandSource> cursor,
-            @NotNull String correspondingInput
-    ) throws CommandException {
-
-        if (correspondingInput.equalsIgnoreCase("me")) {
+    public @NotNull Player parse(@NotNull CommandContext<VelocityCommandSource> context, @NotNull String input) throws CommandException {
+        if (input.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
                 throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER)
-                              .withPlaceholder("player", correspondingInput);
+                              .withPlaceholder("player", input);
             }
             return context.source().asPlayer();
         }
-        return proxyServer.getPlayer(
-                correspondingInput.toLowerCase()
-        ).orElseThrow(() ->
-                                                        ResponseException.of(VelocityResponseKey.UNKNOWN_PLAYER)
-                                      .withPlaceholder("player", correspondingInput)
-        );
-    }
-
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<VelocityCommandSource> context, Argument<VelocityCommandSource> parameter) {
-        String input = context.arguments().get(rawPosition);
-        if (input == null) {
-            return false;
-        }
-
-        return input.length() < 16;
+        return proxyServer.getPlayer(input.toLowerCase())
+                       .orElseThrow(() -> ResponseException.of(VelocityResponseKey.UNKNOWN_PLAYER)
+                                                  .withPlaceholder("player", input));
     }
 
     /**

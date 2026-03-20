@@ -4,7 +4,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.JdaCommandSource;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -22,25 +21,26 @@ public final class UserArgument extends ArgumentType<JdaCommandSource, User> {
     }
 
     @Override
-    public @NotNull User parse(@NotNull ExecutionContext<JdaCommandSource> context, @NotNull Cursor<JdaCommandSource> cursor,
-            @NotNull String correspondingInput) throws
-            CommandException {
-        String userId = correspondingInput.replaceAll("\\D", "");
-        String lookupId = userId.isEmpty() ? correspondingInput : userId;
+    public @NotNull User parse(@NotNull CommandContext<JdaCommandSource> context, @NotNull String input) throws CommandException {
+        String userId = input.replaceAll("\\D", "");
+        String lookupId = userId.isEmpty() ? input : userId;
         if (!lookupId.matches("\\d{17,20}")) {
-            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, input);
         }
-
         User user = jda.getUserById(lookupId);
         if (user == null) {
-            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, input);
         }
         return user;
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<JdaCommandSource> context, Argument<JdaCommandSource> parameter) {
-        String arg = context.arguments().get(rawPosition);
-        return arg != null;
+    public @NotNull User parse(@NotNull ExecutionContext<JdaCommandSource> context, @NotNull Cursor<JdaCommandSource> cursor)
+            throws CommandException {
+        String input = cursor.currentRawIfPresent();
+        if (input == null) {
+            throw new IllegalArgumentException("No input available at cursor position");
+        }
+        return parse(context, input);
     }
 }

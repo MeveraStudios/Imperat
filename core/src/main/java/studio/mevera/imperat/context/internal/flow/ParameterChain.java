@@ -55,7 +55,7 @@ public class ParameterChain<S extends CommandSource> {
         for (int rPos = 0; rPos < stream.rawsLength(); rPos++) {
             String raw = context.getRawArgument(rPos);
             if (!Patterns.isInputFlag(raw)) {
-                var sub = lastCmd.getSubCommand(raw);
+                var sub = lastCmd.getSubCommand(raw, false);
                 if (sub != null) {
                     lastCmd = sub;
                 }
@@ -90,8 +90,7 @@ public class ParameterChain<S extends CommandSource> {
                                 inputRaw,
                                 rPos,
                                 flagParam.isSwitch() ? rPos : rPos + 1,
-                                flagParam.isSwitch() ? true : Objects.requireNonNull(flagParam.flagData().inputType()).parse(context,
-                                        Cursor.ofSingleString(flagParam, inputRaw), inputRaw)
+                                flagParam.isSwitch() ? true : Objects.requireNonNull(flagParam.flagData().inputType()).parse(context, inputRaw)
                         )
                 );
             }
@@ -147,7 +146,6 @@ public class ParameterChain<S extends CommandSource> {
             Object flagValueResolved = flagArgument.getDefaultValueSupplier().isEmpty() ? null :
                                                Objects.requireNonNull(flagArgument.flagData().inputType()).parse(
                                                        context,
-                                                       Cursor.ofSingleString(flagArgument, defValue),
                                                        defValue
                                                );
             context.resolveFlag(ParsedFlagArgument.forDefaultFlag(flagArgument, defValue, flagValueResolved));

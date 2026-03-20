@@ -73,7 +73,7 @@ final class AmbiguityChecker {
             }
 
             types.add(node.getData().valueType());
-            priorities.add(node.getData().type().priority());
+            priorities.add(node.getData().type().getPriority());
         }
 
         return new AmbiguityResult<>(

@@ -1,9 +1,9 @@
 package studio.mevera.imperat.tests.compound_example;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
@@ -13,15 +13,20 @@ public class Point2DArgumentType extends ArgumentType<TestCommandSource, Point2D
 
 
     @Override
-    public @Nullable Point2D parse(
+    public Point2D parse(@NotNull CommandContext<TestCommandSource> context, @NotNull String input) throws CommandException {
+        // Not used in this test, but required by contract
+        throw new UnsupportedOperationException("Use cursor-based parse for Point2DArgumentType");
+    }
+
+    @Override
+    public Point2D parse(
             @NotNull ExecutionContext<TestCommandSource> context,
-            @NotNull Cursor<TestCommandSource> cursor,
-            @NotNull String correspondingInput
+            @NotNull Cursor<TestCommandSource> cursor
     ) throws CommandException {
         //example input: '/teleport 10 20'
         // the format for this arg is '<x> <y>'
         // correspondingInput is the expected raw to be the '10' in the example raw;
-        String xInput = correspondingInput;
+        String xInput = cursor.readInput();
         String yInput = cursor.nextInput();
 
         if (yInput == null) {

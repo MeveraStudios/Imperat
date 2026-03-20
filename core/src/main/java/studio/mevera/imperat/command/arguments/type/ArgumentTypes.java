@@ -1,13 +1,13 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Either;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -40,8 +40,8 @@ public final class ArgumentTypes {
     }
 
 
-    public static @NotNull <S extends CommandSource> CommandArgument<S> command(String name, List<String> aliases) {
-        return new CommandArgument<>(name, aliases);
+    public static @NotNull <S extends CommandSource> CommandArgument<S> command(Command<S> command) {
+        return new CommandArgument<>(command);
     }
 
     public static <S extends CommandSource> UUIDArgument<S> uuid() {

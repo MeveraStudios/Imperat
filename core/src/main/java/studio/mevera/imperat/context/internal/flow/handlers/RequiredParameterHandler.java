@@ -41,7 +41,7 @@ public final class RequiredParameterHandler<S extends CommandSource> implements 
 
 
         try {
-            var value = currentParameter.type().parse(context, stream, stream.readInput());
+            var value = currentParameter.type().parse(context, stream);
 
             context.parseArgument(stream, value);
             stream.skip();

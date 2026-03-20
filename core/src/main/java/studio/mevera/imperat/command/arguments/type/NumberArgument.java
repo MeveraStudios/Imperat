@@ -1,20 +1,17 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
-import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.priority.Priority;
 
 public abstract class NumberArgument<S extends CommandSource, N extends Number> extends ArgumentType<S, N> {
-
     protected NumberArgument() {
         super();
     }
@@ -43,202 +40,223 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
     }
 
     @Override
-    public @Nullable N parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
-            CommandException {
-        try {
-            return parse(correspondingInput);
-        } catch (NumberFormatException ex) {
-            throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, correspondingInput)
-                          .withPlaceholder("number_type", display());
+    public N parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws ResponseException {
+        String input = cursor.currentRawIfPresent();
+        if (input == null) {
+            throw new IllegalArgumentException("No input available at cursor position");
         }
+        return parse(context, input);
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
-        String input = context.arguments().get(rawPosition);
-        if (input == null) {
-            return false;
-        }
+    public abstract N parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException;
 
-        try {
-            parse(input);
-            return true;
-        } catch (NumberFormatException ex) {
-            return false;
-        }
-    }
 
     public abstract String display();
 
-    public abstract N parse(String input) throws NumberFormatException;
 
     static class IntArgument<S extends CommandSource> extends NumberArgument<S, Integer> {
 
         protected IntArgument() {
             super();
         }
-
         @Override
         public String display() {
             return "integer";
         }
-
         @Override
-        public Integer parse(String input) throws NumberFormatException {
-            return Integer.parseInt(input);
+        public Integer parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
+            try {
+                return Integer.parseInt(input);
+            } catch (NumberFormatException ex) {
+                throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input)
+                              .withPlaceholder("number_type", display());
+            }
         }
-
         @Override
-        public Priority priority() {
+        public @NotNull Priority getPriority() {
             return Priority.NORMAL;
         }
     }
+
 
     static class FloatArgument<S extends CommandSource> extends NumberArgument<S, Float> {
 
         protected FloatArgument() {
             super();
         }
-
         @Override
         public String display() {
             return "float";
         }
-
         @Override
-        public Float parse(String input) throws NumberFormatException {
-            return Float.parseFloat(input);
+        public Float parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
+            try {
+                return Float.parseFloat(input);
+            } catch (NumberFormatException ex) {
+                throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input)
+                              .withPlaceholder("number_type", display());
+            }
         }
 
-        public Priority priority() {
+        @Override
+        public @NotNull Priority getPriority() {
             return Priority.HIGH;
         }
     }
+
 
     static class LongArgument<S extends CommandSource> extends NumberArgument<S, Long> {
 
         protected LongArgument() {
             super();
         }
-
         @Override
         public String display() {
             return "long";
         }
-
         @Override
-        public Long parse(String input) throws NumberFormatException {
-            return Long.parseLong(input);
+        public Long parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
+            try {
+                return Long.parseLong(input);
+            } catch (NumberFormatException ex) {
+                throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input)
+                              .withPlaceholder("number_type", display());
+            }
         }
 
-        public Priority priority() {
+        @Override
+        public @NotNull Priority getPriority() {
             return Priority.NORMAL.plus(1);
         }
     }
+
 
     static class DoubleArgument<S extends CommandSource> extends NumberArgument<S, Double> {
 
         protected DoubleArgument() {
             super();
         }
-
         @Override
         public String display() {
             return "double";
         }
-
         @Override
-        public Double parse(String input) throws NumberFormatException {
-            return Double.parseDouble(input);
+        public Double parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
+            try {
+                return Double.parseDouble(input);
+            } catch (NumberFormatException ex) {
+                throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input)
+                              .withPlaceholder("number_type", display());
+            }
         }
 
-        public Priority priority() {
+        @Override
+        public @NotNull Priority getPriority() {
             return Priority.HIGH.plus(1);
         }
     }
 
-    //create for Byte, Short, BigInteger, BigDecimal
-    //do it for me
     static class ByteArgument<S extends CommandSource> extends NumberArgument<S, Byte> {
 
         protected ByteArgument() {
             super();
         }
-
         @Override
         public String display() {
             return "byte";
         }
-
         @Override
-        public Byte parse(String input) throws NumberFormatException {
-            return Byte.parseByte(input);
+        public Byte parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
+            try {
+                return Byte.parseByte(input);
+            } catch (NumberFormatException ex) {
+                throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input)
+                              .withPlaceholder("number_type", display());
+            }
         }
 
-        public Priority priority() {
+        @Override
+        public @NotNull Priority getPriority() {
             return Priority.NORMAL;
         }
     }
+
 
     static class ShortArgument<S extends CommandSource> extends NumberArgument<S, Short> {
 
         protected ShortArgument() {
             super();
         }
-
         @Override
         public String display() {
             return "short";
         }
-
         @Override
-        public Short parse(String input) throws NumberFormatException {
-            return Short.parseShort(input);
+        public Short parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
+            try {
+                return Short.parseShort(input);
+            } catch (NumberFormatException ex) {
+                throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input)
+                              .withPlaceholder("number_type", display());
+            }
         }
 
-        public Priority priority() {
+        @Override
+        public @NotNull Priority getPriority() {
             return Priority.NORMAL;
         }
     }
+
 
     static class BigIntegerArgument<S extends CommandSource> extends NumberArgument<S, java.math.BigInteger> {
 
         protected BigIntegerArgument() {
             super();
         }
-
         @Override
         public String display() {
             return "big integer";
         }
-
         @Override
-        public java.math.BigInteger parse(String input) throws NumberFormatException {
-            return new java.math.BigInteger(input);
+        public java.math.BigInteger parse(@NotNull CommandContext<S> context, @NotNull String input)
+                throws ArgumentParseException, ResponseException {
+            try {
+                return new java.math.BigInteger(input);
+            } catch (NumberFormatException ex) {
+                throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input)
+                              .withPlaceholder("number_type", display());
+            }
         }
 
-        public Priority priority() {
+        @Override
+        public @NotNull Priority getPriority() {
             return Priority.NORMAL;
         }
     }
+
 
     static class BigDecimalArgument<S extends CommandSource> extends NumberArgument<S, java.math.BigDecimal> {
 
         protected BigDecimalArgument() {
             super();
         }
-
         @Override
         public String display() {
             return "big decimal";
         }
-
         @Override
-        public java.math.BigDecimal parse(String input) throws NumberFormatException {
-            return new java.math.BigDecimal(input);
+        public java.math.BigDecimal parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
+            try {
+                return new java.math.BigDecimal(input);
+            } catch (NumberFormatException ex) {
+                throw new ArgumentParseException(ResponseKey.INVALID_NUMBER_FORMAT, input)
+                              .withPlaceholder("number_type", display());
+            }
         }
 
-        public Priority priority() {
+        @Override
+        public @NotNull Priority getPriority() {
             return Priority.HIGH.plus(1);
         }
     }

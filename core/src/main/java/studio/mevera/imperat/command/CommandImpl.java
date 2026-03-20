@@ -401,13 +401,14 @@ final class CommandImpl<S extends CommandSource> implements Command<S> {
     }
 
     /**
-     * @param name the name of the wanted sub-command
+     * @param name      the name of the wanted sub-command
+     * @param recursive
      * @return the sub-command of a specific name directly from
      * this instance of a command, meaning that
      * it won't go deeply in search for sub-command
      */
     @Override
-    public @Nullable Command<S> getSubCommand(String name) {
+    public @Nullable Command<S> getSubCommand(String name, boolean recursive) {
         Command<S> sub = children.get(name);
         if (sub != null) {
             return sub;
@@ -417,10 +418,18 @@ final class CommandImpl<S extends CommandSource> implements Command<S> {
             Command<S> other = children.get(subsNames);
             if (other.hasName(name)) {
                 return other;
-            } else if (subsNames.startsWith(name)) {
-                return other;
             }
         }
+
+        if (recursive) {
+            for (Command<S> child : children.values()) {
+                Command<S> found = child.getSubCommand(name, true);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+
         return null;
     }
 

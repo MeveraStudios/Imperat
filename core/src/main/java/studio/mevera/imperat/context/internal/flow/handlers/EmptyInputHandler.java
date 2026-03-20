@@ -66,7 +66,7 @@ public final class EmptyInputHandler<S extends CommandSource> implements Paramet
                 String defaultStrValue = flagArgument.getDefaultValueSupplier()
                                                  .provide(context, flagArgument);
                 if (defaultStrValue != null) {
-                    java.lang.Object flagInputValue = flagInputType.parse(context, Cursor.subStream(stream, defaultStrValue), defaultStrValue);
+                    java.lang.Object flagInputValue = flagInputType.parse(context, defaultStrValue);
                     parsedFlagArgument = ParsedFlagArgument.forDefaultFlag(flagArgument, defaultStrValue, flagInputValue);
                 }else {
                     parsedFlagArgument = ParsedFlagArgument.forDefaultFlag(flagArgument, "null", null);
@@ -95,7 +95,7 @@ public final class EmptyInputHandler<S extends CommandSource> implements Paramet
         String value = optionalSupplier.provide(context, parameter);
 
         if (value != null) {
-            return (T) parameter.type().parse(context, stream, value);
+            return (T) parameter.type().parse(context, value);
         }
 
         return null;

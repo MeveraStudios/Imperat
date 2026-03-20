@@ -8,6 +8,7 @@ import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -23,24 +24,8 @@ public final class OptionalArgument<S extends CommandSource, T> extends Argument
     }
 
     @Override
-    public @NotNull Optional<T> parse(
-            @NotNull ExecutionContext<S> context,
-            @NotNull Cursor<S> cursor,
-            @NotNull String correspondingInput
-    ) throws CommandException {
-        return Optional.ofNullable(
-                typeResolver.parse(context, cursor, correspondingInput)
-        );
-    }
-
-    @Override
     public SuggestionProvider<S> getSuggestionProvider() {
         return typeResolver.getSuggestionProvider();
-    }
-
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
-        return typeResolver.matchesInput(rawPosition, context, parameter);
     }
 
     @Override
@@ -51,5 +36,17 @@ public final class OptionalArgument<S extends CommandSource, T> extends Argument
     @Override
     public boolean isGreedy(Argument<S> parameter) {
         return typeResolver.isGreedy(parameter);
+    }
+
+    @Override
+    public Optional<T> parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException, ResponseException {
+        T value = typeResolver.parse(context, input);
+        return Optional.ofNullable(value);
+    }
+
+    @Override
+    public Optional<T> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws CommandException, ResponseException {
+        T value = typeResolver.parse(context, cursor);
+        return Optional.ofNullable(value);
     }
 }

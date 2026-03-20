@@ -3,13 +3,11 @@ package studio.mevera.imperat.type;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
-import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -28,16 +26,11 @@ public class OfflinePlayerArgument extends ArgumentType<BukkitCommandSource, Off
     }
 
     @Override
-    public @Nullable OfflinePlayer parse(
-            @NotNull ExecutionContext<BukkitCommandSource> context,
-            @NotNull Cursor<BukkitCommandSource> cursor,
-            @NotNull String correspondingInput) throws CommandException {
-
-        if (correspondingInput.length() > 16) {
-            throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER, correspondingInput);
+    public OfflinePlayer parse(@NotNull CommandContext<BukkitCommandSource> context, @NotNull String input) throws CommandException {
+        if (input.length() > 16) {
+            throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER, input);
         }
-
-        return Bukkit.getOfflinePlayer(correspondingInput);
+        return Bukkit.getOfflinePlayer(input);
     }
 
     @Override

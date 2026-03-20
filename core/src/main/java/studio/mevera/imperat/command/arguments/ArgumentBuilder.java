@@ -2,10 +2,8 @@ package studio.mevera.imperat.command.arguments;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
-import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
 import studio.mevera.imperat.command.arguments.validator.ArgValidator;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.permissions.PermissionsData;
@@ -39,9 +37,6 @@ public sealed class ArgumentBuilder<S extends CommandSource, T> permits FlagBuil
         this(name, type, optional, false);
     }
 
-    public static <S extends CommandSource> ArgumentBuilder<S, Command<S>> literalBuilder(String name) {
-        return new ArgumentBuilder<>(name, ArgumentTypes.command(name, new ArrayList<>()), false, false);
-    }
 
     public ArgumentBuilder<S, T> permission(@Nullable PermissionsData permission) {
         this.permission = permission;

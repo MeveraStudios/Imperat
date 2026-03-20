@@ -3,6 +3,7 @@ package studio.mevera.imperat.annotations.base.parsers;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
+import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandSource;
@@ -79,6 +80,7 @@ public final class PathwaySyntaxParser<S extends CommandSource> {
 
     public CommandPathway.Builder<S> loadPathway(String pathwaySyntax, MethodElement methodElement, boolean skipFirst) {
         String[] parts = pathwaySyntax.split(" ");
+
         CommandPathway.Builder<S> pathwayBuilder = CommandPathway.builder(methodElement);
         List<Argument<S>> arguments = new ArrayList<>(parts.length);
         int i = skipFirst ? 1 : 0;
@@ -107,9 +109,9 @@ public final class PathwaySyntaxParser<S extends CommandSource> {
         return parameterParser.parseParameter(correspondingParameter);
     }
 
-    private Argument<S> loadLiteralArg(String argName) {
+    private Command<S> loadLiteralArg(String argName) {
         String[] names = argName.split(LITERAL_SPLIT);
-        return Argument.literal(names);
+        return Argument.literal(imperat, names);
     }
 }
 

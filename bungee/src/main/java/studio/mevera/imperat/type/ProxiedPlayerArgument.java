@@ -7,9 +7,7 @@ import studio.mevera.imperat.BungeeCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -27,9 +25,9 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeCommandSourc
 
     @Override
     public @NotNull ProxiedPlayer parse(
-            @NotNull ExecutionContext<BungeeCommandSource> context,
-            @NotNull Cursor<BungeeCommandSource> cursor,
-            @NotNull String correspondingInput) throws CommandException {
+            @NotNull CommandContext<BungeeCommandSource> context,
+            @NotNull String correspondingInput
+    ) throws CommandException {
 
         if (correspondingInput.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
@@ -43,16 +41,6 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeCommandSourc
             throw new ArgumentParseException(BungeeResponseKey.UNKNOWN_PLAYER, correspondingInput);
         }
         return proxiedPlayer;
-    }
-
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<BungeeCommandSource> context, Argument<BungeeCommandSource> parameter) {
-        String input = context.arguments().get(rawPosition);
-        if (input == null) {
-            return false;
-        }
-
-        return ProxyServer.getInstance().getPlayer(input) != null;
     }
 
     /**

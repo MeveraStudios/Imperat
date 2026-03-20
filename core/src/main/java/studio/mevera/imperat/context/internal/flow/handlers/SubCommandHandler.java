@@ -25,8 +25,6 @@ public final class SubCommandHandler<S extends CommandSource> implements Paramet
         try {
             Command<S> parameterSubCmd = (Command<S>) currentParameter;
             if (parameterSubCmd.hasName(currentRaw)) {
-
-                //context.setLastCommand(parameterSubCmd);
                 stream.skip();
                 return HandleResult.NEXT_ITERATION;
             } else {

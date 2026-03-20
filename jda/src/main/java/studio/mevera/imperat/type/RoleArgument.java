@@ -3,7 +3,6 @@ package studio.mevera.imperat.type;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.JdaCommandSource;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -16,30 +15,27 @@ import studio.mevera.imperat.responses.JdaResponseKey;
 public final class RoleArgument extends ArgumentType<JdaCommandSource, Role> {
 
     @Override
-    public @NotNull Role parse(@NotNull ExecutionContext<JdaCommandSource> context, @NotNull Cursor<JdaCommandSource> cursor,
-            @NotNull String correspondingInput) throws
-            CommandException {
+    public @NotNull Role parse(@NotNull CommandContext<JdaCommandSource> context, @NotNull String input) throws CommandException {
         var guild = context.source().origin().getGuild();
         if (guild == null) {
             throw new NoDMSException();
         }
-
-        String userId = correspondingInput.replaceAll("\\D", "");
-        String lookupId = userId.isEmpty() ? correspondingInput : userId;
+        String userId = input.replaceAll("\\D", "");
+        String lookupId = userId.isEmpty() ? input : userId;
         if (!lookupId.matches("\\d{17,20}")) {
-            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_ROLE, correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_ROLE, input);
         }
-
         final Role role = guild.getRoleById(lookupId);
         if (role == null) {
-            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_ROLE, correspondingInput);
+            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_ROLE, input);
         }
         return role;
     }
 
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<JdaCommandSource> context, Argument<JdaCommandSource> parameter) {
-        String arg = context.arguments().get(rawPosition);
-        return arg != null;
+    // Legacy compatibility, not supported
+    public @NotNull Role parse(@NotNull ExecutionContext<JdaCommandSource> context, @NotNull Cursor<JdaCommandSource> cursor,
+            @NotNull String correspondingInput) throws CommandException {
+        throw new UnsupportedOperationException(
+                "RoleArgument.parse(ExecutionContext, Cursor, String) is not supported. Use CommandContext-based parse instead.");
     }
 }

@@ -179,7 +179,7 @@ public interface Command<S extends CommandSource> extends Argument<S>, BaseThrow
      */
     @Override
     default @NotNull ArgumentType<S, ?> type() {
-        return ArgumentTypes.command(getName(), aliases());
+        return ArgumentTypes.command(this);
     }
 
     /**
@@ -280,11 +280,12 @@ public interface Command<S extends CommandSource> extends Argument<S>, BaseThrow
     void addSubCommand(Command<S> command, String attachTo);
 
     /**
-     * @param name the name of the wanted sub-command
+     * @param name      the name of the wanted sub-command
+     * @param recursive
      * @return the sub-command of specific name
      */
     @Nullable
-    Command<S> getSubCommand(String name);
+    Command<S> getSubCommand(String name, boolean recursive);
 
     /**
      * @return the subcommands of this command

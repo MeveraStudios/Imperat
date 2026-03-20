@@ -4,21 +4,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
-import studio.mevera.imperat.util.TypeUtility;
 
-import java.util.Objects;
-
-@SuppressWarnings("unchecked")
 public class LocationArgument extends ArgumentType<BukkitCommandSource, Location> {
 
     private final static String SINGLE_STRING_SEPARATOR = ";";
@@ -32,134 +28,11 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
     }
 
     @Override
-    public @Nullable Location parse(@NotNull ExecutionContext<BukkitCommandSource> context, @NotNull Cursor<BukkitCommandSource> cursor,
-            @NotNull String correspondingInput) throws
-            CommandException {
-        try {
-            String currentRaw = cursor.currentRaw().orElseThrow();
-            return locFromStr(context, cursor, currentRaw);
-        } catch (Exception ex) {
-            World world;
-            String currentRaw = cursor.currentRaw().orElseThrow();
-
-            if (!TypeUtility.isNumber(currentRaw) && !currentRaw.equals(SELF_LOCATION_SYMBOL) && Bukkit.getWorld(currentRaw) != null) {
-                world = Bukkit.getWorld(currentRaw);
-                cursor.skipRaw();
-            } else if (context.source().isConsole()) {
-                var worlds = Bukkit.getWorlds();
-                if (worlds.isEmpty()) {
-                    throw createLocationException(correspondingInput, "NO_WORLDS_AVAILABLE", null, null, null, null, null);
-                }
-                world = Bukkit.getWorlds().get(0);
-            } else {
-                world = context.source().asPlayer().getWorld();
-            }
-
-            ArgumentType<BukkitCommandSource, Double> doubleParser =
-                    (ArgumentType<BukkitCommandSource, Double>) context.imperatConfig().getArgumentType(Double.class);
-            if (doubleParser == null) {
-                throw new IllegalArgumentException("Failed to find a parser for type '" + Double.class.getTypeName() + "'");
-            }
-
-            Location playerLocation = null;
-            if (!context.source().isConsole()) {
-                playerLocation = context.source().asPlayer().getLocation();
-            }
-
-            String inputX = cursor.readInput();
-            Double x;
-            if (inputX.equals(SELF_LOCATION_SYMBOL)) {
-                if (playerLocation == null) {
-                    throw createLocationException(correspondingInput, "SELF_LOCATION_NOT_AVAILABLE", inputX, null, null, null, null);
-                }
-                x = playerLocation.getX();
-            } else {
-                x = doubleParser.parse(context, cursor, inputX);
-                if (x == null) {
-                    throw createLocationException(correspondingInput, "INVALID_X_COORDINATE", inputX, null, null, null, null);
-                }
-            }
-            cursor.skipRaw();
-
-            String inputY = cursor.readInput();
-            Double y;
-            if (inputY.equals(SELF_LOCATION_SYMBOL)) {
-                if (playerLocation == null) {
-                    throw createLocationException(correspondingInput, "SELF_LOCATION_NOT_AVAILABLE", null, inputY, null, null, null);
-                }
-                y = playerLocation.getY();
-            } else {
-                y = doubleParser.parse(context, cursor, inputY);
-                if (y == null) {
-                    throw createLocationException(correspondingInput, "INVALID_Y_COORDINATE", null, inputY, null, null, null);
-                }
-            }
-            cursor.skipRaw();
-
-            String inputZ = cursor.readInput();
-            Double z;
-            if (inputZ.equals(SELF_LOCATION_SYMBOL)) {
-                if (playerLocation == null) {
-                    throw createLocationException(correspondingInput, "SELF_LOCATION_NOT_AVAILABLE", null, null, inputZ, null, null);
-                }
-                z = playerLocation.getZ();
-            } else {
-                z = doubleParser.parse(context, cursor, inputZ);
-                if (z == null) {
-                    throw createLocationException(correspondingInput, "INVALID_Z_COORDINATE", null, null, inputZ, null, null);
-                }
-            }
-
-            float pitch = 0.0f;
-            float yaw = 0.0f;
-
-            if (cursor.hasFinished()) {
-                return createLocation(world, x, y, z, yaw, pitch);
-            }
-
-            cursor.skipRaw();
-            if (!cursor.hasFinished()) {
-                String inputYaw = cursor.readInput();
-                if (inputYaw.equals(SELF_LOCATION_SYMBOL)) {
-                    if (playerLocation == null) {
-                        throw createLocationException(correspondingInput, "SELF_LOCATION_NOT_AVAILABLE", null, null, null, null, inputYaw);
-                    }
-                    yaw = playerLocation.getYaw();
-                } else {
-                    Double yawDouble = doubleParser.parse(context, cursor, inputYaw);
-                    if (yawDouble == null) {
-                        throw createLocationException(correspondingInput, "INVALID_YAW_COORDINATE", null, null, null, null, inputYaw);
-                    }
-                    yaw = (float) yawDouble.doubleValue();
-                }
-                cursor.skipRaw();
-
-                if (!cursor.hasFinished()) {
-                    String inputPitch = cursor.readInput();
-                    if (inputPitch.equals(SELF_LOCATION_SYMBOL)) {
-                        if (playerLocation == null) {
-                            throw createLocationException(correspondingInput, "SELF_LOCATION_NOT_AVAILABLE", null, null, null, inputPitch, null);
-                        }
-                        pitch = playerLocation.getPitch();
-                    } else {
-                        Double pitchDouble = doubleParser.parse(context, cursor, inputPitch);
-                        if (pitchDouble == null) {
-                            throw createLocationException(correspondingInput, "INVALID_PITCH_COORDINATE", null, null, null, inputPitch, null);
-                        }
-                        pitch = (float) pitchDouble.doubleValue();
-                    }
-                }
-            }
-
-            return createLocation(world, x, y, z, yaw, pitch);
-        }
-    }
-
-    private @NotNull Location locFromStr(ExecutionContext<BukkitCommandSource> context, Cursor<BukkitCommandSource> stream, String currentRaw) throws
-            CommandException {
-        String[] split = currentRaw.split(SINGLE_STRING_SEPARATOR);
+    public Location parse(@NotNull CommandContext<BukkitCommandSource> context, @NotNull String input) throws CommandException {
+        // Parse from a single string (semicolon-separated)
+        String[] split = input.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
-            throw createLocationException(currentRaw, "WRONG_FORMAT", null, null, null, null, null);
+            throw createLocationException(input, "WRONG_FORMAT", null, null, null, null, null);
         }
 
         World world = Bukkit.getWorld(split[0]);
@@ -176,31 +49,31 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
         double x;
         if (split[1].equals(SELF_LOCATION_SYMBOL)) {
             if (playerLocation == null) {
-                throw createLocationException(currentRaw, "SELF_LOCATION_NOT_AVAILABLE", split[1], null, null, null, null);
+                throw createLocationException(input, "SELF_LOCATION_NOT_AVAILABLE", split[1], null, null, null, null);
             }
             x = playerLocation.getX();
         } else {
-            x = Objects.requireNonNull(doubleParser.parse(context, stream, split[1]));
+            x = doubleParser.parse(context, split[1]);
         }
 
         double y;
         if (split[2].equals(SELF_LOCATION_SYMBOL)) {
             if (playerLocation == null) {
-                throw createLocationException(currentRaw, "SELF_LOCATION_NOT_AVAILABLE", null, split[2], null, null, null);
+                throw createLocationException(input, "SELF_LOCATION_NOT_AVAILABLE", null, split[2], null, null, null);
             }
             y = playerLocation.getY();
         } else {
-            y = Objects.requireNonNull(doubleParser.parse(context, stream, split[2]));
+            y = doubleParser.parse(context, split[2]);
         }
 
         double z;
         if (split[3].equals(SELF_LOCATION_SYMBOL)) {
             if (playerLocation == null) {
-                throw createLocationException(currentRaw, "SELF_LOCATION_NOT_AVAILABLE", null, null, split[3], null, null);
+                throw createLocationException(input, "SELF_LOCATION_NOT_AVAILABLE", null, null, split[3], null, null);
             }
             z = playerLocation.getZ();
         } else {
-            z = Objects.requireNonNull(doubleParser.parse(context, stream, split[3]));
+            z = doubleParser.parse(context, split[3]);
         }
 
         float yaw = 0.0f;
@@ -209,26 +82,33 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
         if (split.length > 4) {
             if (split[4].equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw createLocationException(currentRaw, "SELF_LOCATION_NOT_AVAILABLE", null, null, null, null, split[4]);
+                    throw createLocationException(input, "SELF_LOCATION_NOT_AVAILABLE", null, null, null, null, split[4]);
                 }
                 yaw = playerLocation.getYaw();
             } else {
-                yaw = (float) Objects.requireNonNull(doubleParser.parse(context, stream, split[4])).doubleValue();
+                yaw = (float) doubleParser.parse(context, split[4]).doubleValue();
             }
         }
 
         if (split.length > 5) {
             if (split[5].equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw createLocationException(currentRaw, "SELF_LOCATION_NOT_AVAILABLE", null, null, null, split[5], null);
+                    throw createLocationException(input, "SELF_LOCATION_NOT_AVAILABLE", null, null, null, split[5], null);
                 }
                 pitch = playerLocation.getPitch();
             } else {
-                pitch = (float) Objects.requireNonNull(doubleParser.parse(context, stream, split[5])).doubleValue();
+                pitch = (float) doubleParser.parse(context, split[5]).doubleValue();
             }
         }
 
         return createLocation(world, x, y, z, yaw, pitch);
+    }
+
+    @Override
+    public Location parse(@NotNull ExecutionContext<BukkitCommandSource> context, @NotNull Cursor<BukkitCommandSource> cursor)
+            throws CommandException {
+        String currentRaw = cursor.currentRaw().orElse("");
+        return parse(context, currentRaw);
     }
 
     private Location createLocation(World world, double x, double y, double z, float yaw, float pitch) {

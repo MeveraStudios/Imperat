@@ -1,13 +1,12 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
-import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseKey;
 
 import java.util.UUID;
@@ -19,30 +18,20 @@ public final class UUIDArgument<S extends CommandSource> extends ArgumentType<S,
     }
 
     @Override
-    public @NotNull UUID parse(
-            @NotNull ExecutionContext<S> context,
-            @NotNull Cursor<S> cursor,
-            @NotNull String correspondingInput) throws CommandException {
-
+    public UUID parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
         try {
-            return UUID.fromString(correspondingInput);
+            return UUID.fromString(input);
         } catch (Exception ex) {
-            throw new ArgumentParseException(ResponseKey.INVALID_UUID, correspondingInput);
+            throw new ArgumentParseException(ResponseKey.INVALID_UUID, input).withContextPlaceholders(context);
         }
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
-        String input = context.arguments().get(rawPosition);
+    public UUID parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws ResponseException {
+        String input = cursor.currentRawIfPresent();
         if (input == null) {
-            return false;
+            throw new IllegalArgumentException("No input available at cursor position");
         }
-
-        try {
-            UUID.fromString(input);
-            return true;
-        } catch (Exception ex) {
-            return false;
-        }
+        return parse(context, input);
     }
 }

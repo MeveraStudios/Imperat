@@ -1,9 +1,9 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
@@ -27,13 +27,17 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
         this.componentType = componentType;
     }
 
-    @Override @SuppressWarnings("unchecked")
-    public E @Nullable [] parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput) throws
-            CommandException {
+    @Override
+    public E[] parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException {
+        throw new UnsupportedOperationException("ArrayArgument does not support parse(context, String)");
+    }
 
+    @Override @SuppressWarnings("unchecked")
+    public E[] parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws CommandException {
         String currentRaw = cursor.currentRaw().orElse(null);
         if (currentRaw == null) {
-            return null;
+            // Return empty array if no input is present
+            return (E[]) initializer.apply(0);
         }
 
         Argument<S> currentParam = cursor.currentParameterIfPresent();
@@ -52,8 +56,13 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
         int consumed = 0;
 
         // Consume the first raw (cursor currently points at it)
-        elements.add(componentType.parse(context, Cursor.subStream(cursor, currentRaw), currentRaw));
-        consumed++;
+        try {
+            E firstValue = componentType.parse(context, currentRaw);
+            elements.add(firstValue);
+            consumed++;
+        } catch (Exception ex) {
+            throw new CommandException("Failed to parse array element", ex);
+        }
 
         // Consume subsequent raws
         while (cursor.hasNextRaw()) {
@@ -68,8 +77,12 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
 
             // Stop: next raw is a flag
             if (Patterns.isInputFlag(peeked)) {
-                Set<FlagArgument<S>> extracted = context.getDetectedPathway()
-                                                         .getFlagExtractor().extract(peeked);
+                Set<FlagArgument<S>> extracted;
+                try {
+                    extracted = context.getDetectedPathway().getFlagExtractor().extract(peeked);
+                } catch (studio.mevera.imperat.exception.CommandException e) {
+                    throw new CommandException("Failed to extract flag argument", e);
+                }
                 if (!extracted.isEmpty()) {
                     cursor.skipRaw();
                     cursor.skipRaw();
@@ -83,8 +96,14 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
             // Stop: next param has a discriminating type and peeked matches it
             if (nextParamCanDiscriminate) {
                 int peekRawPos = cursor.currentRawPosition() + 1;
-                if (nextParam.type().matchesInput(peekRawPos, context, nextParam)) {
-                    break;
+                String peekedInput = context.arguments().getOr(peekRawPos, null);
+                if (peekedInput != null) {
+                    try {
+                        nextParam.type().parse(context, peekedInput);
+                        break;
+                    } catch (Exception ignored) {
+                        // Not a match, continue
+                    }
                 }
             }
 
@@ -94,8 +113,13 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
                 break;
             }
 
-            elements.add(componentType.parse(context, Cursor.subStream(cursor, raw), raw));
-            consumed++;
+            try {
+                E nextValue = componentType.parse(context, raw);
+                elements.add(nextValue);
+                consumed++;
+            } catch (Exception ex) {
+                throw new CommandException("Failed to parse array element", ex);
+            }
         }
 
         E[] array = (E[]) initializer.apply(elements.size());

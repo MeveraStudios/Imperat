@@ -85,6 +85,20 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
         return matchesInput(depth, ctx, false);
     }
 
+    private boolean matchesInput(ArgumentType<S, ?> type, int depth, CommandContext<S> ctx) {
+        // Use parse(execCtx, input) for type discrimination
+        String input = ctx.arguments().getOr(depth, null);
+        if (input == null) {
+            return false;
+        }
+        try {
+            type.parse(ctx, input);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public boolean matchesInput(int depth, CommandContext<S> ctx, boolean strict) {
         var primaryType = data.type();
         boolean primaryMatches = matchesInput(primaryType, depth, ctx);
@@ -98,10 +112,10 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
         }
 
         CommandNode<S, ?> siblingMatchingInput = findNeighborOfType(depth, ctx);
-        return siblingMatchingInput == null;//if no sibling matches this, this one MUST match
+        return siblingMatchingInput == null;
     }
 
-    private @Nullable CommandNode<S, ?> findNeighborOfType(int depth, CommandContext<S> context) {
+    private @Nullable CommandNode<S, ?> findNeighborOfType(int depth, CommandContext<S> ctx) {
         if (parent == null) {
             return null;
         }
@@ -109,15 +123,11 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             if (sibling.equals(this)) {
                 continue;
             }
-            if (sibling.matchesInput(depth, context, true)) {
+            if (sibling.matchesInput(depth, ctx, true)) {
                 return sibling;
             }
         }
         return null;
-    }
-
-    private boolean matchesInput(ArgumentType<S, ?> type, int depth, CommandContext<S> ctx) {
-        return type.matchesInput(depth, ctx, data);
     }
 
 

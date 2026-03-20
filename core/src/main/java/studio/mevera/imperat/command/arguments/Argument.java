@@ -3,6 +3,7 @@ package studio.mevera.imperat.command.arguments;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.parameters.AnnotatedArgument;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.Description;
@@ -23,7 +24,7 @@ import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -136,7 +137,7 @@ public interface Argument<S extends CommandSource> extends PermissionHolder, Des
         return FlagBuilder.ofSwitch(name);
     }
 
-    static <S extends CommandSource> Argument<S> literal(String... names) {
+    static <S extends CommandSource> Command<S> literal(Imperat<S> imperat, String... names) {
         String primaryName = names[0];
         Preconditions.notNull(primaryName, "part");
         Preconditions.checkArgument(!primaryName.isEmpty(), "Literal  cannot be empty");
@@ -144,21 +145,11 @@ public interface Argument<S extends CommandSource> extends PermissionHolder, Des
                 "Literal  must be alphanumeric or underscore only");
 
         List<String> aliases = new ArrayList<>(names.length - 1);
-        for (int i = 1; i < names.length; i++) {
-            String alias = names[i];
-            aliases.add(alias);
-        }
+        aliases.addAll(Arrays.asList(names).subList(1, names.length));
 
-        return of(primaryName,
-                ArgumentTypes.command(primaryName, aliases),
-                PermissionsData.empty(),
-                Description.EMPTY,
-                false,
-                false,
-                DefaultValueProvider.empty(),
-                null,
-                Collections.emptyList()
-        );
+        return Command.create(imperat, primaryName)
+                       .aliases(aliases)
+                       .build();
     }
 
     /**

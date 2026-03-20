@@ -17,7 +17,6 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomCommandS
 
     private final BiFunction<Type, String, net.minestom.server.command.builder.arguments.Argument<?>> minestomType;
     private final int numberOfParametersToConsume;
-
     public MinestomArgumentType(
             Type type,
             BiFunction<Type, String, net.minestom.server.command.builder.arguments.Argument<?>> minestomType,
@@ -37,15 +36,24 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomCommandS
         this.numberOfParametersToConsume = -1;
     }
 
+    @Override
+    public T parse(@NotNull CommandContext<MinestomCommandSource> context, @NotNull String input) throws CommandException {
+        try {
+            return (T) getMinestomType("").parse(context.source().origin(), input);
+        } catch (ArgumentSyntaxException exception) {
+            throw new CommandException(exception.getMessage());
+        }
+    }
+
     @Override @SuppressWarnings("unchecked")
     public @NotNull T parse(
             @NotNull ExecutionContext<MinestomCommandSource> context,
-            @NotNull Cursor<MinestomCommandSource> cursor,
-            @NotNull String correspondingInput
+            @NotNull Cursor<MinestomCommandSource> cursor
     ) throws CommandException {
-
+        String correspondingInput = cursor.currentRawIfPresent();
         int limit = numberOfParametersToConsume == -1 ? cursor.rawsLength()-1 : numberOfParametersToConsume;
         //greedy
+        assert correspondingInput != null;
         StringBuilder input = new StringBuilder(correspondingInput);
         for (int i = 1; i <= limit; i++) {
             cursor.currentRaw().ifPresent(raw -> {
@@ -65,35 +73,6 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomCommandS
             throw new CommandException(exception.getMessage());
         }
     }
-
-    @Override
-    public boolean matchesInput(
-            int rawPosition,
-            CommandContext<MinestomCommandSource> context,
-            Argument<MinestomCommandSource> parameter
-    ) {
-        //collect input using the limit
-        int limit = numberOfParametersToConsume == -1 ? context.arguments().size()-1 : numberOfParametersToConsume;
-        StringBuilder input = new StringBuilder();
-        for (int i = rawPosition; i <= limit; i++) {
-            String arg = context.arguments().getOr(rawPosition + i, null);
-            if (arg == null) {
-                break;
-            }
-            if (i > 0) {
-                input.append(" ");
-            }
-            input.append(arg);
-        }
-        try {
-            getMinestomType(parameter.getName()).parse(context.source().origin(), input.toString());
-            return true;
-        }catch (ArgumentSyntaxException ex) {
-            return false;
-        }
-    }
-
-
 
     @Override
     public int getNumberOfParametersToConsume(Argument<MinestomCommandSource> argument) {

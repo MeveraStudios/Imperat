@@ -1,18 +1,14 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
-import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.priority.Priority;
 
-import java.util.Locale;
 import java.util.Map;
 
 public final class BooleanArgument<S extends CommandSource> extends ArgumentType<S, Boolean> {
@@ -33,36 +29,28 @@ public final class BooleanArgument<S extends CommandSource> extends ArgumentType
     }
 
     @Override
-    public @Nullable Boolean parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor, @NotNull String correspondingInput)
-            throws
-            CommandException {
-
-        if (correspondingInput.equalsIgnoreCase("true") || correspondingInput.equalsIgnoreCase("false")) {
-            return Boolean.parseBoolean(correspondingInput);
+    public Boolean parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException {
+        if (input.equalsIgnoreCase("true") || input.equalsIgnoreCase("false")) {
+            return Boolean.parseBoolean(input);
         }
-
         if (allowVariants) {
-            return VARIANTS.get(correspondingInput.toLowerCase());
-        } else {
-            throw new ArgumentParseException(ResponseKey.INVALID_BOOLEAN, correspondingInput);
+            Boolean value = VARIANTS.get(input.toLowerCase());
+            if (value != null) {
+                return value;
+            }
         }
+        throw new ArgumentParseException(ResponseKey.INVALID_BOOLEAN, input);
     }
 
     @Override
-    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
-        String currentInput = context.arguments().get(rawPosition);
-        if (currentInput == null) {
-            return false;
+    public Boolean parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws ArgumentParseException {
+        String input = cursor.currentRawIfPresent();
+        if (input == null) {
+            throw new IllegalArgumentException("No input available at cursor position");
         }
-
-        if (!allowVariants && (currentInput.equalsIgnoreCase("true") || currentInput.equalsIgnoreCase("false"))) {
-            return true;
-        } else if (allowVariants) {
-            return VARIANTS.get(currentInput.toLowerCase(Locale.ENGLISH)) != null;
-        }
-
-        return Boolean.parseBoolean(currentInput);
+        return parse(context, input);
     }
+
 
     public BooleanArgument<S> setAllowVariants(boolean allowVariants) {
         this.allowVariants = allowVariants;
@@ -79,7 +67,7 @@ public final class BooleanArgument<S extends CommandSource> extends ArgumentType
     }
 
     @Override
-    public Priority priority() {
+    public @NotNull Priority getPriority() {
         return Priority.NORMAL.plus(1);
     }
 }

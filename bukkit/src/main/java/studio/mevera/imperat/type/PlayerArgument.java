@@ -3,16 +3,12 @@ package studio.mevera.imperat.type;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BukkitCommandSource;
-import studio.mevera.imperat.BukkitUtil;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -30,25 +26,18 @@ public class PlayerArgument extends ArgumentType<BukkitCommandSource, Player> {
     }
 
     @Override
-    public @Nullable Player parse(
-            @NotNull ExecutionContext<BukkitCommandSource> context,
-            @NotNull Cursor<BukkitCommandSource> cursor,
-            @NotNull String correspondingInput
-    ) throws CommandException {
-
-        if (correspondingInput.equalsIgnoreCase("me") || correspondingInput.equalsIgnoreCase("~")) {
+    public Player parse(@NotNull CommandContext<BukkitCommandSource> context, @NotNull String input) throws CommandException {
+        if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
-                throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_PLAYER, correspondingInput);
+                throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_PLAYER, input);
             }
             return context.source().asPlayer();
         }
-
-        final Player player = Bukkit.getPlayerExact(correspondingInput);
-        if (player != null) {
-            return player;
+        Player player = Bukkit.getPlayer(input);
+        if (player == null) {
+            throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_PLAYER, input);
         }
-
-        throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_PLAYER, correspondingInput);
+        return player;
     }
 
     /**
@@ -70,17 +59,6 @@ public class PlayerArgument extends ArgumentType<BukkitCommandSource, Player> {
     @Override
     public DefaultValueProvider getDefaultValueProvider() {
         return DEFAULT_VALUE_SUPPLIER;
-    }
-
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<BukkitCommandSource> context, Argument<BukkitCommandSource> parameter) {
-        String input = context.arguments().get(rawPosition);
-        if (input == null) {
-            return false;
-        }
-
-        return BukkitUtil.PLAYER_USERNAME_PATTERN.matcher(input).matches()
-                       && Bukkit.getPlayer(input) != null;
     }
 
     private final static class PlayerSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {

@@ -1,45 +1,31 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
-
-import java.util.List;
 
 public final class CommandArgument<S extends CommandSource> extends ArgumentType<S, Command<S>> {
 
-    private final String name;
+    private final Command<S> command;
 
-    CommandArgument(String name, List<String> aliases) {
+    CommandArgument(Command<S> command) {
         super();
-        this.name = name;
-        suggestions.add(name);
-        suggestions.addAll(aliases);
+        this.command = command;
+        suggestions.add(command.getName());
+        suggestions.addAll(command.aliases());
     }
 
     @Override
-    public @Nullable Command<S> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor,
-            @NotNull String correspondingInput) throws
-            CommandException {
-        return cursor.currentParameter()
-                       .map(Argument::asCommand).orElse(null);
-    }
-
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<S> ctx, Argument<S> parameter) {
-        String input = ctx.arguments().get(rawPosition);
-        return parameter.isCommand() &&
-                       parameter.asCommand().hasName(input.toLowerCase());
+    public Command<S> parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException {
+        if (command.hasName(input)) {
+            return command;
+        }
+        throw new CommandException("Invalid literal argument '%s'", input);
     }
 
     public String getName() {
-        return name;
+        return command.getName();
     }
-
 }

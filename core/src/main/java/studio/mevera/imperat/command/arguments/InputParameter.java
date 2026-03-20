@@ -191,7 +191,7 @@ public abstract class InputParameter<S extends CommandSource> implements Argumen
         if (!(this.type instanceof CommandArgument<?> asCommandType)) {
             throw new UnsupportedOperationException("Non-Command Parameter cannot be converted into a command parameter");
         }
-        return parentCommand.getSubCommand(asCommandType.getName());
+        return parentCommand.getSubCommand(asCommandType.getName(), false);
     }
 
 

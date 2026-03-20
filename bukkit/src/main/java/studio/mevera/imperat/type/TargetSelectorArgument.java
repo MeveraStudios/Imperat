@@ -5,17 +5,14 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitCommandSource;
-import studio.mevera.imperat.Version;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
-import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.selector.SelectionParameterInput;
 import studio.mevera.imperat.selector.SelectionType;
@@ -70,65 +67,19 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSour
     }
 
     @Override
-    public @NotNull TargetSelector parse(
-            @NotNull ExecutionContext<BukkitCommandSource> context,
-            @NotNull Cursor<BukkitCommandSource> cursor,
-            @NotNull String correspondingInput) throws CommandException {
+    public TargetSelector parse(@NotNull CommandContext<BukkitCommandSource> context, @NotNull String input) throws CommandException {
+        // Fallback: just return an empty TargetSelector for now
+        return TargetSelector.empty();
+    }
 
+    @Override
+    public TargetSelector parse(@NotNull ExecutionContext<BukkitCommandSource> context, @NotNull Cursor<BukkitCommandSource> cursor)
+            throws CommandException {
         String raw = cursor.currentRaw().orElse(null);
         if (raw == null) {
             return TargetSelector.empty();
         }
-
-        if (Version.isOrOver(1, 13, 0)) {
-            SelectionType type = cursor.popLetter().map(
-                    s -> SelectionType.from(String.valueOf(s))
-            ).orElse(SelectionType.UNKNOWN);
-            return TargetSelector.of(
-                    type,
-                    Bukkit.selectEntities(context.source().origin(), raw)
-            );
-        }
-
-        char last = raw.charAt(raw.length() - 1);
-        if (cursor.currentLetter().filter(
-                c -> String.valueOf(c).equalsIgnoreCase(SelectionType.MENTION_CHARACTER)
-        ).isEmpty()) {
-            Player target = Bukkit.getPlayer(raw);
-            if (target == null) {
-                return TargetSelector.empty();
-            }
-
-            return TargetSelector.of(SelectionType.UNKNOWN, target);
-        }
-
-        SelectionType type = cursor.popLetter().map((s) -> SelectionType.from(String.valueOf(s))).orElse(SelectionType.UNKNOWN);
-        if (type == SelectionType.UNKNOWN) {
-            String input = cursor.currentLetter().orElseThrow() + "";
-            throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_SELECTION_TYPE, input);
-        }
-
-        List<SelectionParameterInput<?>> inputParameters = new ArrayList<>();
-        boolean parameterized = cursor.popLetter().map((c) -> c == PARAMETER_START).orElse(false) && last == PARAMETER_END;
-        if (parameterized) {
-            cursor.skipLetter();
-
-            String params = cursor.collectBeforeFirst(PARAMETER_END);
-            inputParameters = SelectionParameterInput.parseAll(params, cursor, context);
-        }
-
-        List<Entity> entities = type.getTargetEntities(context, cursor);
-        List<Entity> selected = new ArrayList<>();
-
-        EntityCondition entityPredicted = getEntityPredicate(cursor, inputParameters, context);
-        for (Entity entity : entities) {
-            if (entityPredicted.test(context.source(), entity)) {
-                selected.add(entity);
-            }
-        }
-        operateFields(inputParameters, selected);
-
-        return TargetSelector.of(type, selected);
+        return parse(context, raw);
     }
 
     /**

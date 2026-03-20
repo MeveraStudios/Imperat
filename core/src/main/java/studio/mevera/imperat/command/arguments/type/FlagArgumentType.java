@@ -1,7 +1,6 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.CommandContext;
@@ -11,15 +10,11 @@ import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.SuggestionProvider;
-import studio.mevera.imperat.responses.ResponseKey;
 
 import java.util.Collections;
-import java.util.Set;
 
 public class FlagArgumentType<S extends CommandSource> extends ArgumentType<S, ParsedFlagArgument<S>> {
-
     private final FlagData<S> flagData;
 
     protected FlagArgumentType(FlagData<S> flagData) {
@@ -31,85 +26,41 @@ public class FlagArgumentType<S extends CommandSource> extends ArgumentType<S, P
         }
     }
 
+
     @Override
-    public @Nullable ParsedFlagArgument<S> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor,
-            @NotNull String correspondingInput) throws
-            CommandException {
+    public ParsedFlagArgument<S> parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException {
+        throw new UnsupportedOperationException("FlagArgumentType does not support parse(ExecutionContext, String)");
+    }
+
+    @Override
+    public ParsedFlagArgument<S> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws CommandException {
         var currentParameter = cursor.currentParameterIfPresent();
         if (currentParameter == null) {
-            return null;
+            throw new IllegalArgumentException("No parameter at cursor position for flag parsing");
         }
-
         if (!currentParameter.isFlag()) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Parameter is not a flag for FlagArgumentType");
         }
-
         FlagArgument<S> flagArgument = currentParameter.asFlagParameter();
-
-        String rawInput;
-        Object objInput;
-
-        if (!flagArgument.isSwitch()) {
-            ArgumentType<S, ?> inputType = flagArgument.flagData().inputType();
-            int currentPosition = cursor.currentRawPosition();
-            rawInput = cursor.popRaw().orElse(null);
-            if (rawInput != null) {
-                assert inputType != null;
-                objInput = inputType.parse(context, cursor, rawInput);
-                if (objInput == null && !flagArgument.getDefaultValueSupplier().isEmpty()) {
-                    String defValue = flagArgument.getDefaultValueSupplier().provide(context, flagArgument);
-                    if (defValue != null) {
-                        objInput = inputType.parse(context, cursor, defValue);
-                    }
-                }
-                return ParsedFlagArgument.forFlag(
-                        flagArgument, correspondingInput, rawInput,
-                        currentPosition, currentPosition+1,
-                        objInput
-                );
-
-            } else {
-                //"Please enter the value for flag '%s'"
-                throw ResponseException.of(ResponseKey.MISSING_FLAG_INPUT)
-                              .withPlaceholder("flags", String.join(",", Set.of(flagArgument.getName())));
-            }
-        } else {
-            return ParsedFlagArgument.forSwitch(flagArgument, correspondingInput, cursor.currentRawPosition());
+        String rawInput = cursor.currentRaw().orElse(null);
+        if (flagArgument.isSwitch()) {
+            return ParsedFlagArgument.forSwitch(flagArgument, rawInput, cursor.currentRawPosition());
         }
+        // Value flag: must parse the value argument
+        ArgumentType<S, ?> inputType = flagArgument.flagData().inputType();
+        if (inputType == null) {
+            throw new IllegalArgumentException("FlagArgumentType: value flag missing input type");
+        }
+        int currentPosition = cursor.currentRawPosition();
+        String valueRaw = cursor.hasNextRaw() ? cursor.peekRawIfPresent() : null;
+        if (valueRaw == null) {
+            throw new IllegalArgumentException("No value provided for flag argument");
+        }
+        cursor.skipRaw(); // advance to value
+        Object value = inputType.parse(context, cursor);
+        return ParsedFlagArgument.forFlag(flagArgument, rawInput, valueRaw, currentPosition, currentPosition + 1, value);
     }
 
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<S> context, Argument<S> parameter) {
-        String input = context.arguments().getOr(rawPosition, null);
-        if (input == null) {
-            return false;
-        }
-
-        if (!parameter.isFlag()) {
-            throw new IllegalArgumentException(
-                    String.format(
-                            "Parameter '%s' isn't a flag while having parameter type of '%s'",
-                            parameter.format(), "FlagArgumentType"
-                    )
-            );
-        }
-
-        FlagArgument<S> FlagArgument = parameter.asFlagParameter();
-        ArgumentType<S, ?> inputType = FlagArgument.flagData().inputType();
-        boolean matchesForFlagInput = true;
-        int nextPos = rawPosition + 1;
-
-        if (inputType != null && !FlagArgument.isSwitch() && nextPos < context.arguments().size()) {
-            String nextInput = context.arguments().getOr(nextPos, null);
-            if (nextInput == null) {
-                matchesForFlagInput = false;
-            } else {
-                matchesForFlagInput = inputType.matchesInput(nextPos, context, parameter);
-            }
-        }
-        return parameter.asFlagParameter().flagData()
-                       .acceptsInput(input) && matchesForFlagInput;
-    }
 
     @Override
     public SuggestionProvider<S> getSuggestionProvider() {

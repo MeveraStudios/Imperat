@@ -4,7 +4,6 @@ import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
@@ -29,24 +28,28 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
     }
 
     @Override
-    public @Nullable PlayerRef parse(
-            @NotNull ExecutionContext<HytaleCommandSource> context,
-            @NotNull Cursor<HytaleCommandSource> cursor,
-            @NotNull String correspondingInput) throws CommandException {
-
-        if (correspondingInput.equalsIgnoreCase("me") || correspondingInput.equalsIgnoreCase("~")) {
+    public @NotNull PlayerRef parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull String input) throws CommandException {
+        if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
-                throw new UnknownPlayerException(correspondingInput);
+                throw new UnknownPlayerException(input);
             }
             return context.source().asPlayerRef();
         }
-
-        PlayerRef player = PlayerUtil.getPlayerRefByName(correspondingInput);
+        PlayerRef player = PlayerUtil.getPlayerRefByName(input);
         if (player != null) {
             return player;
         }
+        throw new UnknownPlayerException(input);
+    }
 
-        throw new UnknownPlayerException(correspondingInput);
+    @Override
+    public PlayerRef parse(@NotNull ExecutionContext<HytaleCommandSource> context, @NotNull Cursor<HytaleCommandSource> cursor)
+            throws CommandException {
+        String input = cursor.currentRawIfPresent();
+        if (input == null) {
+            throw new UnknownPlayerException("<no input>");
+        }
+        return parse(context, input);
     }
 
     /**
@@ -68,16 +71,6 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
     @Override
     public DefaultValueProvider getDefaultValueProvider() {
         return DEFAULT_VALUE_SUPPLIER;
-    }
-
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<HytaleCommandSource> context, Argument<HytaleCommandSource> parameter) {
-        String input = context.arguments().get(rawPosition);
-        if (input == null) {
-            return false;
-        }
-
-        return PlayerUtil.getPlayerRefByName(input) != null;
     }
 
     private final static class PlayerSuggestionProvider implements SuggestionProvider<HytaleCommandSource> {

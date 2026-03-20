@@ -1,18 +1,16 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Either;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.util.TypeWrap;
 
-import java.lang.reflect.Type;
-
 public class EitherArgument<S extends CommandSource, A, B> extends ArgumentType<S, Either<A, B>> {
-
     private final TypeWrap<A> primaryType;
     private final TypeWrap<B> fallbackType;
 
@@ -26,35 +24,31 @@ public class EitherArgument<S extends CommandSource, A, B> extends ArgumentType<
         this.fallbackType = fallbackType;
     }
 
-    private static <A, B> Type[] loadTypeArray(Class<A> a, Class<B> b) {
-        return new Type[]{a, b};
+    @Override
+    public Either<A, B> parse(@NotNull CommandContext<S> context, @NotNull String input) {
+        throw new UnsupportedOperationException("EitherArgument does not support parse(context, String)");
     }
 
     @Override
-    public @Nullable Either<A, B> parse(
-            @NotNull ExecutionContext<S> context,
-            @NotNull Cursor<S> cursor,
-            @NotNull String correspondingInput
-    ) throws CommandException {
+    public Either<A, B> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws CommandException, ResponseException {
         var cfg = context.imperatConfig();
         ArgumentType<S, A> primaryArgType = (ArgumentType<S, A>) cfg.getArgumentType(primaryType.getType());
         ArgumentType<S, B> fallbackArgType = (ArgumentType<S, B>) cfg.getArgumentType(fallbackType.getType());
-
-        if(primaryArgType == null || fallbackArgType == null) {
+        if (primaryArgType == null || fallbackArgType == null) {
             throw new CommandException("Neither primary nor fallback argument type is registered for '%s' or '%s'"
                     .formatted(primaryType.getType().getTypeName(), fallbackType.getType().getTypeName()));
         }
-
         Cursor<S> cursorCopy = cursor.copy();
-        A primaryValue;
-        primaryValue = primaryArgType.parse(context, cursorCopy, correspondingInput);
-        if(primaryValue != null) {
-            cursor.setAt(cursorCopy);
-            return Either.ofPrimary(primaryValue);
+        try {
+            A primaryValue = primaryArgType.parse(context, cursorCopy);
+            if (primaryValue != null) {
+                cursor.setAt(cursorCopy);
+                return Either.ofPrimary(primaryValue);
+            }
+        } catch (Exception ignored) {
+            // Try fallback
         }
-
-        B fallbackValue = fallbackArgType.parse(context, cursor, correspondingInput);
-
+        B fallbackValue = fallbackArgType.parse(context, cursor);
         return Either.ofFallback(fallbackValue);
     }
 }

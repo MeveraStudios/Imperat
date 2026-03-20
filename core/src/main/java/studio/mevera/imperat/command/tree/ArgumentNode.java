@@ -20,7 +20,7 @@ public final class ArgumentNode<S extends CommandSource> extends CommandNode<S, 
     }
 
     private static <S extends CommandSource> int loadPriority(Argument<S> Argument) {
-        int base = Argument.type().priority().getLevel();
+        int base = Argument.type().getPriority().getLevel();
         int res = 5;
 
         if (Argument.isFlag()) {

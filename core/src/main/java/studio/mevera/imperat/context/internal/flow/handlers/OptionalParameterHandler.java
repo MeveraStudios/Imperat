@@ -70,16 +70,25 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         if (!context.imperatConfig().handleExecutionMiddleOptionalSkipping()) {
             // Strict positional order - MUST consume input
             ImperatDebugger.debug("MUST CONSUME INPUT, OPTION SKIPPING IS DISABLED");
-            consumeInput(currentRaw, currentParameter, context, stream);
+            consumeInput(currentParameter, context, stream);
             return;
         }
 
         // Step 3: Smart skipping enabled - check type compatibility
-        if (!Patterns.isInputFlag(currentRaw) && currentParameter.type().matchesInput(stream.currentRawPosition(), context, currentParameter)) {
-            // Type matches - CAN consume input
-            ImperatDebugger.debug("IT MATCHES TYPE, CONSUMING RIGHT AWAY");
-            consumeInput(currentRaw, currentParameter, context, stream);
-            return;
+        if (!Patterns.isInputFlag(currentRaw)) {
+            boolean typeMatches = false;
+            try {
+                currentParameter.type().parse(context, currentRaw);
+                typeMatches = true;
+            } catch (Exception ignored) {
+                // Not a match
+            }
+            if (typeMatches) {
+                // Type matches - CAN consume input
+                ImperatDebugger.debug("IT MATCHES TYPE, CONSUMING RIGHT AWAY");
+                consumeInput(currentParameter, context, stream);
+                return;
+            }
         }
 
         // Step 4: Type doesn't match - check if downstream optional can handle it
@@ -96,7 +105,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
 
         // Step 5: No better match found - try to force consume with fallback
         try {
-            consumeInput(currentRaw, currentParameter, context, stream);
+            consumeInput(currentParameter, context, stream);
             ImperatDebugger.debug("CONSUMING....");
         } catch (CommandException e) {
             // Type parsing failed - fall back to default value
@@ -140,9 +149,16 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         // Look for downstream optional parameters that match the input type
         for (int i = currentParamPos + 1; i < stream.parametersLength(); i++) {
             Argument<S> param = stream.getParametersList().get(i);
-            if (param.isOptional() && !param.isFlag() &&
-                        param.type().matchesInput(currRawPos, ctx, param)) {
-                return param;
+            if (param.isOptional() && !param.isFlag()) {
+                String input = ctx.arguments().getOr(currRawPos, null);
+                if (input != null) {
+                    try {
+                        param.type().parse(ctx, input);
+                        return param;
+                    } catch (Exception ignored) {
+                        // Not a match
+                    }
+                }
             }
         }
 
@@ -170,12 +186,11 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
      * Consume the current raw input with the current parameter
      */
     private void consumeInput(
-            String currentRaw,
             Argument<S> currentParameter,
             ExecutionContext<S> context,
             Cursor<S> stream
     ) throws CommandException {
-        Object value = currentParameter.type().parse(context, stream, currentRaw);
+        Object value = currentParameter.type().parse(context, stream);
         context.parseArgument(stream, value);
         stream.skip();
     }
@@ -192,7 +207,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         String value = optionalSupplier.provide(context, parameter);
 
         if (value != null) {
-            return (T) parameter.type().parse(context, stream, value);
+            return (T) parameter.type().parse(context, value);
         }
 
         return null;

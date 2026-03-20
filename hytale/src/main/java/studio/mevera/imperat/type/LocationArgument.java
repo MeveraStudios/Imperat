@@ -11,6 +11,7 @@ import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
@@ -40,17 +41,21 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
         return new Location(playerRef.getTransform().getPosition(), playerRef.getTransform().getRotation());
     }
 
+
+    @Override
+    public Location parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull String input) throws CommandException {
+        return locFromStr(context, input);
+    }
+
     @Override
     @SuppressWarnings("unchecked")
-    public @Nullable Location parse(@NotNull ExecutionContext<HytaleCommandSource> context, @NotNull Cursor<HytaleCommandSource> cursor,
-            @NotNull String correspondingInput) throws
+    public @Nullable Location parse(@NotNull ExecutionContext<HytaleCommandSource> context, @NotNull Cursor<HytaleCommandSource> cursor) throws
             CommandException {
+        String currentRaw = cursor.currentRaw().orElseThrow();
         try {
-            String currentRaw = cursor.currentRaw().orElseThrow();
-            return locFromStr(context, cursor, currentRaw);
+            return locFromStr(context, currentRaw);
         } catch (Exception ex) {
             World world;
-            String currentRaw = cursor.currentRaw().orElseThrow();
 
             if (!TypeUtility.isNumber(currentRaw) && !currentRaw.equals(SELF_LOCATION_SYMBOL) && getWorldByName(currentRaw) != null) {
                 world = getWorldByName(currentRaw);
@@ -58,7 +63,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             } else if (context.source().isConsole()) {
                 var worlds = Universe.get().getWorlds().values();
                 if (worlds.isEmpty()) {
-                    throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.NO_WORLDS_AVAILABLE);
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.NO_WORLDS_AVAILABLE);
                 }
                 world = Universe.get().getDefaultWorld();
             } else {
@@ -80,14 +85,16 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             Double x;
             if (inputX.equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, inputX, null,
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, inputX,
+                            null,
                             null, null, null);
                 }
                 x = playerLocation.getPosition().getX();
             } else {
-                x = doubleParser.parse(context, cursor, inputX);
+                x = doubleParser.parse(context, inputX);
                 if (x == null) {
-                    throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_X_COORDINATE, inputX, null, null,
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_X_COORDINATE, inputX, null,
+                            null,
                             null, null);
                 }
             }
@@ -97,14 +104,16 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             Double y;
             if (inputY.equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, inputY,
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null,
+                            inputY,
                             null, null, null);
                 }
                 y = playerLocation.getPosition().getY();
             } else {
-                y = doubleParser.parse(context, cursor, inputY);
+                y = doubleParser.parse(context, inputY);
                 if (y == null) {
-                    throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_Y_COORDINATE, null, inputY, null,
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_Y_COORDINATE, null, inputY,
+                            null,
                             null, null);
                 }
             }
@@ -114,14 +123,16 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             Double z;
             if (inputZ.equals(SELF_LOCATION_SYMBOL)) {
                 if (playerLocation == null) {
-                    throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null,
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null,
+                            null,
                             inputZ, null, null);
                 }
                 z = playerLocation.getPosition().getZ();
             } else {
-                z = doubleParser.parse(context, cursor, inputZ);
+                z = doubleParser.parse(context, inputZ);
                 if (z == null) {
-                    throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_Z_COORDINATE, null, null, inputZ,
+                    throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_Z_COORDINATE, null, null,
+                            inputZ,
                             null, null);
                 }
             }
@@ -138,14 +149,15 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 String inputYaw = cursor.readInput();
                 if (inputYaw.equals(SELF_LOCATION_SYMBOL)) {
                     if (playerLocation == null) {
-                        throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null, null,
+                        throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null,
+                                null,
                                 null, null, inputYaw);
                     }
                     yaw = playerLocation.getRotation().getYaw();
                 } else {
-                    Double yawDouble = doubleParser.parse(context, cursor, inputYaw);
+                    Double yawDouble = doubleParser.parse(context, inputYaw);
                     if (yawDouble == null) {
-                        throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_YAW_COORDINATE, null, null,
+                        throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_YAW_COORDINATE, null, null,
                                 null, null, inputYaw);
                     }
                     yaw = (float) yawDouble.doubleValue();
@@ -156,14 +168,15 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                     String inputPitch = cursor.readInput();
                     if (inputPitch.equals(SELF_LOCATION_SYMBOL)) {
                         if (playerLocation == null) {
-                            throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE, null,
+                            throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.SELF_LOCATION_NOT_AVAILABLE,
+                                    null,
                                     null, null, inputPitch, null);
                         }
                         pitch = playerLocation.getRotation().getPitch();
                     } else {
-                        Double pitchDouble = doubleParser.parse(context, cursor, inputPitch);
+                        Double pitchDouble = doubleParser.parse(context, inputPitch);
                         if (pitchDouble == null) {
-                            throw new InvalidLocationFormatException(correspondingInput, InvalidLocationFormatException.Reason.INVALID_PITCH_COORDINATE, null,
+                            throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_PITCH_COORDINATE, null,
                                     null, null, inputPitch, null);
                         }
                         pitch = (float) pitchDouble.doubleValue();
@@ -175,7 +188,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
         }
     }
 
-    private @NotNull Location locFromStr(ExecutionContext<HytaleCommandSource> context, Cursor<HytaleCommandSource> stream, String currentRaw) throws
+    private @NotNull Location locFromStr(CommandContext<HytaleCommandSource> context, String currentRaw) throws
             CommandException {
         String[] split = currentRaw.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
@@ -200,7 +213,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             x = playerLocation.getPosition().getX();
         } else {
-            x = Objects.requireNonNull(doubleParser.parse(context, stream, split[1]));
+            x = Objects.requireNonNull(doubleParser.parse(context, split[1]));
         }
 
         double y;
@@ -211,7 +224,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             y = playerLocation.getPosition().getY();
         } else {
-            y = Objects.requireNonNull(doubleParser.parse(context, stream, split[2]));
+            y = Objects.requireNonNull(doubleParser.parse(context, split[2]));
         }
 
         double z;
@@ -222,7 +235,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             z = playerLocation.getPosition().getZ();
         } else {
-            z = Objects.requireNonNull(doubleParser.parse(context, stream, split[3]));
+            z = Objects.requireNonNull(doubleParser.parse(context, split[3]));
         }
 
         float yaw = 0.0f;
@@ -236,7 +249,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 yaw = playerLocation.getRotation().getYaw();
             } else {
-                yaw = (float) Objects.requireNonNull(doubleParser.parse(context, stream, split[4])).doubleValue();
+                yaw = (float) Objects.requireNonNull(doubleParser.parse(context, split[4])).doubleValue();
             }
         }
 
@@ -248,7 +261,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 pitch = playerLocation.getRotation().getPitch();
             } else {
-                pitch = (float) Objects.requireNonNull(doubleParser.parse(context, stream, split[5])).doubleValue();
+                pitch = (float) Objects.requireNonNull(doubleParser.parse(context, split[5])).doubleValue();
             }
         }
 

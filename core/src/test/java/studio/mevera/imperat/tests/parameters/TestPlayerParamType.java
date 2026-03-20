@@ -1,14 +1,13 @@
 package studio.mevera.imperat.tests.parameters;
 
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
+import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.List;
@@ -16,40 +15,11 @@ import java.util.List;
 public final class TestPlayerParamType extends ArgumentType<TestCommandSource, TestPlayer> {
 
     @Override
-    public TestPlayer parse(
-            @NotNull ExecutionContext<TestCommandSource> context,
-            @NotNull Cursor<TestCommandSource> cursor,
-            @NotNull String correspondingInput
-    ) throws NotPlayerException {
-        // Note: We can't easily call matchesInput here without the raw position and context,
-        // so we'll just validate the input directly
-        if (correspondingInput.length() > 16) {
-            throw new NotPlayerException();
+    public TestPlayer parse(@NotNull CommandContext<TestCommandSource> context, @NotNull String input) throws CommandException {
+        if (input.length() > 16 || input.length() < 3 || input.contains("-") || TypeUtility.isNumber(input)) {
+            throw new CommandException("Invalid player argument: '%s'", input);
         }
-        try {
-            Double.parseDouble(correspondingInput);
-            throw new NotPlayerException(); // Numbers are not valid player names
-        } catch (NumberFormatException e) {
-            // Good, it's not a number
-        }
-        return new TestPlayer(correspondingInput);
-    }
-
-    @Override
-    public boolean matchesInput(int rawPosition, CommandContext<TestCommandSource> context, Argument<TestCommandSource> parameter) {
-        String input = context.arguments().get(rawPosition);
-        if (input == null) {
-            return false;
-        }
-
-        try {
-            Double.parseDouble(input);
-            return false;
-        } catch (Exception exception) {
-            System.out.println("Matching input = '" + input + "'");
-            System.out.println("Contains '-' ? " + input.contains("-"));
-            return !input.contains("-");
-        }
+        return new TestPlayer(input);
     }
 
     @Override
@@ -59,7 +29,7 @@ public final class TestPlayerParamType extends ArgumentType<TestCommandSource, T
         };
     }
 
-    @Override public Priority priority() {
+    @Override public @NotNull Priority getPriority() {
         return Priority.LOW;
     }
 }
