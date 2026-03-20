@@ -6,8 +6,6 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.JdaCommandSource;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.responses.JdaResponseKey;
@@ -32,15 +30,5 @@ public final class UserArgument extends ArgumentType<JdaCommandSource, User> {
             throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, input);
         }
         return user;
-    }
-
-    @Override
-    public @NotNull User parse(@NotNull ExecutionContext<JdaCommandSource> context, @NotNull Cursor<JdaCommandSource> cursor)
-            throws CommandException {
-        String input = cursor.currentRawIfPresent();
-        if (input == null) {
-            throw new IllegalArgumentException("No input available at cursor position");
-        }
-        return parse(context, input);
     }
 }

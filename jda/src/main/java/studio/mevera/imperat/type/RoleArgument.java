@@ -5,8 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.JdaCommandSource;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.exception.NoDMSException;
@@ -32,10 +30,4 @@ public final class RoleArgument extends ArgumentType<JdaCommandSource, Role> {
         return role;
     }
 
-    // Legacy compatibility, not supported
-    public @NotNull Role parse(@NotNull ExecutionContext<JdaCommandSource> context, @NotNull Cursor<JdaCommandSource> cursor,
-            @NotNull String correspondingInput) throws CommandException {
-        throw new UnsupportedOperationException(
-                "RoleArgument.parse(ExecutionContext, Cursor, String) is not supported. Use CommandContext-based parse instead.");
-    }
 }
