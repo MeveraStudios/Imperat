@@ -102,7 +102,6 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             }
             consumed++;
         }
-        System.out.println("Checking type '" + type.getClass().getTypeName() + "' against input '" + input + "' with limit " + limit);
 
         try {
             type.parse(ctx, input.toString());

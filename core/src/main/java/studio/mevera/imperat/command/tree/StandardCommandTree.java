@@ -512,9 +512,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         }
 
         // Greedy parameter handling
-        System.out.println("Current noe= '" + currentNode.format() + "'");
         if (currentNode.isGreedyParam()) {
-            System.out.println("Found greedy '" + currentNode.format() + "'");
             int greedyLimit = currentNode.getData().greedyLimit();
 
             // LIMITED greedy with children — reserve tokens for trailing args,
@@ -549,7 +547,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         // Check if current input matches this node
         boolean nodeMatches = currentNode.matchesInput(depth, context, currentNode.isOptional());
-        System.out.println("Node matches = " + nodeMatches);
         if (!nodeMatches) {
             // If optional, try to skip this node and check children
             return handleOptionalSkip(context, input, currentNode, depth);
@@ -713,7 +710,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             int depth
     ) throws CommandException {
         if (!node.matchesInput(depth, context)) {
-            System.out.println("Terminal node '" + node.format() + "' doesnt match input");
             return noMatchFromNode(node);
         }
 
