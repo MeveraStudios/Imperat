@@ -43,7 +43,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
      */
     public static <S extends CommandSource> TreeExecutionResult<S> success(
             @NotNull ExecutionContext<S> executionContext,
-            @Nullable CommandPathway<S> closestUsage,
+            @NotNull CommandPathway<S> closestUsage,
             @NotNull CommandPathway<S> matchedPathway,
             @NotNull Command<S> lastCommand
     ) {
@@ -54,20 +54,23 @@ public final class TreeExecutionResult<S extends CommandSource> {
      * Creates a result indicating permission was denied.
      */
     public static <S extends CommandSource> TreeExecutionResult<S> permissionDenied(
-            @NotNull CommandPathway<S> closestUsage,
+            @Nullable CommandPathway<S> closestUsage,
             @NotNull Command<S> lastCommand
     ) {
-        return new TreeExecutionResult<>(Status.PERMISSION_DENIED, null, closestUsage, closestUsage, lastCommand);
+        return new TreeExecutionResult<>(Status.PERMISSION_DENIED, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage,
+                closestUsage,
+                lastCommand);
     }
 
     /**
      * Creates a result indicating no matching pathway was found.
      */
     public static <S extends CommandSource> TreeExecutionResult<S> noMatch(
-            @NotNull CommandPathway<S> closestUsage,
+            @Nullable CommandPathway<S> closestUsage,
             @NotNull Command<S> lastCommand
     ) {
-        return new TreeExecutionResult<>(Status.NO_MATCH, null, closestUsage, closestUsage, lastCommand);
+        return new TreeExecutionResult<>(Status.NO_MATCH, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage, closestUsage,
+                lastCommand);
     }
 
     public @NotNull Status getStatus() {

@@ -543,13 +543,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             }
 
             // UNLIMITED greedy — consumes all remaining input, short-circuit
-            if (currentNode.isExecutable()) {
-                System.out.println("Found greedy '" + currentNode.format() + "'");
-                assert currentNode.getExecutableUsage() != null;
-                return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
-            }
-            System.out.println("Non executable greedy node '" + currentNode.format() + "'");
-            return noMatchFromNode(currentNode);
+            // let's match input
+            return handleTerminalNode(context, currentNode, depth);
         }
 
         // Check if current input matches this node
