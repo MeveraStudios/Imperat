@@ -63,7 +63,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         this.config = imperat.config();
         this.methodSelector = methodSelector;
         this.parameterParser = new ParameterParser<>(config);
-        this.pathwaySyntaxParser = PathwaySyntaxParser.of(imperat, parameterParser);
+        this.pathwaySyntaxParser = PathwaySyntaxParser.of(imperat, this, parameterParser);
     }
 
     @Override
@@ -76,6 +76,8 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         commands.addAll(parseEmbeddedRoots(clazz)
                                 .stream().filter(Objects::nonNull)
                                 .collect(Collectors.toSet()));
+
+        commands.addAll(pathwaySyntaxParser.getParsedPathwayCommands());
         return commands;
     }
 
@@ -248,13 +250,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             if (method.isAnnotationPresent(PathwayCommand.class)) {
                 PathwayCommand ann = method.getAnnotation(PathwayCommand.class);
                 assert ann != null;
-                var pathway = this.finalizedPathway(
-                        method,
-                        currentCommand,
-                        processedPathway(method, pathwaySyntaxParser.loadPathway(ann.value(), method, true))
-                );
-                currentCommand.addPathway(pathway);
-
+                pathwaySyntaxParser.loadCommand(currentCommand, ann.value(), method);
             }
         }
 
@@ -402,10 +398,8 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             if (method.isAnnotationPresent(Secret.class)) {
                 command.setSecret(true);
             }
-            command.addPathway(
-                    pathwaySyntaxParser.loadPathway(syntax, method, true)
-            );
-            return command;
+            pathwaySyntaxParser.loadCommand(command, syntax, method);
+            return null;
         } else {
             return null;
         }
@@ -470,7 +464,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
 
     }
 
-    private CommandPathway.Builder<S> processedPathway(MethodElement method, CommandPathway.Builder<S> builder) {
+    CommandPathway.Builder<S> processedPathway(MethodElement method, CommandPathway.Builder<S> builder) {
         Permission[] permissionsAnnotations = method.getAnnotationsByType(Permission.class);
 
         PermissionsData data = null;
@@ -506,7 +500,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         return builder;
     }
 
-    private CommandPathway.Builder<S> finalizedPathway(MethodElement method, Command<S> owningCommand, CommandPathway.Builder<S> builder) {
+    CommandPathway.Builder<S> finalizedPathway(MethodElement method, Command<S> owningCommand, CommandPathway.Builder<S> builder) {
 
         List<Argument<S>> parsedMethodArgs = method.getParameters().stream()
                                                      .filter((p) -> !isSenderParameter(p))

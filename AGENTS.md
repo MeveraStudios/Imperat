@@ -23,6 +23,11 @@ command definition, supporting multiple backends (Paper, Velocity, Bungee, Mines
 - **Build**: Use Gradle. To build all modules: `./gradlew build` (or `gradlew.bat build` on Windows).
 - **Test**: Run all tests with `./gradlew test`. Core logic is heavily tested in `core/src/test/java/` (see `integration/`, `commands/`,
   `subcommands/`).
+  - Additional test tasks:
+    - `./gradlew fastTest` – runs only fast unit tests
+    - `./gradlew eventsTest` – runs only event system tests
+    - `./gradlew integrationTest` – runs only integration tests
+    - `./gradlew functionalTest` – runs all functional tests (excludes performance tests)
 - **Publish**: Maven publishing is configured; see `build.gradle.kts` for details.
 - **Debugging**: Use the test suite for regression and integration checks. Tests use a custom `TestCommandSource` and `BaseImperatTest` for
   assertions.
@@ -33,10 +38,16 @@ command definition, supporting multiple backends (Paper, Velocity, Bungee, Mines
   definitions.
 - **Argument Inheritance**: Subcommands can inherit arguments from parent commands using `@InheritedArg`.
 - **Default Values & Suggestions**: Use `@Default`, `@Suggest` for argument defaults and tab-completion.
-- **Flags**: Boolean and value flags are supported and tested (see integration tests for usage).
+- **Flags**: Both switch flags (boolean, e.g. `-s`, `-ip`) and value flags (e.g. `-m <msg>`, `-time <duration>`) are supported, including aliases and
+  default values. See `BanCommand.java`, `Ban2Command.java`, `GitCommand.java`, `ShoutCommand.java`, and `FlagsAndSwitchesTest.java` for usage
+  patterns and tests.
 - **Help/Usage**: Each command should provide a help subcommand or usage info, leveraging the help system.
 - **Permissions**: Permission checks are annotation-based and can be attached to commands or arguments.
 - **Platform Adaptation**: Each platform module adapts the core API to its environment, but does not duplicate core logic.
+- **Custom Argument Types**: You can define and register custom argument types (see `groupcommand/GroupArgument.java` and its usage in
+  `AnnotatedGroupCommand.java`).
+- **Custom Help Themes**: The help system supports custom themes (see `ExampleHelpTheme.java` and its use in `AnnotatedGroupCommand.java`).
+- **Kotlin Support**: Both Java and Kotlin are supported for commands and tests.
 
 ## Integration Points & Extensibility
 
@@ -56,7 +67,9 @@ command definition, supporting multiple backends (Paper, Velocity, Bungee, Mines
 ## Examples
 
 - See `TestCommand.java` and `PartyCommand.java` for idiomatic command definitions.
-- Integration tests in `integration/IntegrationTest.java` show real command usage and expected behaviors.
+- See also real-world examples: `BanCommand.java`, `Ban2Command.java`, `GitCommand.java`, `ShoutCommand.java`, `GiveCmd.java`, and the `groupcommand/`
+  directory for advanced patterns (custom arguments, help themes).
+- Integration tests in `integration/IntegrationTest.java` and `flags/FlagsAndSwitchesTest.java` show real command usage and expected behaviors.
 
 ## External Resources
 
@@ -65,4 +78,3 @@ command definition, supporting multiple backends (Paper, Velocity, Bungee, Mines
 
 ---
 For more, see the documentation and test sources for up-to-date usage patterns and extension points.
-

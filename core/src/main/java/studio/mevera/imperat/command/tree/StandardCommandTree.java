@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -422,6 +423,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         // Step 1: Check root permission
         if (!hasPermission(context.source(), root)) {
+            assert root.getExecutableUsage() != null;
             return TreeExecutionResult.permissionDenied(root.getExecutableUsage(), rootCommand);
         }
 
@@ -560,7 +562,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         boolean isTerminal = (depth == effectiveInputSize - consumeCount);
 
         if (isTerminal) {
-            TreeExecutionResult<S> terminalResult = handleTerminalNode(context, input, currentNode, depth);
+            TreeExecutionResult<S> terminalResult = handleTerminalNode(context, currentNode, depth);
             if (terminalResult.isSuccess() || terminalResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
                 return terminalResult;
             }
@@ -708,7 +710,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      */
     private TreeExecutionResult<S> handleTerminalNode(
             CommandContext<S> context,
-            ArgumentInput input,
             CommandNode<S, ?> node,
             int depth
     ) throws CommandException {
@@ -718,7 +719,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         if (!hasPermission(context.source(), node)) {
             return TreeExecutionResult.permissionDenied(
-                    node.isExecutable() ? node.getExecutableUsage() : null,
+                    Objects.requireNonNull(node.isExecutable() ? node.getExecutableUsage() : null),
                     getCommandFromNode(node)
             );
         }
