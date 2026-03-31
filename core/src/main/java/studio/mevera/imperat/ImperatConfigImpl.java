@@ -77,12 +77,10 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
                                                                                  .append(String.join(" ", ctx.arguments()));
                                                                      }
                                                                      var closestUsage = ctx.getTreeExecutionResult().getClosestUsage();
-                                                                     String closestUsageFormat =
-                                                                             ctx.imperatConfig().commandPrefix() + ctx.getRootCommandLabelUsed() +
-                                                                                     (closestUsage != null ? " " + closestUsage.formatted() : "");
+
                                                                      throw new InvalidSyntaxException(
                                                                              invalidUsage.toString(),
-                                                                             closestUsageFormat
+                                                                             closestUsage
                                                                      );
                                                                  });
 
@@ -125,8 +123,18 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
 
     private void regDefThrowableResolvers() {
         // Structural/flow exceptions — reply with their own plain message directly
-        this.setErrorHandler(InvalidSyntaxException.class, (exception, context) ->
-                                                                        context.source().reply(exception.getMessage()));
+        this.setErrorHandler(InvalidSyntaxException.class, (exception, ctx) -> {
+            String invalidUsageFormat = exception.getInvalidUsage();
+            ctx.source().error("Invalid command usage: '" + invalidUsageFormat + "'");
+
+            var closestUsage = exception.getClosestUsage();
+            if (closestUsage != null) {
+                String closestUsageFormat =
+                        ctx.imperatConfig().commandPrefix() + ctx.getRootCommandLabelUsed() +
+                                " " + closestUsage.formatted();
+                ctx.source().reply("You probably meant '" + closestUsageFormat + "'");
+            }
+        });
         this.setErrorHandler(PermissionDeniedException.class, (exception, context) ->
                                                                            context.source().reply(exception.getMessage()));
 

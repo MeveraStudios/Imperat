@@ -1,6 +1,8 @@
 package studio.mevera.imperat.exception;
 
 import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.command.CommandPathway;
+import studio.mevera.imperat.context.CommandSource;
 
 /**
  * Thrown when a command's syntax does not match any valid usage pathway.
@@ -11,17 +13,14 @@ import org.jetbrains.annotations.Nullable;
 public final class InvalidSyntaxException extends CommandException {
 
     private final String invalidUsage;
-    private final @Nullable String closestUsage;
+    private final @Nullable CommandPathway<? extends CommandSource> closestUsage;
 
     /**
      * @param invalidUsage  what the user actually typed (e.g. "/give sword stone")
      * @param closestUsage  the closest valid usage hint, or {@code null} if unavailable
      */
-    public InvalidSyntaxException(String invalidUsage, @Nullable String closestUsage) {
-        super("Invalid command usage '" + invalidUsage + "'"
-                      + (closestUsage != null && !closestUsage.isBlank()
-                                 ? ", you probably meant '" + closestUsage + "'"
-                                 : ""));
+    public <S extends CommandSource> InvalidSyntaxException(String invalidUsage, @Nullable CommandPathway<S> closestUsage) {
+        super("Invalid command usage '" + invalidUsage + "'");
         this.invalidUsage = invalidUsage;
         this.closestUsage = closestUsage;
     }
@@ -30,7 +29,7 @@ public final class InvalidSyntaxException extends CommandException {
         return invalidUsage;
     }
 
-    public @Nullable String getClosestUsage() {
+    public @Nullable CommandPathway<? extends CommandSource> getClosestUsage() {
         return closestUsage;
     }
 }

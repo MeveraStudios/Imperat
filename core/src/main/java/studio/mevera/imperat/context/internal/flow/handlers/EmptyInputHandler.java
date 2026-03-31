@@ -40,10 +40,7 @@ public final class EmptyInputHandler<S extends CommandSource> implements Paramet
             //required parameter with no input - invalid syntax
             var closestUsage = result.getClosestUsage();
             String invalidUsage = context.imperatConfig().commandPrefix() + context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
-            String closestUsageFormat =
-                    context.imperatConfig().commandPrefix() + context.getRootCommandLabelUsed() + (closestUsage != null ?
-                                                                                                           closestUsage.formatted() + " " : "");
-            return HandleResult.failure(new InvalidSyntaxException(invalidUsage, closestUsageFormat));
+            return HandleResult.failure(new InvalidSyntaxException(invalidUsage, closestUsage));
 
         } catch (CommandException e) {
             return HandleResult.failure(e);
