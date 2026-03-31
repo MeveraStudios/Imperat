@@ -48,15 +48,16 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         executor(builder);
 
         for (var child : root.getChildren()) {
-            builder.then(convertNode(root, root, child));
+            builder.then(convertNode(root, root, child, builder));
         }
         return builder;
     }
 
-    private <T> com.mojang.brigadier.tree.CommandNode<T> convertNode(
+    protected <T> com.mojang.brigadier.tree.CommandNode<T> convertNode(
             LiteralCommandNode<S> root,
             studio.mevera.imperat.command.tree.CommandNode<?, ?> parent,
-            studio.mevera.imperat.command.tree.CommandNode<S, ?> node
+            studio.mevera.imperat.command.tree.CommandNode<S, ?> node,
+            @NotNull ArgumentBuilder<T, ?> parentNodeBuilder
     ) {
         var argType = getArgumentType(node.getData());
 
@@ -100,15 +101,31 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
                 flagValueNode.addChild(trueFlagChildren);
             }
 
-            childBuilder.then(convertNode(root, node, flagValueNode));
+            childBuilder.then(convertNode(root, node, flagValueNode, childBuilder));
             return childBuilder.build();
         }
 
+
         for (var innerChild : node.getChildren()) {
-            childBuilder.then(convertNode(root, node, innerChild));
+            childBuilder.then(convertNode(root, node, innerChild, childBuilder));
         }
 
-        return childBuilder.build();
+        var readyChild = childBuilder.build();
+        if (!node.isRoot() && node instanceof LiteralCommandNode) {
+            LiteralCommandNode<S> literalImperatCommandNode = (LiteralCommandNode<S>) node;
+            //child is sub-command/literal, check if that literal (sub-cmd) has aliases,
+            // how can i do this ???
+            for (var alias : literalImperatCommandNode.getData().aliases()) {
+                //TODO, somehow get the parent builder and call #then within it for each alias
+                LiteralArgumentBuilder<T> aliasNode = LiteralArgumentBuilder.<T>literal(alias)
+                                                              .requires(childBuilder.getRequirement())
+                                                              .redirect(readyChild);
+                parentNodeBuilder.then(aliasNode);
+            }
+
+        }
+
+        return readyChild;
     }
 
 

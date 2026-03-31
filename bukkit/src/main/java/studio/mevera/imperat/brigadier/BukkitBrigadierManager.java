@@ -3,6 +3,8 @@ package studio.mevera.imperat.brigadier;
 import static studio.mevera.imperat.commodore.CommodoreProvider.isSupported;
 
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -82,12 +84,24 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitCom
         return getStringArgType(parameter);
     }
 
-    public void registerBukkitCommand(
+    public <T> void registerBukkitCommand(
             org.bukkit.command.Command bukkitCmd,
             Command<BukkitCommandSource> imperatCommand,
             PermissionChecker<BukkitCommandSource> resolver
     ) {
-        commodore.register(bukkitCmd, parseCommandIntoNode(imperatCommand),
+        LiteralCommandNode<T> brigRootNode = parseCommandIntoNode(imperatCommand);
+        commodore.register(bukkitCmd, brigRootNode,
                 (player) -> resolver.hasPermission(dispatcher.wrapSender(player), bukkitCmd.getPermission()));
+
+        //BUG-FIX: registering root-level aliases using the redirect feature
+        imperatCommand.aliases()
+                .stream()
+                .map((alias) -> LiteralArgumentBuilder.<T>literal(alias)
+                                        .requires(brigRootNode.getRequirement())
+                                        .redirect(brigRootNode)
+                                        .build()
+                )
+                .forEach((aliasNode) -> commodore.register(bukkitCmd, aliasNode,
+                        (player) -> resolver.hasPermission(dispatcher.wrapSender(player), bukkitCmd.getPermission())));
     }
 }
