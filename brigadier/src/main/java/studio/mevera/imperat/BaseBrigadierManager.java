@@ -29,16 +29,29 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         this.dispatcher = dispatcher;
     }
 
+    private static <BS> com.mojang.brigadier.tree.LiteralCommandNode<BS> cloneWithDiffName(
+            com.mojang.brigadier.tree.LiteralCommandNode<BS> brigOriginalNode,
+            String newName
+    ) {
+        var clone = new com.mojang.brigadier.tree.LiteralCommandNode<>(newName,
+                brigOriginalNode.getCommand(), brigOriginalNode.getRequirement(), brigOriginalNode.getRedirect(),
+                brigOriginalNode.getRedirectModifier(), brigOriginalNode.isFork());
+        for (var child : brigOriginalNode.getChildren()) {
+            clone.addChild(child);
+        }
+        return clone;
+    }
+
     @Override
-    public @NotNull <T> com.mojang.brigadier.tree.LiteralCommandNode<T> parseCommandIntoNode(@NotNull Command<S> command) {
+    public @NotNull <BS> com.mojang.brigadier.tree.LiteralCommandNode<BS> parseCommandIntoNode(@NotNull Command<S> command) {
         var tree = command.tree();
         var root = tree.rootNode();
-        return this.<T>convertRoot(root).build();
+        return this.<BS>convertRoot(root).build();
     }
 
     @SuppressWarnings("unchecked")
-    private <T> LiteralArgumentBuilder<T> convertRoot(LiteralCommandNode<S> root) {
-        LiteralArgumentBuilder<T> builder = (LiteralArgumentBuilder<T>)
+    private <BS> LiteralArgumentBuilder<BS> convertRoot(LiteralCommandNode<S> root) {
+        LiteralArgumentBuilder<BS> builder = (LiteralArgumentBuilder<BS>)
                                                     literal(root.getData().getName())
                     .requires((obj) -> {
                         var source = wrapCommandSource(obj);
@@ -48,88 +61,99 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         executor(builder);
 
         for (var child : root.getChildren()) {
-            builder.then(convertNode(root, root, child, builder));
+
+            var innerChildBrigNode = this.<BS>convertImperatNodeToBrigadierNode(root, child);
+            builder.then(innerChildBrigNode);
+
+            if (child instanceof LiteralCommandNode) {
+                //adding aliases for the literal child
+                LiteralCommandNode<S> literalImperatCommandNode = (LiteralCommandNode<S>) child;
+                //child is sub-command/literal, check if that literal (sub-cmd) has aliases,
+                for (var alias : literalImperatCommandNode.getData().aliases()) {
+                    com.mojang.brigadier.tree.LiteralCommandNode<BS>
+                            aliasBrigNode = cloneWithDiffName((com.mojang.brigadier.tree.LiteralCommandNode<BS>) innerChildBrigNode, alias);
+                    builder.then(aliasBrigNode);
+                }
+
+            }
         }
         return builder;
     }
 
-    protected <T> com.mojang.brigadier.tree.CommandNode<T> convertNode(
-            LiteralCommandNode<S> root,
-            studio.mevera.imperat.command.tree.CommandNode<?, ?> parent,
-            studio.mevera.imperat.command.tree.CommandNode<S, ?> node,
-            @NotNull ArgumentBuilder<T, ?> parentNodeBuilder
+    protected <BS> com.mojang.brigadier.tree.CommandNode<BS> convertImperatNodeToBrigadierNode(
+            LiteralCommandNode<S> rootImperatNode,
+            studio.mevera.imperat.command.tree.CommandNode<S, ?> currentImperatNode
     ) {
-        var argType = getArgumentType(node.getData());
+        var argType = getArgumentType(currentImperatNode.getData());
 
-        ArgumentBuilder<T, ?> childBuilder = node instanceof LiteralCommandNode<?> ?
-                                                     LiteralArgumentBuilder.literal(node.getData().getName())
-                                                     : RequiredArgumentBuilder.argument(node.getData().getName(), argType);
+        ArgumentBuilder<BS, ?> childBuilder = currentImperatNode instanceof LiteralCommandNode<?> ?
+                                                      LiteralArgumentBuilder.literal(currentImperatNode.getData().getName())
+                                                      : RequiredArgumentBuilder.argument(currentImperatNode.getData().getName(), argType);
 
         childBuilder.requires((obj) -> {
             var permissionResolver = dispatcher.config().getPermissionChecker();
             var source = wrapCommandSource(obj);
 
-            if (node instanceof LiteralCommandNode<?> literalCommandNode
+            if (currentImperatNode instanceof LiteralCommandNode<?> literalCommandNode
                         && literalCommandNode.getData().isIgnoringACPerms()) {
                 return true;
             }
 
-            return (permissionResolver.hasPermission(source, node.getData()));
+            return (permissionResolver.hasPermission(source, currentImperatNode.getData()));
         });
 
         executor(childBuilder);
-        if (!(node instanceof LiteralCommandNode<?>)) {
-            ((RequiredArgumentBuilder<T, ?>) childBuilder).suggests(
-                    createSuggestionProvider(root.getData(), node.getData())
+        if (!(currentImperatNode instanceof LiteralCommandNode<?>)) {
+            ((RequiredArgumentBuilder<BS, ?>) childBuilder).suggests(
+                    createSuggestionProvider(rootImperatNode.getData(), currentImperatNode.getData())
             );
         }
 
-        if (node.isTrueFlag()) {
-            String name = node.getData().getName() + "_value";
+        if (currentImperatNode.isTrueFlag()) {
+            String name = currentImperatNode.getData().getName() + "_value";
             ArgumentNode<S> flagValueNode =
                     studio.mevera.imperat.command.tree.CommandNode.createArgumentNode(
-                            node,
+                            currentImperatNode,
                             Argument.required(name, dispatcher.config()
-                                                                    .getArgumentType(node.getData().asFlagParameter().inputValueType()))
-                                    .permission(node.getPermissionsData())
+                                                            .getArgumentType(currentImperatNode.getData().asFlagParameter().inputValueType()))
+                                    .permission(currentImperatNode.getPermissionsData())
                                     .build(),
-                            node.getDepth() + 1,
-                            node.getExecutableUsage()
+                            currentImperatNode.getDepth() + 1,
+                            currentImperatNode.getExecutableUsage()
                     );
 
-            for (var trueFlagChildren : node.getChildren()) {
+            for (var trueFlagChildren : currentImperatNode.getChildren()) {
                 flagValueNode.addChild(trueFlagChildren);
             }
 
-            childBuilder.then(convertNode(root, node, flagValueNode, childBuilder));
+            childBuilder.then(convertImperatNodeToBrigadierNode(rootImperatNode, flagValueNode));
             return childBuilder.build();
         }
 
+        var builtCurrentNode = childBuilder.build();
 
-        for (var innerChild : node.getChildren()) {
-            childBuilder.then(convertNode(root, node, innerChild, childBuilder));
-        }
+        for (var innerChild : currentImperatNode.getChildren()) {
+            var innerChildBrigNode = this.<BS>convertImperatNodeToBrigadierNode(rootImperatNode, innerChild);
+            builtCurrentNode.addChild(innerChildBrigNode);
 
-        var readyChild = childBuilder.build();
-        if (!node.isRoot() && node instanceof LiteralCommandNode) {
-            LiteralCommandNode<S> literalImperatCommandNode = (LiteralCommandNode<S>) node;
-            //child is sub-command/literal, check if that literal (sub-cmd) has aliases,
-            // how can i do this ???
-            for (var alias : literalImperatCommandNode.getData().aliases()) {
-                //TODO, somehow get the parent builder and call #then within it for each alias
-                LiteralArgumentBuilder<T> aliasNode = LiteralArgumentBuilder.<T>literal(alias)
-                                                              .requires(childBuilder.getRequirement())
-                                                              .redirect(readyChild);
-                parentNodeBuilder.then(aliasNode);
+            if (innerChild instanceof LiteralCommandNode) {
+                //adding aliases for the literal child
+                LiteralCommandNode<S> literalImperatCommandNode = (LiteralCommandNode<S>) innerChild;
+                //child is sub-command/literal, check if that literal (sub-cmd) has aliases,
+                for (var alias : literalImperatCommandNode.getData().aliases()) {
+                    com.mojang.brigadier.tree.LiteralCommandNode<BS>
+                            aliasBrigNode = cloneWithDiffName((com.mojang.brigadier.tree.LiteralCommandNode<BS>) innerChildBrigNode, alias);
+                    builtCurrentNode.addChild(aliasBrigNode);
+                }
+
             }
-
         }
 
-        return readyChild;
+
+        return builtCurrentNode;
     }
 
-
-    private @NotNull <T> SuggestionProvider<T> createSuggestionProvider(
+    private @NotNull <BS> SuggestionProvider<BS> createSuggestionProvider(
             Command<S> command,
             Argument<S> parameter
     ) {
