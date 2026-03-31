@@ -61,10 +61,11 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
     private final Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
 
-    private boolean supportBrigadier = false;
+    private boolean supportBrigadier;
 
-    BukkitConfigBuilder(Plugin plugin) {
+    BukkitConfigBuilder(Plugin plugin, boolean supportBrigadier) {
         this.plugin = plugin;
+        this.supportBrigadier = supportBrigadier;
         config.setPermissionResolver(DEFAULT_PERMISSION_RESOLVER);
         registerBukkitResponses();
         registerSourceResolvers();
@@ -138,12 +139,8 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
         config.registerArgType(TargetSelector.class, new TargetSelectorArgument());
     }
 
-    public void setAdventureProvider(AdventureProvider<CommandSender> adventureProvider) {
+    public BukkitConfigBuilder setAdventureProvider(AdventureProvider<CommandSender> adventureProvider) {
         this.adventureProvider = adventureProvider;
-    }
-
-    public BukkitConfigBuilder applyBrigadier(boolean supportBrigadier) {
-        this.supportBrigadier = supportBrigadier;
         return this;
     }
 

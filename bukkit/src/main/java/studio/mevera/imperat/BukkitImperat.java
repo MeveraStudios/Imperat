@@ -106,7 +106,19 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
      * @return a new BukkitConfigBuilder for further configuration
      */
     public static BukkitConfigBuilder builder(Plugin plugin) {
-        return new BukkitConfigBuilder(plugin);
+        return new BukkitConfigBuilder(plugin, false);
+    }
+
+    /**
+     * Creates a new configuration builder for BukkitImperat.
+     * This is the recommended way to create and configure a BukkitImperat instance.
+     *
+     * @param plugin the plugin instance that will own this Imperat instance
+     * @param integrateWithBrigadier whether to enable Brigadier integration (Paper only)
+     * @return a new BukkitConfigBuilder for further configuration
+     */
+    public static BukkitConfigBuilder builder(Plugin plugin, boolean integrateWithBrigadier) {
+        return new BukkitConfigBuilder(plugin, integrateWithBrigadier);
     }
 
     @Override
