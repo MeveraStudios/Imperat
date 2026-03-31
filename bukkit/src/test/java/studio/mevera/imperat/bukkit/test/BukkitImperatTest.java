@@ -58,8 +58,9 @@ class BukkitImperatTest {
             var res = imperat.execute(source, alias);
 
             // Verify the player received the correct message
-            Assertions.assertEquals("Invalid command usage '/" + alias + "', you probably meant '/" + alias + " <name> <message...>'",
+            Assertions.assertEquals("§cInvalid command usage: '/" + alias + "'",
                     player.nextMessage());
+            Assertions.assertEquals("You probably meant '/" + alias + " <name> <message...>'", player.nextMessage());
         }
 
     }
