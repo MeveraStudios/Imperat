@@ -89,10 +89,8 @@ public final class CommodoreProvider {
     }
 
     private static void printDebugInfo(BukkitImperat imperat, Throwable e) {
-        if (System.getProperty("commodore.visualize") != null) {
-            System.err.println("Exception while initialising commodore:");
-            imperat.config().getThrowablePrinter().print(e);
-        }
+        System.err.println("Exception while initialising commodore:");
+        imperat.config().getThrowablePrinter().print(e);
     }
 
     /**
