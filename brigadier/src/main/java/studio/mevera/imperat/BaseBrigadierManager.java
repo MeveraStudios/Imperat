@@ -49,6 +49,19 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         return this.<BS>convertRoot(root).build();
     }
 
+    private static <S extends CommandSource, BS> void injectCommandNodeAliasesIntoBrigadier(
+            LiteralCommandNode<S> imperatCommandNode,
+            com.mojang.brigadier.tree.LiteralCommandNode<BS> brigCommandNode,
+            LiteralArgumentBuilder<BS> parentBrigNodeBuilder
+    ) {
+        //child is sub-command/literal, check if that literal (sub-cmd) has aliases,
+        for (var alias : imperatCommandNode.getData().aliases()) {
+            com.mojang.brigadier.tree.LiteralCommandNode<BS>
+                    aliasBrigNode = cloneWithDiffName(brigCommandNode, alias);
+            parentBrigNodeBuilder.then(aliasBrigNode);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private <BS> LiteralArgumentBuilder<BS> convertRoot(LiteralCommandNode<S> root) {
         LiteralArgumentBuilder<BS> builder = (LiteralArgumentBuilder<BS>)
@@ -67,13 +80,11 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
 
             if (child instanceof LiteralCommandNode) {
                 //adding aliases for the literal child
-                LiteralCommandNode<S> literalImperatCommandNode = (LiteralCommandNode<S>) child;
-                //child is sub-command/literal, check if that literal (sub-cmd) has aliases,
-                for (var alias : literalImperatCommandNode.getData().aliases()) {
-                    com.mojang.brigadier.tree.LiteralCommandNode<BS>
-                            aliasBrigNode = cloneWithDiffName((com.mojang.brigadier.tree.LiteralCommandNode<BS>) innerChildBrigNode, alias);
-                    builder.then(aliasBrigNode);
-                }
+                injectCommandNodeAliasesIntoBrigadier(
+                        (LiteralCommandNode<S>) child,
+                        (com.mojang.brigadier.tree.LiteralCommandNode<BS>) innerChildBrigNode,
+                        builder
+                );
 
             }
         }
@@ -130,27 +141,24 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             return childBuilder.build();
         }
 
-        var builtCurrentNode = childBuilder.build();
 
         for (var innerChild : currentImperatNode.getChildren()) {
             var innerChildBrigNode = this.<BS>convertImperatNodeToBrigadierNode(rootImperatNode, innerChild);
-            builtCurrentNode.addChild(innerChildBrigNode);
+            childBuilder.then(innerChildBrigNode);
 
-            if (innerChild instanceof LiteralCommandNode) {
+            if (innerChild instanceof LiteralCommandNode && childBuilder instanceof LiteralArgumentBuilder) {
                 //adding aliases for the literal child
-                LiteralCommandNode<S> literalImperatCommandNode = (LiteralCommandNode<S>) innerChild;
-                //child is sub-command/literal, check if that literal (sub-cmd) has aliases,
-                for (var alias : literalImperatCommandNode.getData().aliases()) {
-                    com.mojang.brigadier.tree.LiteralCommandNode<BS>
-                            aliasBrigNode = cloneWithDiffName((com.mojang.brigadier.tree.LiteralCommandNode<BS>) innerChildBrigNode, alias);
-                    builtCurrentNode.addChild(aliasBrigNode);
-                }
+                injectCommandNodeAliasesIntoBrigadier(
+                        (LiteralCommandNode<S>) innerChild,
+                        (com.mojang.brigadier.tree.LiteralCommandNode<BS>) innerChildBrigNode,
+                        (LiteralArgumentBuilder<BS>) childBuilder
+                );
 
             }
         }
 
 
-        return builtCurrentNode;
+        return childBuilder.build();
     }
 
     private @NotNull <BS> SuggestionProvider<BS> createSuggestionProvider(
