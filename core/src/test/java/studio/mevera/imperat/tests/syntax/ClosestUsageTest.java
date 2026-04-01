@@ -34,12 +34,12 @@ public class ClosestUsageTest extends BaseImperatTest {
         InvalidSyntaxException ex = (InvalidSyntaxException) result.getError();
         assertNotNull(ex, "InvalidSyntaxException should not be null");
 
-        String closestUsage = ex.getClosestUsage();
-        System.out.println("Closest usage: " + closestUsage);
+        var closestUsage = ex.getClosestUsage();
+        System.out.println("Closest usage: " + closestUsage.formatted());
 
         // The exception should always carry a closest usage hint
         assertNotNull(closestUsage, "Closest usage should not be null");
-        assertTrue(closestUsage.contains("req"), "Closest usage should reference the command");
+        assertTrue(closestUsage.formatted().equals("<a> <b> <c> <d>"), "Closest usage should be valid");
     }
 
 
