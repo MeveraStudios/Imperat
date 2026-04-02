@@ -71,6 +71,7 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitCom
     public @NotNull ArgumentType<?> getArgumentType(Argument<BukkitCommandSource> parameter) {
         var paramType = parameter.type();
         if (paramType instanceof BukkitArgumentType<?> bukkitParamType) {
+            System.out.println("Param '" + parameter.getName() + "' is of type: " + paramType.type().getTypeName() + "' IS BUKKIT PARAM !!");
             if (bukkitParamType.isSupported()) {
                 return bukkitParamType.getArgType();
             } else {
@@ -78,6 +79,7 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitCom
                         "The parameter type " + paramType.getClass().getName() + " is not supported in the current server version.");
             }
         } else if (parameter.isNumeric()) {
+            System.out.println("param '" + parameter.getName() + "' is NUMERIC");
             return NumericArgUtil.numeric(parameter.valueType(), parameter.asNumeric().getRange());
         }
 

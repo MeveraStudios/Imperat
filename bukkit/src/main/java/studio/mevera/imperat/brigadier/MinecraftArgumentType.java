@@ -36,7 +36,7 @@ public enum MinecraftArgumentType {
     /**
      * A regular message.
      */
-    MESSAGE("ArgumentChat", "network.chat.Component", 1),
+    //MESSAGE("ArgumentChat", "network.chat.Component", 1),
 
     /**
      * An NBT value.
@@ -71,12 +71,12 @@ public enum MinecraftArgumentType {
     /**
      * Something that can join a team.
      */
-    SCORE_HOLDER("ArgumentScoreholder", "java.lang.String", 1),
+    //SCORE_HOLDER("ArgumentScoreholder", "java.lang.String", 1),
 
     /**
      * The name of a team.
      */
-    TEAM("ArgumentScoreboardTeam", "java.lang.String", 1),
+    //TEAM("ArgumentScoreboardTeam", "java.lang.String", 1),
 
     /**
      * A scoreboard operation.
@@ -91,12 +91,12 @@ public enum MinecraftArgumentType {
     /**
      * Represents an angle.
      */
-    ANGLE("ArgumentAngle", "java.lang.Float", 1),
+    //ANGLE("ArgumentAngle", "java.lang.Float", 1),
 
     /**
      * A name for an inventory slot.
      */
-    ITEM_SLOT("ArgumentInventorySlot", "java.lang.Integer", 1),
+    //ITEM_SLOT("ArgumentInventorySlot", "java.lang.Integer", 1),
 
     /**
      * An Identifier.
@@ -116,17 +116,17 @@ public enum MinecraftArgumentType {
     /**
      * Represents an entity summon.
      */
-    ENTITY_SUMMON("ArgumentEntitySummon", "resources.ResourceLocation", 1),
+    //ENTITY_SUMMON("ArgumentEntitySummon", "resources.ResourceLocation", 1),
 
     /**
      * Represents a dimension.
      */
-    DIMENSION("ArgumentDimension", "resources.ResourceLocation", 1),
+    //DIMENSION("ArgumentDimension", "resources.ResourceLocation", 1),
 
     /**
      * Represents a time duration.
      */
-    TIME("ArgumentTime", "java.lang.Integer", 1),
+    //TIME("ArgumentTime", "java.lang.Integer", 1),
 
     /**
      * Represents a UUID value.
@@ -186,7 +186,7 @@ public enum MinecraftArgumentType {
     /**
      * A function.
      */
-    FUNCTION("item.ArgumentTag", "resources.ResourceLocation", 1),
+    //FUNCTION("item.ArgumentTag", "resources.ResourceLocation", 1),
 
     /**
      * Entity anchor (feet/eyes).
