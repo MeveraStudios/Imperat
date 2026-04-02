@@ -126,15 +126,15 @@ public interface Argument<S extends CommandSource> extends PermissionHolder, Des
         return new ArgumentBuilder<>(name, ArgumentTypes.string(), true, true);
     }
 
-    static <S extends CommandSource, T> FlagBuilder<S, T> flag(
+    static <S extends CommandSource, T> FlagArgumentBuilder<S, T> flag(
             String name,
             ArgumentType<S, T> inputType
     ) {
-        return FlagBuilder.ofFlag(name, inputType);
+        return FlagArgumentBuilder.ofFlag(name, inputType);
     }
 
-    static <S extends CommandSource> FlagBuilder<S, Boolean> flagSwitch(String name) {
-        return FlagBuilder.ofSwitch(name);
+    static <S extends CommandSource> FlagArgumentBuilder<S, Boolean> flagSwitch(String name) {
+        return FlagArgumentBuilder.ofSwitch(name);
     }
 
     static <S extends CommandSource> Command<S> literal(Imperat<S> imperat, String... names) {
@@ -309,11 +309,11 @@ public interface Argument<S extends CommandSource> extends PermissionHolder, Des
     void setFormat(String format);
 
     default boolean isNumeric() {
-        return this instanceof NumericParameter;
+        return this instanceof NumericArgument;
     }
 
-    default NumericParameter<S> asNumeric() {
-        return (NumericParameter<S>) this;
+    default NumericArgument<S> asNumeric() {
+        return (NumericArgument<S>) this;
     }
 
     /**

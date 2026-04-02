@@ -95,8 +95,8 @@ final class ResponseRegistryImpl implements ResponseRegistry {
 
         // Complex validation exceptions
 
-        // NumberOutOfRangeException: String originalInput, NumericParameter<?> parameter, Number value, NumericRange range
-        // NumericParameter has: format(), name(), description(), type(), defaultValue(), range()
+        // NumberOutOfRangeException: String originalInput, NumericArgument<?> parameter, Number value, NumericRange range
+        // NumericArgument has: format(), name(), description(), type(), defaultValue(), range()
         // NumericRange has: getMin(), getMax()
         registerResponse(
                 new Response(ResponseKey.NUMBER_OUT_OF_RANGE, () -> "Value '%parsed_input%' entered for argument '%formatted_argument%' must be "

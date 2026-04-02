@@ -13,7 +13,7 @@ import studio.mevera.imperat.providers.SuggestionProvider;
 import java.util.Objects;
 
 @ApiStatus.Internal
-public final class FlagArgumentImpl<S extends CommandSource> extends InputParameter<S> implements FlagArgument<S> {
+public final class FlagArgumentImpl<S extends CommandSource> extends InputArgument<S> implements FlagArgument<S> {
 
     private final FlagData<S> flag;
     private final DefaultValueProvider inputValueSupplier;

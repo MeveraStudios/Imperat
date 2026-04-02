@@ -1,21 +1,20 @@
 package studio.mevera.imperat.annotations.parameters;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.InputParameter;
-import studio.mevera.imperat.command.arguments.NumericParameter;
+import studio.mevera.imperat.command.arguments.InputArgument;
+import studio.mevera.imperat.command.arguments.NumericArgument;
 import studio.mevera.imperat.command.arguments.NumericRange;
 import studio.mevera.imperat.command.arguments.validator.RangeValidator;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.providers.SuggestionProvider;
 
-public final class NumericArgumentDecorator<S extends CommandSource> extends InputParameter<S> implements NumericParameter<S> {
+public final class NumericArgumentDecorator<S extends CommandSource> extends InputArgument<S> implements NumericArgument<S> {
 
     private final Argument<S> parameter;
-    private final NumericRange range;
+    private final @NotNull NumericRange range;
 
-    NumericArgumentDecorator(Argument<S> parameter, NumericRange range) {
+    NumericArgumentDecorator(Argument<S> parameter, @NotNull NumericRange range) {
         super(
                 parameter.getName(), parameter.type(), parameter.getPermissionsData(),
                 parameter.getDescription(), parameter.isOptional(), parameter.isFlag(),
@@ -64,11 +63,11 @@ public final class NumericArgumentDecorator<S extends CommandSource> extends Inp
     }
 
     /**
-     * @return The actual range of the numeric parameter
-     * returns null if no range is specified!
+     * @return The actual range of the numeric argument.
+     * returns the range for the numeric arg, may be empty, but the instance is never null!
      */
     @Override
-    public @Nullable NumericRange getRange() {
+    public @NotNull NumericRange getRange() {
         return range;
     }
 

@@ -7,7 +7,7 @@ import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.ArgumentBuilder;
 import studio.mevera.imperat.command.arguments.FlagArgument;
-import studio.mevera.imperat.command.arguments.FlagBuilder;
+import studio.mevera.imperat.command.arguments.FlagArgumentBuilder;
 import studio.mevera.imperat.command.cooldown.CooldownHandler;
 import studio.mevera.imperat.command.cooldown.CooldownRecord;
 import studio.mevera.imperat.command.flags.FlagExtractor;
@@ -413,8 +413,8 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
         }
 
         @SafeVarargs
-        public final Builder<S> withFlags(FlagBuilder<S, ?>... flagBuilders) {
-            this.flagArguments.addAll(Arrays.stream(flagBuilders).map(FlagBuilder::build).toList());
+        public final Builder<S> withFlags(FlagArgumentBuilder<S, ?>... flagArgumentBuilders) {
+            this.flagArguments.addAll(Arrays.stream(flagArgumentBuilders).map(FlagArgumentBuilder::build).toList());
             return this;
         }
 

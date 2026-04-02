@@ -7,15 +7,15 @@ import studio.mevera.imperat.annotations.base.element.ParameterElement;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
-import studio.mevera.imperat.command.arguments.InputParameter;
-import studio.mevera.imperat.command.arguments.NumericParameter;
+import studio.mevera.imperat.command.arguments.InputArgument;
+import studio.mevera.imperat.command.arguments.NumericArgument;
 import studio.mevera.imperat.context.CommandSource;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 
-public final class AnnotationArgumentDecorator<S extends CommandSource> extends InputParameter<S> implements AnnotatedArgument<S> {
+public final class AnnotationArgumentDecorator<S extends CommandSource> extends InputArgument<S> implements AnnotatedArgument<S> {
 
     private final Argument<S> parameter;
     private final ParameterElement element;
@@ -95,7 +95,7 @@ public final class AnnotationArgumentDecorator<S extends CommandSource> extends 
     }
 
     @Override
-    public NumericParameter<S> asNumeric() {
+    public NumericArgument<S> asNumeric() {
         return parameter.asNumeric();
     }
 }

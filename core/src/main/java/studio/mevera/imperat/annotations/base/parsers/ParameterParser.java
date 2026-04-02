@@ -121,19 +121,19 @@ final class ParameterParser<S extends CommandSource> {
             argument.setFormat(config.replacePlaceholders(formatAnn.value()));
         }
 
-        if (TypeUtility.isNumericType(TypeWrap.of(param.getType()))
-                    && param.isAnnotationPresent(Range.class)) {
-            Range range = param.getAnnotation(Range.class);
-            assert range != null;
-            argument = NumericArgumentDecorator.decorate(
-                    argument, NumericRange.of(range.min(), range.max())
+        argument = AnnotationArgumentDecorator.decorate(
+                argument, param
+        );
+
+        if (TypeUtility.isNumericType(TypeWrap.of(param.getType()))) {
+            Range rangeAnn = param.getAnnotation(Range.class);
+            NumericRange numericRange = rangeAnn != null ? NumericRange.of(rangeAnn.min(), rangeAnn.max()) : NumericRange.empty();
+            return NumericArgumentDecorator.decorate(
+                    argument, numericRange
             );
         }
 
-
-        return AnnotationArgumentDecorator.decorate(
-                argument, param
-        );
+        return argument;
     }
 
     @SuppressWarnings("unchecked")

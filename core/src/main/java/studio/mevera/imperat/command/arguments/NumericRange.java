@@ -30,7 +30,14 @@ public final class NumericRange {
     }
 
     public static NumericRange empty() {
-        return of(-Double.MAX_VALUE, Double.MAX_VALUE);
+        NumericRange range = of(-Double.MAX_VALUE, Double.MAX_VALUE);
+        range.hasMin = false;
+        range.hasMax = false;
+        return range;
+    }
+
+    public boolean isEmpty() {
+        return !hasMin && !hasMax;
     }
 
     public boolean matches(double value) {

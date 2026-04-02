@@ -5,7 +5,7 @@ import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.NumericRange;
 import studio.mevera.imperat.util.TypeUtility;
 
@@ -15,10 +15,10 @@ class NumericArgUtil {
 
     static ArgumentType<? extends Number> numeric(
             Type type,
-            @Nullable NumericRange range
+            @NotNull NumericRange range
     ) {
         if (TypeUtility.matches(type, int.class)) {
-            if (range == null) {
+            if (range.isEmpty()) {
                 return IntegerArgumentType.integer();
             } else if (range.hasMin() && range.hasMax()) {
                 return IntegerArgumentType.integer((int) range.getMin(), (int) range.getMax());
@@ -28,7 +28,7 @@ class NumericArgUtil {
                 return IntegerArgumentType.integer(-Integer.MAX_VALUE, (int) range.getMax());
             }
         } else if (TypeUtility.matches(type, long.class)) {
-            if (range == null) {
+            if (range.isEmpty()) {
                 return LongArgumentType.longArg();
             } else if (range.hasMin() && range.hasMax()) {
                 return LongArgumentType.longArg((long) range.getMin(), (long) range.getMax());
@@ -38,7 +38,7 @@ class NumericArgUtil {
                 return LongArgumentType.longArg(-Long.MAX_VALUE, (long) range.getMax());
             }
         } else if (TypeUtility.matches(type, float.class)) {
-            if (range == null) {
+            if (range.isEmpty()) {
                 return FloatArgumentType.floatArg();
             } else if (range.hasMin() && range.hasMax()) {
                 return FloatArgumentType.floatArg((float) range.getMin(), (float) range.getMax());
@@ -48,7 +48,7 @@ class NumericArgUtil {
                 return FloatArgumentType.floatArg(-Float.MAX_VALUE, (float) range.getMax());
             }
         } else if (TypeUtility.matches(type, double.class)) {
-            if (range == null) {
+            if (range.isEmpty()) {
                 return DoubleArgumentType.doubleArg();
             } else if (range.hasMin() && range.hasMax()) {
                 return DoubleArgumentType.doubleArg(range.getMin(), range.getMax());
@@ -63,7 +63,7 @@ class NumericArgUtil {
     }
 
     private static ArgumentType<? extends Number> numeric(Type type) {
-        return numeric(type, null);
+        return numeric(type, NumericRange.empty());
     }
 
 }

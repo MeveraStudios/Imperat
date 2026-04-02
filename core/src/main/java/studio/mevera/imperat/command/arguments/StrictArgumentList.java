@@ -5,7 +5,7 @@ import studio.mevera.imperat.context.CommandSource;
 import java.util.Collection;
 import java.util.LinkedList;
 
-public final class StrictParameterList<S extends CommandSource> extends LinkedList<Argument<S>> {
+public final class StrictArgumentList<S extends CommandSource> extends LinkedList<Argument<S>> {
 
     @Override
     public void addFirst(Argument<S> parameter) {

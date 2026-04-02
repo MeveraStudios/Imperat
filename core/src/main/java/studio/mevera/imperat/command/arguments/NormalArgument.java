@@ -9,7 +9,7 @@ import studio.mevera.imperat.permissions.PermissionsData;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.StringUtils;
 
-class NormalArgument<S extends CommandSource> extends InputParameter<S> {
+class NormalArgument<S extends CommandSource> extends InputArgument<S> {
 
     NormalArgument(String name,
             ArgumentType<S, ?> type,

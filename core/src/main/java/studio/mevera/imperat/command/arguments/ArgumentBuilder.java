@@ -13,7 +13,7 @@ import studio.mevera.imperat.util.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
 
-public sealed class ArgumentBuilder<S extends CommandSource, T> permits FlagBuilder {
+public sealed class ArgumentBuilder<S extends CommandSource, T> permits FlagArgumentBuilder {
 
     protected final String name;
     protected final List<ArgValidator<S>> validators = new ArrayList<>();

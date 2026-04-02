@@ -11,43 +11,43 @@ import studio.mevera.imperat.providers.SuggestionProvider;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class FlagBuilder<S extends CommandSource, T> extends ArgumentBuilder<S, ParsedFlagArgument<S>> {
+public final class FlagArgumentBuilder<S extends CommandSource, T> extends ArgumentBuilder<S, ParsedFlagArgument<S>> {
 
     private final ArgumentType<S, T> inputType;
     private final List<String> aliases = new ArrayList<>();
     private DefaultValueProvider defaultValueSupplier;
     private SuggestionProvider<S> suggestionProvider;
 
-    private FlagBuilder(String name, @Nullable ArgumentType<S, T> inputType) {
+    private FlagArgumentBuilder(String name, @Nullable ArgumentType<S, T> inputType) {
         super(name, ArgumentTypes.flag(FlagData.create(name, List.of(), inputType)), true, false);
         this.inputType = inputType;
         this.defaultValueSupplier = inputType == null ? DefaultValueProvider.of("false") : inputType.getDefaultValueProvider();
     }
 
     //for switches
-    private FlagBuilder(String name) {
+    private FlagArgumentBuilder(String name) {
         this(name, null);
     }
 
-    public static <S extends CommandSource, T> FlagBuilder<S, T> ofFlag(String name, ArgumentType<S, T> inputType) {
-        return new FlagBuilder<>(name, inputType);
+    public static <S extends CommandSource, T> FlagArgumentBuilder<S, T> ofFlag(String name, ArgumentType<S, T> inputType) {
+        return new FlagArgumentBuilder<>(name, inputType);
     }
 
-    public static <S extends CommandSource, T> FlagBuilder<S, T> ofSwitch(String name) {
-        return new FlagBuilder<>(name);
+    public static <S extends CommandSource, T> FlagArgumentBuilder<S, T> ofSwitch(String name) {
+        return new FlagArgumentBuilder<>(name);
     }
 
-    public FlagBuilder<S, T> aliases(List<String> aliases) {
+    public FlagArgumentBuilder<S, T> aliases(List<String> aliases) {
         this.aliases.addAll(aliases);
         return this;
     }
 
-    public FlagBuilder<S, T> aliases(String... aliases) {
+    public FlagArgumentBuilder<S, T> aliases(String... aliases) {
         this.aliases.addAll(List.of(aliases));
         return this;
     }
 
-    public FlagBuilder<S, T> flagDefaultInputValue(DefaultValueProvider valueSupplier) {
+    public FlagArgumentBuilder<S, T> flagDefaultInputValue(DefaultValueProvider valueSupplier) {
         if (inputType == null) {
             throw new IllegalArgumentException("Flag of valueType switches, cannot have a default value supplier !");
         }
@@ -55,7 +55,7 @@ public final class FlagBuilder<S extends CommandSource, T> extends ArgumentBuild
         return this;
     }
 
-    public FlagBuilder<S, T> suggestForInputValue(SuggestionProvider<S> suggestionProvider) {
+    public FlagArgumentBuilder<S, T> suggestForInputValue(SuggestionProvider<S> suggestionProvider) {
         if (inputType == null) {
             throw new IllegalArgumentException("Flag of valueType switches, cannot have a default value supplier !");
         }

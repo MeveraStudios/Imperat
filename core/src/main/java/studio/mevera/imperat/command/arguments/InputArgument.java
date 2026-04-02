@@ -24,7 +24,7 @@ import studio.mevera.imperat.util.priority.PriorityList;
 import java.util.Objects;
 
 @ApiStatus.Internal
-public abstract class InputParameter<S extends CommandSource> implements Argument<S> {
+public abstract class InputArgument<S extends CommandSource> implements Argument<S> {
 
     protected final String name;
     protected final ArgumentType<S, ?> type;
@@ -38,7 +38,7 @@ public abstract class InputParameter<S extends CommandSource> implements Argumen
     protected Description description;
     protected int index;
 
-    protected InputParameter(
+    protected InputArgument(
             String name,
             @NotNull ArgumentType<S, ?> type,
             @NotNull PermissionsData permissionsData,
@@ -244,7 +244,7 @@ public abstract class InputParameter<S extends CommandSource> implements Argumen
         if (this == o) {
             return true;
         }
-        if (!(o instanceof InputParameter<?> that)) {
+        if (!(o instanceof InputArgument<?> that)) {
             return false;
         }
         return Objects.equals(parentCommand, that.parentCommand)
