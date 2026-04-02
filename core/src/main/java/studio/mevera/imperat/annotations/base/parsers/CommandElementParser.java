@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.base.AnnotationParser;
+import studio.mevera.imperat.annotations.base.ExecutorServiceProvider;
 import studio.mevera.imperat.annotations.base.MethodCommandExecutor;
 import studio.mevera.imperat.annotations.base.element.ClassElement;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
@@ -494,7 +495,10 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         }
 
         if (method.isAnnotationPresent(Async.class)) {
-            builder.coordinator(CommandCoordinator.async());
+            var ann = method.getAnnotation(Async.class);
+            assert ann != null;
+            ExecutorServiceProvider serviceProvider = config.getInstanceFactory().createInstance(config, ann.value());
+            builder.coordinator(CommandCoordinator.async(serviceProvider.provideExecutorService()));
         }
 
         return builder;

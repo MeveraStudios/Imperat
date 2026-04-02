@@ -1,15 +1,12 @@
 package studio.mevera.imperat.command;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ForkJoinPool;
 
 public interface CommandCoordinator<S extends CommandSource> {
 
@@ -19,18 +16,9 @@ public interface CommandCoordinator<S extends CommandSource> {
         };
     }
 
-    static <S extends CommandSource> CommandCoordinator<S> async(final @Nullable ExecutorService service) {
-        return ((api, source, context, execution) -> {
-            ExecutorService executorService = service;
-            if (executorService == null) {
-                executorService = ForkJoinPool.commonPool();
-            }
-            CompletableFuture.runAsync((UnsafeRunnable) () -> execution.execute(source, context), executorService);
-        });
-    }
-
-    static <S extends CommandSource> CommandCoordinator<S> async() {
-        return async(null);
+    static <S extends CommandSource> CommandCoordinator<S> async(final @NotNull ExecutorService executorService) {
+        return ((api, source, context, execution) ->
+                        CompletableFuture.runAsync((UnsafeRunnable) () -> execution.execute(source, context), executorService));
     }
 
     void coordinate(
