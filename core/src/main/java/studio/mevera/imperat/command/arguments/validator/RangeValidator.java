@@ -12,12 +12,19 @@ public final class RangeValidator<S extends CommandSource> implements ArgValidat
     @Override
     public void validate(CommandContext<S> context, ParsedArgument<S> parsedArgument) throws CommandException {
         Object value = parsedArgument.getArgumentParsedValue();
+        if (value == null) {
+            return;
+        }
         if (value instanceof Number number) {
             double doubleValue = number.doubleValue();
             var param = parsedArgument.getOriginalArgument().asNumeric();
             var range = param.getRange();
 
-            if (range != null && !range.matches(doubleValue)) {
+            if (range.isEmpty()) {
+                return;
+            }
+
+            if (!range.matches(doubleValue)) {
                 // Build range description
                 final StringBuilder rangeBuilder = new StringBuilder();
                 if (range.getMin() != Double.MIN_VALUE && range.getMax() != Double.MAX_VALUE) {
@@ -41,7 +48,9 @@ public final class RangeValidator<S extends CommandSource> implements ArgValidat
             }
 
         } else {
-            throw new CommandException("Argument '" + parsedArgument.getArgumentName() + "' is not a number.");
+            throw new CommandException(
+                    "Argument '" + parsedArgument.getArgumentName() + "' is not a number, its of type '" + parsedArgument.getOriginalArgument().type()
+                                                                                                                   .type().getTypeName());
         }
     }
 }
