@@ -18,7 +18,18 @@ public interface CommandCoordinator<S extends CommandSource> {
 
     static <S extends CommandSource> CommandCoordinator<S> async(final @NotNull ExecutorService executorService) {
         return ((api, source, context, execution) ->
-                        CompletableFuture.runAsync((UnsafeRunnable) () -> execution.execute(source, context), executorService));
+                        CompletableFuture.runAsync(() -> {
+                            try {
+                                execution.execute(source, context);
+                            } catch (Throwable throwable) {
+                                api.config().handleExecutionError(
+                                        throwable,
+                                        context,
+                                        CommandCoordinator.class,
+                                        "async(executorService)"
+                                );
+                            }
+                        }, executorService));
     }
 
     void coordinate(
