@@ -7,6 +7,7 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.permissions.PermissionHolder;
 
 /**
  * Represents the result of a direct tree execution.
@@ -22,6 +23,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
     private final @Nullable ExecutionContext<S> executionContext;
     private final @Nullable CommandPathway<S> matchedPathway;
     private final @NotNull CommandPathway<S> closestUsage;
+    private final @Nullable PermissionHolder deniedPermissionHolder;
     private final @NotNull Command<S> lastCommand;
 
     private TreeExecutionResult(
@@ -29,12 +31,14 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @Nullable ExecutionContext<S> executionContext,
             @NotNull CommandPathway<S> closestUsage,
             @Nullable CommandPathway<S> matchedPathway,
+            @Nullable PermissionHolder deniedPermissionHolder,
             @NotNull Command<S> lastCommand
     ) {
         this.status = status;
         this.executionContext = executionContext;
         this.closestUsage = closestUsage;
         this.matchedPathway = matchedPathway;
+        this.deniedPermissionHolder = deniedPermissionHolder;
         this.lastCommand = lastCommand;
     }
 
@@ -47,7 +51,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @NotNull CommandPathway<S> matchedPathway,
             @NotNull Command<S> lastCommand
     ) {
-        return new TreeExecutionResult<>(Status.SUCCESS, executionContext, closestUsage, matchedPathway, lastCommand);
+        return new TreeExecutionResult<>(Status.SUCCESS, executionContext, closestUsage, matchedPathway, null, lastCommand);
     }
 
     /**
@@ -55,10 +59,12 @@ public final class TreeExecutionResult<S extends CommandSource> {
      */
     public static <S extends CommandSource> TreeExecutionResult<S> permissionDenied(
             @Nullable CommandPathway<S> closestUsage,
+            @Nullable PermissionHolder deniedPermissionHolder,
             @NotNull Command<S> lastCommand
     ) {
         return new TreeExecutionResult<>(Status.PERMISSION_DENIED, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage,
                 closestUsage,
+                deniedPermissionHolder,
                 lastCommand);
     }
 
@@ -70,7 +76,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @NotNull Command<S> lastCommand
     ) {
         return new TreeExecutionResult<>(Status.NO_MATCH, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage, closestUsage,
-                lastCommand);
+                null, lastCommand);
     }
 
     public @NotNull Status getStatus() {
@@ -88,6 +94,11 @@ public final class TreeExecutionResult<S extends CommandSource> {
     public @NotNull CommandPathway<S> getClosestUsage() {
         return closestUsage;
     }
+
+    public @Nullable PermissionHolder getDeniedPermissionHolder() {
+        return deniedPermissionHolder;
+    }
+
     public @NotNull Command<S> getLastCommand() {
         return lastCommand;
     }
@@ -122,4 +133,3 @@ public final class TreeExecutionResult<S extends CommandSource> {
         NO_MATCH
     }
 }
-

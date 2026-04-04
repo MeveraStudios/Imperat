@@ -1,5 +1,6 @@
 package studio.mevera.imperat.tests.enhanced;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -81,5 +82,15 @@ public class CommandPermissionConditionTest extends BaseImperatTest {
         assertTrue(cond.has(user1, CHECKER));
         assertTrue(cond.has(user2, CHECKER));
         assertFalse(cond.has(user3, CHECKER));
+    }
+
+    @Test
+    void testCheckReturnsFirstFailedPermission() {
+        CommandPermissionCondition cond = CommandPermissionCondition.fromText("A & (B | C)");
+
+        var result = cond.check(user("A"), CHECKER);
+
+        assertFalse(result.right());
+        assertEquals("B", result.left());
     }
 }

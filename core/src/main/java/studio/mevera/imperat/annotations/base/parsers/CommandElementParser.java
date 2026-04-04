@@ -82,6 +82,29 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         return commands;
     }
 
+    private Command<S> parseMetaDataForCmd(Command<S> command, ParseElement<?> element) {
+        Permission[] permAnnotations = element.getAnnotationsByType(Permission.class);
+        PermissionsData permMeta = null;
+        for (Permission permissionAnn : permAnnotations) {
+            String permLine = config.replacePlaceholders(permissionAnn.value());
+            if (permMeta == null) {
+                permMeta = PermissionsData.fromText(permLine);
+            } else {
+                permMeta.append(PermissionsData.fromText(permLine));
+            }
+        }
+        if (permMeta != null) {
+            command.setPermissionData(permMeta);
+        }
+
+        Description descriptionAnn = element.getAnnotation(Description.class);
+        if (descriptionAnn != null) {
+            command.describe(descriptionAnn.value());
+        }
+
+        return command;
+    }
+
     @SuppressWarnings("unchecked")
     protected <E extends Throwable> Command<S> parseSpecificClass(@Nullable Command<S> parent, ClassElement clazz) {
         //core
@@ -130,11 +153,11 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             return null;
         }
 
-        //rootless
+        currentCommand = parseMetaDataForCmd(currentCommand, clazz);
+
         if (clazz.isAnnotationPresent(Secret.class)) {
             currentCommand.setSecret(true);
         }
-
 
         //we process methods first, THEN we process classes inside of this class
         var methods = clazz.getChildren()
@@ -353,7 +376,7 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
     }
 
     protected Command<S> parseCommandMethod(@Nullable Command<S> parent, MethodElement method) {
-        Command<S> command = null;
+        Command<S> command;
         if (method.isAnnotationPresent(RootCommand.class)) {
             RootCommand ann = method.getAnnotation(RootCommand.class);
             assert ann != null;
@@ -412,6 +435,8 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                                                     + "with either of these annotations.");
         }*/
 
+        command = parseMetaDataForCmd(command, method);
+
         if (method.isAnnotationPresent(Secret.class)) {
             command.setSecret(true);
         }
@@ -439,8 +464,10 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         }
 
         List<Argument<S>> personalParams = new ArrayList<>();
-        for (ParameterElement param : method.getParameters()) {
-            if (isSenderParameter(param) || param.isAnnotationPresent(InheritedArg.class)) {
+        List<ParameterElement> parameters = method.getParameters();
+        for (int i = 0; i < parameters.size(); i++) {
+            ParameterElement param = parameters.get(i);
+            if ((i == 0 && isSenderParameter(param)) || param.isAnnotationPresent(InheritedArg.class)) {
                 continue;
             }
 
@@ -476,9 +503,11 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             } else {
                 data.append(PermissionsData.fromText(permLine));
             }
-            builder.permission(data);
         }
 
+        if (data != null) {
+            builder.permission(data);
+        }
 
         if (method.isAnnotationPresent(Description.class)) {
             Description ann = method.getAnnotation(Description.class);
@@ -506,11 +535,19 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
 
     CommandPathway.Builder<S> finalizedPathway(MethodElement method, Command<S> owningCommand, CommandPathway.Builder<S> builder) {
 
-        List<Argument<S>> parsedMethodArgs = method.getParameters().stream()
-                                                     .filter((p) -> !isSenderParameter(p))
-                                                     .map((p) -> parseMethodParameter(method, p))
-                                                     .filter(Objects::nonNull)
-                                                     .toList();
+        List<Argument<S>> parsedMethodArgs = new ArrayList<>();
+        List<ParameterElement> parameters = method.getParameters();
+        for (int i = 0; i < parameters.size(); i++) {
+            ParameterElement parameter = parameters.get(i);
+            if (i == 0 && isSenderParameter(parameter)) {
+                continue;
+            }
+
+            Argument<S> argument = parseMethodParameter(method, parameter);
+            if (argument != null) {
+                parsedMethodArgs.add(argument);
+            }
+        }
 
         Shortcut shortcutAnn = method.getAnnotation(Shortcut.class);
         if (shortcutAnn != null) {

@@ -106,12 +106,12 @@ final class ParameterParser<S extends CommandSource> {
             argument = Argument.of(
                     name,
                     type,
-                    parsePermissions(param),
-                    parseDescription(param),
+                    perms,
+                    desc,
                     optional,
                     greedy,
-                    parseDefaultValue(param),
-                    parseSuggestions(param),
+                    defaultValueProvider,
+                    suggestionProviderFunction,
                     validators
             );
         }

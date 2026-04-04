@@ -19,8 +19,10 @@ import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionChecker;
+import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.ImperatDebugger;
+import studio.mevera.imperat.util.Pair;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.TypeUtility;
 
@@ -422,9 +424,10 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     ) throws CommandException {
 
         // Step 1: Check root permission
-        if (!hasPermission(context.source(), root)) {
+        Pair<PermissionHolder, Boolean> rootPermissionResult = permissionChecker.checkPermission(context.source(), root.getData());
+        if (!rootPermissionResult.right()) {
             assert root.getExecutableUsage() != null;
-            return TreeExecutionResult.permissionDenied(root.getExecutableUsage(), rootCommand);
+            return TreeExecutionResult.permissionDenied(root.getExecutableUsage(), rootPermissionResult.left(), rootCommand);
         }
 
         // Step 2: Empty input — execute default pathway
@@ -504,9 +507,11 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         }
 
         // Check permission BEFORE processing
-        if (!hasPermission(context.source(), currentNode)) {
+        Pair<PermissionHolder, Boolean> currentNodePermissionResult = permissionChecker.checkPermission(context.source(), currentNode.getData());
+        if (!currentNodePermissionResult.right()) {
             return TreeExecutionResult.permissionDenied(
                     Objects.requireNonNull(currentNode.isExecutable() ? currentNode.getExecutableUsage() : root.getData().getDefaultPathway()),
+                    currentNodePermissionResult.left(),
                     getCommandFromNode(currentNode)
             );
         }
@@ -713,9 +718,11 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return noMatchFromNode(node);
         }
 
-        if (!hasPermission(context.source(), node)) {
+        Pair<PermissionHolder, Boolean> nodePermissionResult = permissionChecker.checkPermission(context.source(), node.getData());
+        if (!nodePermissionResult.right()) {
             return TreeExecutionResult.permissionDenied(
                     Objects.requireNonNull(node.isExecutable() ? node.getExecutableUsage() : null),
+                    nodePermissionResult.left(),
                     getCommandFromNode(node)
             );
         }
@@ -785,6 +792,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         ExecutionContext<S> executionContext = imperatConfig.getContextFactory()
                                                        .createExecutionContext(context, pathway, lastCommand);
         CommandPathway<S> closestUsage = findClosestUsage(currentNode);
+        assert closestUsage != null;
         return TreeExecutionResult.success(executionContext, closestUsage, pathway, lastCommand);
     }
 
@@ -801,7 +809,11 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      * searching upwards to parents and then down to children.
      */
     private @Nullable CommandPathway<S> findClosestUsage(CommandNode<S, ?> lastNode) {
-        CommandPathway<S> closestUsage = null;
+        CommandPathway<S> closestUsage = root.getData().getDefaultPathway();
+
+        if (lastNode.isLiteral() && lastNode.isExecutable()) {
+            return lastNode.getExecutableUsage();
+        }
 
         Queue<CommandNode<S, ?>> nodes = new LinkedList<>();
         nodes.add(lastNode);
@@ -956,6 +968,10 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return;
         }
 
+        if (!hasAutoCompletionPermission(context.source(), node) || (node.isLiteral() && node.data.asCommand().isSecret())) {
+            return;
+        }
+
         if (inputDepth == lastIndex) {
             // Check if the previous token was a flag — if so, suggest flag values
             if (inputDepth > 0) {
@@ -970,7 +986,9 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 }
             }
 
-            results.addAll(getResolverCached(node.data).provide(context, node.data));
+            var collectedSuggestions = getResolverCached(node.data).provide(context, node.data);
+            results.addAll(collectedSuggestions);
+
             // Also suggest flags at this position
             collectFlagNameSuggestions(node, context, results);
 
@@ -980,9 +998,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         } else {
             String currentInput = context.arguments().getOr(inputDepth, null);
             assert currentInput != null;
-            if (!hasAutoCompletionPermission(context.source(), node)) {
-                return;
-            }
 
             if (node.isGreedyParam()) {
                 tabCompleteNode(node, context, lastIndex, currentLastLiteral, results);

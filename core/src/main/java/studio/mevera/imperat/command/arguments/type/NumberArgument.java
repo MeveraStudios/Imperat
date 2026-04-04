@@ -7,9 +7,14 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.ResponseException;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.priority.Priority;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Collections;
 
 public abstract class NumberArgument<S extends CommandSource, N extends Number> extends ArgumentType<S, N> {
     protected NumberArgument() {
@@ -54,6 +59,7 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
 
     public abstract String display();
 
+    public abstract N cast(double value) throws ClassCastException;
 
     static class IntArgument<S extends CommandSource> extends NumberArgument<S, Integer> {
 
@@ -64,6 +70,12 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public String display() {
             return "integer";
         }
+
+        @Override
+        public Integer cast(double value) throws ClassCastException {
+            return (int) value;
+        }
+
         @Override
         public Integer parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
             try {
@@ -77,6 +89,11 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public @NotNull Priority getPriority() {
             return Priority.NORMAL;
         }
+
+        @Override
+        public SuggestionProvider<S> getSuggestionProvider() {
+            return (ctx, arg) -> Collections.singletonList("0");
+        }
     }
 
 
@@ -89,6 +106,11 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public String display() {
             return "float";
         }
+
+        @Override public Float cast(double value) throws ClassCastException {
+            return (float) value;
+        }
+
         @Override
         public Float parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
             try {
@@ -115,6 +137,12 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public String display() {
             return "long";
         }
+
+        @Override
+        public Long cast(double value) throws ClassCastException {
+            return (long) value;
+        }
+
         @Override
         public Long parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
             try {
@@ -141,6 +169,12 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public String display() {
             return "double";
         }
+
+        @Override
+        public Double cast(double value) throws ClassCastException {
+            return value;
+        }
+
         @Override
         public Double parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
             try {
@@ -166,6 +200,11 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public String display() {
             return "byte";
         }
+
+        @Override public Byte cast(double value) throws ClassCastException {
+            return (byte) value;
+        }
+
         @Override
         public Byte parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
             try {
@@ -192,6 +231,11 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public String display() {
             return "short";
         }
+
+        @Override public Short cast(double value) throws ClassCastException {
+            return (short) value;
+        }
+
         @Override
         public Short parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
             try {
@@ -218,6 +262,11 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public String display() {
             return "big integer";
         }
+
+        @Override public BigInteger cast(double value) throws ClassCastException {
+            return BigInteger.valueOf((long) value);
+        }
+
         @Override
         public java.math.BigInteger parse(@NotNull CommandContext<S> context, @NotNull String input)
                 throws ArgumentParseException, ResponseException {
@@ -245,6 +294,12 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         public String display() {
             return "big decimal";
         }
+
+        @Override
+        public BigDecimal cast(double value) throws ClassCastException {
+            return BigDecimal.valueOf(value);
+        }
+
         @Override
         public java.math.BigDecimal parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
             try {

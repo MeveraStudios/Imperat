@@ -23,12 +23,14 @@ import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
+import studio.mevera.imperat.events.exception.EventException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.permissions.PermissionChecker;
+import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
@@ -37,6 +39,7 @@ import studio.mevera.imperat.providers.DependencySupplier;
 import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseRegistry;
+import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
 
@@ -121,36 +124,20 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
         this.eventBus = EventBus.createDummy();
     }
 
-    private void regDefThrowableResolvers() {
-        // Structural/flow exceptions — reply with their own plain message directly
-        this.setErrorHandler(InvalidSyntaxException.class, (exception, ctx) -> {
-            String invalidUsageFormat = exception.getInvalidUsage();
-            ctx.source().error("Invalid command usage: '" + invalidUsageFormat + "'");
-
-            var closestUsage = exception.getClosestUsage();
-            if (closestUsage != null) {
-                String closestUsageFormat =
-                        ctx.imperatConfig().commandPrefix() + ctx.getRootCommandLabelUsed() +
-                                " " + closestUsage.formatted();
-                ctx.source().reply("You probably meant '" + closestUsageFormat + "'");
-            }
-        });
-        this.setErrorHandler(PermissionDeniedException.class, (exception, context) ->
-                                                                           context.source().reply(exception.getMessage()));
-
-        // All registry-driven exceptions (parse, flag, validation, cooldown, help)
-        this.setErrorHandler(ResponseException.class, (exception, context) -> {
-            var response = this.getResponseRegistry().getResponse(exception.getResponseKey());
-            if (response != null) {
-                response.sendContent(context, exception.getPlaceholderDataProvider());
-            }
-        });
-
-        // Fallback for plain CommandException (message-only, no ResponseKey)
-        this.setErrorHandler(CommandException.class, (exception, context) ->
-                                                                  context.source().reply(exception.getMessage()));
-
-        // InvalidSourceException — system/runtime error, escalate
+    private static @Nullable String formatPermissionHolder(@Nullable PermissionHolder holder) {
+        if (holder == null) {
+            return null;
+        }
+        if (holder instanceof CommandPathway<?> pathway) {
+            return pathway.formatted();
+        }
+        if (holder instanceof Command<?> command) {
+            return command.getName();
+        }
+        if (holder instanceof studio.mevera.imperat.command.arguments.Argument<?> argument) {
+            return argument.format();
+        }
+        return holder.toString();
     }
 
 
@@ -681,5 +668,50 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     @Override
     public boolean hasCoroutineScope() {
         return coroutineScope != null;
+    }
+
+    private void regDefThrowableResolvers() {
+        // Structural/flow exceptions — reply with their own plain message directly
+        this.setErrorHandler(InvalidSyntaxException.class, (exception, ctx) -> {
+            String invalidUsageFormat = exception.getInvalidUsage();
+            ctx.source().error("Invalid command usage: '" + invalidUsageFormat + "'");
+
+            var closestUsage = exception.getClosestUsage();
+            if (closestUsage != null) {
+                String closestUsageFormat =
+                        ctx.imperatConfig().commandPrefix() + ctx.getRootCommandLabelUsed() +
+                                " " + closestUsage.formatted();
+                ctx.source().reply("You probably meant '" + closestUsageFormat + "'");
+            }
+        });
+        this.setErrorHandler(PermissionDeniedException.class, (exception, context) -> {
+            String pathwayFormatted = CommandPathway.format(exception.getLabel(), exception.getExecutingPathway());
+            String message = "You don't have permission to execute: '" + pathwayFormatted + "'";
+            String deniedTarget = formatPermissionHolder(exception.getPermissionIssuer());
+            if (deniedTarget != null && !deniedTarget.isBlank()) {
+                message += " (denied by " + deniedTarget + ")";
+            }
+            context.source().error(message);
+        });
+
+        // All registry-driven exceptions (parse, flag, validation, cooldown, help)
+        this.setErrorHandler(ResponseException.class, (exception, context) -> {
+            var response = this.getResponseRegistry().getResponse(exception.getResponseKey());
+            if (response != null) {
+                response.sendContent(context, exception.getPlaceholderDataProvider());
+            }
+        });
+
+        this.setErrorHandler(EventException.class, (ex, ctx) -> {
+            if (ImperatDebugger.isEnabled()) {
+                ImperatDebugger.debug(ex.getMessage());
+            }
+        });
+
+        // Fallback for plain CommandException (message-only, no ResponseKey)
+        this.setErrorHandler(CommandException.class, (exception, context) ->
+                                                                  context.source().reply(exception.getMessage()));
+
+        // InvalidSourceException — system/runtime error, escalate
     }
 }

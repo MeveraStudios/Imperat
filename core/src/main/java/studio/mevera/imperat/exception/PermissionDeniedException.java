@@ -1,6 +1,10 @@
 package studio.mevera.imperat.exception;
 
-import org.jetbrains.annotations.Nullable;
+import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.command.CommandPathway;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.context.CommandSource;
+import studio.mevera.imperat.permissions.PermissionHolder;
 
 /**
  * Thrown when a command source lacks the required permission to execute a command or usage.
@@ -10,27 +14,36 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class PermissionDeniedException extends CommandException {
 
-    private final String command;
-    private final @Nullable String usage;
+    private final String label;
+    private final CommandPathway<? extends CommandSource> executingPathway;
+    private final PermissionHolder permissionIssuer;
+
+    public PermissionDeniedException(String label, CommandPathway<? extends CommandSource> executingPathway, PermissionHolder permissionIssuer) {
+        super();
+        this.label = label;
+        this.executingPathway = executingPathway;
+        this.permissionIssuer = permissionIssuer;
+    }
 
     /**
-     * @param command the name of the command the source attempted to use
-     * @param usage   the formatted usage string, or {@code null} if unavailable
+     * @return the pathway that couldn't be executed due to lack of permissions
      */
-    public PermissionDeniedException(String command, @Nullable String usage) {
-        super("You don't have permission to use '"
-                      + command
-                      + (usage != null && !usage.isBlank() ? " " + usage : "")
-                      + "'");
-        this.command = command;
-        this.usage = usage;
+    public CommandPathway<? extends CommandSource> getExecutingPathway() {
+        return executingPathway;
     }
 
-    public String getCommand() {
-        return command;
+    /**
+     * @return The label/alias provided in the input for the root command.
+     */
+    public String getLabel() {
+        return label;
     }
 
-    public @Nullable String getUsage() {
-        return usage;
+    /**
+     * @return The permission holding object, in which, the source didn't have the permission for to be used.
+     * It can be either {@link Argument} or {@link CommandPathway} or even {@link Command} (including sub-commands)
+     */
+    public PermissionHolder getPermissionIssuer() {
+        return permissionIssuer;
     }
 }

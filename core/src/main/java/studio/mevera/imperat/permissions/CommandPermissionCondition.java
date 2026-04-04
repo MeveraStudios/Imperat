@@ -1,6 +1,7 @@
 package studio.mevera.imperat.permissions;
 
 import studio.mevera.imperat.context.CommandSource;
+import studio.mevera.imperat.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,6 +100,11 @@ public class CommandPermissionCondition {
             @Override
             public <S extends CommandSource> boolean has(S source, PermissionChecker<S> checker) {
                 return true;
+            }
+
+            @Override
+            public <S extends CommandSource> Pair<String, Boolean> check(S source, PermissionChecker<S> checker) {
+                return new Pair<>(null, true);
             }
 
             @Override
@@ -224,17 +230,53 @@ public class CommandPermissionCondition {
 
     // --- Evaluate ---
     public <S extends CommandSource> boolean has(S source, PermissionChecker<S> checker) {
+        return check(source, checker).right();
+    }
 
+    public <S extends CommandSource> Pair<String, Boolean> check(S source, PermissionChecker<S> checker) {
         if (permission != null) {
-            return checker.hasPermission(source, permission);
+            boolean hasPermission = checker.hasPermission(source, permission);
+            return new Pair<>(hasPermission ? null : permission, hasPermission);
         }
 
         return switch (operator) {
-            case AND -> children.stream().allMatch(child -> child.has(source, checker));
-            case OR -> children.stream().anyMatch(child -> child.has(source, checker));
-            case NOT -> !children.get(0).has(source, checker);
+            case AND -> evaluateAnd(source, checker);
+            case OR -> evaluateOr(source, checker);
+            case NOT -> evaluateNot(source, checker);
             default -> throw new IllegalStateException("Unknown operator");
         };
+    }
+
+    private <S extends CommandSource> Pair<String, Boolean> evaluateAnd(S source, PermissionChecker<S> checker) {
+        for (CommandPermissionCondition child : children) {
+            Pair<String, Boolean> result = child.check(source, checker);
+            if (!result.right()) {
+                return result;
+            }
+        }
+        return new Pair<>(null, true);
+    }
+
+    private <S extends CommandSource> Pair<String, Boolean> evaluateOr(S source, PermissionChecker<S> checker) {
+        Pair<String, Boolean> firstFailure = null;
+        for (CommandPermissionCondition child : children) {
+            Pair<String, Boolean> result = child.check(source, checker);
+            if (result.right()) {
+                return new Pair<>(null, true);
+            }
+            if (firstFailure == null) {
+                firstFailure = result;
+            }
+        }
+        return firstFailure == null ? new Pair<>(null, false) : firstFailure;
+    }
+
+    private <S extends CommandSource> Pair<String, Boolean> evaluateNot(S source, PermissionChecker<S> checker) {
+        Pair<String, Boolean> childResult = children.get(0).check(source, checker);
+        if (childResult.right()) {
+            return new Pair<>(childResult.left(), false);
+        }
+        return new Pair<>(null, true);
     }
 
     @Override
@@ -249,11 +291,6 @@ public class CommandPermissionCondition {
             default -> "";
         };
     }
-
-    /*private <S extends CommandSource> boolean has0(CommandPermissionCondition permissionCondition, S source, PermissionChecker<S> checker) {
-        boolean res =
-
-    }*/
 
     /**
      * Recursively collects all permission strings used in this condition and its children.

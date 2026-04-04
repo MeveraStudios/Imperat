@@ -1,5 +1,6 @@
 package studio.mevera.imperat.tests.errors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -9,8 +10,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
 import studio.mevera.imperat.tests.TestCommandSource;
@@ -94,6 +97,19 @@ public class ErrorHandlingTest extends BaseImperatTest {
     void testArgumentValidatorHandling() {
         ExecutionResult<TestCommandSource> result = execute("buy potato 0"); // Should fail due to validator range
         assertFailure(result, CommandException.class);
+    }
+
+    @Test
+    @DisplayName("Should expose the first permission holder that failed")
+    void testPermissionDeniedIssuer() {
+        ExecutionResult<TestCommandSource> result = execute((src) -> src.withPerm("testperm.use"), "testperm alpha beta");
+
+        assertFailure(result, PermissionDeniedException.class);
+        assertNotNull(result.getError());
+
+        PermissionDeniedException exception = (PermissionDeniedException) result.getError();
+        assertInstanceOf(Argument.class, exception.getPermissionIssuer());
+        assertEquals("<a>", ((Argument<?>) exception.getPermissionIssuer()).format());
     }
     
    /*@Test

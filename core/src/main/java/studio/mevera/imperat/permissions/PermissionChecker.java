@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.context.CommandSource;
+import studio.mevera.imperat.util.Pair;
 
 /**
  * Represents a functional way of checking for the permissions
@@ -20,11 +21,15 @@ public interface PermissionChecker<S extends CommandSource> {
     boolean hasPermission(@NotNull S source, @Nullable String permission);
 
     default boolean hasPermission(@NotNull S source, @NotNull PermissionHolder holder) {
+        return checkPermission(source, holder).right();
+    }
 
+    default Pair<PermissionHolder, Boolean> checkPermission(@NotNull S source, @NotNull PermissionHolder holder) {
         PermissionsData data = holder.getPermissionsData();
         CommandPermissionCondition permissionCondition = data.getCondition();
+        Pair<String, Boolean> result = permissionCondition.check(source, this);
 
-        return permissionCondition.has(source, this);
+        return new Pair<>(result.right() ? null : holder, result.right());
     }
 
 }

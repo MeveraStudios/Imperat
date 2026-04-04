@@ -52,6 +52,8 @@ public final class PermissionsData {
 
     public void setCondition(CommandPermissionCondition condition) {
         this.condition = condition;
+        this.permissions.clear();
+        this.permissions.addAll(condition.collectPermissionsUsedOnConditions());
     }
 
     public void addPermissions(String... permissions) {

@@ -33,8 +33,10 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.exception.UnknownCommandException;
+import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.ImperatDebugger;
+import studio.mevera.imperat.util.Pair;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.priority.Priority;
@@ -94,77 +96,8 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         this.registerEvents();
     }
 
-    @SuppressWarnings("unchecked")
-    private void registerEvents() {
-
-        this.listen(CommandPreProcessEvent.class, (event) -> {
-            // Per-command pre-processing, executed after global pre-processing.
-            Command<S> command = event.getCommand();
-            CommandContext<S> context = event.getContext();
-            try {
-                command.preProcess(context);
-            } catch (CommandException e) {
-                event.setCancelled(true);
-                throw new RuntimeException(e);
-            }
-        }, Priority.NORMAL, ExecutionStrategy.SYNC);
-
-        this.listen(CommandPostProcessEvent.class, (event) -> {
-            // Per-command post-processing, executed before global post-processing.
-            Command<S> command = event.getCommand();
-            ExecutionContext<S> context = event.getContext();
-            try {
-                command.postProcess(context);
-            } catch (CommandException e) {
-                throw new RuntimeException(e);
-            }
-        }, Priority.NORMAL, ExecutionStrategy.SYNC);
-        this.listen(CommandPostProcessEvent.class, (event) -> {
-            var context = event.getContext();
-
-
-            var source = context.source();
-            var pathway = context.getDetectedPathway();
-            var handler = pathway.getCooldownHandler();
-            var cooldown = pathway.getCooldown();
-
-            if (handler.hasCooldown(source)) {
-                assert cooldown != null;
-                if (cooldown.permission() == null
-                            || cooldown.permission().isEmpty()
-                            || !context.imperatConfig().getPermissionChecker().hasPermission(source, cooldown.permission())) {
-
-                    var cooldownDuration = cooldown.toDuration();
-                    Instant lastTimeExecuted = (Instant) handler.getLastTimeExecuted(source).orElseThrow();
-                    var elapsed = Duration.between(lastTimeExecuted, Instant.now());
-                    var remaining = cooldownDuration.minus(elapsed);
-                    var remainingDuration = remaining.isNegative() ? Duration.ZERO : remaining;
-
-                    event.setCancelled(true);
-                    throw ResponseException.of(ResponseKey.COOLDOWN)
-                                  .withPlaceholder("seconds", String.valueOf(remainingDuration.toSeconds()))
-                                  .withPlaceholder("remaining_duration", remainingDuration.toString())
-                                  .withPlaceholder("cooldown_duration", cooldownDuration.toString())
-                                  .withPlaceholder("last_executed", lastTimeExecuted.toString());
-                }
-            }
-            handler.registerExecutionMoment(source);
-        }, Priority.NORMAL, ExecutionStrategy.SYNC);
-        this.listen(CommandPostProcessEvent.class, (event) -> {
-            // Check usage-level permission
-            var ctx = event.getContext();
-            var source = ctx.source();
-            var command = event.getCommand();
-            var pathway = ctx.getDetectedPathway();
-            var cfg = ctx.imperatConfig();
-            if (!cfg.getPermissionChecker().hasPermission(source, pathway)) {
-                ImperatDebugger.debug("Failed usage permission check!");
-                throw new PermissionDeniedException(
-                        command.getName(),
-                        CommandPathway.format(command, pathway)
-                );
-            }
-        }, Priority.HIGH, ExecutionStrategy.SYNC);
+    private static PermissionHolder deniedPermissionHolder(PermissionHolder fallback, PermissionHolder denied) {
+        return denied == null ? fallback : denied;
     }
 
     @Override
@@ -401,67 +334,79 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         return null;
     }
 
-    private ExecutionResult<S> handleExecution(CommandContext<S> context) throws CommandException {
-        Command<S> command = context.command();
-        S source = context.source();
+    @SuppressWarnings("unchecked")
+    private void registerEvents() {
 
-        if (!config.getPermissionChecker().hasPermission(source, command)) {
-            throw new PermissionDeniedException(
-                    command.getName(),
-                    CommandPathway.format(command, command.getDefaultPathway())
-            );
-        }
-        var preProcessEvent = new CommandPreProcessEvent<>(command, context);
-        this.publishEvent(preProcessEvent);
-        if (preProcessEvent.isCancelled()) {
-            ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPreProcessEvent.", command.getName());
-            return ExecutionResult.failure(context);
-        }
+        this.listen(CommandPreProcessEvent.class, (event) -> {
+            // Per-command pre-processing, executed after global pre-processing.
+            Command<S> command = event.getCommand();
+            CommandContext<S> context = event.getContext();
+            try {
+                command.preProcess(context);
+            } catch (CommandException e) {
+                event.setCancelled(true);
+                throw new RuntimeException(e);
+            }
+        }, Priority.NORMAL, ExecutionStrategy.SYNC);
 
-        // Direct execution: traverse tree, resolve args, and execute in one step
-        TreeExecutionResult<S> treeResult = command.execute(context);
-        treeResult.resolveContext();
-        ImperatDebugger.debug("Tree execution status: '%s'", treeResult.getStatus().name());
-
-        if (treeResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-            var closestUsage = treeResult.getClosestUsage();
-            throw new PermissionDeniedException(
-                    command.getName(),
-                    CommandPathway.format(command, closestUsage)
-            );
-        }
-
-        if (treeResult.getStatus() == TreeExecutionResult.Status.NO_MATCH) {
-            ImperatDebugger.debug("No matching pathway found!");
-            var closestUsage = treeResult.getClosestUsage();
-            String invalidUsage = context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
-            throw new InvalidSyntaxException(
-                    invalidUsage,
-                    closestUsage
-            );
-        }
-
-        // SUCCESS: The tree already resolved args and created ExecutionContext
-        CommandPathway<S> pathway = treeResult.getMatchedPathway();
-        ExecutionContext<S> executionContext = treeResult.getExecutionContext();
-        assert pathway != null && executionContext != null;
-
-        ImperatDebugger.debug("Usage Found Format: '%s'", CommandPathway.formatWithTypes(command, pathway));
-
-        // Post-processing
-        var postProcessEvent = new CommandPostProcessEvent<>(command, executionContext);
-        this.publishEvent(postProcessEvent);
+        this.listen(CommandPostProcessEvent.class, (event) -> {
+            // Per-command post-processing, executed before global post-processing.
+            Command<S> command = event.getCommand();
+            ExecutionContext<S> context = event.getContext();
+            try {
+                command.postProcess(context);
+            } catch (CommandException e) {
+                throw new RuntimeException(e);
+            }
+        }, Priority.NORMAL, ExecutionStrategy.SYNC);
+        this.listen(CommandPostProcessEvent.class, (event) -> {
+            var context = event.getContext();
 
 
-        // Execute
-        if (!postProcessEvent.isCancelled()) {
-            ImperatDebugger.debug("Executing command '%s' for source '%s'", command.getName(), source);
-            pathway.execute(this, source, executionContext);
-            return ExecutionResult.of(executionContext, context);
-        } else {
-            ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPostProcessEvent.", command.getName());
-            return ExecutionResult.failure(executionContext);
-        }
+            var source = context.source();
+            var pathway = context.getDetectedPathway();
+            var handler = pathway.getCooldownHandler();
+            var cooldown = pathway.getCooldown();
+
+            if (handler.hasCooldown(source)) {
+                assert cooldown != null;
+                if (cooldown.permission() == null
+                            || cooldown.permission().isEmpty()
+                            || !context.imperatConfig().getPermissionChecker().hasPermission(source, cooldown.permission())) {
+
+                    var cooldownDuration = cooldown.toDuration();
+                    Instant lastTimeExecuted = (Instant) handler.getLastTimeExecuted(source).orElseThrow();
+                    var elapsed = Duration.between(lastTimeExecuted, Instant.now());
+                    var remaining = cooldownDuration.minus(elapsed);
+                    var remainingDuration = remaining.isNegative() ? Duration.ZERO : remaining;
+
+                    event.setCancelled(true);
+                    throw ResponseException.of(ResponseKey.COOLDOWN)
+                                  .withPlaceholder("seconds", String.valueOf(remainingDuration.toSeconds()))
+                                  .withPlaceholder("remaining_duration", remainingDuration.toString())
+                                  .withPlaceholder("cooldown_duration", cooldownDuration.toString())
+                                  .withPlaceholder("last_executed", lastTimeExecuted.toString());
+                }
+            }
+            handler.registerExecutionMoment(source);
+        }, Priority.NORMAL, ExecutionStrategy.SYNC);
+        this.listen(CommandPostProcessEvent.class, (event) -> {
+            // Check usage-level permission
+            var ctx = event.getContext();
+            var source = ctx.source();
+            var command = event.getCommand();
+            var pathway = ctx.getDetectedPathway();
+            var cfg = ctx.imperatConfig();
+            Pair<PermissionHolder, Boolean> permissionResult = cfg.getPermissionChecker().checkPermission(source, pathway);
+            if (!permissionResult.right()) {
+                ImperatDebugger.debug("Failed usage permission check!");
+                throw new PermissionDeniedException(
+                        command.getName(),
+                        pathway,
+                        deniedPermissionHolder(pathway, permissionResult.left())
+                );
+            }
+        }, Priority.HIGH, ExecutionStrategy.SYNC);
     }
 
     @Override
@@ -573,6 +518,72 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
     public void setAnnotationParser(AnnotationParser<S> parser) {
         Preconditions.notNull(parser, "Parser");
         this.annotationParser = parser;
+    }
+
+    private ExecutionResult<S> handleExecution(CommandContext<S> context) throws CommandException {
+        Command<S> command = context.command();
+        S source = context.source();
+
+        Pair<PermissionHolder, Boolean> commandPermissionResult = config.getPermissionChecker().checkPermission(source, command);
+        if (!commandPermissionResult.right()) {
+            throw new PermissionDeniedException(
+                    command.getName(),
+                    command.getDefaultPathway(),
+                    deniedPermissionHolder(command, commandPermissionResult.left())
+            );
+        }
+        var preProcessEvent = new CommandPreProcessEvent<>(command, context);
+        this.publishEvent(preProcessEvent);
+        if (preProcessEvent.isCancelled()) {
+            ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPreProcessEvent.", command.getName());
+            return ExecutionResult.failure(context);
+        }
+
+        // Direct execution: traverse tree, resolve args, and execute in one step
+        TreeExecutionResult<S> treeResult = command.execute(context);
+        treeResult.resolveContext();
+        ImperatDebugger.debug("Tree execution status: '%s'", treeResult.getStatus().name());
+
+        if (treeResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+            var closestUsage = treeResult.getClosestUsage();
+            throw new PermissionDeniedException(
+                    command.getName(),
+                    closestUsage,
+                    deniedPermissionHolder(closestUsage, treeResult.getDeniedPermissionHolder())
+            );
+        }
+
+        if (treeResult.getStatus() == TreeExecutionResult.Status.NO_MATCH) {
+            ImperatDebugger.debug("No matching pathway found!");
+            var closestUsage = treeResult.getClosestUsage();
+            String invalidUsage = context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
+            throw new InvalidSyntaxException(
+                    invalidUsage,
+                    closestUsage
+            );
+        }
+
+        // SUCCESS: The tree already resolved args and created ExecutionContext
+        CommandPathway<S> pathway = treeResult.getMatchedPathway();
+        ExecutionContext<S> executionContext = treeResult.getExecutionContext();
+        assert pathway != null && executionContext != null;
+
+        ImperatDebugger.debug("Usage Found Format: '%s'", CommandPathway.formatWithTypes(command, pathway));
+
+        // Post-processing
+        var postProcessEvent = new CommandPostProcessEvent<>(command, executionContext);
+        this.publishEvent(postProcessEvent);
+
+
+        // Execute
+        if (!postProcessEvent.isCancelled()) {
+            ImperatDebugger.debug("Executing command '%s' for source '%s'", command.getName(), source);
+            pathway.execute(this, source, executionContext);
+            return ExecutionResult.of(executionContext, context);
+        } else {
+            ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPostProcessEvent.", command.getName());
+            return ExecutionResult.failure(executionContext);
+        }
     }
 
     @Override
