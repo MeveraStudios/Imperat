@@ -811,7 +811,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     private @Nullable CommandPathway<S> findClosestUsage(CommandNode<S, ?> lastNode) {
         CommandPathway<S> closestUsage = root.getData().getDefaultPathway();
 
-        if (lastNode.isLiteral() && lastNode.isExecutable()) {
+        if (!lastNode.isRoot() && lastNode.isLiteral() && lastNode.isExecutable()) {
             return lastNode.getExecutableUsage();
         }
 
