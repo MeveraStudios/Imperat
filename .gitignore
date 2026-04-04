@@ -38,3 +38,4 @@ bin/
 ### Mac OS ###
 .DS_Store
 /hytale/libs/HytaleServer.jar
+/nul
