@@ -28,6 +28,5 @@ public sealed interface FieldProvider permits FieldProviderImpl {
      * @return The selection field corresponding to the provided name, or null if no such field exists.
      */
     <V> @Nullable SelectionField<V> provideField(String name, Cursor<BukkitCommandSource> cursor);
-    //TODO sync this with the old criteria parsing system.
 
 }

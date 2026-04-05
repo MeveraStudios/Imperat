@@ -87,7 +87,6 @@ public interface Argument<S extends CommandSource> extends PermissionHolder, Des
         return required(name, ArgumentTypes.string());
     }
 
-    //TODO REPLACE GREEDY SYSTEM WITH PARAMETER TYPE SYSTEM
     static <S extends CommandSource> ArgumentBuilder<S, String> requiredGreedy(String name) {
         return new ArgumentBuilder<>(name, ArgumentTypes.string(), false, true);
     }
@@ -121,7 +120,6 @@ public interface Argument<S extends CommandSource> extends PermissionHolder, Des
         return optional(name, ArgumentTypes.string());
     }
 
-    //TODO REPLACE GREEDY SYSTEM WITH PARAMETER TYPE SYSTEM
     static <S extends CommandSource> ArgumentBuilder<S, String> optionalGreedy(String name) {
         return new ArgumentBuilder<>(name, ArgumentTypes.string(), true, true);
     }

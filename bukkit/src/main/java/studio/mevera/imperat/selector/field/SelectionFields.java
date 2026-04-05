@@ -10,8 +10,6 @@ import java.util.Set;
 //minestom style ;D
 interface SelectionFields {
 
-    //TODO add constants for each type of field
-
     Set<SelectionField<?>> ALL = BukkitUtil.mergedSet(
             new HashSet<>(PredicateField.ALL_PREDICATES),
             new HashSet<>(OperatorField.ALL_OPERATORS),

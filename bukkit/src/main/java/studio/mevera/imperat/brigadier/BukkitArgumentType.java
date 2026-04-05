@@ -64,7 +64,4 @@ public class BukkitArgumentType<T> extends ArgumentType<BukkitCommandSource, T> 
     public boolean isSupported() {
         return this.minecraftArgumentType.isSupported();
     }
-
-    // TODO almost impossible to sync suggestions due to the presence of a special brigadier context object.
-    // TODO Need to figure out a way to sync our SuggestionContext with an instance brigadier's CommandContext
 }

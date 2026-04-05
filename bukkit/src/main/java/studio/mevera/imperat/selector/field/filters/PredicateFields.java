@@ -15,7 +15,6 @@ import java.util.Set;
 interface PredicateFields {
 
 
-    //TODO predicates here
     PredicateField<String> NAME = new NameField("name");
 
     PredicateField<EntityType> TYPE = new TypeField("type");
