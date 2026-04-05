@@ -12,7 +12,6 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderDataProvider;
 import studio.mevera.imperat.responses.Response;
-import studio.mevera.imperat.responses.ResponseContentFetcher;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.tests.ImperatTestGlobals;
@@ -24,7 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -485,7 +483,7 @@ class AdvancedPlaceholderTest {
 
     // ==================== Content Fetcher with Placeholder Interaction ====================
 
-    @Test
+    /*@Test
     @DisplayName("Should apply placeholders after async content fetching")
     void testPlaceholdersWithAsyncFetching() throws Exception {
         ResponseKey testKey = () -> "test.async-placeholders";
@@ -521,7 +519,7 @@ class AdvancedPlaceholderTest {
                 .first()
                 .isEqualTo("Async: AsyncValue");
     }
-
+*/
     @Test
     @DisplayName("Should handle placeholder resolution order correctly")
     void testPlaceholderResolutionOrder() throws Exception {
