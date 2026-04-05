@@ -2,7 +2,6 @@ package studio.mevera.imperat.command
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import studio.mevera.imperat.Imperat
 import studio.mevera.imperat.context.CommandSource
 import studio.mevera.imperat.context.ExecutionContext
 import studio.mevera.imperat.util.ImperatDebugger
@@ -14,10 +13,10 @@ import studio.mevera.imperat.util.ImperatDebugger
 class CoroutineCommandCoordinator<S : CommandSource>(
     val scope: CoroutineScope
 ) : CommandCoordinator<S> {
-    override fun coordinate(imperat: Imperat<S>, source: S, context: ExecutionContext<S>, execution: CommandExecution<S>) {
+    override fun coordinate(context: ExecutionContext<S>, execution: CommandExecution<S>) {
         scope.launch {
             try {
-                execution.execute(source, context)
+                execution.execute(context.source(), context)
             } catch (e: Exception) {
                 ImperatDebugger.error(
                     CoroutineCommandCoordinator::class.java,

@@ -261,7 +261,7 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
         if (coordinator == null) {
             coordinator = imperat.config().getGlobalCommandCoordinator();
         }
-        coordinator.coordinate(imperat, source, context, this.execution);
+        coordinator.coordinate(context, this.execution);
     }
 
     @Override
