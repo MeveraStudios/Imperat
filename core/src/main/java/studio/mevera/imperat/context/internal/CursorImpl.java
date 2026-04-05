@@ -301,6 +301,27 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
     }
 
     @Override
+    public String collectRawArguments(int count) {
+        if (count < 0) {
+            return collectRemainingRaw();
+        } else if (count == 0) {
+            throw new IllegalArgumentException("Collecting no args ?!");
+        }
+
+        int consumed = 0;
+        StringBuilder sb = new StringBuilder(this.currentRaw().orElseThrow());
+        while (this.hasNextRaw() && consumed < count) {
+            var opt = popRaw();
+            if (opt.isPresent()) {
+                var nextRaw = opt.get();
+                sb.append(" ").append(nextRaw);
+                consumed++;
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
     public @NotNull List<Argument<S>> getParametersList() {
         return parametersList;
     }

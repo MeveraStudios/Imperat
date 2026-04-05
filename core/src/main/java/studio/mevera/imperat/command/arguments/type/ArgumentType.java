@@ -105,7 +105,7 @@ public abstract class ArgumentType<S extends CommandSource, T>
     public T parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws CommandException {
         Argument<S> currentArgument = cursor.currentParameterIfPresent();
         assert currentArgument != null;
-        String input = isGreedy(currentArgument) ? cursor.collectRemainingRaw() : cursor.currentRawIfPresent();
+        String input = isGreedy(currentArgument) ? cursor.collectRawArguments(currentArgument.greedyLimit()) : cursor.currentRawIfPresent();
         if (input == null) {
             throw new IllegalArgumentException("No input available at cursor position");
         }

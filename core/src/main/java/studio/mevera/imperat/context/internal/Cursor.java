@@ -612,6 +612,13 @@ public interface Cursor<S extends CommandSource> {
     String collectRemainingRaw();
 
     /**
+     * Collect a specific number of raw arguments
+     * @param count the number of raw input args to collect
+     * @return A string separating the collected args by space.
+     */
+    String collectRawArguments(int count);
+
+    /**
      * Marks the specified parameter as exempt from normal processing.
      * Exempt parameters are typically flag parameters that have been
      * handled separately from the main argument processing flow.
