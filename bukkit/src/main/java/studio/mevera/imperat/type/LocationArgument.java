@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
@@ -14,6 +15,8 @@ import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
+
+import java.util.Objects;
 
 public class LocationArgument extends ArgumentType<BukkitCommandSource, Location> {
 
@@ -28,7 +31,8 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
     }
 
     @Override
-    public Location parse(@NotNull CommandContext<BukkitCommandSource> context, @NotNull String input) throws CommandException {
+    public Location parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument,
+            @NotNull String input) throws CommandException {
         // Parse from a single string (semicolon-separated)
         String[] split = input.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
@@ -53,7 +57,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
             }
             x = playerLocation.getX();
         } else {
-            x = doubleParser.parse(context, split[1]);
+            x = doubleParser.parse(context, argument, split[1]);
         }
 
         double y;
@@ -63,7 +67,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
             }
             y = playerLocation.getY();
         } else {
-            y = doubleParser.parse(context, split[2]);
+            y = doubleParser.parse(context, argument, split[2]);
         }
 
         double z;
@@ -73,7 +77,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
             }
             z = playerLocation.getZ();
         } else {
-            z = doubleParser.parse(context, split[3]);
+            z = doubleParser.parse(context, argument, split[3]);
         }
 
         float yaw = 0.0f;
@@ -86,7 +90,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
                 }
                 yaw = playerLocation.getYaw();
             } else {
-                yaw = (float) doubleParser.parse(context, split[4]).doubleValue();
+                yaw = (float) doubleParser.parse(context, argument, split[4]).doubleValue();
             }
         }
 
@@ -97,7 +101,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
                 }
                 pitch = playerLocation.getPitch();
             } else {
-                pitch = (float) doubleParser.parse(context, split[5]).doubleValue();
+                pitch = (float) doubleParser.parse(context, argument, split[5]).doubleValue();
             }
         }
 
@@ -108,7 +112,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
     public Location parse(@NotNull ExecutionContext<BukkitCommandSource> context, @NotNull Cursor<BukkitCommandSource> cursor)
             throws CommandException {
         String currentRaw = cursor.currentRaw().orElse("");
-        return parse(context, currentRaw);
+        return parse(context, Objects.requireNonNull(cursor.currentParameterIfPresent()), currentRaw);
     }
 
     private Location createLocation(World world, double x, double y, double z, float yaw, float pitch) {

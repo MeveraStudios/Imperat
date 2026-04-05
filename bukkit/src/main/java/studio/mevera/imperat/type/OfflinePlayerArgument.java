@@ -3,6 +3,7 @@ package studio.mevera.imperat.type;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
@@ -26,7 +27,8 @@ public class OfflinePlayerArgument extends ArgumentType<BukkitCommandSource, Off
     }
 
     @Override
-    public OfflinePlayer parse(@NotNull CommandContext<BukkitCommandSource> context, @NotNull String input) throws CommandException {
+    public OfflinePlayer parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument,
+            @NotNull String input) throws CommandException {
         if (input.length() > 16) {
             throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER, input);
         }

@@ -18,13 +18,13 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 public final class EmptyInputHandler<S extends CommandSource> implements ParameterHandler<S> {
 
     @Override
-    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
-        Argument<S> currentParameter = stream.currentParameterIfPresent();
+    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
+        Argument<S> currentParameter = cursor.currentParameterIfPresent();
         if (currentParameter == null) {
             return HandleResult.TERMINATE;
         }
 
-        String currentRaw = stream.currentRawIfPresent();
+        String currentRaw = cursor.currentRawIfPresent();
         if (currentRaw != null) {
             return HandleResult.NEXT_HANDLER; // Not empty input, let other handlers process
         }
@@ -32,8 +32,8 @@ public final class EmptyInputHandler<S extends CommandSource> implements Paramet
         try {
 
             if (currentParameter.isOptional()) {
-                handleEmptyOptional(currentParameter, stream, context);
-                stream.skipParameter();
+                handleEmptyOptional(currentParameter, cursor, context);
+                cursor.skipParameter();
                 return HandleResult.NEXT_ITERATION;
             }
 
@@ -63,7 +63,7 @@ public final class EmptyInputHandler<S extends CommandSource> implements Paramet
                 String defaultStrValue = flagArgument.getDefaultValueSupplier()
                                                  .provide(context, flagArgument);
                 if (defaultStrValue != null) {
-                    java.lang.Object flagInputValue = flagInputType.parse(context, defaultStrValue);
+                    java.lang.Object flagInputValue = flagInputType.parse(context, flagArgument, defaultStrValue);
                     parsedFlagArgument = ParsedFlagArgument.forDefaultFlag(flagArgument, defaultStrValue, flagInputValue);
                 }else {
                     parsedFlagArgument = ParsedFlagArgument.forDefaultFlag(flagArgument, "null", null);
@@ -77,22 +77,22 @@ public final class EmptyInputHandler<S extends CommandSource> implements Paramet
                             null,
                             optionalEmptyParameter,
                             stream.position().getParameter(),
-                            getDefaultValue(context, stream, optionalEmptyParameter)
+                            getDefaultValue(context, optionalEmptyParameter)
                     )
             );
         }
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T getDefaultValue(ExecutionContext<S> context, Cursor<S> stream, Argument<S> parameter) throws CommandException {
-        DefaultValueProvider optionalSupplier = parameter.getDefaultValueSupplier();
+    private <T> T getDefaultValue(ExecutionContext<S> context, Argument<S> argument) throws CommandException {
+        DefaultValueProvider optionalSupplier = argument.getDefaultValueSupplier();
         if (optionalSupplier.isEmpty()) {
             return null;
         }
-        String value = optionalSupplier.provide(context, parameter);
+        String value = optionalSupplier.provide(context, argument);
 
         if (value != null) {
-            return (T) parameter.type().parse(context, value);
+            return (T) argument.type().parse(context, argument, value);
         }
 
         return null;

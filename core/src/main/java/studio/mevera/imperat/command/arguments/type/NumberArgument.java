@@ -1,10 +1,9 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -44,17 +43,9 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
     }
 
-    @Override
-    public N parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws ResponseException {
-        String input = cursor.currentRawIfPresent();
-        if (input == null) {
-            throw new IllegalArgumentException("No input available at cursor position");
-        }
-        return parse(context, input);
-    }
 
     @Override
-    public abstract N parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException;
+    public abstract N parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws ResponseException;
 
 
     public abstract String display();
@@ -77,7 +68,8 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
 
         @Override
-        public Integer parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
+        public Integer parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+                throws ArgumentParseException, ResponseException {
             try {
                 return Integer.parseInt(input);
             } catch (NumberFormatException ex) {
@@ -112,7 +104,7 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
 
         @Override
-        public Float parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
+        public Float parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws ResponseException {
             try {
                 return Float.parseFloat(input);
             } catch (NumberFormatException ex) {
@@ -144,7 +136,7 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
 
         @Override
-        public Long parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
+        public Long parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws ResponseException {
             try {
                 return Long.parseLong(input);
             } catch (NumberFormatException ex) {
@@ -176,7 +168,7 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
 
         @Override
-        public Double parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
+        public Double parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws ResponseException {
             try {
                 return Double.parseDouble(input);
             } catch (NumberFormatException ex) {
@@ -206,7 +198,8 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
 
         @Override
-        public Byte parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
+        public Byte parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+                throws ArgumentParseException, ResponseException {
             try {
                 return Byte.parseByte(input);
             } catch (NumberFormatException ex) {
@@ -237,7 +230,8 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
 
         @Override
-        public Short parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
+        public Short parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+                throws ArgumentParseException, ResponseException {
             try {
                 return Short.parseShort(input);
             } catch (NumberFormatException ex) {
@@ -268,7 +262,7 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
 
         @Override
-        public java.math.BigInteger parse(@NotNull CommandContext<S> context, @NotNull String input)
+        public java.math.BigInteger parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
                 throws ArgumentParseException, ResponseException {
             try {
                 return new java.math.BigInteger(input);
@@ -301,7 +295,8 @@ public abstract class NumberArgument<S extends CommandSource, N extends Number> 
         }
 
         @Override
-        public java.math.BigDecimal parse(@NotNull CommandContext<S> context, @NotNull String input) throws ResponseException {
+        public java.math.BigDecimal parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+                throws ResponseException {
             try {
                 return new java.math.BigDecimal(input);
             } catch (NumberFormatException ex) {

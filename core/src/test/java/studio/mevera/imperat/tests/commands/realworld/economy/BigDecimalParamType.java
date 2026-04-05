@@ -1,6 +1,7 @@
 package studio.mevera.imperat.tests.commands.realworld.economy;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
@@ -12,7 +13,8 @@ public class BigDecimalParamType extends ArgumentType<TestCommandSource, BigDeci
 
 
     @Override
-    public @NotNull BigDecimal parse(@NotNull CommandContext<TestCommandSource> context, @NotNull String correspondingInput) throws CommandException {
+    public @NotNull BigDecimal parse(@NotNull CommandContext<TestCommandSource> context, @NotNull Argument<TestCommandSource> argument,
+            @NotNull String correspondingInput) throws CommandException {
         try {
             double d = Double.parseDouble(correspondingInput);
             return BigDecimal.valueOf(d);

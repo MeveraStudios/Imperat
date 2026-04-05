@@ -3,6 +3,7 @@ package studio.mevera.imperat.type;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
@@ -26,7 +27,8 @@ public class PlayerArgument extends ArgumentType<BukkitCommandSource, Player> {
     }
 
     @Override
-    public Player parse(@NotNull CommandContext<BukkitCommandSource> context, @NotNull String input) throws CommandException {
+    public Player parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument, @NotNull String input)
+            throws CommandException {
         if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
                 throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_PLAYER, input);

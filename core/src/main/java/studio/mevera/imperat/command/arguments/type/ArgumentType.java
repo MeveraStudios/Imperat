@@ -15,10 +15,10 @@ import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.priority.Prioritizable;
 import studio.mevera.imperat.util.priority.Priority;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Base class for defining parameter types in a command processing framework.
@@ -83,17 +83,18 @@ public abstract class ArgumentType<S extends CommandSource, T>
      * execution context. This method is responsible for converting the raw input into the appropriate type,
      * handling any necessary validation or error handling during the parsing process.
      *
-     * @param context the execution context.
-     * @param input the raw input string to parse.
+     * @param context  the execution context.
+     * @param argument
+     * @param input    the raw input string to parse.
      * @return the resolved value of type T.
      * @throws CommandException if parsing fails.
      */
-    public abstract T parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException;
+    public abstract T parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException;
 
     /**
      * Parses the argument value from the current position of the cursor, using the provided
      * execution context. This method fetches the input from the cursor and delegates to
-     * {@link #parse(CommandContext, String)}. This is the main entry point for argument parsing
+     * {@link #parse(CommandContext, Argument, String)}. This is the main entry point for argument parsing
      * during command execution.
      *
      * @param context the execution context.
@@ -106,7 +107,7 @@ public abstract class ArgumentType<S extends CommandSource, T>
         if (input == null) {
             throw new IllegalArgumentException("No input available at cursor position");
         }
-        return parse(context, input);
+        return parse(context, Objects.requireNonNull(cursor.currentParameterIfPresent()), input);
     }
 
     /**

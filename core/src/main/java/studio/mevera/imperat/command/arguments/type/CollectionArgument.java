@@ -38,7 +38,8 @@ public class CollectionArgument<S extends CommandSource, E, C extends Collection
         int effectiveLimit = GreedyLimitHelper.computeEffectiveLimit(greedyLimit, nextParam, nextParamCanDiscriminate, cursor);
         int consumed = 0;
         // Consume the first raw
-        E firstValue = componentResolver.parse(context, currentRaw);
+        assert currentParam != null;
+        E firstValue = componentResolver.parse(context, currentParam, currentRaw);
         newCollection.add(firstValue);
         consumed++;
         // Consume subsequent raws
@@ -60,7 +61,7 @@ public class CollectionArgument<S extends CommandSource, E, C extends Collection
                 String peekedInput = context.arguments().getOr(peekRawPos, null);
                 if (peekedInput != null) {
                     try {
-                        nextParam.type().parse(context, peekedInput);
+                        nextParam.type().parse(context, currentParam, peekedInput);
                         break;
                     } catch (Exception ignored) {
                         // Not a match, continue
@@ -72,7 +73,7 @@ public class CollectionArgument<S extends CommandSource, E, C extends Collection
             if (raw == null) {
                 break;
             }
-            E value = componentResolver.parse(context, raw);
+            E value = componentResolver.parse(context, currentParam, raw);
             newCollection.add(value);
             consumed++;
         }
@@ -80,16 +81,16 @@ public class CollectionArgument<S extends CommandSource, E, C extends Collection
     }
 
     @Override
-    public C parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException {
+    public C parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException {
         // For single-string parsing, just parse one component and return a collection with it
         String[] raws = input.split(" ");
         C newCollection = collectionSupplier.get();
         // Consume the first raw
-        E firstValue = componentResolver.parse(context, input);
+        E firstValue = componentResolver.parse(context, argument, input);
         newCollection.add(firstValue);
         // Consume subsequent raws
         for (String raw : raws) {
-            E value = componentResolver.parse(context, raw);
+            E value = componentResolver.parse(context, argument, raw);
             newCollection.add(value);
         }
 

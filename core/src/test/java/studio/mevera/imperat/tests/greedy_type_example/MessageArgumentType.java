@@ -12,7 +12,8 @@ import studio.mevera.imperat.tests.TestCommandSource;
 public final class MessageArgumentType extends ArgumentType<TestCommandSource, Message> {
 
     @Override
-    public Message parse(@NotNull CommandContext<TestCommandSource> context, @NotNull String input) throws CommandException {
+    public Message parse(@NotNull CommandContext<TestCommandSource> context, @NotNull Argument<TestCommandSource> argument, @NotNull String input)
+            throws CommandException {
         return new Message(String.join(" ", input.split(" ")));
     }
 

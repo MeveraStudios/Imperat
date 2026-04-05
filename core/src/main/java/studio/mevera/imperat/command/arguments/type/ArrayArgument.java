@@ -13,6 +13,7 @@ import studio.mevera.imperat.util.TypeWrap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -28,7 +29,7 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
     }
 
     @Override
-    public E[] parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException {
+    public E[] parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException {
         throw new UnsupportedOperationException("ArrayArgument does not support parse(context, String)");
     }
 
@@ -57,7 +58,7 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
 
         // Consume the first raw (cursor currently points at it)
         try {
-            E firstValue = componentType.parse(context, currentRaw);
+            E firstValue = componentType.parse(context, Objects.requireNonNull(cursor.currentParameterIfPresent()), currentRaw);
             elements.add(firstValue);
             consumed++;
         } catch (Exception ex) {
@@ -99,7 +100,8 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
                 String peekedInput = context.arguments().getOr(peekRawPos, null);
                 if (peekedInput != null) {
                     try {
-                        nextParam.type().parse(context, peekedInput);
+                        assert currentParam != null;
+                        nextParam.type().parse(context, currentParam, peekedInput);
                         break;
                     } catch (Exception ignored) {
                         // Not a match, continue
@@ -114,7 +116,8 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
             }
 
             try {
-                E nextValue = componentType.parse(context, raw);
+                assert currentParam != null;
+                E nextValue = componentType.parse(context, currentParam, raw);
                 elements.add(nextValue);
                 consumed++;
             } catch (Exception ex) {

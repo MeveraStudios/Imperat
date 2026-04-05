@@ -16,9 +16,9 @@ import studio.mevera.imperat.util.Patterns;
 public final class OptionalParameterHandler<S extends CommandSource> implements ParameterHandler<S> {
 
     @Override
-    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
-        Argument<S> currentParameter = stream.currentParameterIfPresent();
-        String currentRaw = stream.currentRawIfPresent();
+    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
+        Argument<S> currentParameter = cursor.currentParameterIfPresent();
+        String currentRaw = cursor.currentRawIfPresent();
 
         if (currentParameter == null || currentRaw == null) {
             return HandleResult.TERMINATE;
@@ -26,11 +26,11 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         if (Patterns.isInputFlag(currentRaw)) {
             boolean containsAnyFlag = !context.getDetectedPathway().getFlagExtractor().getRegisteredFlags().isEmpty();
             if (containsAnyFlag) {
-                stream.skipRaw();
+                cursor.skipRaw();
                 var extracted = context.getDetectedPathway().getFlagExtractor().extract(Patterns.withoutFlagSign(currentRaw));
                 boolean allTrueFlags = extracted.stream().noneMatch(FlagArgument::isSwitch);
                 if (allTrueFlags) {
-                    stream.skipRaw();
+                    cursor.skipRaw();
                 }
                 return HandleResult.NEXT_HANDLER;
             }
@@ -40,7 +40,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         }
 
         try {
-            resolveOptional(currentRaw, currentParameter, context, stream);
+            resolveOptional(currentRaw, currentParameter, context, cursor);
             return HandleResult.NEXT_ITERATION;
         } catch (CommandException e) {
             return HandleResult.failure(e);
@@ -60,7 +60,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         if (isObligatedToSkip) {
             ImperatDebugger.debug("MUST SKIP");
             // MUST skip - downstream required parameters need the inputs
-            Object defaultValue = getDefaultValue(context, stream, currentParameter);
+            Object defaultValue = getDefaultValue(context, currentParameter);
             context.parseArgument(stream, defaultValue);
             stream.skipParameter();
             return;
@@ -78,7 +78,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         if (!Patterns.isInputFlag(currentRaw)) {
             boolean typeMatches = false;
             try {
-                currentParameter.type().parse(context, currentRaw);
+                currentParameter.type().parse(context, currentParameter, currentRaw);
                 typeMatches = true;
             } catch (Exception ignored) {
                 // Not a match
@@ -97,7 +97,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         if (bestMatch != null && !hasRequiredParametersBetween(stream, bestMatch)) {
             // Found better match downstream with no required parameters in between
             ImperatDebugger.debug("Found better match down stream : '" + bestMatch.format() + "'");
-            Object defaultValue = getDefaultValue(context, stream, currentParameter);
+            Object defaultValue = getDefaultValue(context, currentParameter);
             context.parseArgument(stream, defaultValue);
             stream.skipParameter();
             return;
@@ -110,7 +110,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
         } catch (CommandException e) {
             // Type parsing failed - fall back to default value
             ImperatDebugger.debug("FAILED TO CONSUME, SETTING DEFAULT");
-            Object defaultValue = getDefaultValue(context, stream, currentParameter);
+            Object defaultValue = getDefaultValue(context, currentParameter);
             context.parseArgument(stream, defaultValue);
             stream.skipParameter();
         }
@@ -153,7 +153,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
                 String input = ctx.arguments().getOr(currRawPos, null);
                 if (input != null) {
                     try {
-                        param.type().parse(ctx, input);
+                        param.type().parse(ctx, param, input);
                         return param;
                     } catch (Exception ignored) {
                         // Not a match
@@ -199,15 +199,15 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
      * Get the default value for an optional parameter
      */
     @SuppressWarnings("unchecked")
-    private <T> T getDefaultValue(ExecutionContext<S> context, Cursor<S> stream, Argument<S> parameter) throws CommandException {
-        DefaultValueProvider optionalSupplier = parameter.getDefaultValueSupplier();
+    private <T> T getDefaultValue(ExecutionContext<S> context, Argument<S> argument) throws CommandException {
+        DefaultValueProvider optionalSupplier = argument.getDefaultValueSupplier();
         if (optionalSupplier.isEmpty()) {
             return null;
         }
-        String value = optionalSupplier.provide(context, parameter);
+        String value = optionalSupplier.provide(context, argument);
 
         if (value != null) {
-            return (T) parameter.type().parse(context, value);
+            return (T) argument.type().parse(context, argument, value);
         }
 
         return null;

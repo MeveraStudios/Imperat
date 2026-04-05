@@ -28,7 +28,8 @@ public class FlagArgumentType<S extends CommandSource> extends ArgumentType<S, P
 
 
     @Override
-    public ParsedFlagArgument<S> parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException {
+    public ParsedFlagArgument<S> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+            throws CommandException {
         throw new UnsupportedOperationException("FlagArgumentType does not support parse(ExecutionContext, String)");
     }
 

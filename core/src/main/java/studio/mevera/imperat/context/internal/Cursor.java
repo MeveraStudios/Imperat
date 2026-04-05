@@ -60,7 +60,7 @@ import java.util.Optional;
  * @since 1.0.0
  * @see Argument
  * @see ArgumentInput
- * @see StreamPosition
+ * @see CursorPosition
  */
 public interface Cursor<S extends CommandSource> {
 
@@ -136,7 +136,7 @@ public interface Cursor<S extends CommandSource> {
      *
      * @return the current stream position, never {@code null}
      */
-    @NotNull StreamPosition<S> position();
+    @NotNull CursorPosition<S> position();
 
     /**
      * Creates a deep copy of this command input stream.
@@ -434,10 +434,10 @@ public interface Cursor<S extends CommandSource> {
      *         {@code false} if no parameter was available to skip
      */
     default boolean skipParameter() {
-        final StreamPosition<S> streamPosition = position();
-        int prevParam = streamPosition.parameter;
-        streamPosition.shiftRight(ShiftTarget.PARAMETER_ONLY);
-        return streamPosition.parameter > prevParam;
+        final CursorPosition<S> cursorPosition = position();
+        int prevParam = cursorPosition.parameter;
+        cursorPosition.shiftRight(ShiftTarget.PARAMETER_ONLY);
+        return cursorPosition.parameter > prevParam;
     }
 
     /**
@@ -448,10 +448,10 @@ public interface Cursor<S extends CommandSource> {
      *         {@code false} if no raw input was available to skip
      */
     default boolean skipRaw() {
-        final StreamPosition<S> streamPosition = position();
-        int prevRaw = streamPosition.raw;
-        streamPosition.shiftRight(ShiftTarget.RAW_ONLY);
-        return streamPosition.raw > prevRaw;
+        final CursorPosition<S> cursorPosition = position();
+        int prevRaw = cursorPosition.raw;
+        cursorPosition.shiftRight(ShiftTarget.RAW_ONLY);
+        return cursorPosition.raw > prevRaw;
     }
 
     /**

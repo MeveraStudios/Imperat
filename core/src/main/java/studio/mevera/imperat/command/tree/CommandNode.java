@@ -104,7 +104,7 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
         }
 
         try {
-            type.parse(ctx, input.toString());
+            type.parse(ctx, this.data, input.toString());
             return true;
         } catch (Exception e) {
             return false;

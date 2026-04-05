@@ -1,6 +1,7 @@
 package studio.mevera.imperat.tests.commands.realworld.groupcommand;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
@@ -19,7 +20,7 @@ public final class GroupArgument extends ArgumentType<TestCommandSource, Group> 
     @Override
     public @NotNull Group parse(
             @NotNull CommandContext<TestCommandSource> context,
-            @NotNull String raw
+            @NotNull Argument<TestCommandSource> argument, @NotNull String raw
     ) throws CommandException {
         return GroupRegistry.getInstance().getData(raw)
                        .orElseThrow(() -> new CommandException("Unknown group '%s'".formatted(raw)));

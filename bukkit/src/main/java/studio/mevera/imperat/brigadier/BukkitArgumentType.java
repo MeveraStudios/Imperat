@@ -2,7 +2,9 @@ package studio.mevera.imperat.brigadier;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -28,7 +30,8 @@ public class BukkitArgumentType<T> extends ArgumentType<BukkitCommandSource, T> 
     }
 
     @Override
-    public T parse(@NotNull CommandContext<BukkitCommandSource> context, @NotNull String input) throws CommandException {
+    public T parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument, @NotNull String input)
+            throws CommandException {
         // Parse using a standard StringReader for the input string
         try {
             return argumentType.parse(new com.mojang.brigadier.StringReader(input));

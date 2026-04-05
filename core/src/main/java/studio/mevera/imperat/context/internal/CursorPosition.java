@@ -4,19 +4,19 @@ import studio.mevera.imperat.context.CommandSource;
 
 import java.util.function.IntUnaryOperator;
 
-public final class StreamPosition<S extends CommandSource> {
+public final class CursorPosition<S extends CommandSource> {
 
     int maxParamLength, maxRawLength;
     int parameter, raw;
 
-    StreamPosition(int maxParamLength, int maxRawLength, int parameter, int raw) {
+    CursorPosition(int maxParamLength, int maxRawLength, int parameter, int raw) {
         this.maxParamLength = maxParamLength;
         this.maxRawLength = maxRawLength;
         this.parameter = parameter;
         this.raw = raw;
     }
 
-    StreamPosition(int maxParamLength, int maxRawLength) {
+    CursorPosition(int maxParamLength, int maxRawLength) {
         this(maxParamLength, maxRawLength, 0, 0);
     }
 
@@ -84,7 +84,7 @@ public final class StreamPosition<S extends CommandSource> {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof StreamPosition<?> other)) {
+        if (!(o instanceof CursorPosition<?> other)) {
             return false;
         }
         if (this.parameter != other.parameter) {
@@ -102,7 +102,7 @@ public final class StreamPosition<S extends CommandSource> {
         return result;
     }
 
-    public StreamPosition<S> copy() {
-        return new StreamPosition<>(maxParamLength, maxRawLength, parameter, raw);
+    public CursorPosition<S> copy() {
+        return new CursorPosition<>(maxParamLength, maxRawLength, parameter, raw);
     }
 }

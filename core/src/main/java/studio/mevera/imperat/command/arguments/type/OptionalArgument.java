@@ -39,8 +39,9 @@ public final class OptionalArgument<S extends CommandSource, T> extends Argument
     }
 
     @Override
-    public Optional<T> parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException, ResponseException {
-        T value = typeResolver.parse(context, input);
+    public Optional<T> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+            throws CommandException, ResponseException {
+        T value = typeResolver.parse(context, argument, input);
         return Optional.ofNullable(value);
     }
 

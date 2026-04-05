@@ -38,9 +38,16 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleCommandSource, T> 
 
 
     @Override
-    public @NotNull T parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull String input) throws CommandException {
+    public @Nullable T parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull Argument<HytaleCommandSource> argument,
+            @NotNull String input) throws CommandException {
         // This type is not intended for direct string parsing; must use cursor-based parsing.
-        throw new UnsupportedOperationException("HytaleArgumentType does not support parse(context, String); use parse(context, Cursor) instead.");
+        String[] rawInput = context.arguments().toArray(String[]::new);
+        final ParseResult parseResult = new ParseResult();
+        T parsedArg = hytaleArgType.parse(rawInput, parseResult);
+        if (parseResult.failed()) {
+            throw exceptionProvider.fetch(input);
+        }
+        return parsedArg;
     }
 
     @Override

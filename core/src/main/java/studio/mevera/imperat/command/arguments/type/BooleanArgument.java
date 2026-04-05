@@ -1,10 +1,9 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.priority.Priority;
@@ -29,7 +28,7 @@ public final class BooleanArgument<S extends CommandSource> extends ArgumentType
     }
 
     @Override
-    public Boolean parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException {
+    public Boolean parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws ArgumentParseException {
         if (input.equalsIgnoreCase("true") || input.equalsIgnoreCase("false")) {
             return Boolean.parseBoolean(input);
         }
@@ -40,15 +39,6 @@ public final class BooleanArgument<S extends CommandSource> extends ArgumentType
             }
         }
         throw new ArgumentParseException(ResponseKey.INVALID_BOOLEAN, input);
-    }
-
-    @Override
-    public Boolean parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws ArgumentParseException {
-        String input = cursor.currentRawIfPresent();
-        if (input == null) {
-            throw new IllegalArgumentException("No input available at cursor position");
-        }
-        return parse(context, input);
     }
 
 

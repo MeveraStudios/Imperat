@@ -13,9 +13,9 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 public final class RequiredParameterHandler<S extends CommandSource> implements ParameterHandler<S> {
 
     @Override
-    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
-        Argument<S> currentParameter = stream.currentParameterIfPresent();
-        String currentRaw = stream.currentRawIfPresent();
+    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
+        Argument<S> currentParameter = cursor.currentParameterIfPresent();
+        String currentRaw = cursor.currentRawIfPresent();
 
         if (currentParameter == null) {
             return HandleResult.TERMINATE;
@@ -33,10 +33,10 @@ public final class RequiredParameterHandler<S extends CommandSource> implements 
 
 
         try {
-            var value = currentParameter.type().parse(context, stream);
+            var value = currentParameter.type().parse(context, cursor);
 
-            context.parseArgument(stream, value);
-            stream.skip();
+            context.parseArgument(cursor, value);
+            cursor.skip();
 
             return HandleResult.NEXT_ITERATION;
         } catch (CommandException e) {

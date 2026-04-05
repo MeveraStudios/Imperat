@@ -1,10 +1,9 @@
 package studio.mevera.imperat.command.arguments.type;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseKey;
@@ -23,7 +22,8 @@ public final class EnumArgument<S extends CommandSource> extends ArgumentType<S,
     }
 
     @Override
-    public Enum<?> parse(@NotNull CommandContext<S> context, @NotNull String input) throws ArgumentParseException, ResponseException {
+    public Enum<?> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+            throws ResponseException {
         Type enumType = type;
         try {
             return Enum.valueOf((Class<? extends Enum>) enumType, input);
@@ -31,15 +31,6 @@ public final class EnumArgument<S extends CommandSource> extends ArgumentType<S,
             throw new ArgumentParseException(ResponseKey.INVALID_ENUM, input)
                           .withPlaceholder("enum_type", ((Class<?>) enumType).getTypeName());
         }
-    }
-
-    @Override
-    public Enum<?> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws ArgumentParseException, ResponseException {
-        String input = cursor.currentRawIfPresent();
-        if (input == null) {
-            throw new IllegalArgumentException("No input available at cursor position");
-        }
-        return parse(context, input);
     }
 
 }

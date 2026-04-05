@@ -206,7 +206,7 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      *
      * @param Argument the parameter of a command's usage
      * @param <T>              the valueType of value that will be resolved by
-     * {@link ArgumentType#parse(CommandContext, String)} OR {@link ArgumentType#parse(ExecutionContext, Cursor)} during execution
+     * {@link ArgumentType#parse(CommandContext, Argument, String)} OR {@link ArgumentType#parse(ExecutionContext, Cursor)} during execution
      * @return the context resolver for this parameter's value valueType
      */
     default <T> ContextArgumentProvider<S, T> getContextArgumentProvider(Argument<S> Argument) {

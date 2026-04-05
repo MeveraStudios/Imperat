@@ -13,9 +13,9 @@ import studio.mevera.imperat.exception.CommandException;
 public final class SubCommandHandler<S extends CommandSource> implements ParameterHandler<S> {
 
     @Override
-    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
-        Argument<S> currentParameter = stream.currentParameterIfPresent();
-        String currentRaw = stream.currentRawIfPresent();
+    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
+        Argument<S> currentParameter = cursor.currentParameterIfPresent();
+        String currentRaw = cursor.currentRawIfPresent();
         if (currentParameter == null) {
             return HandleResult.TERMINATE;
         } else if (currentRaw == null || !currentParameter.isCommand()) {
@@ -25,7 +25,7 @@ public final class SubCommandHandler<S extends CommandSource> implements Paramet
         try {
             Command<S> parameterSubCmd = (Command<S>) currentParameter;
             if (parameterSubCmd.hasName(currentRaw)) {
-                stream.skip();
+                cursor.skip();
                 return HandleResult.NEXT_ITERATION;
             } else {
                 return HandleResult.failure(new CommandException("Invalid sub-command: '" + currentRaw + "'"));

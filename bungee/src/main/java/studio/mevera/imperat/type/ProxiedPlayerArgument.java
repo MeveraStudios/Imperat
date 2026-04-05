@@ -3,6 +3,7 @@ package studio.mevera.imperat.type;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BungeeCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
@@ -26,7 +27,7 @@ public final class ProxiedPlayerArgument extends ArgumentType<BungeeCommandSourc
     @Override
     public @NotNull ProxiedPlayer parse(
             @NotNull CommandContext<BungeeCommandSource> context,
-            @NotNull String correspondingInput
+            @NonNull Argument<BungeeCommandSource> argument, @NotNull String correspondingInput
     ) throws CommandException {
 
         if (correspondingInput.equalsIgnoreCase("me")) {

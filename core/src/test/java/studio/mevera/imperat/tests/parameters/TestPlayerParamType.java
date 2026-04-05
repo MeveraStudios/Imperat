@@ -1,6 +1,7 @@
 package studio.mevera.imperat.tests.parameters;
 
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
@@ -15,7 +16,8 @@ import java.util.List;
 public final class TestPlayerParamType extends ArgumentType<TestCommandSource, TestPlayer> {
 
     @Override
-    public TestPlayer parse(@NotNull CommandContext<TestCommandSource> context, @NotNull String input) throws CommandException {
+    public TestPlayer parse(@NotNull CommandContext<TestCommandSource> context, @NotNull Argument<TestCommandSource> argument, @NotNull String input)
+            throws CommandException {
         if (input.length() > 16 || input.length() < 3 || input.contains("-") || TypeUtility.isNumber(input)) {
             throw new CommandException("Invalid player argument: '%s'", input);
         }

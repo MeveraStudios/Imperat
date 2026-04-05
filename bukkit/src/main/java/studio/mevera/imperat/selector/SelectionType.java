@@ -7,7 +7,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitCommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
@@ -30,7 +30,7 @@ public interface SelectionType {
         @Override
         @SuppressWarnings("unchecked")
         public <E extends Entity> @NotNull List<E> getTargetEntities(
-                @NotNull ExecutionContext<BukkitCommandSource> context,
+                @NotNull CommandContext<BukkitCommandSource> context,
                 @NotNull Cursor<BukkitCommandSource> cursor
         ) throws CommandException {
             if (context.source().isConsole()) {
@@ -48,7 +48,7 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-                @NotNull ExecutionContext<BukkitCommandSource> context,
+                @NotNull CommandContext<BukkitCommandSource> context,
                 @NotNull Cursor<BukkitCommandSource> cursor
         ) throws CommandException {
             if (context.source().isConsole()) {
@@ -83,7 +83,7 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-                @NotNull ExecutionContext<BukkitCommandSource> context,
+                @NotNull CommandContext<BukkitCommandSource> context,
                 @NotNull Cursor<BukkitCommandSource> cursor
         ) throws CommandException {
             List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
@@ -99,7 +99,7 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-                @NotNull ExecutionContext<BukkitCommandSource> context,
+                @NotNull CommandContext<BukkitCommandSource> context,
                 @NotNull Cursor<BukkitCommandSource> cursor
         ) throws CommandException {
             return (List<E>) new ArrayList<>(Bukkit.getOnlinePlayers());
@@ -115,7 +115,7 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-                @NotNull ExecutionContext<BukkitCommandSource> context,
+                @NotNull CommandContext<BukkitCommandSource> context,
                 @NotNull Cursor<BukkitCommandSource> cursor
         ) throws CommandException {
             if (context.source().isConsole()) {
@@ -136,7 +136,7 @@ public interface SelectionType {
 
         @Override
         public @NotNull <E extends Entity> List<E> getTargetEntities(
-                @NotNull ExecutionContext<BukkitCommandSource> context,
+                @NotNull CommandContext<BukkitCommandSource> context,
                 @NotNull Cursor<BukkitCommandSource> cursor
         ) throws CommandException {
             return List.of();
@@ -163,7 +163,7 @@ public interface SelectionType {
     String id();
 
     @NotNull <E extends Entity> List<E> getTargetEntities(
-            @NotNull ExecutionContext<BukkitCommandSource> context,
+            @NotNull CommandContext<BukkitCommandSource> context,
             @NotNull Cursor<BukkitCommandSource> cursor
     ) throws CommandException;
 

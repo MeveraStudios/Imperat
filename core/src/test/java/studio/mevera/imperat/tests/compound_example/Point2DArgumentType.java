@@ -13,9 +13,18 @@ public class Point2DArgumentType extends ArgumentType<TestCommandSource, Point2D
 
 
     @Override
-    public Point2D parse(@NotNull CommandContext<TestCommandSource> context, @NotNull String input) throws CommandException {
-        // Not used in this test, but required by contract
-        throw new UnsupportedOperationException("Use cursor-based parse for Point2DArgumentType");
+    public Point2D parse(@NotNull CommandContext<TestCommandSource> context, @NotNull Argument<TestCommandSource> argument, @NotNull String input)
+            throws CommandException {
+        String[] split = input.split(" ");
+        if (split.length != 2) {
+            throw new CommandException("Invalid coordinates, expected format: <x> <y>");
+        }
+        String xInput = split[0];
+        String yInput = split[1];
+
+        return new Point2D(
+                Double.parseDouble(xInput), Double.parseDouble(yInput)
+        );
     }
 
     @Override

@@ -11,7 +11,6 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.TypeWrap;
-
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -34,10 +33,10 @@ public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> ext
     }
 
     @Override
-    public M parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException {
+    public M parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException {
         // Parse a single map entry from a string (e.g., "key,value")
         M newMap = mapInitializer.get();
-        parseAndAddEntry(context, input, newMap);
+        parseAndAddEntry(context, argument, input, newMap);
         return newMap;
     }
 
@@ -55,7 +54,7 @@ public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> ext
         int effectiveLimit = GreedyLimitHelper.computeEffectiveLimit(greedyLimit, nextParam, nextParamCanDiscriminate, cursor);
         int consumed = 0;
         // Consume the first raw
-        parseAndAddEntry(context, currentRaw, newMap);
+        parseAndAddEntry(context, currentParam, currentRaw, newMap);
         consumed++;
         // Consume subsequent raws
         while (cursor.hasNextRaw()) {
@@ -74,7 +73,8 @@ public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> ext
             if (nextParamCanDiscriminate) {
                 // Use parse-based validation instead of matchesInput
                 try {
-                    nextParam.type().parse(context, peeked);
+                    assert currentParam != null;
+                    nextParam.type().parse(context, currentParam, peeked);
                     break;
                 } catch (Exception ignored) {
                     // Not a match, continue
@@ -85,13 +85,13 @@ public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> ext
             if (raw == null) {
                 break;
             }
-            parseAndAddEntry(context, raw, newMap);
+            parseAndAddEntry(context, currentParam, raw, newMap);
             consumed++;
         }
         return newMap;
     }
 
-    private void parseAndAddEntry(CommandContext<S> context, String raw, M map) throws CommandException {
+    private void parseAndAddEntry(CommandContext<S> context, Argument<S> argument, String raw, M map) throws CommandException {
         if (!raw.contains(ENTRY_SEPARATOR)) {
             throw new ArgumentParseException(ResponseKey.INVALID_MAP_ENTRY_FORMAT, raw)
                           .withPlaceholder("extra_msg", ", entry doesn't contain '" + ENTRY_SEPARATOR + "'");
@@ -106,8 +106,8 @@ public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> ext
         String keyRaw = split[0];
         String valueRaw = split[1];
 
-        K key = keyResolver.parse(context, keyRaw);
-        V value = valueResolver.parse(context, valueRaw);
+        K key = keyResolver.parse(context, argument, keyRaw);
+        V value = valueResolver.parse(context, argument, valueRaw);
         map.put(key, value);
     }
 

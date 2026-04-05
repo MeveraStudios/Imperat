@@ -3,6 +3,7 @@ package studio.mevera.imperat.type;
 import net.dv8tion.jda.api.entities.Role;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.JdaCommandSource;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
@@ -13,7 +14,8 @@ import studio.mevera.imperat.responses.JdaResponseKey;
 public final class RoleArgument extends ArgumentType<JdaCommandSource, Role> {
 
     @Override
-    public @NotNull Role parse(@NotNull CommandContext<JdaCommandSource> context, @NotNull String input) throws CommandException {
+    public @NotNull Role parse(@NotNull CommandContext<JdaCommandSource> context, @NotNull Argument<JdaCommandSource> argument, @NotNull String input)
+            throws CommandException {
         var guild = context.source().origin().getGuild();
         if (guild == null) {
             throw new NoDMSException();

@@ -43,8 +43,9 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
 
 
     @Override
-    public Location parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull String input) throws CommandException {
-        return locFromStr(context, input);
+    public Location parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull Argument<HytaleCommandSource> argument,
+            @NotNull String input) throws CommandException {
+        return locFromStr(context, argument, input);
     }
 
     @Override
@@ -52,8 +53,10 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
     public @Nullable Location parse(@NotNull ExecutionContext<HytaleCommandSource> context, @NotNull Cursor<HytaleCommandSource> cursor) throws
             CommandException {
         String currentRaw = cursor.currentRaw().orElseThrow();
+        Argument<HytaleCommandSource> currentArg = cursor.currentParameterIfPresent();
+        assert currentArg != null;
         try {
-            return locFromStr(context, currentRaw);
+            return locFromStr(context, currentArg, currentRaw);
         } catch (Exception ex) {
             World world;
 
@@ -91,7 +94,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 x = playerLocation.getPosition().getX();
             } else {
-                x = doubleParser.parse(context, inputX);
+                x = doubleParser.parse(context, currentArg, inputX);
                 if (x == null) {
                     throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_X_COORDINATE, inputX, null,
                             null,
@@ -110,7 +113,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 y = playerLocation.getPosition().getY();
             } else {
-                y = doubleParser.parse(context, inputY);
+                y = doubleParser.parse(context, currentArg, inputY);
                 if (y == null) {
                     throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_Y_COORDINATE, null, inputY,
                             null,
@@ -129,7 +132,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 z = playerLocation.getPosition().getZ();
             } else {
-                z = doubleParser.parse(context, inputZ);
+                z = doubleParser.parse(context, currentArg, inputZ);
                 if (z == null) {
                     throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_Z_COORDINATE, null, null,
                             inputZ,
@@ -155,7 +158,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                     }
                     yaw = playerLocation.getRotation().getYaw();
                 } else {
-                    Double yawDouble = doubleParser.parse(context, inputYaw);
+                    Double yawDouble = doubleParser.parse(context, currentArg, inputYaw);
                     if (yawDouble == null) {
                         throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_YAW_COORDINATE, null, null,
                                 null, null, inputYaw);
@@ -174,7 +177,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                         }
                         pitch = playerLocation.getRotation().getPitch();
                     } else {
-                        Double pitchDouble = doubleParser.parse(context, inputPitch);
+                        Double pitchDouble = doubleParser.parse(context, currentArg, inputPitch);
                         if (pitchDouble == null) {
                             throw new InvalidLocationFormatException(currentRaw, InvalidLocationFormatException.Reason.INVALID_PITCH_COORDINATE, null,
                                     null, null, inputPitch, null);
@@ -188,7 +191,8 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
         }
     }
 
-    private @NotNull Location locFromStr(CommandContext<HytaleCommandSource> context, String currentRaw) throws
+    private @NotNull Location locFromStr(CommandContext<HytaleCommandSource> context, Argument<HytaleCommandSource> currentArg, String currentRaw)
+            throws
             CommandException {
         String[] split = currentRaw.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
@@ -213,7 +217,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             x = playerLocation.getPosition().getX();
         } else {
-            x = Objects.requireNonNull(doubleParser.parse(context, split[1]));
+            x = Objects.requireNonNull(doubleParser.parse(context, currentArg, split[1]));
         }
 
         double y;
@@ -224,7 +228,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             y = playerLocation.getPosition().getY();
         } else {
-            y = Objects.requireNonNull(doubleParser.parse(context, split[2]));
+            y = Objects.requireNonNull(doubleParser.parse(context, currentArg, split[2]));
         }
 
         double z;
@@ -235,7 +239,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             z = playerLocation.getPosition().getZ();
         } else {
-            z = Objects.requireNonNull(doubleParser.parse(context, split[3]));
+            z = Objects.requireNonNull(doubleParser.parse(context, currentArg, split[3]));
         }
 
         float yaw = 0.0f;
@@ -249,7 +253,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 yaw = playerLocation.getRotation().getYaw();
             } else {
-                yaw = (float) Objects.requireNonNull(doubleParser.parse(context, split[4])).doubleValue();
+                yaw = (float) Objects.requireNonNull(doubleParser.parse(context, currentArg, split[4])).doubleValue();
             }
         }
 
@@ -261,7 +265,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 pitch = playerLocation.getRotation().getPitch();
             } else {
-                pitch = (float) Objects.requireNonNull(doubleParser.parse(context, split[5])).doubleValue();
+                pitch = (float) Objects.requireNonNull(doubleParser.parse(context, currentArg, split[5])).doubleValue();
             }
         }
 

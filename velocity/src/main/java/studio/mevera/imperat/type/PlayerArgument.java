@@ -3,6 +3,7 @@ package studio.mevera.imperat.type;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.VelocityCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
@@ -27,7 +28,8 @@ public final class PlayerArgument extends ArgumentType<VelocityCommandSource, Pl
     }
 
     @Override
-    public @NotNull Player parse(@NotNull CommandContext<VelocityCommandSource> context, @NotNull String input) throws CommandException {
+    public @NotNull Player parse(@NotNull CommandContext<VelocityCommandSource> context, @NonNull Argument<VelocityCommandSource> argument,
+            @NotNull String input) throws CommandException {
         if (input.equalsIgnoreCase("me")) {
             if (context.source().isConsole()) {
                 throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER)

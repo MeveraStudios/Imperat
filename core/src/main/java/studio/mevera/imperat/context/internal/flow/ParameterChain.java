@@ -29,14 +29,14 @@ public class ParameterChain<S extends CommandSource> {
         this.handlers = List.copyOf(handlers);
     }
 
-    public void execute(TreeExecutionResult<S> treeExecutionResult, ExecutionContext<S> context, Cursor<S> stream) throws CommandException {
+    public void execute(TreeExecutionResult<S> treeExecutionResult, ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
 
         pipeLine:
-        while (stream.isCurrentParameterAvailable()) {
+        while (cursor.isCurrentParameterAvailable()) {
             for (ParameterHandler<S> handler : handlers) {
 
                 // ADD: Time each individual handler
-                HandleResult result = handler.handle(treeExecutionResult, context, stream);
+                HandleResult result = handler.handle(treeExecutionResult, context, cursor);
                 switch (result) {
                     case TERMINATE:
                         break pipeLine;
@@ -52,7 +52,7 @@ public class ParameterChain<S extends CommandSource> {
         var usage = context.getDetectedPathway();
         Command<S> lastCmd = context.command();
 
-        for (int rPos = 0; rPos < stream.rawsLength(); rPos++) {
+        for (int rPos = 0; rPos < cursor.rawsLength(); rPos++) {
             String raw = context.getRawArgument(rPos);
             if (!Patterns.isInputFlag(raw)) {
                 var sub = lastCmd.getSubCommand(raw, false);
@@ -61,7 +61,7 @@ public class ParameterChain<S extends CommandSource> {
                 }
                 continue;
             }
-            String nextRaw = rPos + 1 < stream.rawsLength() ? context.getRawArgument(rPos + 1) : null;
+            String nextRaw = rPos + 1 < cursor.rawsLength() ? context.getRawArgument(rPos + 1) : null;
             //identify if its a registered flag
             Set<FlagArgument<S>> extracted = usage.getFlagExtractor().extract(Patterns.withoutFlagSign(raw));
             String inputRaw = validateExtractedFlagsAndGetInputRaw(raw, nextRaw, extracted);
@@ -90,7 +90,8 @@ public class ParameterChain<S extends CommandSource> {
                                 inputRaw,
                                 rPos,
                                 flagParam.isSwitch() ? rPos : rPos + 1,
-                                flagParam.isSwitch() ? true : Objects.requireNonNull(flagParam.flagData().inputType()).parse(context, inputRaw)
+                                flagParam.isSwitch() ? true : Objects.requireNonNull(flagParam.flagData().inputType()).parse(context, flagParam,
+                                        inputRaw)
                         )
                 );
             }
@@ -145,9 +146,7 @@ public class ParameterChain<S extends CommandSource> {
         if (defValue != null) {
             Object flagValueResolved = flagArgument.getDefaultValueSupplier().isEmpty() ? null :
                                                Objects.requireNonNull(flagArgument.flagData().inputType()).parse(
-                                                       context,
-                                                       defValue
-                                               );
+                                                       context, flagArgument, defValue);
             context.resolveFlag(ParsedFlagArgument.forDefaultFlag(flagArgument, defValue, flagValueResolved));
         }
     }

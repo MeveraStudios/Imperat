@@ -4,7 +4,9 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.VelocityCommandSource;
+import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.ArgumentParseException;
@@ -22,6 +24,7 @@ public final class ServerInfoArgument extends ArgumentType<VelocityCommandSource
     @Override
     public @NotNull ServerInfo parse(
             @NotNull CommandContext<VelocityCommandSource> context,
+            @NonNull Argument<VelocityCommandSource> argument,
             @NotNull String input
     ) throws CommandException {
         return server.getServer(input)

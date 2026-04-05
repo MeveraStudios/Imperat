@@ -22,13 +22,13 @@ public final class CompletableFutureArgument<S extends CommandSource, T> extends
     }
 
     @Override
-    public CompletableFuture<T> parse(@NotNull CommandContext<S> context, @NotNull String input) {
+    public CompletableFuture<T> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) {
         if (typeResolver == null) {
             throw new IllegalStateException("No type parameter for type '" + type.getTypeName() + "'");
         }
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return typeResolver.parse(context, input);
+                return typeResolver.parse(context, argument, input);
             } catch (Exception ex) {
                 context.imperatConfig().handleExecutionError(ex, context, CompletableFutureArgument.class, "parse");
                 return null;

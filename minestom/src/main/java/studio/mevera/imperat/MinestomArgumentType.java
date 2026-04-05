@@ -2,6 +2,7 @@ package studio.mevera.imperat;
 
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
@@ -37,7 +38,8 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomCommandS
     }
 
     @Override
-    public T parse(@NotNull CommandContext<MinestomCommandSource> context, @NotNull String input) throws CommandException {
+    public T parse(@NotNull CommandContext<MinestomCommandSource> context, @NonNull Argument<MinestomCommandSource> argument, @NotNull String input)
+            throws CommandException {
         try {
             return (T) getMinestomType("").parse(context.source().origin(), input);
         } catch (ArgumentSyntaxException exception) {

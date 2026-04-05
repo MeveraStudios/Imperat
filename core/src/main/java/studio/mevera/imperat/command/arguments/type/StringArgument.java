@@ -20,7 +20,7 @@ public final class StringArgument<S extends CommandSource> extends ArgumentType<
     }
 
     @Override
-    public String parse(@NotNull CommandContext<S> context, @NotNull String input) throws CommandException {
+    public String parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException {
         if (input.isEmpty()) {
             throw new IllegalArgumentException("Input is empty");
         }
@@ -49,35 +49,36 @@ public final class StringArgument<S extends CommandSource> extends ArgumentType<
         }
         return !studio.mevera.imperat.util.StringUtils.isQuoteChar(input.charAt(0));
     }
-    private String resolveWithPrecision(ExecutionContext<S> context, Cursor<S> inputStream, String input, Argument<S> parameter)
+
+    private String resolveWithPrecision(ExecutionContext<S> context, Cursor<S> cursor, String input, Argument<S> argument)
             throws CommandException {
         StringBuilder builder = new StringBuilder();
-        final Character current = inputStream.currentLetter().orElse(null);
+        final Character current = cursor.currentLetter().orElse(null);
         if (current == null) {
             return input;
         }
-        if (parameter != null && parameter.isGreedyString()) {
+        if (argument != null && argument.isGreedyString()) {
             int limit = -1;
-            if (parameter.isAnnotated()) {
-                Greedy greedyAnn = parameter.asAnnotatedArgument().getAnnotation(Greedy.class);
+            if (argument.isAnnotated()) {
+                Greedy greedyAnn = argument.asAnnotatedArgument().getAnnotation(Greedy.class);
                 if (greedyAnn == null) {
                     throw new CommandException(
-                            "Greedy annotation missing on an annotated parameter marked as greedy string, there's something wrong!");
+                            "Greedy annotation missing on an annotated argument marked as greedy string, there's something wrong!");
                 }
                 limit = greedyAnn.limit();
             }
-            handleGreedyOptimized(builder, limit, inputStream, context);
+            handleGreedyOptimized(builder, limit, cursor, context);
             return builder.toString();
         }
         Character next;
         do {
-            next = inputStream.popLetter().orElse(null);
+            next = cursor.popLetter().orElse(null);
             if (next == null) {
                 break;
             }
             builder.append(next);
-        } while (inputStream.isCurrentRawInputAvailable()
-                                    && inputStream.peekLetter().map((ch) -> !studio.mevera.imperat.util.StringUtils.isQuoteChar(ch))
+        } while (cursor.isCurrentRawInputAvailable()
+                         && cursor.peekLetter().map((ch) -> !studio.mevera.imperat.util.StringUtils.isQuoteChar(ch))
                                     .orElse(false));
         return builder.toString();
     }
@@ -136,7 +137,7 @@ public final class StringArgument<S extends CommandSource> extends ArgumentType<
                 String peekedInput = context.arguments().getOr(peekRawPos, null);
                 if (peekedInput != null) {
                     try {
-                        nextParam.type().parse(context, peekedInput);
+                        nextParam.type().parse(context, nextParam, peekedInput);
                         break;
                     } catch (Exception ignored) {
                         // Not a match, continue

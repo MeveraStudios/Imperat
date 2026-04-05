@@ -8,9 +8,7 @@ import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -28,7 +26,8 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
     }
 
     @Override
-    public @NotNull PlayerRef parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull String input) throws CommandException {
+    public @NotNull PlayerRef parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull Argument<HytaleCommandSource> argument,
+            @NotNull String input) throws CommandException {
         if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
                 throw new UnknownPlayerException(input);
@@ -42,15 +41,6 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
         throw new UnknownPlayerException(input);
     }
 
-    @Override
-    public PlayerRef parse(@NotNull ExecutionContext<HytaleCommandSource> context, @NotNull Cursor<HytaleCommandSource> cursor)
-            throws CommandException {
-        String input = cursor.currentRawIfPresent();
-        if (input == null) {
-            throw new UnknownPlayerException("<no input>");
-        }
-        return parse(context, input);
-    }
 
     /**
      * Returns the suggestion resolver associated with this parameter type.

@@ -13,7 +13,7 @@ import java.util.Optional;
 final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     private final String inputLine;
-    private final StreamPosition<S> streamPosition;
+    private final CursorPosition<S> cursorPosition;
     private final ArgumentInput queue;
     private final List<Argument<S>> parametersList;
 
@@ -32,14 +32,14 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
 
     CursorImpl(ArgumentInput queue, List<Argument<S>> parameters) {
-        this(queue, parameters, new StreamPosition<>(parameters.size(), queue.size()), calculateRawStartPositions(queue, queue.getOriginalRaw()));
+        this(queue, parameters, new CursorPosition<>(parameters.size(), queue.size()), calculateRawStartPositions(queue, queue.getOriginalRaw()));
     }
 
-    CursorImpl(ArgumentInput queue, List<Argument<S>> parameters, StreamPosition<S> streamPosition, int[] rawStartPositions) {
+    CursorImpl(ArgumentInput queue, List<Argument<S>> parameters, CursorPosition<S> cursorPosition, int[] rawStartPositions) {
         this.queue = queue;
         this.inputLine = queue.getOriginalRaw();
         this.parametersList = parameters;
-        this.streamPosition = streamPosition;
+        this.cursorPosition = cursorPosition;
         this.rawStartPositions = rawStartPositions;
         updateCache(); // Initialize cache
     }
@@ -95,27 +95,27 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
      */
     private void updateCache() {
         if (cacheValid &&
-                    lastParameterPosition == streamPosition.parameter &&
-                    lastRawPosition == streamPosition.raw) {
+                    lastParameterPosition == cursorPosition.parameter &&
+                    lastRawPosition == cursorPosition.raw) {
             return; // Cache is still valid
         }
 
         // Update parameter cache
-        if (streamPosition.parameter >= parametersList.size()) {
+        if (cursorPosition.parameter >= parametersList.size()) {
             cachedCurrentParameter = null;
         } else {
-            cachedCurrentParameter = parametersList.get(streamPosition.parameter);
+            cachedCurrentParameter = parametersList.get(cursorPosition.parameter);
         }
 
         // Update raw cache
-        if (streamPosition.raw >= queue.size()) {
+        if (cursorPosition.raw >= queue.size()) {
             cachedCurrentRaw = null;
         } else {
-            cachedCurrentRaw = queue.get(streamPosition.raw);
+            cachedCurrentRaw = queue.get(cursorPosition.raw);
         }
 
-        lastParameterPosition = streamPosition.parameter;
-        lastRawPosition = streamPosition.raw;
+        lastParameterPosition = cursorPosition.parameter;
+        lastRawPosition = cursorPosition.raw;
         cacheValid = true;
     }
 
@@ -127,18 +127,18 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
     }
 
     /**
-     * Get the current letter position based on the current raw streamPosition position
+     * Get the current letter position based on the current raw cursorPosition position
      */
     private int getCurrentLetterPos() {
-        if (streamPosition.raw >= rawStartPositions.length) {
+        if (cursorPosition.raw >= rawStartPositions.length) {
             return inputLine.length();
         }
-        return rawStartPositions[streamPosition.raw];
+        return rawStartPositions[cursorPosition.raw];
     }
 
     @Override
-    public @NotNull StreamPosition<S> position() {
-        return streamPosition;
+    public @NotNull CursorPosition<S> position() {
+        return cursorPosition;
     }
 
     @Override
@@ -155,7 +155,7 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public Argument<S> peekParameterIfPresent() {
-        int nextIndex = streamPosition.parameter + 1;
+        int nextIndex = cursorPosition.parameter + 1;
         if (nextIndex >= parametersList.size()) {
             return null;
         }
@@ -164,7 +164,7 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public String peekRawIfPresent() {
-        int nextIndex = streamPosition.raw + 1;
+        int nextIndex = cursorPosition.raw + 1;
         return queue.getOr(nextIndex, null);
     }
 
@@ -189,7 +189,7 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public Optional<Argument<S>> popParameter() {
-        streamPosition.shift(ShiftTarget.PARAMETER_ONLY, ShiftOperation.RIGHT);
+        cursorPosition.shift(ShiftTarget.PARAMETER_ONLY, ShiftOperation.RIGHT);
         invalidateCache();
         Argument<S> current = currentParameterIfPresent();
         return Optional.ofNullable(current);
@@ -197,10 +197,10 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public Optional<Argument<S>> prevParameter() {
-        if (streamPosition.parameter <= 0) {
+        if (cursorPosition.parameter <= 0) {
             return Optional.empty();
         }
-        return Optional.ofNullable(parametersList.get(streamPosition.parameter - 1));
+        return Optional.ofNullable(parametersList.get(cursorPosition.parameter - 1));
     }
 
     @Override
@@ -221,8 +221,8 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
         }
 
         // Advance the position for the current raw argument
-        if (streamPosition.raw < rawStartPositions.length) {
-            rawStartPositions[streamPosition.raw]++;
+        if (cursorPosition.raw < rawStartPositions.length) {
+            rawStartPositions[cursorPosition.raw]++;
         }
 
         return Optional.of(inputLine.charAt(letterPos));
@@ -230,7 +230,7 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public Optional<String> popRaw() {
-        streamPosition.shift(ShiftTarget.RAW_ONLY, ShiftOperation.RIGHT);
+        cursorPosition.shift(ShiftTarget.RAW_ONLY, ShiftOperation.RIGHT);
         invalidateCache();
         String current = currentRawIfPresent();
         return Optional.ofNullable(current);
@@ -238,7 +238,7 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public Optional<String> prevRaw() {
-        int prev = streamPosition.raw - 1;
+        int prev = cursorPosition.raw - 1;
         return Optional.ofNullable(queue.getOr(prev, null));
     }
 
@@ -254,32 +254,32 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public boolean isCurrentRawInputAvailable() {
-        return (streamPosition.raw) < rawsLength();
+        return (cursorPosition.raw) < rawsLength();
     }
 
     @Override
     public boolean hasPreviousRaw() {
-        return streamPosition.raw > 0;
+        return cursorPosition.raw > 0;
     }
 
     @Override
     public boolean hasNextRaw() {
-        return (streamPosition.raw + 1) < rawsLength();
+        return (cursorPosition.raw + 1) < rawsLength();
     }
 
     @Override
     public boolean isCurrentParameterAvailable() {
-        return (streamPosition.parameter) < parametersLength();
+        return (cursorPosition.parameter) < parametersLength();
     }
 
     @Override
     public boolean hasPreviousParameter() {
-        return streamPosition.parameter > 0;
+        return cursorPosition.parameter > 0;
     }
 
     @Override
     public boolean hasNextParameter() {
-        return (streamPosition.parameter + 1) < parametersLength();
+        return (cursorPosition.parameter + 1) < parametersLength();
     }
 
     @Override
@@ -289,7 +289,7 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public String collectRemainingRaw() {
-        if (streamPosition.raw >= queue.size()) {
+        if (cursorPosition.raw >= queue.size()) {
             return "";
         }
         StringBuilder sb = new StringBuilder(this.currentRaw().orElseThrow());
@@ -307,15 +307,15 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public boolean skip() {
-        final StreamPosition<S> streamPosition = position();
-        int prevRaw = streamPosition.raw;
-        streamPosition.shift(ShiftTarget.ALL, ShiftOperation.RIGHT);
+        final CursorPosition<S> cursorPosition = position();
+        int prevRaw = cursorPosition.raw;
+        cursorPosition.shift(ShiftTarget.ALL, ShiftOperation.RIGHT);
         invalidateCache();
 
-        // The letter position is now automatically synchronized with the raw streamPosition
+        // The letter position is now automatically synchronized with the raw cursorPosition
         // through getCurrentLetterPos()
 
-        return streamPosition.raw > prevRaw;
+        return cursorPosition.raw > prevRaw;
     }
 
     @Override
@@ -332,7 +332,7 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
         return new CursorImpl<>(
                 this.queue.copy(),
                 List.copyOf(parametersList),
-                streamPosition.copy(),
+                cursorPosition.copy(),
                 rawStartPositions.clone() // Clone the array to avoid shared state
         );
     }
@@ -344,8 +344,8 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
     @Override
     public void setAt(Cursor<S> cursorCopy) {
-        this.streamPosition.raw = cursorCopy.position().getRaw();
-        this.streamPosition.parameter = cursorCopy.position().getParameter();
+        this.cursorPosition.raw = cursorCopy.position().getRaw();
+        this.cursorPosition.parameter = cursorCopy.position().getParameter();
         updateCache();
     }
 }
