@@ -11,11 +11,14 @@ import studio.mevera.imperat.annotations.base.element.selector.ElementSelector;
 import studio.mevera.imperat.annotations.base.parsers.CommandClassParser;
 import studio.mevera.imperat.annotations.base.parsers.MethodCommandExceptionHandler;
 import studio.mevera.imperat.annotations.types.ExternalSubCommand;
+import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -57,6 +60,13 @@ final class AnnotationReaderImpl<S extends CommandSource> implements AnnotationR
             @Nullable ClassElement parent,
             @NotNull Class<?> clazz
     ) {
+        if (clazz.isAnnotationPresent(RootCommand.class)) {
+            String[] names = clazz.getDeclaredAnnotation(RootCommand.class).value();
+            validateCmdNames(names);
+        } else if (clazz.isAnnotationPresent(SubCommand.class)) {
+            String[] names = clazz.getDeclaredAnnotation(SubCommand.class).value();
+            validateCmdNames(names);
+        }
 
         ClassElement root = parent == null ?
                                     new ClassElement(parser, null, clazz, rootCommandClass.proxyInstance())
@@ -74,6 +84,14 @@ final class AnnotationReaderImpl<S extends CommandSource> implements AnnotationR
         //Arrays.sort(methods, METHOD_COMPARATOR);
         for (Method method : methods) {
             MethodElement methodElement = new MethodElement(parser, root, method);
+            if (method.isAnnotationPresent(SubCommand.class)) {
+                String[] names = method.getDeclaredAnnotation(SubCommand.class).value();
+                validateCmdNames(names);
+            } else if (method.isAnnotationPresent(RootCommand.class)) {
+                String[] names = method.getDeclaredAnnotation(RootCommand.class).value();
+                validateCmdNames(names);
+            }
+
             if (methodSelector.canBeSelected(imperat, parser, methodElement, false)) {
                 root.addChild(methodElement);
             }
@@ -114,6 +132,24 @@ final class AnnotationReaderImpl<S extends CommandSource> implements AnnotationR
         return root;
     }
 
+    private void validateCmdNames(String[] arr) {
+
+        List<String> invalidNames = new ArrayList<>();
+        for (String n : arr) {
+            if (isCmdNameInvalid(n)) {
+                invalidNames.add(n);
+            }
+        }
+
+        if (!invalidNames.isEmpty()) {
+            throw new IllegalArgumentException("Invalid command name(s): '" + String.join(",", invalidNames) + "' \n "
+                                                       + "Command names shouldn't contain any spaces!");
+        }
+    }
+
+    private boolean isCmdNameInvalid(String name) {
+        return name.contains(" ");
+    }
 
     @Override
     public RootCommandClass<S> getRootClass() {
