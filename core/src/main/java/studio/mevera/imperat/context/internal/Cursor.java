@@ -12,18 +12,18 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
- * Represents a stream of command input that provides sequential access to command arguments,
+ * Represents a cursor of command input that provides sequential access to command arguments,
  * parameters, and individual characters. This interface allows for sophisticated navigation
  * and manipulation of command input data with cursor-based positioning.
  *
- * <p>The {@code CommandInputStream} operates on three distinct levels:
+ * <p>The {@code Cursor} operates on three distinct levels:
  * <ul>
  *   <li><strong>Character level:</strong> Individual character access within the input string</li>
  *   <li><strong>Raw input level:</strong> Space-separated argument strings</li>
  *   <li><strong>Parameter level:</strong> Typed command parameters with associated metadata</li>
  * </ul>
  *
- * <p>The stream maintains internal cursors for each level, allowing independent navigation
+ * <p>The cursor maintains internal cursors for each level, allowing independent navigation
  * through the input data. This design enables complex parsing scenarios such as:
  * <ul>
  *   <li>Lookahead parsing without consuming input</li>
@@ -34,23 +34,23 @@ import java.util.Optional;
  *
  * <p><strong>Usage Example:</strong>
  * <pre>{@code
- * CommandInputStream<CommandSource> stream = CommandInputStream.of(
+ * Cursor<CommandSource> cursor = Cursor.of(
  *     ArgumentInput.of("player", "give", "diamond", "64"),
  *     detectedUsage
  * );
  *
  * // Navigate through parameters
- * while (stream.isCurrentParameterAvailable()) {
- *     Argument<CommandSource> param = stream.currentParameterIfPresent();
- *     String rawValue = stream.currentRawIfPresent();
+ * while (cursor.isCurrentParameterAvailable()) {
+ *     Argument<CommandSource> param = cursor.currentParameterIfPresent();
+ *     String rawValue = cursor.currentRawIfPresent();
  *
  *     // Process parameter...
- *     stream.skipParameter();
+ *     cursor.skipParameter();
  * }
  * }</pre>
  *
  * <p><strong>Thread Safety:</strong> Implementations of this interface are not guaranteed
- * to be thread-safe. External synchronization is required when accessing the same stream
+ * to be thread-safe. External synchronization is required when accessing the same cursor
  * instance from multiple threads concurrently.
  *
  * @param <S> the type of the command source (e.g., Player, Console, CommandBlock)
@@ -70,26 +70,26 @@ public interface Cursor<S extends CommandSource> {
 
     /**
      * Creates a new {@link Cursor} instance with the specified raw arguments
-     * and command usage information. The usage information determines how the raw
+     * and command pathway information. The pathway information determines how the raw
      * arguments are mapped to typed command parameters.
      *
-     * <p>This factory method is the primary way to create command input streams
+     * <p>This factory method is the primary way to create command input cursors
      * from parsed command input and detected command structure.
      *
      * @param <S> the type of command source
      * @param queue the queue containing all raw argument strings
-     * @param usage the command usage definition that describes expected parameters
+     * @param pathway the command pathway definition that describes expected parameters
      * @return a new {@link Cursor} instance initialized with the
      *         provided data
-     * @throws IllegalArgumentException if queue or usage is {@code null}
+     * @throws IllegalArgumentException if queue or pathway is {@code null}
      */
-    static <S extends CommandSource> Cursor<S> of(ArgumentInput queue, CommandPathway<S> usage) {
-        return new CursorImpl<>(queue, usage);
+    static <S extends CommandSource> Cursor<S> of(ArgumentInput queue, CommandPathway<S> pathway) {
+        return new CursorImpl<>(queue, pathway);
     }
 
     /**
      * Creates a new {@link Cursor} with a single string as input.
-     * This factory method is useful for creating streams for single-argument
+     * This factory method is useful for creating cursors for single-argument
      * parsing or testing scenarios.
      *
      * @param <S> the type of command source
@@ -107,22 +107,22 @@ public interface Cursor<S extends CommandSource> {
     // ========================================
 
     /**
-     * Creates a substream of the specified parent stream with new input content.
-     * The substream inherits the current parameter context from the parent stream
+     * Creates a subcursor of the specified parent cursor with new input content.
+     * The subcursor inherits the current parameter context from the parent cursor
      * but operates on the new input string.
      *
      * <p>This method is useful for recursive parsing scenarios where a parameter
      * value needs to be parsed as a nested command structure.
      *
      * @param <S> the type of command source
-     * @param stream the parent command input stream to derive context from
-     * @param input the raw input string for the new substream
-     * @return a new {@link Cursor} instance representing the substream
-     * @throws NoSuchElementException if the parent stream has no current parameter available
-     * @throws IllegalArgumentException if stream or input is {@code null}
+     * @param cursor the parent command input cursor to derive context from
+     * @param input the raw input string for the new subcursor
+     * @return a new {@link Cursor} instance representing the subcursor
+     * @throws NoSuchElementException if the parent cursor has no current parameter available
+     * @throws IllegalArgumentException if cursor or input is {@code null}
      */
-    static <S extends CommandSource> Cursor<S> subStream(@NotNull Cursor<S> stream, @NotNull String input) {
-        Argument<S> param = stream.currentParameterIfPresent();
+    static <S extends CommandSource> Cursor<S> subCursor(@NotNull Cursor<S> cursor, @NotNull String input) {
+        Argument<S> param = cursor.currentParameterIfPresent();
         if (param == null) {
             throw new NoSuchElementException("No current parameter available");
         }
@@ -130,24 +130,24 @@ public interface Cursor<S extends CommandSource> {
     }
 
     /**
-     * Retrieves the current cursor position within the input stream.
+     * Retrieves the current cursor position within the input cursor.
      * The position object contains cursors for all navigation levels
      * (character, raw input, and parameter).
      *
-     * @return the current stream position, never {@code null}
+     * @return the current cursor position, never {@code null}
      */
     @NotNull CursorPosition<S> position();
 
     /**
-     * Creates a deep copy of this command input stream.
+     * Creates a deep copy of this command input cursor.
      * The copy maintains independent cursor positions and can be navigated
-     * separately from the original stream.
+     * separately from the original cursor.
      *
      * <p>This method is useful for implementing backtracking parsers or
      * for creating savepoints during complex parsing operations.
      *
      * @return a new {@link Cursor} instance that is an independent
-     *         copy of this stream
+     *         copy of this cursor
      */
     Cursor<S> copy();
 
@@ -369,7 +369,7 @@ public interface Cursor<S extends CommandSource> {
     boolean isCurrentLetterAvailable();
 
     /**
-     * Checks if there is a next command parameter available in the stream.
+     * Checks if there is a next command parameter available in the cursor.
      * This method allows checking for the availability of the next parameter
      * without consuming or peeking at it.
      *
@@ -378,7 +378,7 @@ public interface Cursor<S extends CommandSource> {
     boolean hasNextParameter();
 
     /**
-     * Checks if there is a next raw input string available in the stream.
+     * Checks if there is a next raw input string available in the cursor.
      * This method allows checking for the availability of the next input
      * without consuming or peeking at it.
      *
@@ -399,14 +399,14 @@ public interface Cursor<S extends CommandSource> {
     boolean hasNextLetter();
 
     /**
-     * Checks if there is a previous command parameter available in the stream.
+     * Checks if there is a previous command parameter available in the cursor.
      *
      * @return {@code true} if a previous command parameter exists, {@code false} otherwise
      */
     boolean hasPreviousParameter();
 
     /**
-     * Checks if there is a previous raw input string available in the stream.
+     * Checks if there is a previous raw input string available in the cursor.
      *
      * @return {@code true} if a previous raw input exists, {@code false} otherwise
      */
@@ -414,7 +414,7 @@ public interface Cursor<S extends CommandSource> {
 
     /**
      * Skips the current input element and advances the appropriate cursor.
-     * The specific behavior depends on the current stream position and
+     * The specific behavior depends on the current cursor position and
      * available input types.
      *
      * @return {@code true} if the skip operation was successful,
@@ -486,7 +486,7 @@ public interface Cursor<S extends CommandSource> {
     }
 
     /**
-     * Retrieves the total number of command parameters in the stream.
+     * Retrieves the total number of command parameters in the cursor.
      *
      * @return the total count of command parameters, always non-negative
      */
@@ -499,7 +499,7 @@ public interface Cursor<S extends CommandSource> {
     // ========================================
 
     /**
-     * Retrieves the total number of raw input strings in the stream.
+     * Retrieves the total number of raw input strings in the cursor.
      *
      * @return the total count of raw inputs, always non-negative
      */
@@ -508,7 +508,7 @@ public interface Cursor<S extends CommandSource> {
     }
 
     /**
-     * Retrieves the complete list of command parameters associated with this stream.
+     * Retrieves the complete list of command parameters associated with this cursor.
      * This provides access to all parameter metadata for validation or processing.
      *
      * @return an immutable {@link List} of command parameters, never {@code null}
@@ -518,7 +518,7 @@ public interface Cursor<S extends CommandSource> {
     /**
      * Retrieves the underlying queue containing all raw input strings.
      * This provides access to the complete input data for batch operations
-     * or stream analysis.
+     * or cursor analysis.
      *
      * @return the {@link ArgumentInput} containing all raw inputs, never {@code null}
      */
@@ -616,7 +616,7 @@ public interface Cursor<S extends CommandSource> {
      * Exempt parameters are typically flag parameters that have been
      * handled separately from the main argument processing flow.
      *
-     * <p>This method allows the stream to track which parameters have
+     * <p>This method allows the cursor to track which parameters have
      * been processed outside the normal sequential flow, enabling
      * proper validation and error reporting.
      *
