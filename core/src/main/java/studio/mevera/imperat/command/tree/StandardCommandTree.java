@@ -671,24 +671,11 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     }
 
     /**
-     * Looks up a flag by raw token (e.g. "-s", "--silent") from the nearest
-     * executable pathway reachable from the given node (self or ancestors).
+     * Looks up a flag by raw token (e.g. "-s", "--silent") from the currently
+     * scoped executable pathway only.
      */
     private @Nullable FlagData<S> findFlagForToken(CommandNode<S, ?> node, String rawToken) {
-        // Walk up to find the nearest executable pathway with registered flags
-        CommandNode<S, ?> current = node;
-        while (current != null) {
-            if (current.isExecutable() && current.getExecutableUsage() != null) {
-                FlagData<S> flag = matchFlagFromPathway(current.getExecutableUsage(), rawToken);
-                if (flag != null) {
-                    return flag;
-                }
-            }
-            current = current.getParent();
-        }
-        // Also check root command's default pathway
-        CommandPathway<S> defaultPathway = rootCommand.getDefaultPathway();
-        return matchFlagFromPathway(defaultPathway, rawToken);
+        return matchFlagFromPathway(resolveFlagScopePathway(node), rawToken);
     }
 
     /**
@@ -955,11 +942,11 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             final List<String> results
     ) {
 
-        // Track the last literal node visited — update if current node is literal
-        final CommandNode<S, ?> currentLastLiteral = node.isLiteral() ? node : lastLiteral;
+        final String currentInputAtDepth = context.arguments().getOr(inputDepth, null);
+        final CommandNode<S, ?> activeLiteral = resolveActiveLiteral(node, lastLiteral, inputDepth, currentInputAtDepth, context);
 
         // If the last literal command we traversed through is secret, skip all suggestions
-        if (currentLastLiteral != null && currentLastLiteral.isSecret()) {
+        if (activeLiteral != null && activeLiteral.isSecret()) {
             return;
         }
 
@@ -972,15 +959,17 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return;
         }
 
+        final CommandNode<S, ?> flagScopeNode = resolveFlagScopeNode(node, activeLiteral);
+
         if (inputDepth == lastIndex) {
             // Check if the previous token was a flag — if so, suggest flag values
             if (inputDepth > 0) {
                 String prevToken = context.arguments().getOr(inputDepth - 1, null);
                 if (prevToken != null && Patterns.isInputFlag(prevToken)) {
-                    FlagData<S> flagData = findFlagForToken(node, prevToken);
+                    FlagData<S> flagData = findFlagForToken(flagScopeNode, prevToken);
                     if (flagData != null && !flagData.isSwitch()) {
                         // We're completing the value for this flag
-                        collectFlagValueSuggestions(node, flagData, context, results);
+                        collectFlagValueSuggestions(flagScopeNode, flagData, context, results);
                         return;
                     }
                 }
@@ -990,7 +979,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             results.addAll(collectedSuggestions);
 
             // Also suggest flags at this position
-            collectFlagNameSuggestions(node, context, results);
+            collectFlagNameSuggestions(flagScopeNode, context, results);
 
             if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional() && !(node.isTrueFlag())) {
                 collectOverlappingSuggestions(node, node, context, results);
@@ -1000,22 +989,22 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             assert currentInput != null;
 
             if (node.isGreedyParam()) {
-                tabCompleteNode(node, context, lastIndex, currentLastLiteral, results);
+                tabCompleteNode(node, context, lastIndex, activeLiteral, results);
                 return;
             }
 
             // Skip flag tokens in the input
             if (Patterns.isInputFlag(currentInput)) {
-                FlagData<S> flagData = findFlagForToken(node, currentInput);
+                FlagData<S> flagData = findFlagForToken(flagScopeNode, currentInput);
                 if (flagData != null) {
                     if (!flagData.isSwitch() && inputDepth + 1 == lastIndex) {
                         // The user is completing the flag's VALUE — provide value suggestions
-                        collectFlagValueSuggestions(node, flagData, context, results);
+                        collectFlagValueSuggestions(flagScopeNode, flagData, context, results);
                         return;
                     }
                     int skip = flagData.isSwitch() ? 1 : 2;
                     // Continue with the same node at the skipped depth
-                    tabCompleteNode(node, context, inputDepth + skip, currentLastLiteral, results);
+                    tabCompleteNode(node, context, inputDepth + skip, activeLiteral, results);
                     return;
                 }
             }
@@ -1024,11 +1013,35 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 return;
             }
 
+            int nextDepth = inputDepth + node.getNumberOfParametersToConsume();
+            if (node.getChildren().isEmpty() && nextDepth == lastIndex && node.isExecutable()) {
+                collectFlagNameSuggestions(flagScopeNode, context, results);
+                return;
+            }
+
             for (var child : node.getChildren()) {
-                tabCompleteNode(child, context, inputDepth + node.getNumberOfParametersToConsume(), currentLastLiteral, results);
+                tabCompleteNode(child, context, nextDepth, activeLiteral, results);
             }
 
         }
+    }
+
+    private CommandNode<S, ?> resolveActiveLiteral(
+            CommandNode<S, ?> node,
+            CommandNode<S, ?> lastLiteral,
+            int inputDepth,
+            String currentInput,
+            SuggestionContext<S> context
+    ) {
+        if (!node.isLiteral() || currentInput == null || Patterns.isInputFlag(currentInput)) {
+            return lastLiteral;
+        }
+
+        if (node.matchesInput(inputDepth, context, true)) {
+            return node;
+        }
+
+        return lastLiteral;
     }
 
     /**
@@ -1037,11 +1050,45 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     private void collectFlagNameSuggestions(CommandNode<S, ?> node, SuggestionContext<S> context, List<String> results) {
         Set<FlagArgument<S>> flags = collectReachableFlags(node);
         for (FlagArgument<S> flag : flags) {
+            if (isFlagAlreadyUsed(context, flag)) {
+                continue;
+            }
             results.add("-" + flag.flagData().name());
             for (String alias : flag.flagData().aliases()) {
                 results.add("-" + alias);
             }
         }
+    }
+
+    private boolean isFlagAlreadyUsed(SuggestionContext<S> context, FlagArgument<S> flag) {
+        int completionIndex = context.getArgToComplete().index();
+        boolean editingCurrentToken = !context.getArgToComplete().isEmpty();
+
+        for (int i = 0; i < context.arguments().size(); i++) {
+            if (editingCurrentToken && i == completionIndex) {
+                continue;
+            }
+
+            String token = context.arguments().getOr(i, null);
+            if (token == null || !Patterns.isInputFlag(token)) {
+                continue;
+            }
+
+            if (flag.flagData().acceptsInput(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private CommandNode<S, ?> resolveFlagScopeNode(
+            CommandNode<S, ?> node,
+            CommandNode<S, ?> activeLiteral
+    ) {
+        if (node.isLiteral() && activeLiteral != null) {
+            return activeLiteral;
+        }
+        return node;
     }
 
     /**
@@ -1069,27 +1116,22 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     }
 
     /**
-     * Collects all registered flags from executable pathways reachable from
-     * the given node (self and ancestors).
+     * Collects all registered flags from the currently scoped executable pathway.
      */
     private Set<FlagArgument<S>> collectReachableFlags(CommandNode<S, ?> node) {
-        CommandNode<S, ?> current = node;
-        while (current != null) {
-            if (current.isExecutable() && current.getExecutableUsage() != null) {
-                var flags = current.getExecutableUsage().getFlagExtractor().getRegisteredFlags();
-                if (!flags.isEmpty()) {
-                    return flags;
-                }
-            }
-            current = current.getParent();
+        CommandPathway<S> scopedPathway = resolveFlagScopePathway(node);
+        if (scopedPathway == null) {
+            return Set.of();
         }
-        // Also check root command's default pathway
-        CommandPathway<S> defaultPathway = rootCommand.getDefaultPathway();
-        var flags = defaultPathway.getFlagExtractor().getRegisteredFlags();
-        if (!flags.isEmpty()) {
-            return flags;
+
+        return scopedPathway.getFlagExtractor().getRegisteredFlags();
+    }
+
+    private @Nullable CommandPathway<S> resolveFlagScopePathway(CommandNode<S, ?> node) {
+        if (node != null && node.isExecutable()) {
+            return node.getExecutableUsage();
         }
-        return Set.of();
+        return null;
     }
 
     /**

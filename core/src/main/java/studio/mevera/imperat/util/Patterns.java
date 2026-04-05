@@ -4,8 +4,8 @@ import java.util.regex.Pattern;
 
 public final class Patterns {
 
-    public final static Pattern SINGLE_FLAG = Pattern.compile("-([a-zA-Z]+)");
-    public final static Pattern DOUBLE_FLAG = Pattern.compile("--([a-zA-Z]+)");
+    public final static Pattern SINGLE_FLAG = Pattern.compile("-([a-zA-Z0-9_]+)");
+    public final static Pattern DOUBLE_FLAG = Pattern.compile("--([a-zA-Z0-9_]+)");
 
     private Patterns() {
         throw new AssertionError();
