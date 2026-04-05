@@ -86,29 +86,41 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
     }
 
     private boolean matchesInput(ArgumentType<S, ?> type, int depth, CommandContext<S> ctx) {
-
-        var args = ctx.arguments();
-        StringBuilder input = new StringBuilder();
-
-        final int limit = type.getNumberOfParametersToConsume(data);
-        if (limit < 1) {
+        final int tokensToConsume = resolveMatchTokenCount(type, ctx.arguments().size() - depth);
+        if (tokensToConsume < 1) {
             throw new IllegalArgumentException("Number of args to consume for type " + type.getClass().getSimpleName() + " must be at least 1");
         }
 
-        for (int i = depth, consumed = 0; i < args.size() && consumed <= limit; i++, consumed++) {
-            input.append(args.get(i));
-            if (i != args.size() - 1 && consumed + 1 != limit) {
-                input.append(' ');
-            }
-            consumed++;
-        }
-
         try {
-            type.parse(ctx, this.data, input.toString());
+            type.parse(ctx, this.data, collectMatchInput(ctx, depth, tokensToConsume));
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private int resolveMatchTokenCount(ArgumentType<S, ?> type, int remainingTokens) {
+        final int baseCount = type.getNumberOfParametersToConsume(data);
+        if (!isGreedyParam()) {
+            return Math.min(baseCount, remainingTokens);
+        }
+
+        final int greedyLimit = data.greedyLimit();
+        return greedyLimit > 0 ? Math.min(greedyLimit, remainingTokens) : remainingTokens;
+    }
+
+    private String collectMatchInput(CommandContext<S> ctx, int depth, int tokensToConsume) {
+        var args = ctx.arguments();
+        StringBuilder input = new StringBuilder();
+
+        for (int offset = 0; offset < tokensToConsume && depth + offset < args.size(); offset++) {
+            if (offset > 0) {
+                input.append(' ');
+            }
+            input.append(args.get(depth + offset));
+        }
+
+        return input.toString();
     }
 
     public boolean matchesInput(int depth, CommandContext<S> ctx, boolean strict) {

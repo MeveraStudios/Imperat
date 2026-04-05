@@ -15,10 +15,10 @@ import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.priority.Prioritizable;
 import studio.mevera.imperat.util.priority.Priority;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Base class for defining parameter types in a command processing framework.
@@ -84,7 +84,7 @@ public abstract class ArgumentType<S extends CommandSource, T>
      * handling any necessary validation or error handling during the parsing process.
      *
      * @param context  the execution context.
-     * @param argument
+     * @param argument the argument with this type.
      * @param input    the raw input string to parse.
      * @return the resolved value of type T.
      * @throws CommandException if parsing fails.
@@ -103,11 +103,13 @@ public abstract class ArgumentType<S extends CommandSource, T>
      * @throws CommandException if parsing fails.
      */
     public T parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws CommandException {
-        String input = cursor.currentRawIfPresent();
+        Argument<S> currentArgument = cursor.currentParameterIfPresent();
+        assert currentArgument != null;
+        String input = isGreedy(currentArgument) ? cursor.collectRemainingRaw() : cursor.currentRawIfPresent();
         if (input == null) {
             throw new IllegalArgumentException("No input available at cursor position");
         }
-        return parse(context, Objects.requireNonNull(cursor.currentParameterIfPresent()), input);
+        return parse(context, currentArgument, input);
     }
 
     /**

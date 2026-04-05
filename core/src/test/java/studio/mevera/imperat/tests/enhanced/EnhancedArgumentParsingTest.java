@@ -10,7 +10,10 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.arguments.TestPlayer;
 import studio.mevera.imperat.tests.commands.MultipleOptionals;
+import studio.mevera.imperat.tests.commands.realworld.BroadcastMessage;
 import studio.mevera.imperat.tests.commands.realworld.GiveCmd;
+import studio.mevera.imperat.tests.greedy_type_example.Message;
+import studio.mevera.imperat.tests.greedy_type_example.MessageArgumentType;
 import studio.mevera.imperat.tests.parameters.TestPlayerParamType;
 
 @DisplayName("Enhanced Argument Parsing Tests")
@@ -465,5 +468,19 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     void testTrueFlagTabCompletion() {
         var res = tabComplete("bal -c ");
         Assertions.assertThat(res).containsExactly("gold", "silver");
+    }
+
+    @Test
+    @DisplayName("Parses greedy by nature properly")
+    void testMessageParam() {
+        final String value = "Hello my name is Mqzen !";
+        var res = execute(BroadcastMessage.class, (cfg) -> cfg.registerArgType(Message.class, new MessageArgumentType()), "bm " + value);
+        this.assertThat(res)
+                .isSuccessful()
+                .hasArgumentSatisfying("msg", (obj) -> {
+                    if (!(obj instanceof Message msg && msg.getMessage().equals(value))) {
+                        throw new IllegalArgumentException();
+                    }
+                });
     }
 }
