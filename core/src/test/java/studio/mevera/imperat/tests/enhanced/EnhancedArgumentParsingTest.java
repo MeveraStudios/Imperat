@@ -4,7 +4,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.TestCommandSource;
@@ -15,6 +17,8 @@ import studio.mevera.imperat.tests.commands.realworld.GiveCmd;
 import studio.mevera.imperat.tests.greedy_type_example.Message;
 import studio.mevera.imperat.tests.greedy_type_example.MessageArgumentType;
 import studio.mevera.imperat.tests.parameters.TestPlayerParamType;
+
+import java.util.stream.Stream;
 
 @DisplayName("Enhanced Argument Parsing Tests")
 class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
@@ -470,17 +474,27 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         Assertions.assertThat(res).containsExactly("gold", "silver");
     }
 
-    @Test
-    @DisplayName("Parses greedy by nature properly")
-    void testMessageParam() {
-        final String value = "Hello my name is Mqzen !";
-        var res = execute(BroadcastMessage.class, (cfg) -> cfg.registerArgType(Message.class, new MessageArgumentType()), "bm " + value);
+    private static Stream<Arguments> messageCommandCases() {
+        return Stream.of(
+                Arguments.of("bm Hello my name is Mqzen !", "msg", "Hello my name is Mqzen !"),
+                Arguments.of("bm limited Hello my name is Mqzen !", "message", "Hello my name")
+        );
+    }
+
+    @ParameterizedTest(name = "[{index}] {0}")
+    @MethodSource("messageCommandCases")
+    @DisplayName("Parses custom greedy message parameters properly")
+    void testMessageParam(String commandLine, String argumentName, String expectedMessage) {
+        var res = execute(BroadcastMessage.class,
+                cfg -> cfg.registerArgType(Message.class, new MessageArgumentType()),
+                commandLine);
         this.assertThat(res)
                 .isSuccessful()
-                .hasArgumentSatisfying("msg", (obj) -> {
-                    if (!(obj instanceof Message msg && msg.getMessage().equals(value))) {
+                .hasArgumentSatisfying(argumentName, (obj) -> {
+                    if (!(obj instanceof Message msg && msg.getMessage().equals(expectedMessage))) {
                         throw new IllegalArgumentException();
                     }
                 });
+
     }
 }

@@ -310,6 +310,8 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
 
         int consumed = 0;
         StringBuilder sb = new StringBuilder(this.currentRaw().orElseThrow());
+        consumed++;
+
         while (this.hasNextRaw() && consumed < count) {
             var opt = popRaw();
             if (opt.isPresent()) {

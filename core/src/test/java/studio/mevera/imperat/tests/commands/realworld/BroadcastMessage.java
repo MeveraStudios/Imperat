@@ -1,7 +1,9 @@
 package studio.mevera.imperat.tests.commands.realworld;
 
 import studio.mevera.imperat.annotations.types.Execute;
+import studio.mevera.imperat.annotations.types.Greedy;
 import studio.mevera.imperat.annotations.types.RootCommand;
+import studio.mevera.imperat.annotations.types.SubCommand;
 import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.greedy_type_example.Message;
 
@@ -11,6 +13,11 @@ public class BroadcastMessage {
     @Execute
     public void exec(TestCommandSource src, Message msg) {
         src.reply("Msg: '" + msg.getMessage() + "'");
+    }
+
+    @SubCommand("limited")
+    public void limitedExec(TestCommandSource src, @Greedy(limit = 3) Message message) {
+        src.reply("Msg: '" + message.getMessage() + "'");
     }
 
 
