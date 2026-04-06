@@ -64,6 +64,7 @@ public final class CommodoreProvider {
         Plugin plugin = imperat.getPlatform();
 
         try {
+            ImperatDebugger.debug("Hooking into ModernPaperCommodore...");
             return new ModernPaperCommodore(plugin);
         } catch (Throwable e) {
             printDebugInfo(imperat, e);
@@ -71,6 +72,7 @@ public final class CommodoreProvider {
 
         // try the paper impl
         try {
+            ImperatDebugger.debug("Hooking into LegacyPaperCommodore...");
             return new LegacyPaperCommodore(imperat);
         } catch (Throwable e) {
             //printDebugInfo(e);
@@ -79,6 +81,7 @@ public final class CommodoreProvider {
 
         // try reflection impl
         try {
+            ImperatDebugger.debug("Hooking into ReflectionCommodore...");
             ReflectionCommodore.ensureSetup();
             return new ReflectionCommodore(plugin);
         } catch (Throwable e) {
