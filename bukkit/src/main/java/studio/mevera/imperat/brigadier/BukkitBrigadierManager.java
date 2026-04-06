@@ -96,6 +96,7 @@ public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitCom
         imperatCommand.aliases()
                 .stream()
                 .map((alias) -> LiteralArgumentBuilder.<T>literal(alias)
+                                        .executes(brigRootNode.getCommand())
                                         .requires(brigRootNode.getRequirement())
                                         .redirect(brigRootNode)
                                         .build()
