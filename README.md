@@ -18,7 +18,7 @@ and replace the old boilerplate code with new modern and well organized code for
 @RootCommand({"message", "msg"})
 public class MessageCommand {
 
-    @Execute()
+    @Execute
     public void exec(Player sender, Player target, @Greedy String message) {
         // send private message to the target
         target.sendMessage("From " + sender.getName() + ": " + message);
