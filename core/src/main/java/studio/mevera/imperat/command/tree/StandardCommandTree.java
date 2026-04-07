@@ -25,7 +25,6 @@ import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Pair;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.TypeUtility;
-
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1061,7 +1060,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 }
             }
 
-            ParseResult result = node.parse(inputDepth, context);
+            ParseResult<S> result = node.parse(inputDepth, context);
             if (result.isFailure() && node.isRequired()) {
                 return;
             }
@@ -1173,7 +1172,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return lastLiteral;
         }
 
-        ParseResult nodeParseResult = node.parse(inputDepth, context);
+        ParseResult<S> nodeParseResult = node.parse(inputDepth, context);
         if (nodeParseResult.isSuccessful()) {
             return node;
         }
