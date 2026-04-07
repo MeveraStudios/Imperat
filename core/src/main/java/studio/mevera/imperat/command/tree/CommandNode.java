@@ -5,15 +5,20 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.FlagData;
+import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionsData;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.priority.Prioritizable;
 import studio.mevera.imperat.util.priority.PriorityList;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -25,6 +30,7 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
     private final @Nullable CommandNode<S, ?> parent;
     protected @Nullable CommandPathway<S> executableUsage;
     private @Nullable CommandPathway<S> nearestExecutableUsage;
+    private @NotNull CompletionCache<S> completionCache = CompletionCache.empty();
 
     protected CommandNode(@Nullable CommandNode<S, ?> parent, @NotNull T data, int depth, @Nullable CommandPathway<S> executableUsage) {
         this.parent = parent;
@@ -71,6 +77,14 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
         this.nearestExecutableUsage = nearestExecutableUsage;
     }
 
+    public @NotNull CompletionCache<S> getCompletionCache() {
+        return completionCache;
+    }
+
+    public void setCompletionCache(@NotNull CompletionCache<S> completionCache) {
+        this.completionCache = Objects.requireNonNull(completionCache, "completionCache");
+    }
+
     public boolean isExecutable() {
         return this.executableUsage != null;
     }
@@ -98,6 +112,17 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             @Nullable CommandPathway<S> flagScopePathway,
             int requestedTokensToConsume
     ) {
+        if (this.isLiteral()) {
+            String in = ctx.arguments().getOr(depth, null);
+            if (in == null) {
+                return ParseResult.failed(new IllegalArgumentException("Empty input given for a literal node"));
+            }
+            if (data.asCommand().hasName(in)) {
+                return ParseResult.successful(data.asCommand(), data, in, depth, depth + 1);
+            } else {
+                return ParseResult.failed(new CommandException("Unknown sub command '" + in + "'"));
+            }
+        }
         final int remainingTokens = countRemainingBindableTokens(ctx, depth, flagScopePathway);
         final int tokensToConsume = resolveMatchTokenCount(type, remainingTokens, requestedTokensToConsume);
         if (tokensToConsume < 1) {
@@ -346,6 +371,18 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
 
     private record MatchCollection(String input, int nextDepth) {
 
+    }
+
+    public record CompletionCache<S extends CommandSource>(
+            @NotNull SuggestionProvider<S> suggestionProvider,
+            @NotNull List<FlagArgument<S>> visibleFlags,
+            @NotNull Map<String, FlagArgument<S>> flagLookup,
+            @NotNull List<CommandNode<S, ?>> optionalOverlapDescendants
+    ) {
+
+        public static <S extends CommandSource> @NotNull CompletionCache<S> empty() {
+            return new CompletionCache<>((context, argument) -> List.of(), List.of(), Map.of(), List.of());
+        }
     }
 
 }

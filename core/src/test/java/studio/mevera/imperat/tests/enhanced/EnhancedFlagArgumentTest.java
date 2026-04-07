@@ -1,5 +1,6 @@
 package studio.mevera.imperat.tests.enhanced;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -90,6 +91,23 @@ class EnhancedFlagArgumentTest extends EnhancedBaseImperatTest {
                     .hasArgument("target", "player")
                     .hasFlagValue("time", "7d")
                     .hasArgument("reason", "Griefing spawn");
+        }
+
+        @Test
+        @DisplayName("Should suggest cached flag names without subtree scanning")
+        void testFlagNameTabCompletion() {
+            var suggestions = tabComplete("git commit ");
+
+            Assertions.assertThat(suggestions)
+                    .containsExactlyInAnyOrder("-message", "-m");
+        }
+
+        @Test
+        @DisplayName("Should not suggest a flag again after it was already entered")
+        void testUsedFlagIsNotSuggestedAgain() {
+            var suggestions = tabComplete("git commit -m initial ");
+
+            Assertions.assertThat(suggestions).isEmpty();
         }
     }
 

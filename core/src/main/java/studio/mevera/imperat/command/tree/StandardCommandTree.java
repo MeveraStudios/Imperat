@@ -28,7 +28,11 @@ import studio.mevera.imperat.util.TypeUtility;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
@@ -57,7 +61,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         this.root = CommandNode.createCommandNode(null, command, -1, command.getDefaultPathway());
         this.imperatConfig = imperatConfig;
         this.permissionChecker = imperatConfig.getPermissionChecker();
-        refreshNearestExecutableUsageCache();
+        refreshNodeCaches();
     }
 
 
@@ -85,7 +89,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         final var parameters = usage.getArguments();
         if (usage.isDefault()) {
             root.setExecutableUsage(usage);
-            refreshNearestExecutableUsageCache();
+            refreshNodeCaches();
             return;
         }
 
@@ -100,7 +104,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             path.clear(); // Clean up for next use
         }
 
-        refreshNearestExecutableUsageCache();
+        refreshNodeCaches();
 
     }
 
@@ -129,7 +133,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         // Merge pathways in the subtree, prepending the full prefix
         mergePathwaysInSubTree(subRoot, fullPrefix);
-        refreshNearestExecutableUsageCache();
+        refreshNodeCaches();
     }
 
     /**
@@ -701,7 +705,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      * scoped executable pathway only.
      */
     private @Nullable FlagData<S> findFlagForToken(CommandNode<S, ?> node, String rawToken) {
-        return matchFlagFromPathway(resolveFlagScopePathway(node), rawToken);
+        FlagArgument<S> flag = findFlagArgumentForToken(node, rawToken);
+        return flag == null ? null : flag.flagData();
     }
 
     private int countRemainingBindableInput(
@@ -730,14 +735,30 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return count;
     }
 
-    /**
-     * Checks if a raw token matches any registered flag in the given pathway.
-     */
-    private @Nullable FlagData<S> matchFlagFromPathway(CommandPathway<S> pathway, String rawToken) {
-        if (pathway == null) {
+    private @Nullable FlagArgument<S> findFlagArgumentForToken(CommandNode<S, ?> node, String rawToken) {
+        if (node == null) {
             return null;
         }
-        return pathway.getFlagParameterFromRaw(rawToken);
+
+        String normalized = normalizeFlagToken(rawToken);
+        if (normalized == null) {
+            return null;
+        }
+
+        return node.getCompletionCache().flagLookup().get(normalized);
+    }
+
+    private @Nullable String normalizeFlagToken(String rawToken) {
+        if (rawToken == null || rawToken.isEmpty()) {
+            return null;
+        }
+
+        String normalized = Patterns.isInputFlag(rawToken) ? Patterns.withoutFlagSign(rawToken) : rawToken;
+        if (normalized.isEmpty()) {
+            return null;
+        }
+
+        return normalized.toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -836,8 +857,9 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return TreeExecutionResult.success(executionContext, closestUsage, pathway, lastCommand, parsedArguments);
     }
 
-    private void refreshNearestExecutableUsageCache() {
+    private void refreshNodeCaches() {
         computeNearestExecutableUsage(root, root.getExecutableUsage());
+        computeCompletionCaches(root);
     }
 
     private @Nullable CommandPathway<S> computeNearestExecutableUsage(
@@ -856,6 +878,76 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         node.setNearestExecutableUsage(bestUsage);
         return bestUsage;
+    }
+
+    private void computeCompletionCaches(@NotNull CommandNode<S, ?> node) {
+        List<FlagArgument<S>> visibleFlags = collectVisibleFlags(node);
+        node.setCompletionCache(new CommandNode.CompletionCache<>(
+                getResolverCached(node.getData()),
+                visibleFlags,
+                createFlagLookup(visibleFlags),
+                collectOptionalOverlapDescendants(node)
+        ));
+
+        for (var child : node.getChildren()) {
+            computeCompletionCaches(child);
+        }
+    }
+
+    private @NotNull List<FlagArgument<S>> collectVisibleFlags(@NotNull CommandNode<S, ?> node) {
+        CommandPathway<S> scopedPathway = resolveFlagScopePathway(node);
+        if (scopedPathway == null) {
+            return List.of();
+        }
+
+        Set<FlagArgument<S>> flags = scopedPathway.getFlagExtractor().getRegisteredFlags();
+        if (flags.isEmpty()) {
+            return List.of();
+        }
+
+        return List.copyOf(flags);
+    }
+
+    private @NotNull Map<String, FlagArgument<S>> createFlagLookup(@NotNull List<FlagArgument<S>> visibleFlags) {
+        if (visibleFlags.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<String, FlagArgument<S>> lookup = new HashMap<>(visibleFlags.size() * 2);
+        for (FlagArgument<S> flag : visibleFlags) {
+            lookup.put(flag.flagData().name().toLowerCase(Locale.ROOT), flag);
+            for (String alias : flag.flagData().aliases()) {
+                lookup.put(alias.toLowerCase(Locale.ROOT), flag);
+            }
+        }
+        return Map.copyOf(lookup);
+    }
+
+    private @NotNull List<CommandNode<S, ?>> collectOptionalOverlapDescendants(@NotNull CommandNode<S, ?> node) {
+        if (node.getChildren().isEmpty()) {
+            return List.of();
+        }
+
+        List<CommandNode<S, ?>> descendants = new ArrayList<>();
+        collectOptionalOverlapDescendants(node, node, descendants);
+        return descendants.isEmpty() ? List.of() : List.copyOf(descendants);
+    }
+
+    private void collectOptionalOverlapDescendants(
+            @NotNull CommandNode<S, ?> origin,
+            @NotNull CommandNode<S, ?> currentNode,
+            @NotNull List<CommandNode<S, ?>> descendants
+    ) {
+        for (var nextNode : currentNode.getChildren()) {
+            if (nextNode.getData().valueType().equals(origin.getData().valueType())) {
+                continue;
+            }
+
+            descendants.add(nextNode);
+            if (nextNode.isOptional()) {
+                collectOptionalOverlapDescendants(origin, nextNode, descendants);
+            }
+        }
     }
 
     /**
@@ -946,8 +1038,9 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         List<String> results = new ArrayList<>(INITIAL_SUGGESTIONS_CAPACITY);
         final String prefix = context.getArgToComplete().value();
         final boolean hasPrefix = prefix != null && !prefix.isBlank();
+        final CompletionState completionState = CompletionState.from(context, this::normalizeFlagToken);
 
-        return tabComplete$1(context, prefix, hasPrefix, results);
+        return tabComplete$1(context, prefix, hasPrefix, results, completionState);
     }
 
     @SuppressWarnings("unused")
@@ -955,7 +1048,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             SuggestionContext<S> context,
             String prefix,
             boolean hasPrefix,
-            List<String> results
+            List<String> results,
+            CompletionState completionState
     ) {
 
         if (!hasAutoCompletionPermission(context.source(), root) || root.isSecret()) {
@@ -963,7 +1057,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         }
 
         for (var child : root.getChildren()) {
-            tabCompleteNode(child, context, 0, root, results);
+            tabCompleteNode(child, context, completionState, 0, root, results);
         }
         return results.stream()
                        .filter((suggestion) -> !hasPrefix || fastStartsWith(suggestion, prefix))
@@ -988,6 +1082,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     private void tabCompleteNode(
             final CommandNode<S, ?> node,
             final SuggestionContext<S> context,
+            final CompletionState completionState,
             int inputDepth,
             final CommandNode<S, ?> lastLiteral,
             final List<String> results
@@ -1001,7 +1096,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return;
         }
 
-        int lastIndex = context.getArgToComplete().index();
+        int lastIndex = completionState.completionIndex();
         if (inputDepth > lastIndex) {
             return;
         }
@@ -1026,21 +1121,21 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 }
             }
 
-            var collectedSuggestions = getResolverCached(node.data).provide(context, node.data);
+            var collectedSuggestions = node.getCompletionCache().suggestionProvider().provide(context, node.getData());
             results.addAll(collectedSuggestions);
 
             // Also suggest flags at this position
-            collectFlagNameSuggestions(flagScopeNode, context, results);
+            collectFlagNameSuggestions(flagScopeNode, completionState, results);
 
             if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional() && !(node.isTrueFlag())) {
-                collectOverlappingSuggestions(node, node, context, results);
+                collectOverlappingSuggestions(node, context, results);
             }
         } else {
             String currentInput = context.arguments().getOr(inputDepth, null);
             assert currentInput != null;
 
             if (node.isGreedyParam()) {
-                tabCompleteNode(node, context, lastIndex, activeLiteral, results);
+                tabCompleteNode(node, context, completionState, lastIndex, activeLiteral, results);
                 return;
             }
 
@@ -1055,7 +1150,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                     }
                     int skip = flagData.isSwitch() ? 1 : 2;
                     // Continue with the same node at the skipped depth
-                    tabCompleteNode(node, context, inputDepth + skip, activeLiteral, results);
+                    tabCompleteNode(node, context, completionState, inputDepth + skip, activeLiteral, results);
                     return;
                 }
             }
@@ -1067,12 +1162,12 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
             int nextDepth = inputDepth + node.getNumberOfParametersToConsume();
             if (node.getChildren().isEmpty() && nextDepth == lastIndex && node.isExecutable()) {
-                collectFlagNameSuggestions(flagScopeNode, context, results);
+                collectFlagNameSuggestions(flagScopeNode, completionState, results);
                 return;
             }
 
             for (var child : node.getChildren()) {
-                tabCompleteNode(child, context, nextDepth, activeLiteral, results);
+                tabCompleteNode(child, context, completionState, nextDepth, activeLiteral, results);
             }
 
         }
@@ -1081,10 +1176,9 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     /**
      * Collects flag name suggestions (e.g., "-s", "--silent") from all reachable executable pathways.
      */
-    private void collectFlagNameSuggestions(CommandNode<S, ?> node, SuggestionContext<S> context, List<String> results) {
-        Set<FlagArgument<S>> flags = collectReachableFlags(node);
-        for (FlagArgument<S> flag : flags) {
-            if (isFlagAlreadyUsed(context, flag)) {
+    private void collectFlagNameSuggestions(CommandNode<S, ?> node, CompletionState completionState, List<String> results) {
+        for (FlagArgument<S> flag : node.getCompletionCache().visibleFlags()) {
+            if (completionState.isFlagAlreadyUsed(flag)) {
                 continue;
             }
             results.add("-" + flag.flagData().name());
@@ -1092,27 +1186,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 results.add("-" + alias);
             }
         }
-    }
-
-    private boolean isFlagAlreadyUsed(SuggestionContext<S> context, FlagArgument<S> flag) {
-        int completionIndex = context.getArgToComplete().index();
-        boolean editingCurrentToken = !context.getArgToComplete().isEmpty();
-
-        for (int i = 0; i < context.arguments().size(); i++) {
-            if (editingCurrentToken && i == completionIndex) {
-                continue;
-            }
-
-            String token = context.arguments().getOr(i, null);
-            if (token == null || !Patterns.isInputFlag(token)) {
-                continue;
-            }
-
-            if (flag.flagData().acceptsInput(token)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private CommandNode<S, ?> resolveFlagScopeNode(
@@ -1129,36 +1202,21 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      * Collects flag value suggestions for a specific flag's input type.
      */
     private void collectFlagValueSuggestions(CommandNode<S, ?> node, FlagData<S> flagData, SuggestionContext<S> context, List<String> results) {
-        // Find the FlagArgument that matches this FlagData
-        Set<FlagArgument<S>> flags = collectReachableFlags(node);
-        for (FlagArgument<S> flag : flags) {
-            if (flag.flagData().name().equalsIgnoreCase(flagData.name())) {
-                // Try the flag's specific suggestion resolver first
-                SuggestionProvider<S> resolver = flag.inputSuggestionResolver();
-                if (resolver != null) {
-                    results.addAll(resolver.provide(context, flag));
-                    return;
-                }
-                // Fall back to the input type's suggestion provider
-                var inputType = flag.flagData().inputType();
-                if (inputType != null) {
-                    results.addAll(inputType.getSuggestionProvider().provide(context, flag));
-                }
-                return;
-            }
-        }
-    }
-
-    /**
-     * Collects all registered flags from the currently scoped executable pathway.
-     */
-    private Set<FlagArgument<S>> collectReachableFlags(CommandNode<S, ?> node) {
-        CommandPathway<S> scopedPathway = resolveFlagScopePathway(node);
-        if (scopedPathway == null) {
-            return Set.of();
+        FlagArgument<S> flag = findFlagArgumentForToken(node, flagData.name());
+        if (flag == null) {
+            return;
         }
 
-        return scopedPathway.getFlagExtractor().getRegisteredFlags();
+        SuggestionProvider<S> resolver = flag.inputSuggestionResolver();
+        if (resolver != null) {
+            results.addAll(resolver.provide(context, flag));
+            return;
+        }
+
+        var inputType = flag.flagData().inputType();
+        if (inputType != null) {
+            results.addAll(inputType.getSuggestionProvider().provide(context, flag));
+        }
     }
 
     private CommandNode<S, ?> resolveActiveLiteral(
@@ -1186,35 +1244,20 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      */
     private void collectOverlappingSuggestions(
             CommandNode<S, ?> origin,
-            CommandNode<S, ?> currentNode,
             SuggestionContext<S> context,
             List<String> results
     ) {
-        for (var nextNode : currentNode.getChildren()) {
-            // Skip if same type as current node
-            if (nextNode.data.valueType().equals(origin.data.valueType())) {
-                continue;
-            }
-
+        for (var nextNode : origin.getCompletionCache().optionalOverlapDescendants()) {
             // Check permissions
-            if (!(nextNode.isLiteral() && nextNode.data.asCommand().isIgnoringACPerms())
+            if (!(nextNode.isLiteral() && nextNode.getData().asCommand().isIgnoringACPerms())
                         && !hasPermission(context.source(), nextNode)) {
                 continue;
             }
 
-            final var resolver = getResolverCached(nextNode.data);
-            final var suggestions = resolver.provide(context, nextNode.data);
+            final var suggestions = nextNode.getCompletionCache().suggestionProvider().provide(context, nextNode.getData());
             if (suggestions != null && !suggestions.isEmpty()) {
                 results.addAll(suggestions);
             }
-
-            // If this is a required parameter, stop here (it's a stop point)
-            if (!nextNode.isOptional()) {
-                continue; // Don't traverse deeper from this branch
-            }
-
-            // If it's optional, continue recursively
-            collectOverlappingSuggestions(origin, nextNode, context, results);
         }
     }
 
@@ -1235,6 +1278,71 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
     private @Nullable CommandPathway<S> resolveFlagScopePathway(CommandNode<S, ?> node) {
         return node == null ? null : node.getNearestExecutableUsage();
+    }
+
+    private static final class CompletionState {
+
+        private final int completionIndex;
+        private final Set<String> usedFlags;
+
+        private CompletionState(int completionIndex, Set<String> usedFlags) {
+            this.completionIndex = completionIndex;
+            this.usedFlags = usedFlags;
+        }
+
+        static <S extends CommandSource> CompletionState from(
+                SuggestionContext<S> context,
+                java.util.function.Function<String, String> flagNormalizer
+        ) {
+            return new CompletionState(
+                    context.getArgToComplete().index(),
+                    collectUsedFlags(context, flagNormalizer)
+            );
+        }
+
+        private static <S extends CommandSource> Set<String> collectUsedFlags(
+                SuggestionContext<S> context,
+                java.util.function.Function<String, String> flagNormalizer
+        ) {
+            int completionIndex = context.getArgToComplete().index();
+            boolean editingCurrentToken = !context.getArgToComplete().isEmpty();
+            Set<String> usedFlags = new HashSet<>();
+
+            for (int i = 0; i < context.arguments().size(); i++) {
+                if (editingCurrentToken && i == completionIndex) {
+                    continue;
+                }
+
+                String token = context.arguments().getOr(i, null);
+                if (token == null || !Patterns.isInputFlag(token)) {
+                    continue;
+                }
+
+                String normalized = flagNormalizer.apply(token);
+                if (normalized != null) {
+                    usedFlags.add(normalized);
+                }
+            }
+
+            return usedFlags.isEmpty() ? Set.of() : Set.copyOf(usedFlags);
+        }
+
+        int completionIndex() {
+            return completionIndex;
+        }
+
+        boolean isFlagAlreadyUsed(FlagArgument<?> flag) {
+            if (usedFlags.contains(flag.flagData().name().toLowerCase(Locale.ROOT))) {
+                return true;
+            }
+
+            for (String alias : flag.flagData().aliases()) {
+                if (usedFlags.contains(alias.toLowerCase(Locale.ROOT))) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
 }

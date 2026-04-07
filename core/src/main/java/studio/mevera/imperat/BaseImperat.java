@@ -485,7 +485,9 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
                                                        this, source, command, cmdName, argumentInput
                                                );
 
-        command.visualizeTree();
+        if (ImperatDebugger.isEnabled()) {
+            command.visualizeTree();
+        }
         return command.autoCompleter()
                        .autoComplete(context)
                        .exceptionally((ex) -> {
