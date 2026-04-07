@@ -24,6 +24,7 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
     private final int depth;
     private final @Nullable CommandNode<S, ?> parent;
     protected @Nullable CommandPathway<S> executableUsage;
+    private @Nullable CommandPathway<S> nearestExecutableUsage;
 
     protected CommandNode(@Nullable CommandNode<S, ?> parent, @NotNull T data, int depth, @Nullable CommandPathway<S> executableUsage) {
         this.parent = parent;
@@ -60,6 +61,14 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
 
     public void setExecutableUsage(@Nullable CommandPathway<S> executableUsage) {
         this.executableUsage = executableUsage;
+    }
+
+    public @Nullable CommandPathway<S> getNearestExecutableUsage() {
+        return nearestExecutableUsage;
+    }
+
+    public void setNearestExecutableUsage(@Nullable CommandPathway<S> nearestExecutableUsage) {
+        this.nearestExecutableUsage = nearestExecutableUsage;
     }
 
     public boolean isExecutable() {

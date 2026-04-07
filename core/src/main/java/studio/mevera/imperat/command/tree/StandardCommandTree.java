@@ -29,7 +29,6 @@ import studio.mevera.imperat.util.TypeUtility;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -59,6 +58,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         this.root = CommandNode.createCommandNode(null, command, -1, command.getDefaultPathway());
         this.imperatConfig = imperatConfig;
         this.permissionChecker = imperatConfig.getPermissionChecker();
+        refreshNearestExecutableUsageCache();
     }
 
 
@@ -86,6 +86,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         final var parameters = usage.getArguments();
         if (usage.isDefault()) {
             root.setExecutableUsage(usage);
+            refreshNearestExecutableUsageCache();
             return;
         }
 
@@ -99,6 +100,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         } finally {
             path.clear(); // Clean up for next use
         }
+
+        refreshNearestExecutableUsageCache();
 
     }
 
@@ -127,6 +130,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         // Merge pathways in the subtree, prepending the full prefix
         mergePathwaysInSubTree(subRoot, fullPrefix);
+        refreshNearestExecutableUsageCache();
     }
 
     /**
@@ -805,7 +809,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      * Creates a NO_MATCH result from a node, using the closest executable usage for error reporting.
      */
     private TreeExecutionResult<S> noMatchFromNode(CommandNode<S, ?> node) {
-        CommandPathway<S> closest = findClosestUsage(node);
+        CommandPathway<S> closest = node.getNearestExecutableUsage();
         return TreeExecutionResult.noMatch(closest, getCommandFromNode(node));
     }
 
@@ -827,41 +831,32 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         ImperatDebugger.debug("Executing pathway: %s", pathway.formatted());
 
         // Create the execution context using the factory
-        CommandPathway<S> closestUsage = findClosestUsage(currentNode);
+        CommandPathway<S> closestUsage = currentNode.getNearestExecutableUsage();
         assert closestUsage != null;
         executionContext.setDetectedPathway(pathway);
         return TreeExecutionResult.success(executionContext, closestUsage, pathway, lastCommand, parsedArguments);
     }
 
-    /**
-     * Finds the closest executable usage starting from a node,
-     * searching upwards to parents and then down to children.
-     */
-    private @Nullable CommandPathway<S> findClosestUsage(CommandNode<S, ?> lastNode) {
-        CommandPathway<S> closestUsage = root.getData().getDefaultPathway();
+    private void refreshNearestExecutableUsageCache() {
+        computeNearestExecutableUsage(root, root.getExecutableUsage());
+    }
 
-        if (!lastNode.isRoot() && lastNode.isLiteral() && lastNode.isExecutable()) {
-            return lastNode.getExecutableUsage();
-        }
+    private @Nullable CommandPathway<S> computeNearestExecutableUsage(
+            @NotNull CommandNode<S, ?> node,
+            @Nullable CommandPathway<S> inheritedFallback
+    ) {
+        CommandPathway<S> directUsage = node.getExecutableUsage();
+        CommandPathway<S> bestUsage = directUsage != null ? directUsage : inheritedFallback;
 
-        Queue<CommandNode<S, ?>> nodes = new LinkedList<>();
-        nodes.add(lastNode);
-
-        CommandNode<S, ?> curr;
-        while (!nodes.isEmpty()) {
-            curr = nodes.poll();
-            if (!curr.isLiteral() && curr.isExecutable()) {
-                closestUsage = curr.getExecutableUsage();
-                nodes.clear();
-                break;
-            }
-
-            for (CommandNode<S, ?> child : curr.getChildren()) {
-                nodes.add(child);
+        for (var child : node.getChildren()) {
+            CommandPathway<S> childUsage = computeNearestExecutableUsage(child, bestUsage);
+            if (bestUsage == null && childUsage != null) {
+                bestUsage = childUsage;
             }
         }
 
-        return closestUsage;
+        node.setNearestExecutableUsage(bestUsage);
+        return bestUsage;
     }
 
     /**
@@ -1240,10 +1235,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     }
 
     private @Nullable CommandPathway<S> resolveFlagScopePathway(CommandNode<S, ?> node) {
-        if (node != null && node.isExecutable()) {
-            return node.getExecutableUsage();
-        }
-        return node == null ? null : findClosestUsage(node);
+        return node == null ? null : node.getNearestExecutableUsage();
     }
 
 }
