@@ -540,8 +540,14 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         }
 
         // Direct execution: traverse tree, resolve args, and execute in one step
-        TreeExecutionResult<S> treeResult = command.execute(context);
-        treeResult.resolveContext();
+        ExecutionContext<S> executionContext = config.getContextFactory().createExecutionContext(
+                context,
+                null,
+                command
+        );
+        TreeExecutionResult<S> treeResult = command.execute(executionContext);
+        executionContext.setTreeResult(treeResult);
+
         ImperatDebugger.debug("Tree execution status: '%s'", treeResult.getStatus().name());
 
         if (treeResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
@@ -552,7 +558,6 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
                     deniedPermissionHolder(closestUsage, treeResult.getDeniedPermissionHolder())
             );
         }
-
         if (treeResult.getStatus() == TreeExecutionResult.Status.NO_MATCH) {
             ImperatDebugger.debug("No matching pathway found!");
             var closestUsage = treeResult.getClosestUsage();
@@ -565,9 +570,10 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
 
         // SUCCESS: The tree already resolved args and created ExecutionContext
         CommandPathway<S> pathway = treeResult.getMatchedPathway();
-        ExecutionContext<S> executionContext = treeResult.getExecutionContext();
-        assert pathway != null && executionContext != null;
+        assert pathway != null;
+        executionContext.handleRemainingParsing(treeResult);
 
+        //we try and resolve the remaining
         ImperatDebugger.debug("Usage Found Format: '%s'", CommandPathway.formatWithTypes(command, pathway));
 
         // Post-processing

@@ -163,7 +163,7 @@ class SwitchWithGreedyTest extends EnhancedBaseImperatTest {
             }, "shout Hello -l world"))
                     .isSuccessful()
                     .hasSwitchEnabled("loud")
-                    .hasArgument("message", "Hello");
+                    .hasArgument("message", "Hello world");
         }
 
         @Test

@@ -18,7 +18,7 @@ import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
+import studio.mevera.imperat.context.internal.OptionalArgumentHandler;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.permissions.PermissionChecker;
@@ -156,7 +156,7 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      * the parameter 'b' to the value that suits its type.
      * with no respect for the order of optional arguments.
      * <p>
-     * Else if the option is disabled, then Imperat's {@link ParameterValueAssigner}
+     * Else if the option is disabled, then Imperat's {@link OptionalArgumentHandler}
      * will respect the order of the optional arguments, and will resolve the arguments in order.
      *
      *

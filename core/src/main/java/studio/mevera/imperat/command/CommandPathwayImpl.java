@@ -22,8 +22,11 @@ import studio.mevera.imperat.util.Patterns;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -36,6 +39,7 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
 
     private final @NotNull CommandExecution<S> execution;
     private final FlagExtractor<S> flagExtractor;
+    private final Map<String, FlagData<S>> flagsByInput = new HashMap<>(4);
     private final List<String> examples = new ArrayList<>(2);
     private PermissionsData permissionsData = PermissionsData.empty();
     private Description description = Description.of("N/A");
@@ -80,6 +84,10 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
 
     @Override
     public @Nullable FlagData<S> getFlagParameterFromRaw(String rawInput) {
+        if (rawInput == null || rawInput.isEmpty()) {
+            return null;
+        }
+
         String raw = rawInput;
         if (Patterns.isInputFlag(rawInput)) {
             boolean isSingle = SINGLE_FLAG.matcher(rawInput).matches();
@@ -93,21 +101,17 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
             raw = rawInput.substring(offset);
         }
 
-        for (var param : arguments) {
-            if (!param.isFlag()) {
-                continue;
-            }
-            FlagData<S> flag = param.asFlagParameter().flagData();
-            if (flag.acceptsInput(raw)) {
-                return flag;
-            }
-        }
-        return null;
+        return flagsByInput.get(raw.toLowerCase(Locale.ROOT));
     }
 
     @Override
     public void addFlag(FlagArgument<S> flagArgumentData) {
         flagExtractor.insertFlag(flagArgumentData);
+        FlagData<S> flagData = flagArgumentData.flagData();
+        flagsByInput.put(flagArgumentData.getName().toLowerCase(Locale.ROOT), flagData);
+        for (String alias : flagData.aliases()) {
+            flagsByInput.put(alias.toLowerCase(Locale.ROOT), flagData);
+        }
     }
 
     @SafeVarargs

@@ -8,7 +8,9 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
+import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.permissions.PermissionsData;
+import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.priority.Prioritizable;
 import studio.mevera.imperat.util.priority.PriorityList;
 
@@ -80,26 +82,32 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
         return children;
     }
 
-    public boolean matchesInput(int depth, CommandContext<S> ctx) {
-        // Check supported types in LIFO order
-        return matchesInput(depth, ctx, false);
-    }
-
-    private boolean matchesInput(ArgumentType<S, ?> type, int depth, CommandContext<S> ctx) {
-        final int tokensToConsume = resolveMatchTokenCount(type, ctx.arguments().size() - depth);
+    private ParseResult<S> parse(
+            ArgumentType<S, ?> type,
+            int depth,
+            CommandContext<S> ctx,
+            @Nullable CommandPathway<S> flagScopePathway,
+            int requestedTokensToConsume
+    ) {
+        final int remainingTokens = countRemainingBindableTokens(ctx, depth, flagScopePathway);
+        final int tokensToConsume = resolveMatchTokenCount(type, remainingTokens, requestedTokensToConsume);
         if (tokensToConsume < 1) {
             throw new IllegalArgumentException("Number of args to consume for type " + type.getClass().getSimpleName() + " must be at least 1");
         }
 
         try {
-            type.parse(ctx, this.data, collectMatchInput(ctx, depth, tokensToConsume));
-            return true;
+            var parseOutcome = collectMatchInput(ctx, depth, tokensToConsume, flagScopePathway);
+            var obj = type.parse(ctx, this.data, parseOutcome.input());
+            return ParseResult.successful(obj, data, parseOutcome.input(), data.getPosition(), parseOutcome.nextDepth());
         } catch (Exception e) {
-            return false;
+            return ParseResult.failed(e);
         }
     }
 
-    private int resolveMatchTokenCount(ArgumentType<S, ?> type, int remainingTokens) {
+    private int resolveMatchTokenCount(ArgumentType<S, ?> type, int remainingTokens, int requestedTokensToConsume) {
+        if (requestedTokensToConsume > 0) {
+            return Math.min(requestedTokensToConsume, remainingTokens);
+        }
         final int baseCount = type.getNumberOfParametersToConsume(data);
         if (!isGreedyParam()) {
             return Math.min(baseCount, remainingTokens);
@@ -109,36 +117,98 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
         return greedyLimit > 0 ? Math.min(greedyLimit, remainingTokens) : remainingTokens;
     }
 
-    private String collectMatchInput(CommandContext<S> ctx, int depth, int tokensToConsume) {
+    private int countRemainingBindableTokens(
+            CommandContext<S> ctx,
+            int depth,
+            @Nullable CommandPathway<S> flagScopePathway
+    ) {
+        int rawIndex = depth;
+        int count = 0;
+
+        while (rawIndex < ctx.arguments().size()) {
+            FlagData<S> flagData = resolveFlagData(ctx, flagScopePathway, rawIndex);
+            if (flagData != null) {
+                rawIndex += flagData.isSwitch() ? 1 : 2;
+                continue;
+            }
+
+            count++;
+            rawIndex++;
+        }
+        return count;
+    }
+
+    private MatchCollection collectMatchInput(
+            CommandContext<S> ctx,
+            int depth,
+            int tokensToConsume,
+            @Nullable CommandPathway<S> flagScopePathway
+    ) {
         var args = ctx.arguments();
         StringBuilder input = new StringBuilder();
+        int rawIndex = depth;
+        int consumed = 0;
 
-        for (int offset = 0; offset < tokensToConsume && depth + offset < args.size(); offset++) {
-            if (offset > 0) {
+        while (rawIndex < args.size() && consumed < tokensToConsume) {
+            FlagData<S> flagData = resolveFlagData(ctx, flagScopePathway, rawIndex);
+            if (flagData != null) {
+                rawIndex += flagData.isSwitch() ? 1 : 2;
+                continue;
+            }
+
+            if (consumed > 0) {
                 input.append(' ');
             }
-            input.append(args.get(depth + offset));
+
+            input.append(args.get(rawIndex));
+            consumed++;
+            rawIndex++;
         }
 
-        return input.toString();
+        if (consumed < 1) {
+            throw new IllegalArgumentException("No input tokens were collected for " + data.format());
+        }
+
+        return new MatchCollection(input.toString(), rawIndex);
     }
 
-    public boolean matchesInput(int depth, CommandContext<S> ctx, boolean strict) {
+    private @Nullable FlagData<S> resolveFlagData(
+            CommandContext<S> ctx,
+            @Nullable CommandPathway<S> flagScopePathway,
+            int rawIndex
+    ) {
+        if (flagScopePathway == null) {
+            return null;
+        }
+
+        String raw = ctx.arguments().getOr(rawIndex, null);
+        if (raw == null || !Patterns.isInputFlag(raw)) {
+            return null;
+        }
+
+        return flagScopePathway.getFlagParameterFromRaw(raw);
+    }
+
+    public ParseResult<S> parse(int depth, CommandContext<S> ctx) {
+        return parse(depth, ctx, null);
+    }
+
+    public ParseResult<S> parse(int depth, CommandContext<S> ctx, @Nullable CommandPathway<S> flagScopePathway) {
         var primaryType = data.type();
-        boolean primaryMatches = matchesInput(primaryType, depth, ctx);
-        if (strict || isLiteral()) {
-            return primaryMatches;
-        }
-
-        if (primaryMatches) {
-            return true;
-        }
-
-        CommandNode<S, ?> siblingMatchingInput = findNeighborOfType(depth, ctx);
-        return siblingMatchingInput == null;
+        return parse(primaryType, depth, ctx, flagScopePathway, -1);
     }
 
-    private @Nullable CommandNode<S, ?> findNeighborOfType(int depth, CommandContext<S> ctx) {
+    public ParseResult<S> parse(
+            int depth,
+            CommandContext<S> ctx,
+            @Nullable CommandPathway<S> flagScopePathway,
+            int requestedTokensToConsume
+    ) {
+        var primaryType = data.type();
+        return parse(primaryType, depth, ctx, flagScopePathway, requestedTokensToConsume);
+    }
+
+    /*private @Nullable Pair<ParseResult, CommandNode<S, ?>> findNeighborOfType(int depth, CommandContext<S> ctx) {
         if (parent == null) {
             return null;
         }
@@ -146,12 +216,13 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             if (sibling.equals(this)) {
                 continue;
             }
-            if (sibling.matchesInput(depth, ctx, true)) {
-                return sibling;
+            ParseResult siblingParseResult = sibling.parse(depth, ctx, true);
+            if (siblingParseResult.isSuccessful()) {
+                return new Pair<>(siblingParseResult, sibling);
             }
         }
         return null;
-    }
+    }*/
 
 
     public abstract String format();
@@ -262,6 +333,10 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             }
         }
         return null;
+    }
+
+    private record MatchCollection(String input, int nextDepth) {
+
     }
 
 }

@@ -3,6 +3,7 @@ package studio.mevera.imperat.command;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 import org.jetbrains.annotations.UnmodifiableView;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.annotations.base.element.ParseElement;
@@ -15,6 +16,7 @@ import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
+import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -164,9 +166,9 @@ final class CommandImpl<S extends CommandSource> implements Command<S> {
     }
 
     @Override
-    public @NotNull TreeExecutionResult<S> execute(CommandContext<S> context) throws CommandException {
-        var copy = context.arguments().copy();
-        copy.removeIf(String::isBlank);
+    public @NotNull TreeExecutionResult<S> execute(@UnknownNullability ExecutionContext<S> context) throws CommandException {
+        ArgumentInput arguments = context.arguments();
+        var copy = arguments.copy();
         return tree.execute(context, copy);
     }
 
@@ -402,10 +404,9 @@ final class CommandImpl<S extends CommandSource> implements Command<S> {
 
     /**
      * @param name      the name of the wanted sub-command
-     * @param recursive
-     * @return the sub-command of a specific name directly from
-     * this instance of a command, meaning that
-     * it won't go deeply in search for sub-command
+     * @param recursive whether to search deeply for a subcommand.
+     * @return the sub-command of a specific name from
+     * this instance of a command.
      */
     @Override
     public @Nullable Command<S> getSubCommand(String name, boolean recursive) {

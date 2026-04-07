@@ -5,31 +5,44 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.tree.ParseResult;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.ParsedArgument;
-import studio.mevera.imperat.context.internal.flow.ParameterValueAssigner;
+import studio.mevera.imperat.exception.CombinedFlagsException;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.ImperatDebugger;
+import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.Registry;
+import studio.mevera.imperat.util.TypeUtility;
 
 import java.lang.reflect.Type;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @ApiStatus.Internal
 final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S> implements ExecutionContext<S> {
 
-    private final CommandPathway<S> usage;
+    private CommandPathway<S> pathway;
     private final Registry<String, ParsedFlagArgument<S>> flagRegistry = new Registry<>();
     //per command/subcommand because the class 'Command' can be also treated as a sub command
     private final Registry<Command<S>, Registry<String, ParsedArgument<S>>> resolvedArgumentsPerCommand = new Registry<>(LinkedHashMap::new);
@@ -43,12 +56,12 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
 
     ExecutionContextImpl(
             CommandContext<S> context,
-            CommandPathway<S> pathway,
+            @Nullable CommandPathway<S> pathway,
             Command<S> lastCommand
     ) {
         super(context.imperat(), context.command(), context.source(), context.getRootCommandLabelUsed(), context.arguments());
         this.lastCommand = lastCommand;
-        this.usage = pathway;
+        this.pathway = pathway;
     }
 
     /**
@@ -157,6 +170,206 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
     }
 
     @Override
+    public void handleRemainingParsing(TreeExecutionResult<S> result) throws CommandException {
+        if (pathway == null) {
+            return;
+        }
+
+        Cursor<S> cursor = Cursor.of(this.arguments(), pathway);
+        OptionalArgumentHandler<S> optionalArgumentHandler = new OptionalArgumentHandler<>();
+        Deque<ParseResult<S>> preParsedArguments = new ArrayDeque<>(result.getParsedArguments());
+        while (cursor.isCurrentParameterAvailable()) {
+            Argument<S> currentParameter = cursor.currentParameterIfPresent();
+            if (currentParameter == null) {
+                break;
+            }
+
+            String currentRaw = cursor.currentRawIfPresent();
+            if (currentParameter.isCommand()) {
+                if (currentRaw == null) {
+                    throw invalidSyntax(result);
+                }
+                ArgumentValueBinder.bindCurrentSubCommand(cursor);
+                continue;
+            }
+
+            if (currentRaw == null) {
+                if (!currentParameter.isOptional()) {
+                    throw invalidSyntax(result);
+                }
+                parseMissingOptional(cursor, currentParameter);
+                cursor.skipParameter();
+                continue;
+            }
+
+            if (ArgumentValueBinder.skipCurrentFlag(this, cursor)) {
+                continue;
+            }
+
+            ParseResult<S> preParsed = preParsedArguments.peekFirst();
+            if (preParsed != null && preParsed.getArgument() == currentParameter) {
+                ArgumentValueBinder.bindParsedParameter(this, cursor, preParsed);
+                preParsedArguments.removeFirst();
+                continue;
+            }
+
+            if (currentParameter.isOptional()) {
+                optionalArgumentHandler.handle(result, this, cursor);
+                continue;
+            }
+
+            ArgumentValueBinder.bindCurrentParameter(this, cursor);
+        }
+
+        var usage = this.getDetectedPathway();
+        Command<S> lastCmd = this.command();
+
+        for (int rPos = 0; rPos < cursor.rawsLength(); rPos++) {
+            String raw = this.getRawArgument(rPos);
+            if (!Patterns.isInputFlag(raw)) {
+                var sub = lastCmd.getSubCommand(raw, false);
+                if (sub != null) {
+                    lastCmd = sub;
+                }
+                continue;
+            }
+            String nextRaw = rPos + 1 < cursor.rawsLength() ? this.getRawArgument(rPos + 1) : null;
+            //identify if its a registered flag
+            Set<FlagArgument<S>> extracted = usage.getFlagExtractor().extract(Patterns.withoutFlagSign(raw));
+            String inputRaw = validateExtractedFlagsAndGetInputRaw(raw, nextRaw, extracted);
+
+            //all flags here must be resolved inside the this
+            for (var flagParam : extracted) {
+
+                var lastCmdPathways = lastCmd.getDedicatedPathways();
+                boolean foundOutsideScope = true;
+                for (var pathway : lastCmdPathways) {
+                    if (pathway.getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
+                        foundOutsideScope = false;
+                        break;
+                    }
+
+                }
+                if (foundOutsideScope) {
+                    throw ResponseException.of(ResponseKey.FLAG_OUTSIDE_SCOPE)
+                                  .withPlaceholder("flag_input", raw)
+                                  .withPlaceholder("wrong_cmd", lastCmd.getName());
+                }
+                this.resolveFlag(
+                        ParsedFlagArgument.forFlag(
+                                flagParam,
+                                raw,
+                                inputRaw,
+                                rPos,
+                                flagParam.isSwitch() ? rPos : rPos + 1,
+                                flagParam.isSwitch() ? true : Objects.requireNonNull(flagParam.flagData().inputType()).parse(this, flagParam,
+                                        inputRaw)
+                        )
+                );
+            }
+
+        }
+
+        for (FlagArgument<S> registered : usage.getFlagExtractor().getRegisteredFlags()) {
+            if (this.hasResolvedFlag(registered.flagData())) {
+                continue;
+            }
+            resolveFlagDefaultValue(registered);
+        }
+
+    }
+
+    private InvalidSyntaxException invalidSyntax(TreeExecutionResult<S> result) {
+        var closestUsage = result.getClosestUsage();
+        String invalidUsage = imperatConfig().commandPrefix() + getRootCommandLabelUsed() + " " + arguments().join(" ");
+        return new InvalidSyntaxException(invalidUsage, closestUsage);
+    }
+
+    private void parseMissingOptional(Cursor<S> cursor, Argument<S> optionalParameter) throws CommandException {
+        Object value = getDefaultValue(optionalParameter);
+        this.parseArgument(
+                new ParsedArgument<>(
+                        null,
+                        optionalParameter,
+                        cursor.position().getParameter(),
+                        value
+                )
+        );
+    }
+
+    private Object getDefaultValue(Argument<S> argument) throws CommandException {
+        var supplier = argument.getDefaultValueSupplier();
+        if (supplier.isEmpty()) {
+            return null;
+        }
+        String raw = supplier.provide(this, argument);
+        if (raw == null) {
+            return null;
+        }
+        return argument.type().parse(this, argument, raw);
+    }
+
+    private String validateExtractedFlagsAndGetInputRaw(String currentRaw, @Nullable String nextRaw, Set<FlagArgument<S>> extracted)
+            throws CommandException {
+        long numberOfSwitches = extracted.stream().filter(FlagArgument::isSwitch).count();
+        long numberOfTrueFlags = extracted.size() - numberOfSwitches;
+
+        if (extracted.size() != numberOfSwitches && extracted.size() != numberOfTrueFlags) {
+            throw new CombinedFlagsException("Unsupported use of a mixture of switches and true flags!");
+        }
+
+        if (extracted.size() == numberOfTrueFlags && !TypeUtility.areTrueFlagsOfSameInputType(extracted)) {
+            throw new CombinedFlagsException("You cannot use compressed true-flags, while they are not of same input type");
+        }
+
+        boolean areAllSwitches = extracted.size() == numberOfSwitches;
+
+        String inputRaw = areAllSwitches ? currentRaw : nextRaw;
+        if (!areAllSwitches && inputRaw == null) {
+            throw ResponseException.of(ResponseKey.MISSING_FLAG_INPUT)
+                          .withPlaceholder("flags", extracted.stream().map(FlagArgument::getName).collect(Collectors.joining(",")));
+        }
+        return inputRaw;
+    }
+
+    private void resolveFlagDefaultValue(FlagArgument<S> flagArgument) throws
+            CommandException {
+
+        if (flagArgument.isSwitch()) {
+            this.resolveFlag(
+                    ParsedFlagArgument.forDefaultSwitch(
+                            flagArgument
+                    )
+            );
+            return;
+        }
+
+        String defValue = flagArgument.getDefaultValueSupplier().provide(this, flagArgument);
+        if (defValue != null) {
+            Object flagValueResolved = flagArgument.getDefaultValueSupplier().isEmpty() ? null :
+                                               Objects.requireNonNull(flagArgument.flagData().inputType()).parse(
+                                                       this, flagArgument, defValue);
+            this.resolveFlag(ParsedFlagArgument.forDefaultFlag(flagArgument, defValue, flagValueResolved));
+        }
+    }
+
+    @Override
+    public void parseArgument(ParsedArgument<S> parsedArgument) throws CommandException {
+        var argument = parsedArgument.getOriginalArgument();
+        if (!argument.isCommand()) {
+            argument.validate(this, parsedArgument);
+        }
+        resolvedArgumentsPerCommand.update(getLastUsedCommand(), (existingResolvedArgs) -> {
+            if (existingResolvedArgs != null) {
+                return existingResolvedArgs.setData(argument.getName(), parsedArgument);
+            }
+            return new Registry<>(argument.getName(), parsedArgument, LinkedHashMap::new);
+        });
+        allResolvedArgs.setData(argument.getName(), parsedArgument);
+    }
+    
+
+    @Override
     public Optional<ParsedFlagArgument<S>> getFlag(String flagName) {
         return flagRegistry.getData(flagName);
     }
@@ -175,14 +388,6 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
         return (T) getFlag(flagName)
                            .map(ParsedArgument::getArgumentParsedValue)
                            .orElse(null);
-    }
-
-
-    @Override
-    public void resolve(TreeExecutionResult<S> result) throws CommandException {
-        var resolver = ParameterValueAssigner.create(result, usage);
-        resolver.resolve();
-        this.treeExecutionResult = result;
     }
 
 
@@ -209,17 +414,12 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
         parseArgument(parsedArgument);
     }
 
+    /**
+     * @return The used usage to use it to resolve commands
+     */
     @Override
-    public void parseArgument(ParsedArgument<S> parsedArgument) throws CommandException {
-        var argument = parsedArgument.getOriginalArgument();
-        argument.validate(this, parsedArgument);
-        resolvedArgumentsPerCommand.update(getLastUsedCommand(), (existingResolvedArgs) -> {
-            if (existingResolvedArgs != null) {
-                return existingResolvedArgs.setData(argument.getName(), parsedArgument);
-            }
-            return new Registry<>(argument.getName(), parsedArgument, LinkedHashMap::new);
-        });
-        allResolvedArgs.setData(argument.getName(), parsedArgument);
+    public CommandPathway<S> getDetectedPathway() {
+        return pathway;
     }
 
     @Override
@@ -239,12 +439,9 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
         return lastCommand;
     }
 
-    /**
-     * @return The used usage to use it to resolve commands
-     */
     @Override
-    public CommandPathway<S> getDetectedPathway() {
-        return usage;
+    public void setDetectedPathway(CommandPathway<S> pathway) {
+        this.pathway = pathway;
     }
 
     @Override
@@ -264,6 +461,11 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
             ImperatDebugger.debug("Argument '%s' at index #%s with input='%s' with value='%s'",
                     arg.getOriginalArgument().format(), arg.getInputPosition(), arg.getArgumentRawInput(), arg.getArgumentParsedValue());
         }
+    }
+
+    @Override
+    public void setTreeResult(TreeExecutionResult<S> treeResult) {
+        this.treeExecutionResult = treeResult;
     }
 
 }

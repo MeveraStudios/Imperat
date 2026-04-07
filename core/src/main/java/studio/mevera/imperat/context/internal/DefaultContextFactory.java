@@ -2,6 +2,7 @@ package studio.mevera.imperat.context.internal;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
@@ -54,7 +55,7 @@ final class DefaultContextFactory<S extends CommandSource> extends ContextFactor
     @Override
     public ExecutionContext<S> createExecutionContext(
             @NotNull CommandContext<S> plainContext,
-            @NotNull CommandPathway<S> pathway,
+            @Nullable CommandPathway<S> pathway,
             @NotNull Command<S> lastCommand
     ) {
         return new ExecutionContextImpl<>(

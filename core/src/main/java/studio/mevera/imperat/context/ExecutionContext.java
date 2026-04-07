@@ -50,6 +50,10 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
 
     @NotNull TreeExecutionResult<S> getTreeExecutionResult();
 
+    void setDetectedPathway(CommandPathway<S> pathway);
+
+    void handleRemainingParsing(TreeExecutionResult<S> result) throws CommandException;
+
     /**
      * Retrieves a flag by its name if it was provided in the command input.
      *
@@ -185,13 +189,6 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
     CommandPathway<S> getDetectedPathway();
 
     /**
-     * Resolves all arguments and flags from the raw context input.
-     *
-     * @throws CommandException if resolution fails
-     */
-    void resolve(TreeExecutionResult<S> result) throws CommandException;
-
-    /**
      * Gets a resolved argument by its owning command and parameter name.
      *
      * @param command the owning command
@@ -254,4 +251,6 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
      * Example: <code>ImperatDebugger.setEnabled(true)</code>
      */
     void debug();
+
+    void setTreeResult(TreeExecutionResult<S> treeResult);
 }

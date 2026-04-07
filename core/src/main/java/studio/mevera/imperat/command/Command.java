@@ -162,7 +162,7 @@ public interface Command<S extends CommandSource> extends Argument<S>, BaseThrow
      * @throws CommandException if an error occurs during execution
      */
     @NotNull
-    TreeExecutionResult<S> execute(CommandContext<S> context) throws CommandException;
+    TreeExecutionResult<S> execute(ExecutionContext<S> context) throws CommandException;
 
     /**
      * @return The description of a command

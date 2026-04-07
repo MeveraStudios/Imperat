@@ -29,7 +29,6 @@ import studio.mevera.imperat.util.TypeUtility;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -62,28 +61,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         this.permissionChecker = imperatConfig.getPermissionChecker();
     }
 
-    /**
-     * prefix matching - Optimized for tab completion
-     */
-    private static boolean fastStartsWith(String str, String prefix) {
-        final int prefixLen = prefix.length();
-        if (str.length() < prefixLen) {
-            return false;
-        }
 
-        // Optimized for very short prefixes (common in tab completion)
-        if (prefixLen <= 3) {
-            for (int i = 0; i < prefixLen; i++) {
-                if (Character.toLowerCase(str.charAt(i)) != Character.toLowerCase(prefix.charAt(i))) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        // For longer prefixes, use regionMatches
-        return str.regionMatches(true, 0, prefix, 0, prefixLen);
-    }
 
     @Override
     public @NotNull Command<S> root() {
@@ -408,6 +386,33 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     }
 
     /**
+     * prefix matching - Optimized for tab completion
+     */
+    private static boolean fastStartsWith(String str, String prefix) {
+        final int prefixLen = prefix.length();
+        if (str.length() < prefixLen) {
+            return false;
+        }
+
+        // Optimized for very short prefixes (common in tab completion)
+        if (prefixLen <= 3) {
+            for (int i = 0; i < prefixLen; i++) {
+                if (Character.toLowerCase(str.charAt(i)) != Character.toLowerCase(prefix.charAt(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // For longer prefixes, use regionMatches
+        return str.regionMatches(true, 0, prefix, 0, prefixLen);
+    }
+
+    private int getMatchDepthHeuristic(CommandNode<S, ?> node) {
+        return node.getDepth();
+    }
+
+    /**
      * Directly traverses the tree and executes the matching pathway in one step.
      * <p>
      * The algorithm:
@@ -419,7 +424,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      */
     @Override
     public @NotNull TreeExecutionResult<S> execute(
-            CommandContext<S> context,
+            @NotNull ExecutionContext<S> context,
             @NotNull ArgumentInput input
     ) throws CommandException {
 
@@ -436,7 +441,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             if (defaultPathway == null) {
                 return TreeExecutionResult.noMatch(rootCommand.getDefaultPathway(), rootCommand);
             }
-            return executePathway(context, root, defaultPathway, rootCommand);
+            return executePathway(context, root, defaultPathway, rootCommand, List.of());
         }
 
         // Step 3: Traverse tree children looking for a match
@@ -445,7 +450,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             // No children, but root has a default pathway — execute it
             CommandPathway<S> defaultPathway = root.getExecutableUsage();
             if (defaultPathway != null) {
-                return executePathway(context, root, defaultPathway, rootCommand);
+                return executePathway(context, root, defaultPathway, rootCommand, List.of());
             }
             return TreeExecutionResult.noMatch(rootCommand.getDefaultPathway(), rootCommand);
         }
@@ -455,7 +460,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         int bestDepth = -1;
 
         for (var child : rootChildren) {
-            TreeExecutionResult<S> result = traverseAndExecute(context, input, child, 0);
+            TreeExecutionResult<S> result = traverse(context, input, child, 0, List.of());
 
             if (result.isSuccess()) {
                 return result; // Immediate success — stop
@@ -477,157 +482,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                        : TreeExecutionResult.noMatch(rootCommand.getDefaultPathway(), rootCommand);
     }
 
-    private int getMatchDepthHeuristic(CommandNode<S, ?> node) {
-        return node.getDepth();
-    }
-
-    /**
-     * Recursive tree traversal that finds the matching pathway and executes it directly.
-     */
-    private @NotNull TreeExecutionResult<S> traverseAndExecute(
-            CommandContext<S> context,
-            ArgumentInput input,
-            @NotNull CommandNode<S, ?> currentNode,
-            int depth
-    ) throws CommandException {
-        final int inputSize = input.size();
-        final int consumeCount = currentNode.getNumberOfParametersToConsume();
-
-        // Guard: depth out of range
-        if (depth >= inputSize) {
-            return noMatchFromNode(currentNode);
-        }
-
-        // Skip flag tokens in the raw input — flags are not part of the tree structure,
-        // they are handled during argument resolution by the Cursor/ParameterValueAssigner.
-        // Switch: skip 1 token (-s). Value flag: skip 2 tokens (-f value).
-        int flagSkip = computeFlagSkip(context, currentNode, depth);
-        if (flagSkip > 0) {
-            return traverseAndExecute(context, input, currentNode, depth + flagSkip);
-        }
-
-        // Check permission BEFORE processing
-        Pair<PermissionHolder, Boolean> currentNodePermissionResult = permissionChecker.checkPermission(context.source(), currentNode.getData());
-        if (!currentNodePermissionResult.right()) {
-            return TreeExecutionResult.permissionDenied(
-                    Objects.requireNonNull(currentNode.isExecutable() ? currentNode.getExecutableUsage() : root.getData().getDefaultPathway()),
-                    currentNodePermissionResult.left(),
-                    getCommandFromNode(currentNode)
-            );
-        }
-
-        // Greedy parameter handling
-        if (currentNode.isGreedyParam()) {
-            int greedyLimit = currentNode.getData().greedyLimit();
-
-            // LIMITED greedy with children — reserve tokens for trailing args,
-            // then try from max consumption down to 1 to find a valid child match.
-            if (greedyLimit > 0 && !currentNode.isLast()) {
-                int tokensAvailable = inputSize - depth;
-                int childrenNeeded = countMinRequiredDescendants(currentNode);
-                int maxConsume = Math.min(greedyLimit, tokensAvailable - childrenNeeded);
-
-                // Try from highest consumption downward (greedy preference)
-                for (int consume = maxConsume; consume >= 1; consume--) {
-                    int nextDepth = depth + consume;
-                    for (var child : currentNode.getChildren()) {
-                        TreeExecutionResult<S> result = traverseAndExecute(context, input, child, nextDepth);
-                        if (result.isSuccess() || result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-                            return result;
-                        }
-                    }
-                }
-                // If children didn't match but this node is executable, execute here
-                if (currentNode.isExecutable()) {
-                    assert currentNode.getExecutableUsage() != null;
-                    return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
-                }
-                return noMatchFromNode(currentNode);
-            }
-
-            // UNLIMITED greedy — consumes all remaining input, short-circuit
-            // let's match input
-            return handleTerminalNode(context, currentNode, depth);
-        }
-
-        // Check if current input matches this node
-        boolean nodeMatches = currentNode.matchesInput(depth, context, currentNode.isOptional());
-        if (!nodeMatches) {
-            // If optional, try to skip this node and check children
-            return handleOptionalSkip(context, input, currentNode, depth);
-        }
-
-        // Node matches — determine if we're at the terminal position
-        // Account for remaining flag tokens after this node
-        int effectiveInputSize = computeEffectiveInputSize(context, input, depth + consumeCount);
-        boolean isTerminal = (depth == effectiveInputSize - consumeCount);
-
-        if (isTerminal) {
-            TreeExecutionResult<S> terminalResult = handleTerminalNode(context, currentNode, depth);
-            if (terminalResult.isSuccess() || terminalResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-                return terminalResult;
-            }
-            // Terminal failed — if optional, try skipping (backtrack)
-            if (currentNode.isOptional()) {
-                TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth);
-                if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-                    return skipResult;
-                }
-            }
-            return terminalResult;
-        }
-
-        // Not terminal — continue traversal to children
-        int nextDepth = depth + consumeCount;
-        final var children = currentNode.getChildren();
-
-        if (children.isEmpty()) {
-            // No children — execute if no unconsumed non-flag input tokens left
-            if (currentNode.isExecutable() && nextDepth >= effectiveInputSize) {
-                assert currentNode.getExecutableUsage() != null;
-                return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
-            }
-            return noMatchFromNode(currentNode);
-        }
-
-        // Try each child (consume path)
-        TreeExecutionResult<S> bestChildResult = null;
-
-        for (var child : children) {
-            TreeExecutionResult<S> result = traverseAndExecute(context, input, child, nextDepth);
-            if (result.isSuccess()) {
-                return result;
-            }
-            if (result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-                return result;
-            }
-            if (bestChildResult == null) {
-                bestChildResult = result;
-            }
-        }
-
-        // Children consume path failed — try backtracking: skip this optional
-        // and try children at the SAME depth (don't consume the token)
-        if (currentNode.isOptional()) {
-            TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth);
-            if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-                return skipResult;
-            }
-        }
-
-        // None of the children matched — if current node is executable, execute it
-        // but only if the effective input (non-flag tokens) doesn't exceed the pathway's capacity
-        if (currentNode.isExecutable()) {
-            CommandPathway<S> pathway = currentNode.getExecutableUsage();
-            assert pathway != null;
-            if (effectiveInputSize <= pathway.getArguments().size()) {
-                return executePathway(context, currentNode, pathway, getCommandFromNode(currentNode));
-            }
-        }
-
-        return bestChildResult != null ? bestChildResult : noMatchFromNode(currentNode);
-    }
-
     /**
      * Checks if the raw token at {@code depth} is a flag token.
      * If so, returns how many positions to skip (1 for switch, 2 for value flag).
@@ -647,27 +501,196 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     }
 
     /**
+     * Recursive tree traversal that finds the matching pathway and executes it directly.
+     */
+    private @NotNull TreeExecutionResult<S> traverse(
+            ExecutionContext<S> context,
+            ArgumentInput input,
+            @NotNull CommandNode<S, ?> currentNode,
+            int depth,
+            @NotNull List<ParseResult<S>> parsedArguments
+    ) throws CommandException {
+        final int inputSize = input.size();
+
+        // Guard: depth out of range
+        if (depth >= inputSize) {
+            return noMatchFromNode(currentNode);
+        }
+
+        // Skip flag tokens in the raw input — flags are not part of the tree structure,
+        // they are handled during argument resolution by the Cursor/OptionalValueHandler.
+        // Switch: skip 1 token (-s). Value flag: skip 2 tokens (-f value).
+        int flagSkip = computeFlagSkip(context, currentNode, depth);
+        if (flagSkip > 0) {
+            return traverse(context, input, currentNode, depth + flagSkip, parsedArguments);
+        }
+
+        // Check permission BEFORE processing
+        Pair<PermissionHolder, Boolean> currentNodePermissionResult = permissionChecker.checkPermission(context.source(), currentNode.getData());
+        if (!currentNodePermissionResult.right()) {
+            return TreeExecutionResult.permissionDenied(
+                    Objects.requireNonNull(currentNode.isExecutable() ? currentNode.getExecutableUsage() : root.getData().getDefaultPathway()),
+                    currentNodePermissionResult.left(),
+                    getCommandFromNode(currentNode)
+            );
+        }
+
+        // Greedy parameter handling
+        if (currentNode.isGreedyParam()) {
+            int greedyLimit = currentNode.getData().greedyLimit();
+            CommandPathway<S> flagScopePathway = resolveFlagScopePathway(currentNode);
+
+            // LIMITED greedy with children — reserve tokens for trailing args,
+            // then try from max consumption down to 1 to find a valid child match.
+            if (greedyLimit > 0 && !currentNode.isLast()) {
+                int tokensAvailable = countRemainingBindableInput(context, currentNode, input, depth);
+                int childrenNeeded = countMinRequiredDescendants(currentNode);
+                int maxConsume = Math.min(greedyLimit, tokensAvailable - childrenNeeded);
+                ParseResult<S> fallbackGreedyMatch = null;
+
+                // Try from highest consumption downward (greedy preference)
+                for (int consume = maxConsume; consume >= 1; consume--) {
+                    ParseResult<S> greedyParseResult = currentNode.parse(depth, context, flagScopePathway, consume);
+                    if (greedyParseResult.isFailure()) {
+                        continue;
+                    }
+
+                    if (fallbackGreedyMatch == null) {
+                        fallbackGreedyMatch = greedyParseResult;
+                    }
+
+                    int nextDepth = greedyParseResult.getNextDepth();
+                    List<ParseResult<S>> parsedWithCurrent = appendParsedArgument(parsedArguments, currentNode, greedyParseResult);
+                    for (var child : currentNode.getChildren()) {
+                        TreeExecutionResult<S> result = traverse(context, input, child, nextDepth, parsedWithCurrent);
+                        if (result.isSuccess() || result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                            return result;
+                        }
+                    }
+                }
+                // If children didn't match but this node is executable, execute here
+                if (currentNode.isExecutable() && fallbackGreedyMatch != null) {
+                    assert currentNode.getExecutableUsage() != null;
+                    return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode),
+                            appendParsedArgument(parsedArguments, currentNode, fallbackGreedyMatch));
+                }
+                return noMatchFromNode(currentNode);
+            }
+
+            // UNLIMITED greedy — consumes all remaining input, short-circuit
+            // let's match input
+            ParseResult<S> greedyParseResult = currentNode.parse(depth, context, flagScopePathway);
+            if (greedyParseResult.isFailure()) {
+                return noMatchFromNode(currentNode);
+            }
+            return handleTerminalNode(context, currentNode, greedyParseResult, appendParsedArgument(parsedArguments, currentNode, greedyParseResult));
+        }
+
+        // Check if current input matches this node
+        ParseResult<S> nodeParseResult = currentNode.parse(depth, context, resolveFlagScopePathway(currentNode));
+        if (nodeParseResult.isFailure()) {
+            // If optional, try to skip this node and check children
+            return handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+        }
+
+        List<ParseResult<S>> parsedWithCurrent = appendParsedArgument(parsedArguments, currentNode, nodeParseResult);
+
+        // Node matches — determine if we're at the terminal position
+        boolean isTerminal = !hasRemainingBindableInput(context, currentNode, input, nodeParseResult.getNextDepth());
+
+        if (isTerminal) {
+            TreeExecutionResult<S> terminalResult = handleTerminalNode(context, currentNode, nodeParseResult, parsedWithCurrent);
+            if (terminalResult.isSuccess() || terminalResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                return terminalResult;
+            }
+            // Terminal failed — if optional, try skipping (backtrack)
+            if (currentNode.isOptional()) {
+                TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+                if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                    return skipResult;
+                }
+            }
+            return terminalResult;
+        }
+
+        // Not terminal — continue traversal to children
+        int nextDepth = nodeParseResult.getNextDepth();
+        final var children = currentNode.getChildren();
+
+        if (children.isEmpty()) {
+            // No children — execute if no unconsumed non-flag input tokens left
+            if (currentNode.isExecutable() && !hasRemainingBindableInput(context, currentNode, input, nextDepth)) {
+                assert currentNode.getExecutableUsage() != null;
+                return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode), parsedWithCurrent);
+            }
+            return noMatchFromNode(currentNode);
+        }
+
+        // Try each child (consume path)
+        TreeExecutionResult<S> bestChildResult = null;
+
+        for (var child : children) {
+            TreeExecutionResult<S> result = traverse(context, input, child, nextDepth, parsedWithCurrent);
+            if (result.isSuccess()) {
+                return result;
+            }
+            if (result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                return result;
+            }
+            if (bestChildResult == null) {
+                bestChildResult = result;
+            }
+        }
+
+        // Children consume path failed — try backtracking: skip this optional
+        // and try children at the SAME depth (don't consume the token)
+        if (currentNode.isOptional()) {
+            TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+            if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                return skipResult;
+            }
+        }
+
+        // None of the children matched — if current node is executable, execute it
+        // but only if the effective input (non-flag tokens) doesn't exceed the pathway's capacity
+        if (currentNode.isExecutable()) {
+            CommandPathway<S> pathway = currentNode.getExecutableUsage();
+            assert pathway != null;
+            if (!hasRemainingBindableInput(context, currentNode, input, nextDepth)) {
+                return executePathway(context, currentNode, pathway, getCommandFromNode(currentNode), parsedWithCurrent);
+            }
+        }
+
+        return bestChildResult != null ? bestChildResult : noMatchFromNode(currentNode);
+    }
+
+    /**
      * Computes the effective input size by subtracting flag tokens from the total.
      * This gives the number of "real" argument tokens that the tree needs to match.
      */
-    private int computeEffectiveInputSize(CommandContext<S> context, ArgumentInput input, int startFrom) {
-        int flagTokens = 0;
+    private boolean hasRemainingBindableInput(
+            CommandContext<S> context,
+            CommandNode<S, ?> node,
+            ArgumentInput input,
+            int startFrom
+    ) {
         for (int i = startFrom; i < input.size(); i++) {
             String token = context.arguments().getOr(i, null);
-            if (token != null && Patterns.isInputFlag(token)) {
-                flagTokens++; // The flag name itself
-                // Check if it's a value flag (has a value token after it)
-                // We peek ahead to see if next token is NOT another flag
-                if (i + 1 < input.size()) {
-                    String next = context.arguments().getOr(i + 1, null);
-                    if (next != null && !Patterns.isInputFlag(next)) {
-                        flagTokens++; // The flag's value
-                        i++; // Skip the value token too
-                    }
-                }
+            if (token == null) {
+                continue;
             }
+
+            FlagData<S> flagData = findFlagForToken(node, token);
+            if (flagData != null) {
+                if (!flagData.isSwitch()) {
+                    i++;
+                }
+                continue;
+            }
+
+            return true;
         }
-        return input.size() - flagTokens;
+        return false;
     }
 
     /**
@@ -678,6 +701,32 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return matchFlagFromPathway(resolveFlagScopePathway(node), rawToken);
     }
 
+    private int countRemainingBindableInput(
+            CommandContext<S> context,
+            CommandNode<S, ?> node,
+            ArgumentInput input,
+            int startFrom
+    ) {
+        int count = 0;
+        for (int i = startFrom; i < input.size(); i++) {
+            String token = context.arguments().getOr(i, null);
+            if (token == null) {
+                continue;
+            }
+
+            FlagData<S> flagData = findFlagForToken(node, token);
+            if (flagData != null) {
+                if (!flagData.isSwitch()) {
+                    i++;
+                }
+                continue;
+            }
+
+            count++;
+        }
+        return count;
+    }
+
     /**
      * Checks if a raw token matches any registered flag in the given pathway.
      */
@@ -685,26 +734,18 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         if (pathway == null) {
             return null;
         }
-        for (FlagArgument<S> flagArg : pathway.getFlagExtractor().getRegisteredFlags()) {
-            if (flagArg.flagData().acceptsInput(rawToken)) {
-                return flagArg.flagData();
-            }
-        }
-        return null;
+        return pathway.getFlagParameterFromRaw(rawToken);
     }
 
     /**
      * Handles the terminal node case: when the current depth matches the last input position.
      */
     private TreeExecutionResult<S> handleTerminalNode(
-            CommandContext<S> context,
+            ExecutionContext<S> context,
             CommandNode<S, ?> node,
-            int depth
+            ParseResult<S> nodeParseResult,
+            @NotNull List<ParseResult<S>> parsedArguments
     ) throws CommandException {
-        if (!node.matchesInput(depth, context)) {
-            return noMatchFromNode(node);
-        }
-
         Pair<PermissionHolder, Boolean> nodePermissionResult = permissionChecker.checkPermission(context.source(), node.getData());
         if (!nodePermissionResult.right()) {
             return TreeExecutionResult.permissionDenied(
@@ -716,7 +757,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         if (node.isExecutable()) {
             assert node.getExecutableUsage() != null;
-            return executePathway(context, node, node.getExecutableUsage(), getCommandFromNode(node));
+            return executePathway(context, node, node.getExecutableUsage(), getCommandFromNode(node), parsedArguments);
         }
 
 
@@ -728,10 +769,11 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      * try to skip it (if optional) and continue with its children.
      */
     private TreeExecutionResult<S> handleOptionalSkip(
-            CommandContext<S> context,
+            ExecutionContext<S> context,
             ArgumentInput input,
             CommandNode<S, ?> currentNode,
-            int depth
+            int depth,
+            @NotNull List<ParseResult<S>> parsedArguments
     ) throws CommandException {
         // If node is required, it's a hard fail — no match
         if (!currentNode.isOptional()) {
@@ -741,7 +783,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         // Optional node didn't match — if it's executable, we can execute (skipping the optional arg)
         if (currentNode.isExecutable()) {
             assert currentNode.getExecutableUsage() != null;
-            return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode));
+            return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode), parsedArguments);
         }
 
         // Try children at the SAME depth (we're skipping this optional node)
@@ -750,13 +792,21 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             if (!hasPermission(context.source(), child)) {
                 continue;
             }
-            TreeExecutionResult<S> result = traverseAndExecute(context, input, child, depth);
+            TreeExecutionResult<S> result = traverse(context, input, child, depth, parsedArguments);
             if (result.isSuccess() || result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
                 return result;
             }
         }
 
         return noMatchFromNode(currentNode);
+    }
+
+    /**
+     * Creates a NO_MATCH result from a node, using the closest executable usage for error reporting.
+     */
+    private TreeExecutionResult<S> noMatchFromNode(CommandNode<S, ?> node) {
+        CommandPathway<S> closest = findClosestUsage(node);
+        return TreeExecutionResult.noMatch(closest, getCommandFromNode(node));
     }
 
     /**
@@ -768,27 +818,19 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      * This means the Cursor will see a full parameter list that matches the raw input 1:1.
      */
     private TreeExecutionResult<S> executePathway(
-            CommandContext<S> context,
+            ExecutionContext<S> executionContext,
             @NotNull CommandNode<S, ?> currentNode,
             @NotNull CommandPathway<S> pathway,
-            @NotNull Command<S> lastCommand
+            @NotNull Command<S> lastCommand,
+            @NotNull List<ParseResult<S>> parsedArguments
     ) throws CommandException {
         ImperatDebugger.debug("Executing pathway: %s", pathway.formatted());
 
         // Create the execution context using the factory
-        ExecutionContext<S> executionContext = imperatConfig.getContextFactory()
-                                                       .createExecutionContext(context, pathway, lastCommand);
         CommandPathway<S> closestUsage = findClosestUsage(currentNode);
         assert closestUsage != null;
-        return TreeExecutionResult.success(executionContext, closestUsage, pathway, lastCommand);
-    }
-
-    /**
-     * Creates a NO_MATCH result from a node, using the closest executable usage for error reporting.
-     */
-    private TreeExecutionResult<S> noMatchFromNode(CommandNode<S, ?> node) {
-        CommandPathway<S> closest = findClosestUsage(node);
-        return TreeExecutionResult.noMatch(closest, getCommandFromNode(node));
+        executionContext.setDetectedPathway(pathway);
+        return TreeExecutionResult.success(executionContext, closestUsage, pathway, lastCommand, parsedArguments);
     }
 
     /**
@@ -934,6 +976,21 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                        .toList();
     }
 
+    private @NotNull List<ParseResult<S>> appendParsedArgument(
+            @NotNull List<ParseResult<S>> parsedArguments,
+            @NotNull CommandNode<S, ?> currentNode,
+            @NotNull ParseResult<S> parseResult
+    ) {
+        if (!parseResult.canReuseInExecution() || currentNode.isLiteral()) {
+            return parsedArguments;
+        }
+
+        List<ParseResult<S>> next = new ArrayList<>(parsedArguments.size() + 1);
+        next.addAll(parsedArguments);
+        next.add(parseResult);
+        return next;
+    }
+
     private void tabCompleteNode(
             final CommandNode<S, ?> node,
             final SuggestionContext<S> context,
@@ -1009,7 +1066,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 }
             }
 
-            if (!node.matchesInput(inputDepth, context, node.isOptional()) && node.isRequired()) {
+            ParseResult result = node.parse(inputDepth, context);
+            if (result.isFailure() && node.isRequired()) {
                 return;
             }
 
@@ -1024,24 +1082,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             }
 
         }
-    }
-
-    private CommandNode<S, ?> resolveActiveLiteral(
-            CommandNode<S, ?> node,
-            CommandNode<S, ?> lastLiteral,
-            int inputDepth,
-            String currentInput,
-            SuggestionContext<S> context
-    ) {
-        if (!node.isLiteral() || currentInput == null || Patterns.isInputFlag(currentInput)) {
-            return lastLiteral;
-        }
-
-        if (node.matchesInput(inputDepth, context, true)) {
-            return node;
-        }
-
-        return lastLiteral;
     }
 
     /**
@@ -1127,11 +1167,23 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return scopedPathway.getFlagExtractor().getRegisteredFlags();
     }
 
-    private @Nullable CommandPathway<S> resolveFlagScopePathway(CommandNode<S, ?> node) {
-        if (node != null && node.isExecutable()) {
-            return node.getExecutableUsage();
+    private CommandNode<S, ?> resolveActiveLiteral(
+            CommandNode<S, ?> node,
+            CommandNode<S, ?> lastLiteral,
+            int inputDepth,
+            String currentInput,
+            SuggestionContext<S> context
+    ) {
+        if (!node.isLiteral() || currentInput == null || Patterns.isInputFlag(currentInput)) {
+            return lastLiteral;
         }
-        return null;
+
+        ParseResult nodeParseResult = node.parse(inputDepth, context);
+        if (nodeParseResult.isSuccessful()) {
+            return node;
+        }
+
+        return lastLiteral;
     }
 
     /**
@@ -1183,80 +1235,15 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return hasPermission(src, node);
     }
 
-    /**
-     * CACHED resolver lookup - Eliminates config lookups
-     */
     private SuggestionProvider<S> getResolverCached(Argument<S> param) {
         return imperatConfig.getParameterSuggestionResolver(param);
     }
 
-    /**
-     * Searches for closest usage to a context entered.
-     * returns an ORDERED/SORTED set of unique {@link CommandPathway} , ordered by
-     * how close they are to the context entered, the closest usage to the context entered shall be
-     * placed on top of this ordered set of closest usages.
-     *
-     * @param context the context to search with.
-     * @return the closest usages ordered by how close they are to a {@link CommandContext}
-     */
-    @Override
-    public Set<CommandPathway<S>> getClosestUsages(CommandContext<S> context) {
-        final var queue = context.arguments();
-        final String firstArg = queue.getOr(0, null);
-
-        final var startingNode = (firstArg == null) ? root : findStartingNode(context, root);
-
-        return (startingNode == null)
-                       ? Set.of(rootCommand.getDefaultPathway())
-                       : getClosestUsagesRecursively(new LinkedHashSet<>(), startingNode, context);
-    }
-
-    private CommandNode<S, ?> findStartingNode(CommandContext<S> context, CommandNode<S, ?> root) {
-        for (var child : root.getChildren()) {
-            if (child.matchesInput(child.getDepth(), context)) {
-                return child;
-            }
+    private @Nullable CommandPathway<S> resolveFlagScopePathway(CommandNode<S, ?> node) {
+        if (node != null && node.isExecutable()) {
+            return node.getExecutableUsage();
         }
-        return null;
-    }
-
-    private Set<CommandPathway<S>> getClosestUsagesRecursively(
-            Set<CommandPathway<S>> currentUsages,
-            CommandNode<S, ?> node,
-            CommandContext<S> context
-    ) {
-        if (node.isExecutable()) {
-            final var usage = node.getExecutableUsage();
-            currentUsages.add(usage);
-        }
-
-        if (!node.isLast()) {
-            final var children = node.getChildren();
-            final var arguments = context.arguments();
-
-            for (var child : children) {
-                final String correspondingInput = arguments.getOr(child.getDepth(), null);
-
-                if (correspondingInput == null) {
-                    if (child.isRequired()) {
-                        addPermittedUsages(currentUsages, child, context);
-                    }
-                } else if (child.matchesInput(child.getDepth(), context)) {
-                    addPermittedUsages(currentUsages, child, context);
-                }
-            }
-        }
-
-        return currentUsages;
-    }
-
-    private void addPermittedUsages(
-            Set<CommandPathway<S>> currentUsages,
-            CommandNode<S, ?> child,
-            CommandContext<S> context
-    ) {
-        final var childUsages = getClosestUsagesRecursively(new LinkedHashSet<>(), child, context);
-        currentUsages.addAll(childUsages);
+        return node == null ? null : findClosestUsage(node);
     }
 
 }

@@ -1,27 +1,24 @@
-package studio.mevera.imperat.context.internal.flow.handlers;
+package studio.mevera.imperat.context.internal;
 
-import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.context.internal.flow.HandleResult;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Patterns;
 
-public final class OptionalParameterHandler<S extends CommandSource> implements ParameterHandler<S> {
+public final class OptionalArgumentHandler<S extends CommandSource> implements ArgumentHandler<S> {
 
     @Override
-    public @NotNull HandleResult handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
+    public void handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
         Argument<S> currentParameter = cursor.currentParameterIfPresent();
         String currentRaw = cursor.currentRawIfPresent();
 
         if (currentParameter == null || currentRaw == null) {
-            return HandleResult.TERMINATE;
+            return;
         }
         if (Patterns.isInputFlag(currentRaw)) {
             boolean containsAnyFlag = !context.getDetectedPathway().getFlagExtractor().getRegisteredFlags().isEmpty();
@@ -32,19 +29,13 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
                 if (allTrueFlags) {
                     cursor.skipRaw();
                 }
-                return HandleResult.NEXT_HANDLER;
+                return;
             }
         }
         if (!currentParameter.isOptional()) {
-            return HandleResult.NEXT_HANDLER;
+            return;
         }
-
-        try {
-            resolveOptional(currentRaw, currentParameter, context, cursor);
-            return HandleResult.NEXT_ITERATION;
-        } catch (CommandException e) {
-            return HandleResult.failure(e);
-        }
+        resolveOptional(currentRaw, currentParameter, context, cursor);
     }
 
     private void resolveOptional(
@@ -190,9 +181,7 @@ public final class OptionalParameterHandler<S extends CommandSource> implements 
             ExecutionContext<S> context,
             Cursor<S> stream
     ) throws CommandException {
-        Object value = currentParameter.type().parse(context, stream);
-        context.parseArgument(stream, value);
-        stream.skip();
+        ArgumentValueBinder.bindCurrentParameter(context, stream);
     }
 
     /**

@@ -6,8 +6,9 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.permissions.PermissionHolder;
+
+import java.util.List;
 
 /**
  * Represents the result of a direct tree execution.
@@ -25,6 +26,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
     private final @NotNull CommandPathway<S> closestUsage;
     private final @Nullable PermissionHolder deniedPermissionHolder;
     private final @NotNull Command<S> lastCommand;
+    private final @NotNull List<ParseResult<S>> parsedArguments;
 
     private TreeExecutionResult(
             @NotNull Status status,
@@ -32,7 +34,8 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @NotNull CommandPathway<S> closestUsage,
             @Nullable CommandPathway<S> matchedPathway,
             @Nullable PermissionHolder deniedPermissionHolder,
-            @NotNull Command<S> lastCommand
+            @NotNull Command<S> lastCommand,
+            @NotNull List<ParseResult<S>> parsedArguments
     ) {
         this.status = status;
         this.executionContext = executionContext;
@@ -40,6 +43,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
         this.matchedPathway = matchedPathway;
         this.deniedPermissionHolder = deniedPermissionHolder;
         this.lastCommand = lastCommand;
+        this.parsedArguments = parsedArguments;
     }
 
     /**
@@ -49,9 +53,11 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @NotNull ExecutionContext<S> executionContext,
             @NotNull CommandPathway<S> closestUsage,
             @NotNull CommandPathway<S> matchedPathway,
-            @NotNull Command<S> lastCommand
+            @NotNull Command<S> lastCommand,
+            @NotNull List<ParseResult<S>> parsedArguments
     ) {
-        return new TreeExecutionResult<>(Status.SUCCESS, executionContext, closestUsage, matchedPathway, null, lastCommand);
+        return new TreeExecutionResult<>(Status.SUCCESS, executionContext, closestUsage, matchedPathway, null, lastCommand,
+                List.copyOf(parsedArguments));
     }
 
     /**
@@ -65,7 +71,8 @@ public final class TreeExecutionResult<S extends CommandSource> {
         return new TreeExecutionResult<>(Status.PERMISSION_DENIED, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage,
                 closestUsage,
                 deniedPermissionHolder,
-                lastCommand);
+                lastCommand,
+                List.of());
     }
 
     /**
@@ -76,7 +83,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @NotNull Command<S> lastCommand
     ) {
         return new TreeExecutionResult<>(Status.NO_MATCH, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage, closestUsage,
-                null, lastCommand);
+                null, lastCommand, List.of());
     }
 
     public @NotNull Status getStatus() {
@@ -103,14 +110,12 @@ public final class TreeExecutionResult<S extends CommandSource> {
         return lastCommand;
     }
 
-    public boolean isSuccess() {
-        return status == Status.SUCCESS;
+    public @NotNull List<ParseResult<S>> getParsedArguments() {
+        return parsedArguments;
     }
 
-    public void resolveContext() throws CommandException {
-        if (executionContext != null) {
-            executionContext.resolve(this);
-        }
+    public boolean isSuccess() {
+        return status == Status.SUCCESS;
     }
 
     /**

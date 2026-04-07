@@ -8,13 +8,12 @@ import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
 import studio.mevera.imperat.context.ArgumentInput;
-import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
+import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a tree structure for commands, providing methods for parsing, matching,
@@ -71,7 +70,7 @@ public interface CommandTree<S extends CommandSource> {
      * @return the result of the tree execution containing status and resolved context
      * @throws CommandException if an error occurs during argument resolution or execution
      */
-    @NotNull TreeExecutionResult<S> execute(CommandContext<S> context, @NotNull ArgumentInput input) throws CommandException;
+    @NotNull TreeExecutionResult<S> execute(ExecutionContext<S> context, @NotNull ArgumentInput input) throws CommandException;
 
     /**
      * Generates tab-completion suggestions based on the current command context.
@@ -101,15 +100,5 @@ public interface CommandTree<S extends CommandSource> {
     HelpEntryList<S> queryHelp(
             @NotNull HelpQuery<S> query
     );
-
-    /**
-     * Collects the closest usages to a context, this traverses the whole {@link  CommandTree}
-     * from the beginning , visiting every branch/chain possible.
-     * This will lead to collecting the closest usages in-order by how close they are to your input.
-     *
-     * @param context the context containing the details of an input.
-     * @return A set of the closest usages to a {@link CommandContext}
-     */
-    Set<CommandPathway<S>> getClosestUsages(CommandContext<S> context);
 
 }

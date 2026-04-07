@@ -2,6 +2,7 @@ package studio.mevera.imperat.context.internal;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.Imperat;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
@@ -86,7 +87,7 @@ public abstract class ContextFactory<S extends CommandSource> {
      */
     public abstract ExecutionContext<S> createExecutionContext(
             @NotNull CommandContext<S> plainContext,
-            @NotNull CommandPathway<S> pathway,
+            @Nullable CommandPathway<S> pathway,
             @NotNull Command<S> lastCommand
     );
 
