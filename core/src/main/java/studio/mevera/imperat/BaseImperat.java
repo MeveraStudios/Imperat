@@ -39,6 +39,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Pair;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
+import studio.mevera.imperat.util.UsageFormatting;
 import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.annotation.Annotation;
@@ -569,7 +570,11 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         if (treeResult.getStatus() == TreeExecutionResult.Status.NO_MATCH) {
             ImperatDebugger.debug("No matching pathway found!");
             var closestUsage = treeResult.getClosestUsage();
-            String invalidUsage = context.getRootCommandLabelUsed() + " " + context.arguments().join(" ");
+            String invalidUsage = UsageFormatting.formatInput(
+                    config.commandPrefix(),
+                    context.getRootCommandLabelUsed(),
+                    context.arguments().join(" ")
+            );
             throw new InvalidSyntaxException(
                     invalidUsage,
                     closestUsage

@@ -42,6 +42,7 @@ import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.Registry;
+import studio.mevera.imperat.util.UsageFormatting;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -678,9 +679,11 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
 
             var closestUsage = exception.getClosestUsage();
             if (closestUsage != null) {
-                String closestUsageFormat =
-                        ctx.imperatConfig().commandPrefix() + ctx.getRootCommandLabelUsed() +
-                                " " + closestUsage.formatted();
+                String closestUsageFormat = UsageFormatting.formatClosestUsage(
+                        ctx.imperatConfig().commandPrefix(),
+                        ctx.getRootCommandLabelUsed(),
+                        closestUsage
+                );
                 ctx.source().reply("You probably meant '" + closestUsageFormat + "'");
             }
         });

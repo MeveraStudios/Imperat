@@ -24,6 +24,7 @@ import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.Registry;
 import studio.mevera.imperat.util.TypeUtility;
+import studio.mevera.imperat.util.UsageFormatting;
 
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
@@ -281,7 +282,11 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
 
     private InvalidSyntaxException invalidSyntax(TreeExecutionResult<S> result) {
         var closestUsage = result.getClosestUsage();
-        String invalidUsage = imperatConfig().commandPrefix() + getRootCommandLabelUsed() + " " + arguments().join(" ");
+        String invalidUsage = UsageFormatting.formatInput(
+                imperatConfig().commandPrefix(),
+                getRootCommandLabelUsed(),
+                arguments().join(" ")
+        );
         return new InvalidSyntaxException(invalidUsage, closestUsage);
     }
 

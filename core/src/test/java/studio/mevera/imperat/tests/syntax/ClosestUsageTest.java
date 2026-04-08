@@ -1,5 +1,6 @@
 package studio.mevera.imperat.tests.syntax;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,6 +20,18 @@ public class ClosestUsageTest extends BaseImperatTest {
 
     static {
         System.out.println("Running ClosestUsageTest...");
+    }
+
+    @Test
+    @DisplayName("Should suggest descendant usage when all required root arguments are missing")
+    void testMissingAllRequiredRootArguments() {
+        ExecutionResult<TestCommandSource> result = execute("req");
+        assertFailure(result, InvalidSyntaxException.class);
+
+        InvalidSyntaxException ex = (InvalidSyntaxException) result.getError();
+        assertNotNull(ex, "InvalidSyntaxException should not be null");
+        assertNotNull(ex.getClosestUsage(), "Closest usage should not be null");
+        assertEquals("<a> <b> <c> <d>", ex.getClosestUsage().formatted(), "Closest usage should point to the required pathway");
     }
 
     @Test
