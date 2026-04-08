@@ -681,7 +681,15 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 }
                 // Terminal failed — if optional, try skipping (backtrack)
                 if (currentNode.isOptional()) {
-                    TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+                    TreeExecutionResult<S> skipResult = tryOptionalBacktrack(
+                            context,
+                            input,
+                            currentNode,
+                            depth,
+                            parsedArguments,
+                            appendedCurrent,
+                            nodeParseResult
+                    );
                     if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
                         return skipResult;
                     }
@@ -719,7 +727,15 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             // Children consume path failed — try backtracking: skip this optional
             // and try children at the SAME depth (don't consume the token)
             if (currentNode.isOptional()) {
-                TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+                TreeExecutionResult<S> skipResult = tryOptionalBacktrack(
+                        context,
+                        input,
+                        currentNode,
+                        depth,
+                        parsedArguments,
+                        appendedCurrent,
+                        nodeParseResult
+                );
                 if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
                     return skipResult;
                 }
@@ -738,6 +754,29 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return bestChildResult != null ? bestChildResult : noMatchFromNode(currentNode);
         } finally {
             rollbackParsedArgument(parsedArguments, appendedCurrent);
+        }
+    }
+
+    private TreeExecutionResult<S> tryOptionalBacktrack(
+            ExecutionContext<S> context,
+            ArgumentInput input,
+            CommandNode<S, ?> currentNode,
+            int depth,
+            @NotNull ArrayList<ParseResult<S>> parsedArguments,
+            boolean appendedCurrent,
+            @Nullable ParseResult<S> nodeParseResult
+    ) throws CommandException {
+        if (!appendedCurrent) {
+            return handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+        }
+
+        rollbackParsedArgument(parsedArguments, true);
+        try {
+            return handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+        } finally {
+            if (nodeParseResult != null) {
+                parsedArguments.add(nodeParseResult);
+            }
         }
     }
 
