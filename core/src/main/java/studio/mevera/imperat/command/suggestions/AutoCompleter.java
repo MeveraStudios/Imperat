@@ -55,27 +55,25 @@ public abstract class AutoCompleter<S extends CommandSource> {
             final String label,
             final String[] args
     ) {
-        return CompletableFuture.supplyAsync(() -> {
-            StringBuilder builder = new StringBuilder();
-            for (var a : args) {
-                builder.append(a)
-                        .append(" ");
-            }
-            if (!builder.isEmpty()) {
-                builder.deleteCharAt(builder.length() - 1);
-            }
-            boolean endWithSpace = builder.charAt(builder.length() - 1) == ' ';
-            ArgumentInput queue = ArgumentInput.parseAutoCompletion(builder.toString(), endWithSpace);
+        StringBuilder builder = new StringBuilder();
+        for (var a : args) {
+            builder.append(a)
+                    .append(" ");
+        }
+        if (!builder.isEmpty()) {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+        boolean endWithSpace = !builder.isEmpty() && builder.charAt(builder.length() - 1) == ' ';
+        ArgumentInput queue = ArgumentInput.parseAutoCompletion(builder.toString(), endWithSpace);
 
-            return dispatcher.config().getContextFactory()
-                           .createSuggestionContext(dispatcher, sender, command, label, queue);
-        }).thenCompose((context) ->
-                               autoComplete(context).exceptionally((ex) -> {
-                                   dispatcher.config()
-                                           .handleExecutionError(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
-                                   return Collections.emptyList();
-                               })
-        );
+        SuggestionContext<S> context = dispatcher.config().getContextFactory()
+                                               .createSuggestionContext(dispatcher, sender, command, label, queue);
+
+        return autoComplete(context).exceptionally((ex) -> {
+            dispatcher.config()
+                    .handleExecutionError(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
+            return Collections.emptyList();
+        });
     }
 
     /**

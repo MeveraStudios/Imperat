@@ -56,6 +56,16 @@ class NestedSwitchScopeCompletionTest extends EnhancedBaseImperatTest {
     }
 
     @Test
+    @DisplayName("Filters switch suggestions by the active prefix")
+    void completionShouldFilterSwitchSuggestionsByPrefix() {
+        var suggestions = tabComplete(NestedSwitchScopeCommand.class, this::registerNestedCommandTypes, "switchscope sub1 -sub1");
+
+        Assertions.assertThat(suggestions)
+                .contains("-sub1switch")
+                .doesNotContain("sub2", "-sub2switch");
+    }
+
+    @Test
     @DisplayName("Does not leak default pathway switches into a sibling executable pathway")
     void completionShouldNotSuggestDefaultPathwaySwitchForSiblingExecutable() {
         var suggestions = tabComplete(NestedSwitchScopeCommand.class, this::registerNestedCommandTypes, "switchscope sub1 0 ");

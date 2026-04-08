@@ -7,6 +7,7 @@ plugins {
 val baseVersion = "3.5.0"
 val releaseSnapshots = true
 val isSnapshot = System.getenv("SNAPSHOT_BUILD") == "true"
+val rootJavaVersion = 17
 
 tasks.register("printReleaseSnapshots") {
     doLast {
@@ -54,6 +55,17 @@ allprojects {
             )
         )
     }
+}
+
+java {
+    val javaVersion = JavaVersion.toVersion(rootJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    toolchain.languageVersion.set(JavaLanguageVersion.of(rootJavaVersion))
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(rootJavaVersion)
 }
 
 subprojects {

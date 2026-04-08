@@ -59,6 +59,16 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
         }
 
         @Test
+        @DisplayName("Root-level suggestions with partial prefix should keep matching public commands")
+        void rootSuggestionsWithPrefixShouldKeepVisibleMatches() {
+            List<String> suggestions = tabComplete("secrettest v");
+
+            Assertions.assertThat(suggestions)
+                    .contains("visible")
+                    .doesNotContain("public", "hidden");
+        }
+
+        @Test
         @DisplayName("Suggestions inside a secret subcommand should be empty")
         void suggestionsInsideSecretShouldBeEmpty() {
             // Even after typing the secret subcommand name, no deeper suggestions
@@ -231,4 +241,3 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
         }
     }
 }
-

@@ -54,6 +54,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
     private final HelpEntryFactory<S> helpEntryFactory = HelpEntryFactory.defaultFactory();
+    private boolean nodeCachesDirty;
     int size;
 
     StandardCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
@@ -89,7 +90,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         final var parameters = usage.getArguments();
         if (usage.isDefault()) {
             root.setExecutableUsage(usage);
-            refreshNodeCaches();
+            markNodeCachesDirty();
             return;
         }
 
@@ -104,7 +105,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             path.clear(); // Clean up for next use
         }
 
-        refreshNodeCaches();
+        markNodeCachesDirty();
 
     }
 
@@ -133,7 +134,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         // Merge pathways in the subtree, prepending the full prefix
         mergePathwaysInSubTree(subRoot, fullPrefix);
-        refreshNodeCaches();
+        markNodeCachesDirty();
     }
 
     /**
@@ -415,6 +416,46 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return str.regionMatches(true, 0, prefix, 0, prefixLen);
     }
 
+    private boolean literalMatchesInput(@NotNull CommandNode<S, ?> node, @Nullable String input) {
+        return input != null && node.isLiteral() && node.getData().asCommand().hasName(input);
+    }
+
+    private boolean literalMatchesPrefix(@NotNull CommandNode<S, ?> node, @Nullable String prefix, boolean hasPrefix) {
+        if (!node.isLiteral() || !hasPrefix || prefix == null) {
+            return true;
+        }
+        Command<S> command = node.getData().asCommand();
+        if (fastStartsWith(command.getName(), prefix)) {
+            return true;
+        }
+        for (String alias : command.aliases()) {
+            if (fastStartsWith(alias, prefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addSuggestions(
+            List<String> results,
+            @Nullable List<String> suggestions,
+            @Nullable String prefix,
+            boolean hasPrefix
+    ) {
+        if (suggestions == null || suggestions.isEmpty()) {
+            return;
+        }
+        if (!hasPrefix || prefix == null) {
+            results.addAll(suggestions);
+            return;
+        }
+        for (String suggestion : suggestions) {
+            if (fastStartsWith(suggestion, prefix)) {
+                results.add(suggestion);
+            }
+        }
+    }
+
     private int getMatchDepthHeuristic(CommandNode<S, ?> node) {
         return node.getDepth();
     }
@@ -434,6 +475,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             @NotNull ExecutionContext<S> context,
             @NotNull ArgumentInput input
     ) throws CommandException {
+        ensureNodeCaches();
 
         // Step 1: Check root permission
         Pair<PermissionHolder, Boolean> rootPermissionResult = permissionChecker.checkPermission(context.source(), root.getData());
@@ -466,8 +508,10 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         TreeExecutionResult<S> bestResult = null;
         int bestDepth = -1;
 
+        ArrayList<ParseResult<S>> parsedArguments = new ArrayList<>(Math.min(4, input.size()));
         for (var child : rootChildren) {
-            TreeExecutionResult<S> result = traverse(context, input, child, 0, List.of());
+            parsedArguments.clear();
+            TreeExecutionResult<S> result = traverse(context, input, child, 0, parsedArguments);
 
             if (result.isSuccess()) {
                 return result; // Immediate success — stop
@@ -515,7 +559,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             ArgumentInput input,
             @NotNull CommandNode<S, ?> currentNode,
             int depth,
-            @NotNull List<ParseResult<S>> parsedArguments
+            @NotNull ArrayList<ParseResult<S>> parsedArguments
     ) throws CommandException {
         final int inputSize = input.size();
 
@@ -567,19 +611,28 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                     }
 
                     int nextDepth = greedyParseResult.getNextDepth();
-                    List<ParseResult<S>> parsedWithCurrent = appendParsedArgument(parsedArguments, currentNode, greedyParseResult);
-                    for (var child : currentNode.getChildren()) {
-                        TreeExecutionResult<S> result = traverse(context, input, child, nextDepth, parsedWithCurrent);
-                        if (result.isSuccess() || result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-                            return result;
+                    boolean appendedGreedy = appendParsedArgument(parsedArguments, currentNode, greedyParseResult);
+                    try {
+                        for (var child : currentNode.getChildren()) {
+                            TreeExecutionResult<S> result = traverse(context, input, child, nextDepth, parsedArguments);
+                            if (result.isSuccess() || result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                                return result;
+                            }
                         }
+                    } finally {
+                        rollbackParsedArgument(parsedArguments, appendedGreedy);
                     }
                 }
                 // If children didn't match but this node is executable, execute here
                 if (currentNode.isExecutable() && fallbackGreedyMatch != null) {
                     assert currentNode.getExecutableUsage() != null;
-                    return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode),
-                            appendParsedArgument(parsedArguments, currentNode, fallbackGreedyMatch));
+                    boolean appendedFallback = appendParsedArgument(parsedArguments, currentNode, fallbackGreedyMatch);
+                    try {
+                        return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode),
+                                parsedArguments);
+                    } finally {
+                        rollbackParsedArgument(parsedArguments, appendedFallback);
+                    }
                 }
                 return noMatchFromNode(currentNode);
             }
@@ -590,85 +643,102 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             if (greedyParseResult.isFailure()) {
                 return noMatchFromNode(currentNode);
             }
-            return handleTerminalNode(context, currentNode, greedyParseResult, appendParsedArgument(parsedArguments, currentNode, greedyParseResult));
+            boolean appendedGreedy = appendParsedArgument(parsedArguments, currentNode, greedyParseResult);
+            try {
+                return handleTerminalNode(context, currentNode, parsedArguments);
+            } finally {
+                rollbackParsedArgument(parsedArguments, appendedGreedy);
+            }
         }
 
         // Check if current input matches this node
-        ParseResult<S> nodeParseResult = currentNode.parse(depth, context, resolveFlagScopePathway(currentNode));
-        if (nodeParseResult.isFailure()) {
-            // If optional, try to skip this node and check children
-            return handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+        final ParseResult<S> nodeParseResult;
+        final int nextDepth;
+        if (currentNode.isLiteral()) {
+            if (!literalMatchesInput(currentNode, context.arguments().getOr(depth, null))) {
+                return handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+            }
+            nodeParseResult = null;
+            nextDepth = depth + 1;
+        } else {
+            nodeParseResult = currentNode.parse(depth, context, resolveFlagScopePathway(currentNode));
+            if (nodeParseResult.isFailure()) {
+                // If optional, try to skip this node and check children
+                return handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+            }
+            nextDepth = nodeParseResult.getNextDepth();
         }
 
-        List<ParseResult<S>> parsedWithCurrent = appendParsedArgument(parsedArguments, currentNode, nodeParseResult);
+        boolean appendedCurrent = appendParsedArgument(parsedArguments, currentNode, nodeParseResult);
+        try {
+            // Node matches — determine if we're at the terminal position
+            boolean isTerminal = !hasRemainingBindableInput(context, currentNode, input, nextDepth);
 
-        // Node matches — determine if we're at the terminal position
-        boolean isTerminal = !hasRemainingBindableInput(context, currentNode, input, nodeParseResult.getNextDepth());
-
-        if (isTerminal) {
-            TreeExecutionResult<S> terminalResult = handleTerminalNode(context, currentNode, nodeParseResult, parsedWithCurrent);
-            if (terminalResult.isSuccess() || terminalResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+            if (isTerminal) {
+                TreeExecutionResult<S> terminalResult = handleTerminalNode(context, currentNode, parsedArguments);
+                if (terminalResult.isSuccess() || terminalResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                    return terminalResult;
+                }
+                // Terminal failed — if optional, try skipping (backtrack)
+                if (currentNode.isOptional()) {
+                    TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
+                    if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                        return skipResult;
+                    }
+                }
                 return terminalResult;
             }
-            // Terminal failed — if optional, try skipping (backtrack)
+
+            final var children = currentNode.getChildren();
+
+            if (children.isEmpty()) {
+                // No children — execute if no unconsumed non-flag input tokens left
+                if (currentNode.isExecutable() && !hasRemainingBindableInput(context, currentNode, input, nextDepth)) {
+                    assert currentNode.getExecutableUsage() != null;
+                    return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode), parsedArguments);
+                }
+                return noMatchFromNode(currentNode);
+            }
+
+            // Try each child (consume path)
+            TreeExecutionResult<S> bestChildResult = null;
+
+            for (var child : children) {
+                TreeExecutionResult<S> result = traverse(context, input, child, nextDepth, parsedArguments);
+                if (result.isSuccess()) {
+                    return result;
+                }
+                if (result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
+                    return result;
+                }
+                if (bestChildResult == null) {
+                    bestChildResult = result;
+                }
+            }
+
+            // Children consume path failed — try backtracking: skip this optional
+            // and try children at the SAME depth (don't consume the token)
             if (currentNode.isOptional()) {
                 TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
                 if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
                     return skipResult;
                 }
             }
-            return terminalResult;
+
+            // None of the children matched — if current node is executable, execute it
+            // but only if the effective input (non-flag tokens) doesn't exceed the pathway's capacity
+            if (currentNode.isExecutable()) {
+                CommandPathway<S> pathway = currentNode.getExecutableUsage();
+                assert pathway != null;
+                if (!hasRemainingBindableInput(context, currentNode, input, nextDepth)) {
+                    return executePathway(context, currentNode, pathway, getCommandFromNode(currentNode), parsedArguments);
+                }
+            }
+
+            return bestChildResult != null ? bestChildResult : noMatchFromNode(currentNode);
+        } finally {
+            rollbackParsedArgument(parsedArguments, appendedCurrent);
         }
-
-        // Not terminal — continue traversal to children
-        int nextDepth = nodeParseResult.getNextDepth();
-        final var children = currentNode.getChildren();
-
-        if (children.isEmpty()) {
-            // No children — execute if no unconsumed non-flag input tokens left
-            if (currentNode.isExecutable() && !hasRemainingBindableInput(context, currentNode, input, nextDepth)) {
-                assert currentNode.getExecutableUsage() != null;
-                return executePathway(context, currentNode, currentNode.getExecutableUsage(), getCommandFromNode(currentNode), parsedWithCurrent);
-            }
-            return noMatchFromNode(currentNode);
-        }
-
-        // Try each child (consume path)
-        TreeExecutionResult<S> bestChildResult = null;
-
-        for (var child : children) {
-            TreeExecutionResult<S> result = traverse(context, input, child, nextDepth, parsedWithCurrent);
-            if (result.isSuccess()) {
-                return result;
-            }
-            if (result.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-                return result;
-            }
-            if (bestChildResult == null) {
-                bestChildResult = result;
-            }
-        }
-
-        // Children consume path failed — try backtracking: skip this optional
-        // and try children at the SAME depth (don't consume the token)
-        if (currentNode.isOptional()) {
-            TreeExecutionResult<S> skipResult = handleOptionalSkip(context, input, currentNode, depth, parsedArguments);
-            if (skipResult.isSuccess() || skipResult.getStatus() == TreeExecutionResult.Status.PERMISSION_DENIED) {
-                return skipResult;
-            }
-        }
-
-        // None of the children matched — if current node is executable, execute it
-        // but only if the effective input (non-flag tokens) doesn't exceed the pathway's capacity
-        if (currentNode.isExecutable()) {
-            CommandPathway<S> pathway = currentNode.getExecutableUsage();
-            assert pathway != null;
-            if (!hasRemainingBindableInput(context, currentNode, input, nextDepth)) {
-                return executePathway(context, currentNode, pathway, getCommandFromNode(currentNode), parsedWithCurrent);
-            }
-        }
-
-        return bestChildResult != null ? bestChildResult : noMatchFromNode(currentNode);
     }
 
     /**
@@ -767,18 +837,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     private TreeExecutionResult<S> handleTerminalNode(
             ExecutionContext<S> context,
             CommandNode<S, ?> node,
-            ParseResult<S> nodeParseResult,
             @NotNull List<ParseResult<S>> parsedArguments
     ) throws CommandException {
-        Pair<PermissionHolder, Boolean> nodePermissionResult = permissionChecker.checkPermission(context.source(), node.getData());
-        if (!nodePermissionResult.right()) {
-            return TreeExecutionResult.permissionDenied(
-                    Objects.requireNonNull(node.isExecutable() ? node.getExecutableUsage() : null),
-                    nodePermissionResult.left(),
-                    getCommandFromNode(node)
-            );
-        }
-
         if (node.isExecutable()) {
             assert node.getExecutableUsage() != null;
             return executePathway(context, node, node.getExecutableUsage(), getCommandFromNode(node), parsedArguments);
@@ -797,7 +857,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             ArgumentInput input,
             CommandNode<S, ?> currentNode,
             int depth,
-            @NotNull List<ParseResult<S>> parsedArguments
+            @NotNull ArrayList<ParseResult<S>> parsedArguments
     ) throws CommandException {
         // If node is required, it's a hard fail — no match
         if (!currentNode.isOptional()) {
@@ -860,6 +920,18 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     private void refreshNodeCaches() {
         computeNearestExecutableUsage(root, root.getExecutableUsage());
         computeCompletionCaches(root);
+        nodeCachesDirty = false;
+    }
+
+    private void markNodeCachesDirty() {
+        nodeCachesDirty = true;
+    }
+
+    private void ensureNodeCaches() {
+        if (!nodeCachesDirty) {
+            return;
+        }
+        refreshNodeCaches();
     }
 
     private @Nullable CommandPathway<S> computeNearestExecutableUsage(
@@ -970,6 +1042,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
     @Override
     public HelpEntryList<S> queryHelp(@NotNull HelpQuery<S> query) {
+        ensureNodeCaches();
         final HelpEntryList<S> results = new HelpEntryList<>();
 
         if (query.getLimit() <= 0) {
@@ -1035,6 +1108,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
     @Override
     public @NotNull List<String> tabComplete(@NotNull SuggestionContext<S> context) {
+        ensureNodeCaches();
         List<String> results = new ArrayList<>(INITIAL_SUGGESTIONS_CAPACITY);
         final String prefix = context.getArgToComplete().value();
         final boolean hasPrefix = prefix != null && !prefix.isBlank();
@@ -1057,26 +1131,27 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         }
 
         for (var child : root.getChildren()) {
-            tabCompleteNode(child, context, completionState, 0, root, results);
+            tabCompleteNode(child, context, completionState, 0, root, results, prefix, hasPrefix);
         }
-        return results.stream()
-                       .filter((suggestion) -> !hasPrefix || fastStartsWith(suggestion, prefix))
-                       .toList();
+        return results;
     }
 
-    private @NotNull List<ParseResult<S>> appendParsedArgument(
-            @NotNull List<ParseResult<S>> parsedArguments,
+    private boolean appendParsedArgument(
+            @NotNull ArrayList<ParseResult<S>> parsedArguments,
             @NotNull CommandNode<S, ?> currentNode,
-            @NotNull ParseResult<S> parseResult
+            @Nullable ParseResult<S> parseResult
     ) {
-        if (!parseResult.canReuseInExecution() || currentNode.isLiteral()) {
-            return parsedArguments;
+        if (parseResult == null || !parseResult.canReuseInExecution() || currentNode.isLiteral()) {
+            return false;
         }
+        parsedArguments.add(parseResult);
+        return true;
+    }
 
-        List<ParseResult<S>> next = new ArrayList<>(parsedArguments.size() + 1);
-        next.addAll(parsedArguments);
-        next.add(parseResult);
-        return next;
+    private void rollbackParsedArgument(@NotNull ArrayList<ParseResult<S>> parsedArguments, boolean appended) {
+        if (appended) {
+            parsedArguments.remove(parsedArguments.size() - 1);
+        }
     }
 
     private void tabCompleteNode(
@@ -1085,7 +1160,9 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             final CompletionState completionState,
             int inputDepth,
             final CommandNode<S, ?> lastLiteral,
-            final List<String> results
+            final List<String> results,
+            final String prefix,
+            final boolean hasPrefix
     ) {
 
         final String currentInputAtDepth = context.arguments().getOr(inputDepth, null);
@@ -1108,6 +1185,10 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         final CommandNode<S, ?> flagScopeNode = resolveFlagScopeNode(node, activeLiteral);
 
         if (inputDepth == lastIndex) {
+            boolean completingFlagName = hasPrefix && prefix != null && Patterns.isInputFlag(prefix);
+            if (!literalMatchesPrefix(node, prefix, hasPrefix) && !completingFlagName) {
+                return;
+            }
             // Check if the previous token was a flag — if so, suggest flag values
             if (inputDepth > 0) {
                 String prevToken = context.arguments().getOr(inputDepth - 1, null);
@@ -1115,27 +1196,27 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                     FlagData<S> flagData = findFlagForToken(flagScopeNode, prevToken);
                     if (flagData != null && !flagData.isSwitch()) {
                         // We're completing the value for this flag
-                        collectFlagValueSuggestions(flagScopeNode, flagData, context, results);
+                        collectFlagValueSuggestions(flagScopeNode, flagData, context, results, prefix, hasPrefix);
                         return;
                     }
                 }
             }
 
             var collectedSuggestions = node.getCompletionCache().suggestionProvider().provide(context, node.getData());
-            results.addAll(collectedSuggestions);
+            addSuggestions(results, collectedSuggestions, prefix, hasPrefix);
 
             // Also suggest flags at this position
-            collectFlagNameSuggestions(flagScopeNode, completionState, results);
+            collectFlagNameSuggestions(flagScopeNode, completionState, results, prefix, hasPrefix);
 
             if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional() && !(node.isTrueFlag())) {
-                collectOverlappingSuggestions(node, context, results);
+                collectOverlappingSuggestions(node, context, results, prefix, hasPrefix);
             }
         } else {
             String currentInput = context.arguments().getOr(inputDepth, null);
             assert currentInput != null;
 
             if (node.isGreedyParam()) {
-                tabCompleteNode(node, context, completionState, lastIndex, activeLiteral, results);
+                tabCompleteNode(node, context, completionState, lastIndex, activeLiteral, results, prefix, hasPrefix);
                 return;
             }
 
@@ -1145,14 +1226,30 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 if (flagData != null) {
                     if (!flagData.isSwitch() && inputDepth + 1 == lastIndex) {
                         // The user is completing the flag's VALUE — provide value suggestions
-                        collectFlagValueSuggestions(flagScopeNode, flagData, context, results);
+                        collectFlagValueSuggestions(flagScopeNode, flagData, context, results, prefix, hasPrefix);
                         return;
                     }
                     int skip = flagData.isSwitch() ? 1 : 2;
                     // Continue with the same node at the skipped depth
-                    tabCompleteNode(node, context, completionState, inputDepth + skip, activeLiteral, results);
+                    tabCompleteNode(node, context, completionState, inputDepth + skip, activeLiteral, results, prefix, hasPrefix);
                     return;
                 }
+            }
+
+            if (node.isLiteral()) {
+                if (!literalMatchesInput(node, currentInput)) {
+                    return;
+                }
+                int nextDepth = inputDepth + 1;
+                if (node.getChildren().isEmpty() && nextDepth == lastIndex && node.isExecutable()) {
+                    collectFlagNameSuggestions(flagScopeNode, completionState, results, prefix, hasPrefix);
+                    return;
+                }
+
+                for (var child : node.getChildren()) {
+                    tabCompleteNode(child, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
+                }
+                return;
             }
 
             ParseResult<S> result = node.parse(inputDepth, context);
@@ -1162,12 +1259,12 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
             int nextDepth = inputDepth + node.getNumberOfParametersToConsume();
             if (node.getChildren().isEmpty() && nextDepth == lastIndex && node.isExecutable()) {
-                collectFlagNameSuggestions(flagScopeNode, completionState, results);
+                collectFlagNameSuggestions(flagScopeNode, completionState, results, prefix, hasPrefix);
                 return;
             }
 
             for (var child : node.getChildren()) {
-                tabCompleteNode(child, context, completionState, nextDepth, activeLiteral, results);
+                tabCompleteNode(child, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
             }
 
         }
@@ -1176,14 +1273,20 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     /**
      * Collects flag name suggestions (e.g., "-s", "--silent") from all reachable executable pathways.
      */
-    private void collectFlagNameSuggestions(CommandNode<S, ?> node, CompletionState completionState, List<String> results) {
+    private void collectFlagNameSuggestions(
+            CommandNode<S, ?> node,
+            CompletionState completionState,
+            List<String> results,
+            @Nullable String prefix,
+            boolean hasPrefix
+    ) {
         for (FlagArgument<S> flag : node.getCompletionCache().visibleFlags()) {
             if (completionState.isFlagAlreadyUsed(flag)) {
                 continue;
             }
-            results.add("-" + flag.flagData().name());
+            addSuggestions(results, List.of("-" + flag.flagData().name()), prefix, hasPrefix);
             for (String alias : flag.flagData().aliases()) {
-                results.add("-" + alias);
+                addSuggestions(results, List.of("-" + alias), prefix, hasPrefix);
             }
         }
     }
@@ -1201,7 +1304,14 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     /**
      * Collects flag value suggestions for a specific flag's input type.
      */
-    private void collectFlagValueSuggestions(CommandNode<S, ?> node, FlagData<S> flagData, SuggestionContext<S> context, List<String> results) {
+    private void collectFlagValueSuggestions(
+            CommandNode<S, ?> node,
+            FlagData<S> flagData,
+            SuggestionContext<S> context,
+            List<String> results,
+            @Nullable String prefix,
+            boolean hasPrefix
+    ) {
         FlagArgument<S> flag = findFlagArgumentForToken(node, flagData.name());
         if (flag == null) {
             return;
@@ -1209,13 +1319,13 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         SuggestionProvider<S> resolver = flag.inputSuggestionResolver();
         if (resolver != null) {
-            results.addAll(resolver.provide(context, flag));
+            addSuggestions(results, resolver.provide(context, flag), prefix, hasPrefix);
             return;
         }
 
         var inputType = flag.flagData().inputType();
         if (inputType != null) {
-            results.addAll(inputType.getSuggestionProvider().provide(context, flag));
+            addSuggestions(results, inputType.getSuggestionProvider().provide(context, flag), prefix, hasPrefix);
         }
     }
 
@@ -1230,8 +1340,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return lastLiteral;
         }
 
-        ParseResult<S> nodeParseResult = node.parse(inputDepth, context);
-        if (nodeParseResult.isSuccessful()) {
+        if (literalMatchesInput(node, currentInput)) {
             return node;
         }
 
@@ -1245,7 +1354,9 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     private void collectOverlappingSuggestions(
             CommandNode<S, ?> origin,
             SuggestionContext<S> context,
-            List<String> results
+            List<String> results,
+            @Nullable String prefix,
+            boolean hasPrefix
     ) {
         for (var nextNode : origin.getCompletionCache().optionalOverlapDescendants()) {
             // Check permissions
@@ -1256,7 +1367,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
             final var suggestions = nextNode.getCompletionCache().suggestionProvider().provide(context, nextNode.getData());
             if (suggestions != null && !suggestions.isEmpty()) {
-                results.addAll(suggestions);
+                addSuggestions(results, suggestions, prefix, hasPrefix);
             }
         }
     }
@@ -1308,7 +1419,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             boolean editingCurrentToken = !context.getArgToComplete().isEmpty();
             Set<String> usedFlags = new HashSet<>();
 
-            for (int i = 0; i < context.arguments().size(); i++) {
+            int scanLimit = editingCurrentToken ? completionIndex : Math.min(completionIndex, context.arguments().size() - 1);
+            for (int i = 0; i <= scanLimit; i++) {
                 if (editingCurrentToken && i == completionIndex) {
                     continue;
                 }

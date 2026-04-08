@@ -123,6 +123,24 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
                 return ParseResult.failed(new CommandException("Unknown sub command '" + in + "'"));
             }
         }
+
+        final int baseCount = type.getNumberOfParametersToConsume(data);
+        if (!isGreedyParam() && baseCount == 1 && requestedTokensToConsume <= 1) {
+            String rawInput = ctx.arguments().getOr(depth, null);
+            if (rawInput == null) {
+                return ParseResult.failed(new IllegalArgumentException("No input token available for " + data.format()));
+            }
+
+            if (resolveFlagData(ctx, flagScopePathway, depth) == null) {
+                try {
+                    var obj = type.parse(ctx, this.data, rawInput);
+                    return ParseResult.successful(obj, data, rawInput, data.getPosition(), depth + 1);
+                } catch (Exception e) {
+                    return ParseResult.failed(e);
+                }
+            }
+        }
+
         final int remainingTokens = countRemainingBindableTokens(ctx, depth, flagScopePathway);
         final int tokensToConsume = resolveMatchTokenCount(type, remainingTokens, requestedTokensToConsume);
         if (tokensToConsume < 1) {
