@@ -993,11 +993,15 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
     private void computeCompletionCaches(@NotNull CommandNode<S, ?> node) {
         List<FlagArgument<S>> visibleFlags = collectVisibleFlags(node);
+        ChildCompletionCache<S> childCompletionCache = createChildCompletionCache(node);
         node.setCompletionCache(new CommandNode.CompletionCache<>(
                 getResolverCached(node.getData()),
                 visibleFlags,
                 createFlagLookup(visibleFlags),
-                collectOptionalOverlapDescendants(node)
+                collectOptionalOverlapDescendants(node),
+                childCompletionCache.literalChildren(),
+                childCompletionCache.nonLiteralChildren(),
+                childCompletionCache.literalChildLookup()
         ));
 
         for (var child : node.getChildren()) {
@@ -1032,6 +1036,59 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             }
         }
         return Map.copyOf(lookup);
+    }
+
+    private @NotNull ChildCompletionCache<S> createChildCompletionCache(@NotNull CommandNode<S, ?> node) {
+        if (node.getChildren().isEmpty()) {
+            return ChildCompletionCache.empty();
+        }
+
+        List<CommandNode<S, ?>> literalChildren = new ArrayList<>();
+        List<CommandNode<S, ?>> nonLiteralChildren = new ArrayList<>();
+        Map<String, List<CommandNode<S, ?>>> literalLookup = new HashMap<>();
+
+        for (var child : node.getChildren()) {
+            if (!child.isLiteral()) {
+                nonLiteralChildren.add(child);
+                continue;
+            }
+
+            literalChildren.add(child);
+            registerLiteralLookupEntry(literalLookup, child.getData().asCommand().getName(), child);
+            for (String alias : child.getData().asCommand().aliases()) {
+                registerLiteralLookupEntry(literalLookup, alias, child);
+            }
+        }
+
+        if (literalChildren.isEmpty() && nonLiteralChildren.isEmpty()) {
+            return ChildCompletionCache.empty();
+        }
+
+        Map<String, List<CommandNode<S, ?>>> immutableLookup;
+        if (literalLookup.isEmpty()) {
+            immutableLookup = Map.of();
+        } else {
+            Map<String, List<CommandNode<S, ?>>> copy = new HashMap<>(literalLookup.size());
+            for (var entry : literalLookup.entrySet()) {
+                copy.put(entry.getKey(), List.copyOf(entry.getValue()));
+            }
+            immutableLookup = Map.copyOf(copy);
+        }
+
+        return new ChildCompletionCache<>(
+                literalChildren.isEmpty() ? List.of() : List.copyOf(literalChildren),
+                nonLiteralChildren.isEmpty() ? List.of() : List.copyOf(nonLiteralChildren),
+                immutableLookup
+        );
+    }
+
+    private void registerLiteralLookupEntry(
+            @NotNull Map<String, List<CommandNode<S, ?>>> literalLookup,
+            @NotNull String literalName,
+            @NotNull CommandNode<S, ?> child
+    ) {
+        String normalized = literalName.toLowerCase(Locale.ROOT);
+        literalLookup.computeIfAbsent(normalized, ignored -> new ArrayList<>(1)).add(child);
     }
 
     private @NotNull List<CommandNode<S, ?>> collectOptionalOverlapDescendants(@NotNull CommandNode<S, ?> node) {
@@ -1173,9 +1230,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             return Collections.emptyList();
         }
 
-        for (var child : root.getChildren()) {
-            tabCompleteNode(child, context, completionState, 0, root, results, prefix, hasPrefix);
-        }
+        tabCompleteChildren(root, context, completionState, 0, root, results, prefix, hasPrefix);
         return results;
     }
 
@@ -1289,9 +1344,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                     return;
                 }
 
-                for (var child : node.getChildren()) {
-                    tabCompleteNode(child, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
-                }
+                tabCompleteChildren(node, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
                 return;
             }
 
@@ -1306,10 +1359,47 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 return;
             }
 
-            for (var child : node.getChildren()) {
-                tabCompleteNode(child, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
-            }
+            tabCompleteChildren(node, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
 
+        }
+    }
+
+    private void tabCompleteChildren(
+            final CommandNode<S, ?> parent,
+            final SuggestionContext<S> context,
+            final CompletionState completionState,
+            final int inputDepth,
+            final CommandNode<S, ?> activeLiteral,
+            final List<String> results,
+            final String prefix,
+            final boolean hasPrefix
+    ) {
+        if (inputDepth >= completionState.completionIndex()) {
+            for (var child : parent.getChildren()) {
+                tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
+            }
+            return;
+        }
+
+        String currentInput = context.arguments().getOr(inputDepth, null);
+        if (currentInput == null || Patterns.isInputFlag(currentInput)) {
+            for (var child : parent.getChildren()) {
+                tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
+            }
+            return;
+        }
+
+        List<CommandNode<S, ?>> literalMatches = parent.getCompletionCache()
+                                                         .literalChildLookup()
+                                                         .get(currentInput.toLowerCase(Locale.ROOT));
+        if (literalMatches != null) {
+            for (var child : literalMatches) {
+                tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
+            }
+        }
+
+        for (var child : parent.getCompletionCache().nonLiteralChildren()) {
+            tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
         }
     }
 
@@ -1432,6 +1522,17 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
     private @Nullable CommandPathway<S> resolveFlagScopePathway(CommandNode<S, ?> node) {
         return node == null ? null : node.getNearestExecutableUsage();
+    }
+
+    private record ChildCompletionCache<S extends CommandSource>(
+            @NotNull List<CommandNode<S, ?>> literalChildren,
+            @NotNull List<CommandNode<S, ?>> nonLiteralChildren,
+            @NotNull Map<String, List<CommandNode<S, ?>>> literalChildLookup
+    ) {
+
+        private static <S extends CommandSource> @NotNull ChildCompletionCache<S> empty() {
+            return new ChildCompletionCache<>(List.of(), List.of(), Map.of());
+        }
     }
 
     private static final class CompletionState {

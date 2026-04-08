@@ -475,9 +475,15 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
 
+        boolean endsWithSpace = !fullCommandLine.isEmpty() && Character.isWhitespace(fullCommandLine.charAt(fullCommandLine.length() - 1));
+        int argumentsStart = firstSpace + 1;
+        int argumentsEnd = endsWithSpace ? fullCommandLine.length() - 1 : fullCommandLine.length();
+        String argumentsSection = argumentsStart >= argumentsEnd
+                                          ? ""
+                                          : fullCommandLine.substring(argumentsStart, argumentsEnd);
         ArgumentInput argumentInput = ArgumentInput.parseAutoCompletion(
-                fullCommandLine.substring(firstSpace),
-                false
+                argumentsSection,
+                endsWithSpace
         );
 
         SuggestionContext<S> context = this.config.getContextFactory()

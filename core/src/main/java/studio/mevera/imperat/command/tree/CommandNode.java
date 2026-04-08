@@ -395,11 +395,14 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             @NotNull SuggestionProvider<S> suggestionProvider,
             @NotNull List<FlagArgument<S>> visibleFlags,
             @NotNull Map<String, FlagArgument<S>> flagLookup,
-            @NotNull List<CommandNode<S, ?>> optionalOverlapDescendants
+            @NotNull List<CommandNode<S, ?>> optionalOverlapDescendants,
+            @NotNull List<CommandNode<S, ?>> literalChildren,
+            @NotNull List<CommandNode<S, ?>> nonLiteralChildren,
+            @NotNull Map<String, List<CommandNode<S, ?>>> literalChildLookup
     ) {
 
         public static <S extends CommandSource> @NotNull CompletionCache<S> empty() {
-            return new CompletionCache<>((context, argument) -> List.of(), List.of(), Map.of(), List.of());
+            return new CompletionCache<>((context, argument) -> List.of(), List.of(), Map.of(), List.of(), List.of(), List.of(), Map.of());
         }
     }
 
