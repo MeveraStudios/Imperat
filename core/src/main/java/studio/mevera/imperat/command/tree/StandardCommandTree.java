@@ -1424,17 +1424,31 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             final boolean hasPrefix
     ) {
         if (inputDepth >= completionState.completionIndex()) {
-            for (var child : parent.getChildren()) {
-                tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
-            }
+            collectChildBoundarySuggestions(parent, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
             return;
         }
 
         String currentInput = context.arguments().getOr(inputDepth, null);
-        if (currentInput == null || Patterns.isInputFlag(currentInput)) {
-            for (var child : parent.getChildren()) {
-                tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
+        if (currentInput == null) {
+            collectChildBoundarySuggestions(parent, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
+            return;
+        }
+
+        if (Patterns.isInputFlag(currentInput)) {
+            CommandNode<S, ?> flagScopeNode = resolveFlagScopeNode(parent, activeLiteral);
+            FlagData<S> flagData = findFlagForToken(flagScopeNode, currentInput);
+            if (flagData == null) {
+                collectChildBoundarySuggestions(parent, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
+                return;
             }
+
+            if (!flagData.isSwitch() && inputDepth + 1 == completionState.completionIndex()) {
+                collectFlagValueSuggestions(flagScopeNode, flagData, context, results, prefix, hasPrefix);
+                return;
+            }
+
+            int nextDepth = inputDepth + (flagData.isSwitch() ? 1 : 2);
+            tabCompleteChildren(parent, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
             return;
         }
 
@@ -1449,6 +1463,54 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         for (var child : parent.getCompletionCache().nonLiteralChildren()) {
             tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
+        }
+    }
+
+    private void collectChildBoundarySuggestions(
+            final CommandNode<S, ?> parent,
+            final SuggestionContext<S> context,
+            final CompletionState completionState,
+            final int inputDepth,
+            final CommandNode<S, ?> activeLiteral,
+            final List<String> results,
+            final @Nullable String prefix,
+            final boolean hasPrefix
+    ) {
+        collectLiteralChildSuggestions(parent, context, results, prefix, hasPrefix);
+        collectFlagNameSuggestions(resolveFlagScopeNode(parent, activeLiteral), completionState, results, prefix, hasPrefix);
+        for (var child : parent.getCompletionCache().nonLiteralChildren()) {
+            tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
+        }
+    }
+
+    private void collectLiteralChildSuggestions(
+            final CommandNode<S, ?> parent,
+            final SuggestionContext<S> context,
+            final List<String> results,
+            final @Nullable String prefix,
+            final boolean hasPrefix
+    ) {
+        if (parent.getCompletionCache().literalChildren().isEmpty()) {
+            return;
+        }
+
+        Set<String> emitted = new HashSet<>();
+        for (var child : parent.getCompletionCache().literalChildren()) {
+            if (child.isSecret() || !hasAutoCompletionPermission(context.source(), child)) {
+                continue;
+            }
+
+            List<String> suggestions = child.getCompletionCache().suggestionProvider().provide(context, child.getData());
+            if (suggestions == null || suggestions.isEmpty()) {
+                continue;
+            }
+
+            for (String suggestion : suggestions) {
+                if (!emitted.add(suggestion.toLowerCase(Locale.ROOT))) {
+                    continue;
+                }
+                addSuggestions(results, List.of(suggestion), prefix, hasPrefix);
+            }
         }
     }
 

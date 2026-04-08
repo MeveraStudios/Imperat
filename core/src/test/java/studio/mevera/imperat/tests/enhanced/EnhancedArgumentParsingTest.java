@@ -384,6 +384,16 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     }
 
     @Test
+    @DisplayName("Should not duplicate literal branch suggestions when sibling literals share the same token")
+    void testDuplicateLiteralBranchSuggestionsAreCollapsed() {
+        var results = tabComplete("test3 ");
+
+        Assertions.assertThatList(results)
+                .containsExactly("sub")
+                .doesNotHaveDuplicates();
+    }
+
+    @Test
     @DisplayName("Should show only required after all optionals in allopts")
     void testAllOptsWithRequired() {
         var results = tabComplete(MultipleOptionals.class, (cfg) -> {
