@@ -1040,24 +1040,28 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         }
 
         List<CommandNode<S, ?>> descendants = new ArrayList<>();
-        collectOptionalOverlapDescendants(node, node, descendants);
+        Set<Type> seenTypes = new HashSet<>();
+        seenTypes.add(node.getData().valueType());
+        collectOptionalOverlapDescendants(node, seenTypes, descendants);
         return descendants.isEmpty() ? List.of() : List.copyOf(descendants);
     }
 
     private void collectOptionalOverlapDescendants(
-            @NotNull CommandNode<S, ?> origin,
             @NotNull CommandNode<S, ?> currentNode,
+            @NotNull Set<Type> seenTypes,
             @NotNull List<CommandNode<S, ?>> descendants
     ) {
         for (var nextNode : currentNode.getChildren()) {
-            if (nextNode.getData().valueType().equals(origin.getData().valueType())) {
+            Type nextType = nextNode.getData().valueType();
+            if (!seenTypes.add(nextType)) {
                 continue;
             }
 
             descendants.add(nextNode);
             if (nextNode.isOptional()) {
-                collectOptionalOverlapDescendants(origin, nextNode, descendants);
+                collectOptionalOverlapDescendants(nextNode, seenTypes, descendants);
             }
+            seenTypes.remove(nextType);
         }
     }
 

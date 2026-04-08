@@ -373,6 +373,17 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     }
 
     @Test
+    @DisplayName("Should not overlap repeated descendant types more than once")
+    void testRepeatedDescendantTypesDoNotDuplicateSuggestions() {
+        var results = tabComplete(MultipleOptionals.class, (cfg) -> {
+            cfg.setOptionalParameterSuggestionOverlap(true);
+        }, "repeatedtype ");
+
+        Assertions.assertThatList(results)
+                .containsExactly("entry", "1", "2");
+    }
+
+    @Test
     @DisplayName("Should show only required after all optionals in allopts")
     void testAllOptsWithRequired() {
         var results = tabComplete(MultipleOptionals.class, (cfg) -> {

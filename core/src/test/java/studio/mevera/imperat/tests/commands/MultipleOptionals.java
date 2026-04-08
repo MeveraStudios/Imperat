@@ -85,4 +85,12 @@ public class MultipleOptionals {
             @Suggest("end") String required) {
     }
 
+    @RootCommand("repeatedtype")
+    public void repeatedtype(TestCommandSource source,
+            @Optional @Suggest("entry") String optional1,
+            @Optional @Suggest({"1", "2"}) Integer optional2,
+            @Optional @Suggest({"1", "2"}) Integer optional3,
+            @Suggest("done") String required) {
+    }
+
 }
