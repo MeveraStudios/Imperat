@@ -476,7 +476,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
 
-        boolean endsWithSpace = !fullCommandLine.isEmpty() && Character.isWhitespace(fullCommandLine.charAt(fullCommandLine.length() - 1));
+        boolean endsWithSpace = Character.isWhitespace(fullCommandLine.charAt(fullCommandLine.length() - 1));
         int argumentsStart = firstSpace + 1;
         int argumentsEnd = endsWithSpace ? fullCommandLine.length() - 1 : fullCommandLine.length();
         String argumentsSection = argumentsStart >= argumentsEnd
@@ -492,9 +492,6 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
                                                        this, source, command, cmdName, argumentInput
                                                );
 
-        if (ImperatDebugger.isEnabled()) {
-            command.visualizeTree();
-        }
         return command.autoCompleter()
                        .autoComplete(context)
                        .exceptionally((ex) -> {
