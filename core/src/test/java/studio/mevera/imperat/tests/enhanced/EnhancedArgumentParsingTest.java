@@ -92,7 +92,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "multopts ");
 
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("hi", "7.5");
+                .containsExactlyInAnyOrder("hi", "7.5", "stop-point");
     }
 
     @Test
@@ -114,7 +114,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "sametype ");
 
         Assertions.assertThatList(results)
-                .containsExactly("option1", "option2");
+                .containsExactly("option1", "option2", "option3", "option4", "final");
     }
 
     @Test
@@ -125,7 +125,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "chain ");
 
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("text1", "text2", "100", "200", "3.14", "2.71");
+                .containsExactlyInAnyOrder("text1", "text2", "100", "200", "3.14", "2.71", "final");
     }
 
     @Test
@@ -136,7 +136,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "optreq ");
 
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("opt1-value");
+                .containsExactlyInAnyOrder("opt1-value", "required-value");
     }
 
     @Test
@@ -158,7 +158,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "deep required1 ");
 
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("opt1-a", "opt1-b", "7", "8");
+                .containsExactlyInAnyOrder("opt1-a", "opt1-b", "7", "8", "end1", "end2");
     }
 
     @Test
@@ -191,7 +191,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "branch item1 ");
 
         Assertions.assertThatList(results)
-                .containsExactlyInAnyOrder("path1", "path2", "10", "20")
+                .containsExactlyInAnyOrder("path1", "path2", "10", "20", "end")
                 .doesNotHaveDuplicates();
     }
 
@@ -248,7 +248,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "sametype option1 ");
 
         Assertions.assertThatList(results)
-                .containsExactly("option3", "option4");
+                .containsExactlyInAnyOrder("option3", "option4", "final");
     }
 
     @Test
@@ -270,7 +270,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "deep req1 ");
 
         Assertions.assertThatList(results)
-                .containsExactly("opt1-a", "opt1-b", "7", "8");
+                .containsExactly("opt1-a", "opt1-b", "7", "8", "end1", "end2");
     }
 
     @Test
@@ -303,7 +303,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "branch item1 ");
 
         Assertions.assertThatList(results)
-                .containsExactly("path1", "path2", "10", "20");
+                .containsExactly("path1", "path2", "10", "20", "end");
     }
 
     @Test
@@ -325,7 +325,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "empty val1 val2 ");
 
         Assertions.assertThatList(results)
-                .containsExactly("opt1", "5");
+                .containsExactly("opt1", "5", "end");
     }
 
     @Test
@@ -345,9 +345,12 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         var results = tabComplete(MultipleOptionals.class, (cfg) -> {
             cfg.setOptionalParameterSuggestionOverlap(true);
         }, "multopts ");
-
+        var cmd = IMPERAT.getCommand("multopts");
+        if (cmd != null) {
+            cmd.visualizeTree();
+        }
         Assertions.assertThatList(results)
-                .containsExactly("hi", "7.5");
+                .containsExactlyInAnyOrder("stop-point", "7.5", "hi");
     }
 
     @Test
@@ -380,7 +383,7 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
         }, "repeatedtype ");
 
         Assertions.assertThatList(results)
-                .containsExactly("entry", "1", "2");
+                .containsExactly("entry", "1", "2", "1", "2", "done");
     }
 
     @Test
@@ -491,6 +494,11 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     @Test
     @DisplayName("Should handle proper TRUE-FLAG tab-completion for its value")
     void testTrueFlagTabCompletion() {
+        var cmd = IMPERAT.getCommand("bal");
+        if (cmd != null) {
+            cmd.visualizeTree();
+            ;
+        }
         var res = tabComplete("bal -c ");
         Assertions.assertThat(res).containsExactly("gold", "silver");
     }

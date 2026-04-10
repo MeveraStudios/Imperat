@@ -16,5 +16,10 @@ public interface SuggestionContext<S extends CommandSource> extends CommandConte
     @NotNull
     CompletionArg getArgToComplete();
 
-
+    /**
+     * Checks whether the current input at index is a flag
+     * @param depth the index in the input {@link ArgumentInput}
+     * @return Whether the input at the given depth/index is a flag.
+     */
+    boolean isFlagPosition(int depth);
 }

@@ -7,6 +7,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.tree.help.HelpEntryFactory;
 import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpFilter;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1257,30 +1259,193 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
     @Override
     public @NotNull List<String> tabComplete(@NotNull SuggestionContext<S> context) {
-        ensureNodeCaches();
-        List<String> results = new ArrayList<>(INITIAL_SUGGESTIONS_CAPACITY);
-        final String prefix = context.getArgToComplete().value();
-        final boolean hasPrefix = prefix != null && !prefix.isBlank();
-        final CompletionState completionState = CompletionState.from(context, this::normalizeFlagToken);
-
-        return tabComplete$1(context, prefix, hasPrefix, results, completionState);
-    }
-
-    @SuppressWarnings("unused")
-    private List<String> tabComplete$1(
-            SuggestionContext<S> context,
-            String prefix,
-            boolean hasPrefix,
-            List<String> results,
-            CompletionState completionState
-    ) {
-
-        if (!hasAutoCompletionPermission(context.source(), root) || root.isSecret()) {
+        if (!hasAutoCompletionPermission(context.source(), root)) {
             return Collections.emptyList();
         }
 
-        tabCompleteChildren(root, context, completionState, 0, root, results, prefix, hasPrefix);
-        return results;
+        ensureNodeCaches();
+        String prefix = context.getArgToComplete().value();
+        boolean hasPrefix = !prefix.isBlank();
+
+        Map<Argument<S>, SuggestionProvider<S>> candidates = new LinkedHashMap<>();
+        collectMatchingChildren(root, 0, context, candidates);
+
+        List<String> list = new ArrayList<>();
+        for (var candidate : candidates.entrySet()) {
+            Argument<S> arg = candidate.getKey();
+            if (!hasAutoCompletionPermission(context.source(), arg)) {
+                continue;
+            }
+            SuggestionProvider<S> suggestionProvider = candidate.getValue();
+            list.addAll(suggestionProvider.provide(context, arg));
+
+        }
+        return !hasPrefix ? list : list.stream()
+                                   .filter((suggestion) -> suggestion.startsWith(prefix))
+                                   .toList();
+    }
+
+    private void collectMatchingChildren(
+            @NotNull CommandNode<S, ?> parentNode,
+            int depth,
+            @NotNull SuggestionContext<S> context,
+            @NotNull Map<Argument<S>, SuggestionProvider<S>> candidates
+    ) {
+        if (parentNode.getChildren().isEmpty()) {
+            return;
+        }
+
+        String token = context.arguments().getOr(depth, null);
+        boolean hasConcreteToken = token != null && !token.isBlank();
+        boolean flagPosition = hasConcreteToken && context.isFlagPosition(depth);
+
+        if (hasConcreteToken && !flagPosition) {
+            List<CommandNode<S, ?>> literalMatches = parentNode.getCompletionCache()
+                                                             .literalChildLookup()
+                                                             .get(token.toLowerCase(Locale.ROOT));
+            if (literalMatches != null) {
+                for (var childNode : literalMatches) {
+                    findLongestMatchingNodes(depth, childNode, context, candidates);
+                }
+            }
+        }
+
+        for (var childNode : parentNode.getCompletionCache().nonLiteralChildren()) {
+            findLongestMatchingNodes(depth, childNode, context, candidates);
+        }
+
+        if (!hasConcreteToken || flagPosition) {
+            for (var childNode : parentNode.getCompletionCache().literalChildren()) {
+                findLongestMatchingNodes(depth, childNode, context, candidates);
+            }
+        }
+    }
+
+    private @NotNull Map<Argument<S>, SuggestionProvider<S>> findLongestMatchingNodes(
+            int depth,
+            CommandNode<S, ?> currentNode,
+            final SuggestionContext<S> context,
+            Map<Argument<S>, SuggestionProvider<S>> candidates
+    ) {
+        if (!hasAutoCompletionPermission(context.source(), currentNode)) {
+            return candidates;
+        }
+
+        int lastIndex = context.getArgToComplete().index();
+        if (depth >= lastIndex) {
+
+            final int prevIndex = lastIndex - 1;
+            String prevInput = context.arguments().getOr(prevIndex, null);
+            var prevNode = currentNode.getParent();
+
+            if (prevInput != null && context.isFlagPosition(prevIndex) && prevNode != null) {
+                // if its a true flag then we do not add the current noe
+                FlagArgument<S> flagData = findFlagArgumentForToken(prevNode, prevInput);
+
+                if (flagData != null && !flagData.flagData().isSwitch()) {
+                    addSuggestionCandidate(flagData, candidates);
+                    return candidates;
+                }
+
+            }
+
+            addSuggestionCandidate(currentNode, candidates);
+            if (prevNode != null) {
+                var flagScope = resolveFlagScopePathway(prevNode);
+                if (flagScope != null) {
+                    List<FlagArgument<S>> unusedFlags = new ArrayList<>(prevNode.getCompletionCache().visibleFlags());
+                    for (int i = lastIndex - 1; i >= 0; i--) {
+
+                        String argInput = context.arguments().getOr(i, null);
+                        if (argInput == null) {
+                            break;
+                        }
+                        unusedFlags.removeIf((flagArg) -> flagArg.flagData().acceptsInput(argInput));
+                    }
+                    addSuggestionCandidates(unusedFlags, candidates);
+                }
+            }
+
+            if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && currentNode.isOptional() && !currentNode.isLast()
+                        && !currentNode.isTrueFlag()) {
+                collectOverlappingNodes(currentNode, candidates);
+            }
+
+            return candidates;
+        }
+
+        var flagsScope = resolveFlagScopePathway(currentNode);
+        if (nodeMatches(currentNode, depth, context, flagsScope)) {
+            if (currentNode.isLast()) {
+                //we are in a situation of extra input args , extra apart from the nodes!
+                //TODO check for flags
+                List<FlagArgument<S>> unusedFlags = currentNode.getCompletionCache().visibleFlags();
+                for (int i = depth + 1; i < lastIndex - 1; i++) {
+                    if (!context.isFlagPosition(i)) {
+                        continue;
+                    }
+                    String argInput = context.arguments().getOr(i, null);
+                    if (argInput == null) {
+                        break;
+                    }
+                    unusedFlags.removeIf((flagArg) -> flagArg.flagData().acceptsInput(argInput));
+                }
+                addSuggestionCandidates(unusedFlags, candidates);
+
+            } else {
+                collectMatchingChildren(
+                        currentNode,
+                        depth + currentNode.getNumberOfParametersToConsume(),
+                        context,
+                        candidates
+                );
+            }
+            return candidates;
+        } else {
+            if (context.isFlagPosition(depth)) {
+                findLongestMatchingNodes(depth + 1, currentNode, context, candidates);
+            }
+        }
+
+        return candidates;
+    }
+
+    private void collectOverlappingNodes(CommandNode<S, ?> curr, Map<Argument<S>, SuggestionProvider<S>> candidates) {
+        for (var child : curr.getChildren()) {
+
+            //check if parent and child are of same data-type, therefore impossible to differentiate between the two.
+
+            addSuggestionCandidate(child, candidates);
+            if (child.isRequired()) {
+                break;
+            }
+
+            collectOverlappingNodes(child, candidates);
+
+
+        }
+    }
+
+    private boolean nodeMatches(CommandNode<S, ?> node, int depth, SuggestionContext<S> ctx, CommandPathway<S> flagsScope) {
+        String token = ctx.arguments().getOr(depth, null);
+        if (token == null) {
+            return false;
+        }
+
+        if (ctx.isFlagPosition(depth)) {
+            return false;
+        }
+
+        if (node.isLiteral()) {
+            return node.getData().asCommand().hasName(token);
+        }
+
+        if (isPlainStringCompletionNode(node)) {
+            return true;
+        }
+
+        ParseResult<S> parseResult = node.parse(depth, ctx, flagsScope);
+        return !parseResult.isFailure();
     }
 
     private boolean appendParsedArgument(
@@ -1301,334 +1466,76 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         }
     }
 
-    private void tabCompleteNode(
-            final CommandNode<S, ?> node,
-            final SuggestionContext<S> context,
-            final CompletionState completionState,
-            int inputDepth,
-            final CommandNode<S, ?> lastLiteral,
-            final List<String> results,
-            final String prefix,
-            final boolean hasPrefix
-    ) {
-
-        final String currentInputAtDepth = context.arguments().getOr(inputDepth, null);
-        final CommandNode<S, ?> activeLiteral = resolveActiveLiteral(node, lastLiteral, inputDepth, currentInputAtDepth, context);
-
-        // If the last literal command we traversed through is secret, skip all suggestions
-        if (activeLiteral != null && activeLiteral.isSecret()) {
-            return;
-        }
-
-        int lastIndex = completionState.completionIndex();
-        if (inputDepth > lastIndex) {
-            return;
-        }
-
-        if (!hasAutoCompletionPermission(context.source(), node) || (node.isLiteral() && node.data.asCommand().isSecret())) {
-            return;
-        }
-
-        final CommandNode<S, ?> flagScopeNode = resolveFlagScopeNode(node, activeLiteral);
-
-        if (inputDepth == lastIndex) {
-            boolean completingFlagName = hasPrefix && prefix != null && Patterns.isInputFlag(prefix);
-            if (!literalMatchesPrefix(node, prefix, hasPrefix) && !completingFlagName) {
-                return;
-            }
-            // Check if the previous token was a flag — if so, suggest flag values
-            if (inputDepth > 0) {
-                String prevToken = context.arguments().getOr(inputDepth - 1, null);
-                if (prevToken != null && Patterns.isInputFlag(prevToken)) {
-                    FlagData<S> flagData = findFlagForToken(flagScopeNode, prevToken);
-                    if (flagData != null && !flagData.isSwitch()) {
-                        // We're completing the value for this flag
-                        collectFlagValueSuggestions(flagScopeNode, flagData, context, results, prefix, hasPrefix);
-                        return;
-                    }
-                }
-            }
-
-            var collectedSuggestions = node.getCompletionCache().suggestionProvider().provide(context, node.getData());
-            addSuggestions(results, collectedSuggestions, prefix, hasPrefix);
-
-            // Also suggest flags at this position
-            collectFlagNameSuggestions(flagScopeNode, completionState, results, prefix, hasPrefix);
-
-            if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && node.isOptional() && !(node.isTrueFlag())) {
-                collectOverlappingSuggestions(node, context, results, prefix, hasPrefix);
-            }
-        } else {
-            String currentInput = context.arguments().getOr(inputDepth, null);
-            assert currentInput != null;
-
-            if (node.isGreedyParam()) {
-                tabCompleteNode(node, context, completionState, lastIndex, activeLiteral, results, prefix, hasPrefix);
-                return;
-            }
-
-            // Skip flag tokens in the input
-            if (Patterns.isInputFlag(currentInput)) {
-                FlagData<S> flagData = findFlagForToken(flagScopeNode, currentInput);
-                if (flagData != null) {
-                    if (!flagData.isSwitch() && inputDepth + 1 == lastIndex) {
-                        // The user is completing the flag's VALUE — provide value suggestions
-                        collectFlagValueSuggestions(flagScopeNode, flagData, context, results, prefix, hasPrefix);
-                        return;
-                    }
-                    int skip = flagData.isSwitch() ? 1 : 2;
-                    // Continue with the same node at the skipped depth
-                    tabCompleteNode(node, context, completionState, inputDepth + skip, activeLiteral, results, prefix, hasPrefix);
-                    return;
-                }
-            }
-
-            if (node.isLiteral()) {
-                if (!literalMatchesInput(node, currentInput)) {
-                    return;
-                }
-                int nextDepth = inputDepth + 1;
-                if (node.getChildren().isEmpty() && nextDepth == lastIndex && node.isExecutable()) {
-                    collectFlagNameSuggestions(flagScopeNode, completionState, results, prefix, hasPrefix);
-                    return;
-                }
-
-                tabCompleteChildren(node, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
-                return;
-            }
-
-            ParseResult<S> result = node.parse(inputDepth, context);
-            if (result.isFailure() && node.isRequired()) {
-                return;
-            }
-
-            int nextDepth = inputDepth + node.getNumberOfParametersToConsume();
-            if (node.getChildren().isEmpty() && nextDepth == lastIndex && node.isExecutable()) {
-                collectFlagNameSuggestions(flagScopeNode, completionState, results, prefix, hasPrefix);
-                return;
-            }
-
-            tabCompleteChildren(node, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
-
-        }
-    }
-
-    private void tabCompleteChildren(
-            final CommandNode<S, ?> parent,
-            final SuggestionContext<S> context,
-            final CompletionState completionState,
-            final int inputDepth,
-            final CommandNode<S, ?> activeLiteral,
-            final List<String> results,
-            final String prefix,
-            final boolean hasPrefix
-    ) {
-        if (inputDepth >= completionState.completionIndex()) {
-            collectChildBoundarySuggestions(parent, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
-            return;
-        }
-
-        String currentInput = context.arguments().getOr(inputDepth, null);
-        if (currentInput == null) {
-            collectChildBoundarySuggestions(parent, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
-            return;
-        }
-
-        if (Patterns.isInputFlag(currentInput)) {
-            CommandNode<S, ?> flagScopeNode = resolveFlagScopeNode(parent, activeLiteral);
-            FlagData<S> flagData = findFlagForToken(flagScopeNode, currentInput);
-            if (flagData == null) {
-                collectChildBoundarySuggestions(parent, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
-                return;
-            }
-
-            if (!flagData.isSwitch() && inputDepth + 1 == completionState.completionIndex()) {
-                collectFlagValueSuggestions(flagScopeNode, flagData, context, results, prefix, hasPrefix);
-                return;
-            }
-
-            int nextDepth = inputDepth + (flagData.isSwitch() ? 1 : 2);
-            tabCompleteChildren(parent, context, completionState, nextDepth, activeLiteral, results, prefix, hasPrefix);
-            return;
-        }
-
-        List<CommandNode<S, ?>> literalMatches = parent.getCompletionCache()
-                                                         .literalChildLookup()
-                                                         .get(currentInput.toLowerCase(Locale.ROOT));
-        if (literalMatches != null) {
-            for (var child : literalMatches) {
-                tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
-            }
-        }
-
-        for (var child : parent.getCompletionCache().nonLiteralChildren()) {
-            tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
-        }
-    }
-
-    private void collectChildBoundarySuggestions(
-            final CommandNode<S, ?> parent,
-            final SuggestionContext<S> context,
-            final CompletionState completionState,
-            final int inputDepth,
-            final CommandNode<S, ?> activeLiteral,
-            final List<String> results,
-            final @Nullable String prefix,
-            final boolean hasPrefix
-    ) {
-        collectLiteralChildSuggestions(parent, context, results, prefix, hasPrefix);
-        collectFlagNameSuggestions(resolveFlagScopeNode(parent, activeLiteral), completionState, results, prefix, hasPrefix);
-        for (var child : parent.getCompletionCache().nonLiteralChildren()) {
-            tabCompleteNode(child, context, completionState, inputDepth, activeLiteral, results, prefix, hasPrefix);
-        }
-    }
-
-    private void collectLiteralChildSuggestions(
-            final CommandNode<S, ?> parent,
-            final SuggestionContext<S> context,
-            final List<String> results,
-            final @Nullable String prefix,
-            final boolean hasPrefix
-    ) {
-        if (parent.getCompletionCache().literalChildren().isEmpty()) {
-            return;
-        }
-
-        Set<String> emitted = new HashSet<>();
-        for (var child : parent.getCompletionCache().literalChildren()) {
-            if (child.isSecret() || !hasAutoCompletionPermission(context.source(), child)) {
-                continue;
-            }
-
-            List<String> suggestions = child.getCompletionCache().suggestionProvider().provide(context, child.getData());
-            if (suggestions == null || suggestions.isEmpty()) {
-                continue;
-            }
-
-            for (String suggestion : suggestions) {
-                if (!emitted.add(suggestion.toLowerCase(Locale.ROOT))) {
-                    continue;
-                }
-                addSuggestions(results, List.of(suggestion), prefix, hasPrefix);
-            }
-        }
-    }
-
-    /**
-     * Collects flag name suggestions (e.g., "-s", "--silent") from all reachable executable pathways.
-     */
-    private void collectFlagNameSuggestions(
-            CommandNode<S, ?> node,
-            CompletionState completionState,
-            List<String> results,
-            @Nullable String prefix,
-            boolean hasPrefix
-    ) {
-        for (FlagArgument<S> flag : node.getCompletionCache().visibleFlags()) {
-            if (completionState.isFlagAlreadyUsed(flag)) {
-                continue;
-            }
-            addSuggestions(results, List.of("-" + flag.flagData().name()), prefix, hasPrefix);
-            for (String alias : flag.flagData().aliases()) {
-                addSuggestions(results, List.of("-" + alias), prefix, hasPrefix);
-            }
-        }
-    }
-
-    private CommandNode<S, ?> resolveFlagScopeNode(
-            CommandNode<S, ?> node,
-            CommandNode<S, ?> activeLiteral
-    ) {
-        if (node.isLiteral() && activeLiteral != null) {
-            return activeLiteral;
-        }
-        return node;
-    }
-
-    /**
-     * Collects flag value suggestions for a specific flag's input type.
-     */
-    private void collectFlagValueSuggestions(
-            CommandNode<S, ?> node,
-            FlagData<S> flagData,
-            SuggestionContext<S> context,
-            List<String> results,
-            @Nullable String prefix,
-            boolean hasPrefix
-    ) {
-        FlagArgument<S> flag = findFlagArgumentForToken(node, flagData.name());
-        if (flag == null) {
-            return;
-        }
-
-        SuggestionProvider<S> resolver = flag.inputSuggestionResolver();
-        if (resolver != null) {
-            addSuggestions(results, resolver.provide(context, flag), prefix, hasPrefix);
-            return;
-        }
-
-        var inputType = flag.flagData().inputType();
-        if (inputType != null) {
-            addSuggestions(results, inputType.getSuggestionProvider().provide(context, flag), prefix, hasPrefix);
-        }
-    }
-
-    private CommandNode<S, ?> resolveActiveLiteral(
-            CommandNode<S, ?> node,
-            CommandNode<S, ?> lastLiteral,
-            int inputDepth,
-            String currentInput,
-            SuggestionContext<S> context
-    ) {
-        if (!node.isLiteral() || currentInput == null || Patterns.isInputFlag(currentInput)) {
-            return lastLiteral;
-        }
-
-        if (literalMatchesInput(node, currentInput)) {
-            return node;
-        }
-
-        return lastLiteral;
-    }
-
-    /**
-     * Recursively collect suggestions from subsequent parameters with different types
-     * Stops at required parameters (inclusive)
-     */
-    private void collectOverlappingSuggestions(
-            CommandNode<S, ?> origin,
-            SuggestionContext<S> context,
-            List<String> results,
-            @Nullable String prefix,
-            boolean hasPrefix
-    ) {
-        for (var nextNode : origin.getCompletionCache().optionalOverlapDescendants()) {
-            // Check permissions
-            if (!(nextNode.isLiteral() && nextNode.getData().asCommand().isIgnoringACPerms())
-                        && !hasPermission(context.source(), nextNode)) {
-                continue;
-            }
-
-            final var suggestions = nextNode.getCompletionCache().suggestionProvider().provide(context, nextNode.getData());
-            if (suggestions != null && !suggestions.isEmpty()) {
-                addSuggestions(results, suggestions, prefix, hasPrefix);
-            }
-        }
-    }
-
     private boolean hasPermission(S source, CommandNode<S, ?> node) {
         return permissionChecker.hasPermission(source, node.data);
     }
 
     private boolean hasAutoCompletionPermission(S src, CommandNode<S, ?> node) {
+
+        if (node.isLiteral() && node.data.asCommand().isSecret()) {
+            return false;
+        }
+
         if (node.isLiteral() && node.getData().asCommand().isIgnoringACPerms()) {
             return true;
         }
         return hasPermission(src, node);
     }
 
+    private boolean hasAutoCompletionPermission(S src, Argument<S> arg) {
+
+        if (arg.isCommand() && arg.asCommand().isSecret()) {
+            return false;
+        }
+
+        if (arg.isCommand() && arg.asCommand().isIgnoringACPerms()) {
+            return true;
+        }
+        return permissionChecker.hasPermission(src, arg);
+    }
+
+
     private SuggestionProvider<S> getResolverCached(Argument<S> param) {
         return imperatConfig.getParameterSuggestionResolver(param);
+    }
+
+    private boolean isPlainStringCompletionNode(@NotNull CommandNode<S, ?> node) {
+        if (node.isGreedyParam()) {
+            return false;
+        }
+
+        Argument<S> argument = node.getData();
+        ArgumentType<S, ?> type = argument.type();
+        return type.getNumberOfParametersToConsume(argument) == 1
+                       && TypeUtility.matches(type.type(), String.class);
+    }
+
+    private void addSuggestionCandidates(
+            @NotNull List<? extends Argument<S>> arguments,
+            @NotNull Map<Argument<S>, SuggestionProvider<S>> candidates
+    ) {
+        for (Argument<S> argument : arguments) {
+            addSuggestionCandidate(argument, candidates);
+        }
+    }
+
+    private void addSuggestionCandidate(
+            @NotNull CommandNode<S, ?> node,
+            @NotNull Map<Argument<S>, SuggestionProvider<S>> candidates
+    ) {
+        candidates.putIfAbsent(node.getData(), node.getCompletionCache().suggestionProvider());
+    }
+
+    private void addSuggestionCandidate(
+            @NotNull Argument<S> argument,
+            @NotNull Map<Argument<S>, SuggestionProvider<S>> candidates
+    ) {
+        if (candidates.containsKey(argument)) {
+            return;
+        }
+
+        SuggestionProvider<S> suggestionProvider = getResolverCached(argument);
+        candidates.put(argument, suggestionProvider);
     }
 
     private @Nullable CommandPathway<S> resolveFlagScopePathway(CommandNode<S, ?> node) {
@@ -1643,72 +1550,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         private static <S extends CommandSource> @NotNull ChildCompletionCache<S> empty() {
             return new ChildCompletionCache<>(List.of(), List.of(), Map.of());
-        }
-    }
-
-    private static final class CompletionState {
-
-        private final int completionIndex;
-        private final Set<String> usedFlags;
-
-        private CompletionState(int completionIndex, Set<String> usedFlags) {
-            this.completionIndex = completionIndex;
-            this.usedFlags = usedFlags;
-        }
-
-        static <S extends CommandSource> CompletionState from(
-                SuggestionContext<S> context,
-                java.util.function.Function<String, String> flagNormalizer
-        ) {
-            return new CompletionState(
-                    context.getArgToComplete().index(),
-                    collectUsedFlags(context, flagNormalizer)
-            );
-        }
-
-        private static <S extends CommandSource> Set<String> collectUsedFlags(
-                SuggestionContext<S> context,
-                java.util.function.Function<String, String> flagNormalizer
-        ) {
-            int completionIndex = context.getArgToComplete().index();
-            boolean editingCurrentToken = !context.getArgToComplete().isEmpty();
-            Set<String> usedFlags = new HashSet<>();
-
-            int scanLimit = editingCurrentToken ? completionIndex : Math.min(completionIndex, context.arguments().size() - 1);
-            for (int i = 0; i <= scanLimit; i++) {
-                if (editingCurrentToken && i == completionIndex) {
-                    continue;
-                }
-
-                String token = context.arguments().getOr(i, null);
-                if (token == null || !Patterns.isInputFlag(token)) {
-                    continue;
-                }
-
-                String normalized = flagNormalizer.apply(token);
-                if (normalized != null) {
-                    usedFlags.add(normalized);
-                }
-            }
-
-            return usedFlags.isEmpty() ? Set.of() : Set.copyOf(usedFlags);
-        }
-
-        int completionIndex() {
-            return completionIndex;
-        }
-
-        boolean isFlagAlreadyUsed(FlagArgument<?> flag) {
-            if (usedFlags.contains(flag.flagData().name().toLowerCase(Locale.ROOT))) {
-                return true;
-            }
-
-            for (String alias : flag.flagData().aliases()) {
-                if (usedFlags.contains(alias.toLowerCase(Locale.ROOT))) {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 

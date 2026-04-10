@@ -73,5 +73,4 @@ class ContextImpl<S extends CommandSource> implements CommandContext<S> {
     public ArgumentInput getRaw() {
         return this.raw;
     }
-
 }

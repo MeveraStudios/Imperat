@@ -181,6 +181,7 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             FlagData<S> flagData = resolveFlagData(ctx, flagScopePathway, rawIndex);
             if (flagData != null) {
                 rawIndex += flagData.isSwitch() ? 1 : 2;
+                count++;
                 continue;
             }
 

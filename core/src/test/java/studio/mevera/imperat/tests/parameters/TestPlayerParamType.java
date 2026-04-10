@@ -34,4 +34,8 @@ public final class TestPlayerParamType extends ArgumentType<TestCommandSource, T
     @Override public @NotNull Priority getPriority() {
         return Priority.LOW;
     }
+
+    @Override public int getNumberOfParametersToConsume(Argument<TestCommandSource> argument) {
+        return 1;
+    }
 }

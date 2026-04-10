@@ -42,6 +42,7 @@ public abstract class ArgumentType<S extends CommandSource, T>
      * in a command processing framework.
      */
     protected final List<String> suggestions = new ArrayList<>();
+    private SuggestionProvider<S> cachedSuggestionProvider;
 
     /**
      * Constructs a new BaseArgumentType with an automated {@link TypeWrap}
@@ -118,10 +119,14 @@ public abstract class ArgumentType<S extends CommandSource, T>
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     public SuggestionProvider<S> getSuggestionProvider() {
-        return suggestions.isEmpty() ? null : SuggestionProvider.staticSuggestions(suggestions);
+        if (suggestions.isEmpty()) {
+            return null;
+        }
+        if (cachedSuggestionProvider == null) {
+            cachedSuggestionProvider = SuggestionProvider.staticSuggestions(suggestions);
+        }
+        return cachedSuggestionProvider;
     }
-
-    // matchesInput method removed as per refactor
 
     /**
      * Returns the default value supplier for the given source and command parameter.
@@ -195,6 +200,7 @@ public abstract class ArgumentType<S extends CommandSource, T>
      */
     public void addStaticSuggestions(String... suggestions) {
         this.suggestions.addAll(List.of(suggestions));
+        this.cachedSuggestionProvider = null;
     }
 
     @ApiStatus.AvailableSince("3.0.0")

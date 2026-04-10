@@ -210,6 +210,10 @@ class EnhancedIntegrationTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Should return (not last)optional argument suggestions")
         void testEcoCmd() {
+            var cmd = IMPERAT.getCommand("eco");
+            if (cmd != null) {
+                cmd.visualizeTree();
+            }
             var suggestions = tabComplete("eco add mqzen ");
             Assertions.assertLinesMatch(List.of("gold", "silver"), suggestions);
         }

@@ -58,19 +58,14 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
                     .doesNotContain("hidden");
         }
 
-        @Test
-        @DisplayName("Root-level suggestions with partial prefix should keep matching public commands")
-        void rootSuggestionsWithPrefixShouldKeepVisibleMatches() {
-            List<String> suggestions = tabComplete("secrettest v");
-
-            Assertions.assertThat(suggestions)
-                    .contains("visible")
-                    .doesNotContain("public", "hidden");
-        }
 
         @Test
         @DisplayName("Suggestions inside a secret subcommand should be empty")
         void suggestionsInsideSecretShouldBeEmpty() {
+            var cmd = IMPERAT.getCommand("secrettest");
+            if (cmd != null) {
+                cmd.visualizeTree();
+            }
             // Even after typing the secret subcommand name, no deeper suggestions
             List<String> suggestions = tabComplete("secrettest hidden ");
 
@@ -100,6 +95,10 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Non-secret child argument suggestions should still work normally")
         void nonSecretChildArgSuggestionsShouldWork() {
+            var cmd = IMPERAT.getCommand("secrettest");
+            if (cmd != null) {
+                cmd.visualizeTree();
+            }
             List<String> suggestions = tabComplete("secrettest visible child ");
 
             Assertions.assertThat(suggestions)

@@ -32,7 +32,7 @@ class NestedSwitchScopeCompletionTest extends EnhancedBaseImperatTest {
         var suggestions = tabComplete(NestedSwitchScopeCommand.class, this::registerNestedCommandTypes, "switchscope sub1 ");
 
         Assertions.assertThat(suggestions)
-                .contains("sub2", "-sub1switch")
+                .contains("sub2", "-sub1switch", "0")
                 .doesNotContain("-sub2switch");
     }
 

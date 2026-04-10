@@ -470,7 +470,6 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         }
 
         String cmdName = fullCommandLine.substring(0, firstSpace);
-
         Command<S> command = getCommand(cmdName);
         if (command == null) {
             return CompletableFuture.completedFuture(Collections.emptyList());
@@ -491,7 +490,6 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
                                                .createSuggestionContext(
                                                        this, source, command, cmdName, argumentInput
                                                );
-
         return command.autoCompleter()
                        .autoComplete(context)
                        .exceptionally((ex) -> {
