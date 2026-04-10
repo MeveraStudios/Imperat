@@ -981,7 +981,9 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         // Create the execution context using the factory
         CommandPathway<S> closestUsage = currentNode.getNearestExecutableUsage();
-        assert closestUsage != null;
+        if (closestUsage == null) {
+            closestUsage = lastCommand.getDefaultPathway();
+        }
         executionContext.setDetectedPathway(pathway);
         return TreeExecutionResult.success(executionContext, closestUsage, pathway, lastCommand, parsedArguments);
     }
