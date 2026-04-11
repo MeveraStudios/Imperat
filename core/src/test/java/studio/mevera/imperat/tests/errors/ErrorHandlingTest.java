@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import studio.mevera.imperat.ThrowablePrinter;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.CommandException;
@@ -110,6 +111,24 @@ public class ErrorHandlingTest extends BaseImperatTest {
         PermissionDeniedException exception = (PermissionDeniedException) result.getError();
         assertInstanceOf(Argument.class, exception.getPermissionIssuer());
         assertEquals("<a>", ((Argument<?>) exception.getPermissionIssuer()).format());
+    }
+
+    @Test
+    @DisplayName("Should deny method-level pathway permission annotations")
+    void testMethodLevelPathwayPermission() {
+        ExecutionResult<TestCommandSource> deniedResult = execute("methodperm");
+
+        assertFailure(deniedResult, PermissionDeniedException.class);
+        assertNotNull(deniedResult.getError());
+
+        PermissionDeniedException denied = (PermissionDeniedException) deniedResult.getError();
+        assertInstanceOf(CommandPathway.class, denied.getPermissionIssuer());
+
+        ExecutionResult<TestCommandSource> allowedResult = execute(
+                (src) -> src.withPerm("methodperm.use"),
+                "methodperm"
+        );
+        assertSuccess(allowedResult);
     }
     
    /*@Test

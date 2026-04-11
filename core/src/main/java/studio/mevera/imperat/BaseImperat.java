@@ -391,23 +391,6 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
             }
             handler.registerExecutionMoment(source);
         }, Priority.NORMAL, ExecutionStrategy.SYNC);
-        this.listen(CommandPostProcessEvent.class, (event) -> {
-            // Check usage-level permission
-            var ctx = event.getContext();
-            var source = ctx.source();
-            var command = event.getCommand();
-            var pathway = ctx.getDetectedPathway();
-            var cfg = ctx.imperatConfig();
-            Pair<PermissionHolder, Boolean> permissionResult = cfg.getPermissionChecker().checkPermission(source, pathway);
-            if (!permissionResult.right()) {
-                ImperatDebugger.debug("Failed usage permission check!");
-                throw new PermissionDeniedException(
-                        command.getName(),
-                        pathway,
-                        deniedPermissionHolder(pathway, permissionResult.left())
-                );
-            }
-        }, Priority.HIGH, ExecutionStrategy.SYNC);
     }
 
     @Override

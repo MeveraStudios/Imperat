@@ -978,6 +978,11 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     ) throws CommandException {
         ImperatDebugger.debug("Executing pathway: %s", pathway.formatted());
 
+        Pair<PermissionHolder, Boolean> pathwayPermissionResult = permissionChecker.checkPermission(executionContext.source(), pathway);
+        if (!pathwayPermissionResult.right()) {
+            return TreeExecutionResult.permissionDenied(pathway, pathwayPermissionResult.left(), lastCommand);
+        }
+
         // Create the execution context using the factory
         CommandPathway<S> closestUsage = currentNode.getNearestExecutableUsage();
         if (closestUsage == null) {
@@ -1372,7 +1377,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
             }
 
-            addSuggestionCandidate(currentNode, candidates);
+            addSuggestionCandidate(context.source(), currentNode, candidates);
             if (prevNode != null) {
                 var flagScope = resolveFlagScopePathway(prevNode);
                 if (flagScope != null) {
@@ -1391,7 +1396,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
             if (imperatConfig.isOptionalParameterSuggestionOverlappingEnabled() && currentNode.isOptional() && !currentNode.isLast()
                         && !currentNode.isTrueFlag()) {
-                collectOverlappingNodes(currentNode, candidates);
+                collectOverlappingNodes(context.source(), currentNode, candidates);
             }
 
             return candidates;
@@ -1433,17 +1438,21 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return candidates;
     }
 
-    private void collectOverlappingNodes(CommandNode<S, ?> curr, Map<Argument<S>, SuggestionProvider<S>> candidates) {
+    private void collectOverlappingNodes(
+            @NotNull S source,
+            CommandNode<S, ?> curr,
+            Map<Argument<S>, SuggestionProvider<S>> candidates
+    ) {
         for (var child : curr.getChildren()) {
 
             //check if parent and child are of same data-type, therefore impossible to differentiate between the two.
 
-            addSuggestionCandidate(child, candidates);
+            addSuggestionCandidate(source, child, candidates);
             if (child.isRequired()) {
                 break;
             }
 
-            collectOverlappingNodes(child, candidates);
+            collectOverlappingNodes(source, child, candidates);
 
 
         }
@@ -1505,6 +1514,19 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return hasPermission(src, node);
     }
 
+    private boolean hasAutoCompletionSuggestionPermission(S src, CommandNode<S, ?> node) {
+        if (!hasAutoCompletionPermission(src, node)) {
+            return false;
+        }
+
+        if (!node.isExecutable()) {
+            return true;
+        }
+
+        CommandPathway<S> pathway = node.getExecutableUsage();
+        return pathway == null || permissionChecker.hasPermission(src, pathway);
+    }
+
     private boolean hasAutoCompletionPermission(S src, Argument<S> arg) {
 
         if (arg.isCommand() && arg.asCommand().isSecret()) {
@@ -1543,9 +1565,13 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     }
 
     private void addSuggestionCandidate(
+            @NotNull S source,
             @NotNull CommandNode<S, ?> node,
             @NotNull Map<Argument<S>, SuggestionProvider<S>> candidates
     ) {
+        if (!hasAutoCompletionSuggestionPermission(source, node)) {
+            return;
+        }
         candidates.putIfAbsent(node.getData(), node.getCompletionCache().suggestionProvider());
     }
 

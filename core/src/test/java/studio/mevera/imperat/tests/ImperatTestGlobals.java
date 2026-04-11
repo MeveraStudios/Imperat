@@ -14,6 +14,7 @@ import studio.mevera.imperat.tests.commands.CustomEnumCommand;
 import studio.mevera.imperat.tests.commands.ExceptionHandlerTestCmd;
 import studio.mevera.imperat.tests.commands.FailCmd;
 import studio.mevera.imperat.tests.commands.KingdomChatCommand;
+import studio.mevera.imperat.tests.commands.MethodPermissionCommand;
 import studio.mevera.imperat.tests.commands.MultipleOptionals;
 import studio.mevera.imperat.tests.commands.MultipleVariantsCmd;
 import studio.mevera.imperat.tests.commands.MyCustomAnnotation;
@@ -135,6 +136,7 @@ public class ImperatTestGlobals {
                 TestJavaOptionalParamTypeCmd.class,
                 TestCFParamTypeCmd.class,
                 UpperCaseCmd.class,
+                MethodPermissionCommand.class,
                 CustomEnumCommand.class,
                 SetRankCmd.class,
                 RankCommand.class,
