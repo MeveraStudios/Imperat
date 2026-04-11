@@ -684,7 +684,7 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
                         ctx.getRootCommandLabelUsed(),
                         closestUsage
                 );
-                ctx.source().reply("You probably meant '" + closestUsageFormat + "'");
+                ctx.source().error("You probably meant '" + closestUsageFormat + "'");
             }
         });
         this.setErrorHandler(PermissionDeniedException.class, (exception, context) -> {
