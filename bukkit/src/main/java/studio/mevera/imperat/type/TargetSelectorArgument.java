@@ -15,7 +15,6 @@ import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
-import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.selector.EntityCondition;
@@ -86,6 +85,33 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSour
         return parseNative(context, cursor);
     }
 
+    static boolean isSelectorInput(@NotNull String raw) {
+        return raw.startsWith(SelectionType.MENTION_CHARACTER);
+    }
+
+    static @NotNull SelectionType resolveSelectionType(
+            @NotNull Cursor<BukkitCommandSource> cursor,
+            @NotNull String raw
+    ) throws CommandException {
+        if (!isSelectorInput(raw)) {
+            return SelectionType.UNKNOWN;
+        }
+
+        cursor.skipLetter();
+        String selectorId = cursor.popLetter()
+                                    .map(String::valueOf)
+                                    .orElse("");
+        SelectionType type = SelectionType.from(selectorId);
+        if (type != SelectionType.UNKNOWN) {
+            return type;
+        }
+
+        String invalidType = selectorId.isEmpty() ? raw : selectorId;
+        throw ResponseException.of(BukkitResponseKey.UNKNOWN_SELECTION_TYPE)
+                      .withPlaceholder("input", raw)
+                      .withPlaceholder("type_entered", invalidType);
+    }
+
     private TargetSelector parseNative(@NotNull CommandContext<BukkitCommandSource> context, Cursor<BukkitCommandSource> cursor)
             throws CommandException {
         String raw = cursor.currentRaw().orElse(null);
@@ -93,19 +119,7 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSour
             return TargetSelector.empty();
         }
 
-        if (Version.isOrOver(1, 13, 0)) {
-            SelectionType type = cursor.popLetter()
-                                         .map((s) -> SelectionType.from(String.valueOf(s))).orElse(SelectionType.UNKNOWN);
-            return TargetSelector.of(
-                    type,
-                    Bukkit.selectEntities(context.source().origin(), raw)
-            );
-        }
-
-        //For legacy (below 1.13)
-        char last = raw.charAt(raw.length() - 1);
-        if (cursor.currentLetter()
-                    .filter((c) -> String.valueOf(c).equalsIgnoreCase(SelectionType.MENTION_CHARACTER)).isEmpty()) {
+        if (!isSelectorInput(raw)) {
             Player target = Bukkit.getPlayer(raw);
             if (target == null) {
                 return TargetSelector.empty();
@@ -114,23 +128,21 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSour
             return TargetSelector.of(SelectionType.UNKNOWN, target);
         }
 
-        SelectionType type = cursor.popLetter()
-                                     .map((s) -> SelectionType.from(String.valueOf(s)))
-                                     .orElse(SelectionType.UNKNOWN);
-        //update current
-
-        if (type == SelectionType.UNKNOWN) {
-            throw ResponseException.of(BukkitResponseKey.UNKNOWN_SELECTION_TYPE)
-                          .withPlaceholder(
-                                  Placeholder.builder("input")
-                                          .resolver((tag) -> String.valueOf(cursor.currentLetter().orElseThrow()))
-                                          .build()
-                          );
+        if (Version.isOrOver(1, 13, 0)) {
+            SelectionType type = resolveSelectionType(cursor, raw);
+            return TargetSelector.of(
+                    type,
+                    Bukkit.selectEntities(context.source().origin(), raw)
+            );
         }
+
+        //For legacy (below 1.13)
+        char last = raw.charAt(raw.length() - 1);
+        SelectionType type = resolveSelectionType(cursor, raw);
 
         List<SelectionParameterInput<?>> inputParameters = new ArrayList<>();
 
-        boolean parameterized = cursor.popLetter().map((c) -> c == PARAMETER_START).orElse(false) && last == PARAMETER_END;
+        boolean parameterized = cursor.currentLetter().map((c) -> c == PARAMETER_START).orElse(false) && last == PARAMETER_END;
         if (parameterized) {
             cursor.skipLetter();
 

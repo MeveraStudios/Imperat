@@ -67,7 +67,7 @@ public interface SelectionType {
                 double distance = other.getLocation().distanceSquared(location);
                 if (distance < MIN_DISTANCE) {
                     MIN_DISTANCE = distance;
-                    sender = other;
+                    target = other;
                 }
             }
 
