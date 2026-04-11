@@ -336,18 +336,6 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
     }
 
     /**
-     * Sets the fallback suggestion provider used when the resolved primary suggestion
-     * provider returns no suggestions.
-     *
-     * @param suggestionProvider the fallback {@link SuggestionProvider}
-     * @return the current {@link ConfigBuilder} instance for method chaining
-     */
-    public B fallbackSuggestionProvider(@NotNull SuggestionProvider<S> suggestionProvider) {
-        config.setFallbackSuggestionProvider(suggestionProvider);
-        return (B) this;
-    }
-
-    /**
      * Registers a {@link SourceProvider} for a specific type to resolve command sources.
      *
      * @param <R>            the resulting type resolved by the source resolver

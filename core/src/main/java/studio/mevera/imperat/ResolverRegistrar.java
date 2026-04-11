@@ -10,7 +10,6 @@ import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.SourceProvider;
@@ -19,10 +18,7 @@ import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * The ResolverRegistrar interface provides mechanisms for registering and retrieving various
@@ -104,23 +100,6 @@ public sealed interface ResolverRegistrar<S extends CommandSource> permits Imper
     void setDefaultSuggestionProvider(SuggestionProvider<S> defaultSuggestionProvider);
 
     /**
-     * Retrieves the fallback suggestion resolver associated with this registrar.
-     * The fallback resolver is only consulted when the resolved primary suggestion
-     * provider returns no suggestions.
-     *
-     * @return the fallback {@link SuggestionProvider}
-     */
-    SuggestionProvider<S> getFallbackSuggestionProvider();
-
-    /**
-     * Sets the fallback suggestion resolver to be used when the resolved primary
-     * suggestion provider returns no suggestions.
-     *
-     * @param fallbackSuggestionProvider the fallback {@link SuggestionProvider}
-     */
-    void setFallbackSuggestionProvider(SuggestionProvider<S> fallbackSuggestionProvider);
-
-    /**
      * Fetches the suggestion provider/resolver for a specific valueType of
      * argument or parameter.
      *
@@ -137,82 +116,6 @@ public sealed interface ResolverRegistrar<S extends CommandSource> permits Imper
         } else {
             return parameterSpecificResolver;
         }
-    }
-
-    /**
-     * Resolves suggestions for the provided argument and falls back to the configured
-     * fallback provider when the primary provider yields no suggestions.
-     *
-     * @param context the suggestion context
-     * @param parameter the argument being completed
-     * @return the resolved suggestions, or an empty list if neither provider yields any
-     */
-    default @NotNull List<String> provideSuggestions(
-            @NotNull SuggestionContext<S> context,
-            @NotNull Argument<S> parameter
-    ) {
-        return provideSuggestions(context, parameter, getParameterSuggestionResolver(parameter));
-    }
-
-    /**
-     * Resolves suggestions for the provided argument using the supplied provider and falls
-     * back to the configured fallback provider when that provider yields no suggestions.
-     *
-     * @param context the suggestion context
-     * @param parameter the argument being completed
-     * @param suggestionProvider the primary suggestion provider to use
-     * @return the resolved suggestions, or an empty list if neither provider yields any
-     */
-    default @NotNull List<String> provideSuggestions(
-            @NotNull SuggestionContext<S> context,
-            @NotNull Argument<S> parameter,
-            @NotNull SuggestionProvider<S> suggestionProvider
-    ) {
-        List<String> suggestions = suggestionProvider.provide(context, parameter);
-        if (suggestions != null && !suggestions.isEmpty()) {
-            return suggestions;
-        }
-
-        SuggestionProvider<S> fallbackSuggestionProvider = getFallbackSuggestionProvider();
-        if (fallbackSuggestionProvider == suggestionProvider) {
-            return suggestions == null ? Collections.emptyList() : suggestions;
-        }
-
-        List<String> fallbackSuggestions = fallbackSuggestionProvider.provide(context, parameter);
-        return fallbackSuggestions == null ? Collections.emptyList() : fallbackSuggestions;
-    }
-
-    /**
-     * Resolves suggestions asynchronously for the provided argument and falls back to the configured
-     * fallback provider when the primary provider yields no suggestions.
-     *
-     * @param context the suggestion context
-     * @param parameter the argument being completed
-     * @return a future containing the resolved suggestions
-     */
-    default @NotNull CompletableFuture<List<String>> provideSuggestionsAsynchronously(
-            @NotNull SuggestionContext<S> context,
-            @NotNull Argument<S> parameter
-    ) {
-        SuggestionProvider<S> suggestionProvider = getParameterSuggestionResolver(parameter);
-        return suggestionProvider.provideAsynchronously(context, parameter)
-                       .thenCompose(suggestions -> {
-                           if (suggestions != null && !suggestions.isEmpty()) {
-                               return CompletableFuture.completedFuture(suggestions);
-                           }
-
-                           SuggestionProvider<S> fallbackSuggestionProvider = getFallbackSuggestionProvider();
-                           if (fallbackSuggestionProvider == suggestionProvider) {
-                               return CompletableFuture.completedFuture(
-                                       suggestions == null ? Collections.emptyList() : suggestions
-                               );
-                           }
-
-                           return fallbackSuggestionProvider.provideAsynchronously(context, parameter)
-                                          .thenApply(fallbackSuggestions ->
-                                                  fallbackSuggestions == null ? Collections.emptyList() : fallbackSuggestions
-                                          );
-                       });
     }
 
     /**
