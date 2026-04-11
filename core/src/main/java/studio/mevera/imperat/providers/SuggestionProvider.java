@@ -30,10 +30,12 @@ public interface SuggestionProvider<S extends CommandSource> {
     }
 
     static <S extends CommandSource> SuggestionProvider<S> forCommand(Command<S> command) {
-        List<String> list = new ArrayList<>();
-        list.add(command.getName());
-        list.addAll(command.aliases());
-        return staticSuggestions(list);
+        return (context, argument) -> {
+            List<String> list = new ArrayList<>(1 + command.aliases().size());
+            list.add(command.getName());
+            list.addAll(command.aliases());
+            return list;
+        };
     }
 
 
