@@ -1281,7 +1281,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                 continue;
             }
             SuggestionProvider<S> suggestionProvider = candidate.getValue();
-            list.addAll(suggestionProvider.provide(context, arg));
+            list.addAll(imperatConfig.provideSuggestions(context, arg, suggestionProvider));
 
         }
         return !hasPrefix ? list : list.stream()

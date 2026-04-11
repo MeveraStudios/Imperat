@@ -66,6 +66,9 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     private @NotNull SuggestionProvider<S> defaultSuggestionProvider =
             (context, input) ->
                     Collections.emptyList();
+    private @NotNull SuggestionProvider<S> fallbackSuggestionProvider =
+            (context, input) ->
+                    Collections.emptyList();
     private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
     private @NotNull ContextFactory<S> contextFactory;
     private boolean overlapOptionalParameterSuggestions = false;
@@ -318,6 +321,16 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     @Override
     public void setDefaultSuggestionProvider(@NotNull SuggestionProvider<S> defaultSuggestionProvider) {
         this.defaultSuggestionProvider = defaultSuggestionProvider;
+    }
+
+    @Override
+    public @NotNull SuggestionProvider<S> getFallbackSuggestionProvider() {
+        return fallbackSuggestionProvider;
+    }
+
+    @Override
+    public void setFallbackSuggestionProvider(@NotNull SuggestionProvider<S> fallbackSuggestionProvider) {
+        this.fallbackSuggestionProvider = fallbackSuggestionProvider;
     }
 
 
