@@ -28,4 +28,13 @@ class EnhancedAliasSuggestionTest extends EnhancedBaseImperatTest {
         Assertions.assertThat(results)
                 .containsExactly("manage", "m", "mgr");
     }
+
+    @Test
+    @DisplayName("Should not suggest anything when repeated spaces create a blank argument gap")
+    void testBlankGapFromRepeatedSpacesReturnsNoSuggestions() {
+        var results = tabComplete(SubcommandAliasSuggestionCommand.class, cfg -> {
+        }, "aliascmd   ");
+
+        Assertions.assertThat(results).isEmpty();
+    }
 }

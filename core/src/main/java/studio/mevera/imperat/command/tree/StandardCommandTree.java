@@ -422,8 +422,8 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return input != null && node.isLiteral() && node.getData().asCommand().hasName(input);
     }
 
-    private boolean literalMatchesPrefix(@NotNull CommandNode<S, ?> node, @Nullable String prefix, boolean hasPrefix) {
-        if (!node.isLiteral() || !hasPrefix || prefix == null) {
+    private boolean literalMatchesPrefix(@NotNull CommandNode<S, ?> node, @Nullable String prefix) {
+        if (!node.isLiteral() || prefix == null || prefix.isBlank()) {
             return true;
         }
         Command<S> command = node.getData().asCommand();
@@ -1265,6 +1265,9 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         }
 
         ensureNodeCaches();
+        if (hasBlankGapBeforeCursor(context)) {
+            return Collections.emptyList();
+        }
         String prefix = context.getArgToComplete().value();
         boolean hasPrefix = !prefix.isBlank();
 
@@ -1284,6 +1287,20 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return !hasPrefix ? list : list.stream()
                                    .filter((suggestion) -> suggestion.startsWith(prefix))
                                    .toList();
+    }
+
+    private boolean hasBlankGapBeforeCursor(@NotNull SuggestionContext<S> context) {
+        int lastIndex = context.getArgToComplete().index();
+        for (int i = lastIndex - 1; i >= 0; i--) {
+            String token = context.arguments().getOr(i, null);
+            if (token != null && token.isBlank()) {
+                return true;
+            }
+        }
+
+        return lastIndex == 0
+                       && context.arguments().size() == 1
+                       && context.getArgToComplete().value().isBlank();
     }
 
     private void collectMatchingChildren(
@@ -1319,7 +1336,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         if (!hasConcreteToken || flagPosition || completingCurrentToken) {
             for (var childNode : parentNode.getCompletionCache().literalChildren()) {
                 if (completingCurrentToken && hasConcreteToken
-                            && !literalMatchesPrefix(childNode, token, true)) {
+                            && !literalMatchesPrefix(childNode, token)) {
                     continue;
                 }
                 findLongestMatchingNodes(depth, childNode, context, candidates);
