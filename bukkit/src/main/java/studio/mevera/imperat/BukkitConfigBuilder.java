@@ -28,6 +28,9 @@ import studio.mevera.imperat.type.TargetSelectorArgument;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.reflection.Reflections;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Configuration builder for BukkitImperat instances.
  * This builder provides a fluent API for configuring and customizing the behavior
@@ -61,7 +64,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
     private final Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
 
-    private boolean supportBrigadier;
+    private final boolean supportBrigadier;
 
     BukkitConfigBuilder(Plugin plugin, boolean supportBrigadier) {
         this.plugin = plugin;
@@ -71,6 +74,20 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
         registerSourceResolvers();
         registerValueResolvers();
         registerContextResolvers();
+        config.setDefaultSuggestionProvider(
+                (context, argument) -> {
+                    BukkitCommandSource source = context.source();
+                    List<String> onlinePlayers = new ArrayList<>();
+                    final Player player = source.isConsole() ? null : source.asPlayer();
+                    for (final Player online : source.origin().getServer().getOnlinePlayers()) {
+                        final String name = online.getName();
+                        if ((player == null || player.canSee(online)) && name.startsWith(context.getArgToComplete().value())) {
+                            onlinePlayers.add(name);
+                        }
+                    }
+                    return onlinePlayers;
+                }
+        );
     }
 
     private void registerContextResolvers() {
