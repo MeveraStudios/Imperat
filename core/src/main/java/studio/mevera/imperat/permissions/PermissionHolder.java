@@ -13,6 +13,7 @@ public interface PermissionHolder {
     void setPermissionData(@NotNull PermissionsData permission);
 
     default String getPrimaryPermission() {
-        return getPermissionsData().getPermissions().get(0);
+        final var permissions = getPermissionsData().getPermissions();
+        return permissions.isEmpty() ? null : permissions.get(0);
     }
 }
