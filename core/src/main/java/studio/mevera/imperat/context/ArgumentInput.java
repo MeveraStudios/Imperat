@@ -56,6 +56,17 @@ public interface ArgumentInput extends Deque<String>, List<String>, Cloneable {
     }
 
     /**
+     * Creates an input queue whose original line and first raw token are the same value.
+     * This is used when a parameter type needs cursor-based parsing over a single already-resolved token.
+     *
+     * @param rawArgument the raw token to expose through the queue
+     * @return a new {@link ArgumentInput} containing exactly one raw token
+     */
+    static ArgumentInput single(String rawArgument) {
+        return new ArgumentInputImpl(rawArgument, rawArgument);
+    }
+
+    /**
      * @return a new, empty {@link ArgumentInput}.
      */
     static ArgumentInput empty() {

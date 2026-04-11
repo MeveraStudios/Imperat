@@ -104,7 +104,6 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSour
 
         //For legacy (below 1.13)
         char last = raw.charAt(raw.length() - 1);
-
         if (cursor.currentLetter()
                     .filter((c) -> String.valueOf(c).equalsIgnoreCase(SelectionType.MENTION_CHARACTER)).isEmpty()) {
             Player target = Bukkit.getPlayer(raw);
@@ -116,7 +115,8 @@ public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSour
         }
 
         SelectionType type = cursor.popLetter()
-                                     .map((s) -> SelectionType.from(String.valueOf(s))).orElse(SelectionType.UNKNOWN);
+                                     .map((s) -> SelectionType.from(String.valueOf(s)))
+                                     .orElse(SelectionType.UNKNOWN);
         //update current
 
         if (type == SelectionType.UNKNOWN) {

@@ -397,6 +397,16 @@ class EnhancedArgumentParsingTest extends EnhancedBaseImperatTest {
     }
 
     @Test
+    @DisplayName("Should suggest literal branches when completing a literal prefix")
+    void testLiteralBranchSuggestionsWithPrefix() {
+        var results = tabComplete("test3 s");
+
+        Assertions.assertThatList(results)
+                .containsExactly("sub")
+                .doesNotHaveDuplicates();
+    }
+
+    @Test
     @DisplayName("Should show only required after all optionals in allopts")
     void testAllOptsWithRequired() {
         var results = tabComplete(MultipleOptionals.class, (cfg) -> {

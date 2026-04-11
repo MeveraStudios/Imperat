@@ -46,7 +46,6 @@ import java.util.Set;
 final class StandardCommandTree<S extends CommandSource> implements CommandTree<S> {
 
     // Pre-computed immutable collections to eliminate allocations
-    private final static int INITIAL_SUGGESTIONS_CAPACITY = 20;
     final LiteralCommandNode<S> root;
     private final Command<S> rootCommand;
     // Pre-sized collections for common operations
@@ -1300,6 +1299,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         String token = context.arguments().getOr(depth, null);
         boolean hasConcreteToken = token != null && !token.isBlank();
         boolean flagPosition = hasConcreteToken && context.isFlagPosition(depth);
+        boolean completingCurrentToken = depth == context.getArgToComplete().index();
 
         if (hasConcreteToken && !flagPosition) {
             List<CommandNode<S, ?>> literalMatches = parentNode.getCompletionCache()
@@ -1316,8 +1316,12 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             findLongestMatchingNodes(depth, childNode, context, candidates);
         }
 
-        if (!hasConcreteToken || flagPosition) {
+        if (!hasConcreteToken || flagPosition || completingCurrentToken) {
             for (var childNode : parentNode.getCompletionCache().literalChildren()) {
+                if (completingCurrentToken && hasConcreteToken
+                            && !literalMatchesPrefix(childNode, token, true)) {
+                    continue;
+                }
                 findLongestMatchingNodes(depth, childNode, context, candidates);
             }
         }

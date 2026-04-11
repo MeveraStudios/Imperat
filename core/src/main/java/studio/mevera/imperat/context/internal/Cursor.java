@@ -99,7 +99,7 @@ public interface Cursor<S extends CommandSource> {
      * @throws IllegalArgumentException if parameter or str is {@code null}
      */
     static <S extends CommandSource> Cursor<S> ofSingleString(@NotNull Argument<S> parameter, @NotNull String str) {
-        return new CursorImpl<>(ArgumentInput.of(str), List.of(parameter));
+        return new CursorImpl<>(ArgumentInput.single(str), List.of(parameter));
     }
 
     // ========================================
