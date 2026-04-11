@@ -20,7 +20,6 @@ import java.util.List;
 public class PlayerArgument extends ArgumentType<BukkitCommandSource, Player> {
 
     private final PlayerSuggestionProvider SUGGESTION_RESOLVER = new PlayerSuggestionProvider();
-    private final DefaultValueProvider DEFAULT_VALUE_SUPPLIER = DefaultValueProvider.of("~");
 
     public PlayerArgument() {
         super();
@@ -50,17 +49,6 @@ public class PlayerArgument extends ArgumentType<BukkitCommandSource, Player> {
     @Override
     public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
         return SUGGESTION_RESOLVER;
-    }
-
-    /**
-     * Returns the default value supplier for the given source and command parameter.
-     * By default, this returns an empty supplier, indicating no default value.
-     *
-     * @return an {@link DefaultValueProvider} providing the default value, or empty if none.
-     */
-    @Override
-    public DefaultValueProvider getDefaultValueProvider() {
-        return DEFAULT_VALUE_SUPPLIER;
     }
 
     private final static class PlayerSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
