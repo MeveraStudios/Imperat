@@ -16,7 +16,7 @@ import studio.mevera.imperat.tests.TestCommandSource;
 public final class AnnotatedGroupCommand {
 
     @Execute
-    public void defaultUsage(@Context CommandHelp<TestCommandSource> commandHelp) {
+    public void defaultUsage(TestCommandSource source, @Context CommandHelp<TestCommandSource> commandHelp) {
         commandHelp.show(
                 HelpQuery.<TestCommandSource>builder()
                         .filter((pathway) -> {
