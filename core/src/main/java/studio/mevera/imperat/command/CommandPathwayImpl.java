@@ -79,11 +79,11 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
 
     @Override
     public boolean hasFlag(String input) {
-        return getFlagParameterFromRaw(input) != null;
+        return getFlagDataFromInput(input) != null;
     }
 
     @Override
-    public @Nullable FlagData<S> getFlagParameterFromRaw(String rawInput) {
+    public @Nullable FlagData<S> getFlagDataFromInput(String rawInput) {
         if (rawInput == null || rawInput.isEmpty()) {
             return null;
         }
@@ -147,7 +147,7 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
      * Returns ALL parameters including inherited - for EXECUTION.
      */
     @Override
-    public List<Argument<S>> getParametersWithFlags() {
+    public List<Argument<S>> getArgumentsWithFlags() {
         var combined = new ArrayList<>(arguments);
 
         int start = arguments.size();
@@ -210,7 +210,7 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
     }
 
     @Override
-    public boolean hasParameters(Predicate<Argument<S>> parameterPredicate) {
+    public boolean hasArguments(Predicate<Argument<S>> parameterPredicate) {
         for (Argument<S> parameter : arguments) {
             if (parameterPredicate.test(parameter)) {
                 return true;
@@ -269,14 +269,14 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
     }
 
     @Override
-    public boolean hasParameters(List<Argument<S>> parameters) {
-        if (this.arguments.size() != parameters.size()) {
+    public boolean hasArguments(List<Argument<S>> arguments) {
+        if (this.arguments.size() != arguments.size()) {
             return false;
         }
 
-        for (int i = 0; i < parameters.size(); i++) {
+        for (int i = 0; i < arguments.size(); i++) {
             Argument<S> thisParam = this.arguments.get(i);
-            Argument<S> otherParam = parameters.get(i);
+            Argument<S> otherParam = arguments.get(i);
             if (!thisParam.similarTo(otherParam)) {
                 return false;
             }

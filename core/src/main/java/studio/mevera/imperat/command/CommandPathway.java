@@ -41,7 +41,7 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
         Preconditions.notNull(usage, "usage");
         StringBuilder builder = new StringBuilder(command.getName()).append(' ');
 
-        List<Argument<S>> params = usage.getParametersWithFlags();
+        List<Argument<S>> params = usage.getArgumentsWithFlags();
         int i = 0;
         for (Argument<S> parameter : params) {
             builder.append(parameter.format()).append(":").append(parameter.type().getClass().getSimpleName());
@@ -60,7 +60,7 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
             builder.append(' ');
         }
 
-        List<Argument<S>> params = usage.getParametersWithFlags();
+        List<Argument<S>> params = usage.getArgumentsWithFlags();
         int i = 0;
         for (Argument<S> parameter : params) {
             builder.append(parameter.format());
@@ -140,7 +140,7 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
      * @return the flag from the raw input, null if it cannot be a flag
      */
     @Nullable
-    FlagData<S> getFlagParameterFromRaw(String rawInput);
+    FlagData<S> getFlagDataFromInput(String rawInput);
 
     default void addFlag(Argument<S> flagParam) {
         addFlag(flagParam.asFlagParameter());
@@ -230,7 +230,7 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
      * @return whether this usage has atLeast on {@link Argument} with specific condition
      * or not
      */
-    boolean hasParameters(Predicate<Argument<S>> parameterPredicate);
+    boolean hasArguments(Predicate<Argument<S>> parameterPredicate);
 
     /**
      * @param parameterPredicate the condition
@@ -279,10 +279,10 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
     void execute(Imperat<S> imperat, S source, ExecutionContext<S> context) throws CommandException;
 
     /**
-     * @param parameters the parameters
-     * @return whether this usage has this sequence of parameters
+     * @param arguments the arguments
+     * @return whether this usage has this sequence of arguments
      */
-    boolean hasParameters(List<Argument<S>> parameters);
+    boolean hasArguments(List<Argument<S>> arguments);
 
     default int size() {
         return getArguments().size();
@@ -296,7 +296,7 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
         return getArgumentAt(getArguments().size() - 1);
     }
 
-    List<Argument<S>> getParametersWithFlags();
+    List<Argument<S>> getArgumentsWithFlags();
 
     class Builder<S extends CommandSource> {
 

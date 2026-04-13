@@ -239,7 +239,7 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             return null;
         }
 
-        return flagScopePathway.getFlagParameterFromRaw(raw);
+        return flagScopePathway.getFlagDataFromInput(raw);
     }
 
     public ParseResult<S> parse(int depth, CommandContext<S> ctx) {

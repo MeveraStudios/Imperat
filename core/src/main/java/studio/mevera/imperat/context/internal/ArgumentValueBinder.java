@@ -66,7 +66,7 @@ final class ArgumentValueBinder {
             return false;
         }
 
-        FlagData<S> flagData = context.getDetectedPathway().getFlagParameterFromRaw(currentRaw);
+        FlagData<S> flagData = context.getDetectedPathway().getFlagDataFromInput(currentRaw);
         if (flagData == null) {
             return false;
         }
