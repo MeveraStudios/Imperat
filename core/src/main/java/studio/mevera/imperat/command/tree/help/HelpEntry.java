@@ -1,9 +1,11 @@
 package studio.mevera.imperat.command.tree.help;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandSource;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -17,14 +19,29 @@ import java.util.Objects;
 public final class HelpEntry<S extends CommandSource> {
 
     private final @NotNull CommandPathway<S> pathway;
+    private final @NotNull String usage;
+    private final @Nullable String description;
+    private final @NotNull List<String> examples;
 
-    /**
-     * Constructs a new HelpEntry from a {@link CommandPathway}.
-     *
-     * @param pathway The command pathway for which to create a help entry.
-     */
-    HelpEntry(@NotNull CommandPathway<S> pathway) {
+    private HelpEntry(
+            @NotNull CommandPathway<S> pathway,
+            @NotNull String usage,
+            @Nullable String description,
+            @NotNull List<String> examples
+    ) {
         this.pathway = pathway;
+        this.usage = usage;
+        this.description = description;
+        this.examples = examples;
+    }
+
+    public static <S extends CommandSource> @NotNull HelpEntry<S> of(@NotNull CommandPathway<S> pathway) {
+        return new HelpEntry<>(
+                pathway,
+                pathway.formatted(),
+                pathway.getDescription().getValue(),
+                List.copyOf(pathway.getExamples())
+        );
     }
 
     /**
@@ -34,6 +51,18 @@ public final class HelpEntry<S extends CommandSource> {
      */
     public @NotNull CommandPathway<S> getPathway() {
         return pathway;
+    }
+
+    public @NotNull String getUsage() {
+        return usage;
+    }
+
+    public @Nullable String getDescription() {
+        return description;
+    }
+
+    public @NotNull List<String> getExamples() {
+        return examples;
     }
 
     /**

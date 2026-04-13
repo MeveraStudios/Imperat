@@ -5,8 +5,8 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.help.HelpEntry;
-import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
+import studio.mevera.imperat.command.tree.help.HelpResult;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -97,7 +97,7 @@ public interface CommandTree<S extends CommandSource> {
      * @see HelpEntry
      * @since 2.0.0
      */
-    HelpEntryList<S> queryHelp(
+    HelpResult<S> queryHelp(
             @NotNull HelpQuery<S> query
     );
 

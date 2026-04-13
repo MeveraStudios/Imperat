@@ -16,7 +16,6 @@ import studio.mevera.imperat.command.SourceProviderRegistry;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
-import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
@@ -87,8 +86,6 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
                                                                              closestUsage
                                                                      );
                                                                  });
-
-    private HelpCoordinator<S> helpCoordinator = HelpCoordinator.create();
 
     private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
 
@@ -549,16 +546,6 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     @Override
     public void setGlobalDefaultPathway(CommandPathway.@NotNull Builder<S> globalDefaultUsage) {
         this.globalDefaultUsage = globalDefaultUsage;
-    }
-
-    @Override
-    public @NotNull HelpCoordinator<S> getHelpCoordinator() {
-        return helpCoordinator;
-    }
-
-    @Override
-    public void setHelpCoordinator(@NotNull HelpCoordinator<S> coordinator) {
-        this.helpCoordinator = coordinator;
     }
 
     @Override

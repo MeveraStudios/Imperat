@@ -8,10 +8,10 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
-import studio.mevera.imperat.command.tree.help.HelpEntryFactory;
-import studio.mevera.imperat.command.tree.help.HelpEntryList;
+import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpFilter;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
+import studio.mevera.imperat.command.tree.help.HelpResult;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
@@ -26,17 +26,18 @@ import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Pair;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.TypeUtility;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 
 /**
@@ -54,7 +55,6 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
     private final ImperatConfig<S> imperatConfig;
     private final @NotNull PermissionChecker<S> permissionChecker;
-    private final HelpEntryFactory<S> helpEntryFactory = HelpEntryFactory.defaultFactory();
     private boolean nodeCachesDirty;
     private boolean rootHasDedicatedDefaultPathway;
     int size;
@@ -1198,16 +1198,15 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     }
 
     @Override
-    public HelpEntryList<S> queryHelp(@NotNull HelpQuery<S> query) {
+    public HelpResult<S> queryHelp(@NotNull HelpQuery<S> query) {
         ensureNodeCaches();
-        final HelpEntryList<S> results = new HelpEntryList<>();
-
         if (query.getLimit() <= 0) {
-            return HelpEntryList.empty();
+            return HelpResult.empty();
         }
 
+        final LinkedHashSet<HelpEntry<S>> results = new LinkedHashSet<>();
         collectHelpEntries(root, query, results);
-        return results;
+        return HelpResult.copyOf(List.copyOf(results));
     }
 
     /**
@@ -1216,7 +1215,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
     private void collectHelpEntries(
             CommandNode<S, ?> node,
             HelpQuery<S> query,
-            HelpEntryList<S> results
+            Set<HelpEntry<S>> results
     ) {
         // Check depth limit using node's depth
         if (node.getDepth() > query.getMaxDepth()) {
@@ -1239,7 +1238,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
             if (!node.isRoot() || query.getRootUsagePredicate().test(pathway)) {
                 if (passesFilters(pathway, query.getFilters())) {
-                    results.add(helpEntryFactory.createEntry(pathway));
+                    results.add(HelpEntry.of(pathway));
                 }
             }
         }
@@ -1254,7 +1253,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
      * Applies all filters to a pathway.
      * Short-circuits on first failed filter for efficiency.
      */
-    private boolean passesFilters(CommandPathway<S> pathway, Queue<HelpFilter<S>> filters) {
+    private boolean passesFilters(CommandPathway<S> pathway, List<HelpFilter<S>> filters) {
         for (HelpFilter<S> filter : filters) {
             if (!filter.filter(pathway)) {
                 return false;

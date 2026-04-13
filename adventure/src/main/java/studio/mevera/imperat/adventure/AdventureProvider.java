@@ -1,7 +1,6 @@
 package studio.mevera.imperat.adventure;
 
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import studio.mevera.imperat.context.CommandSource;
 
@@ -65,6 +64,4 @@ public interface AdventureProvider<S> {
      */
     default void close() {
     }
-
-    <SRC extends CommandSource> AdventureHelpComponent<SRC> createHelpComponent(Component component);
 }

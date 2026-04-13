@@ -9,7 +9,6 @@ import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
-import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
@@ -105,18 +104,6 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
         return (B) this;
     }
 
-
-    /**
-     * Sets the {@link HelpCoordinator} that coordinates all the core-components of the
-     * new help API, to create a coordinator call {@link HelpCoordinator#create()}
-     * @param coordinator the coordinator
-     * @since 2.0.0
-     * @return the current instance of {@code ConfigBuilder} for method chaining
-     */
-    public B helpCoordinator(HelpCoordinator<S> coordinator) {
-        config.setHelpCoordinator(coordinator);
-        return (B) this;
-    }
 
     /**
      * Sets the context factory for creating contexts used in command execution.

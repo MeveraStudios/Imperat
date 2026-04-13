@@ -16,18 +16,14 @@ import studio.mevera.imperat.tests.TestCommandSource;
 public final class AnnotatedGroupCommand {
 
     @Execute
-    public void defaultUsage(TestCommandSource source, @Context CommandHelp<TestCommandSource> commandHelp) {
-        //default execution = no args
-        // /group help
-        commandHelp.display(
+    public void defaultUsage(@Context CommandHelp<TestCommandSource> commandHelp) {
+        commandHelp.show(
                 HelpQuery.<TestCommandSource>builder()
                         .filter((pathway) -> {
-                            //last node
                             return !pathway.getLastArgument().isCommand();
                         })
-                        //.filter(HelpFilters.hasPermission(source, commandHelp.getContext()))
                         .build(),
-                new ExampleHelpTheme()
+                new ExampleHelpRenderer()
         );
     }
 

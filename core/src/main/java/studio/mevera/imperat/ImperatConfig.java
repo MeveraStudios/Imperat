@@ -12,7 +12,6 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
-import studio.mevera.imperat.command.tree.help.HelpCoordinator;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -317,19 +316,6 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      * @param globalDefaultUsage the global default usage BUILDER.
      */
     void setGlobalDefaultPathway(@NotNull CommandPathway.Builder<S> globalDefaultUsage);
-
-
-    /**
-     * @return the help coordinator that coordinates
-     * how a help is being shown and displayed to the source.
-     */
-    @NotNull HelpCoordinator<S> getHelpCoordinator();
-
-    /**
-     * Sets the coordinator for displaying of a help.
-     * @param coordinator the new coordinator to set.
-     */
-    void setHelpCoordinator(@NotNull HelpCoordinator<S> coordinator);
 
     /**
      * The factory for creating instances of types to be dependency injected.

@@ -1,7 +1,6 @@
 package studio.mevera.imperat.adventure;
 
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import studio.mevera.imperat.context.CommandSource;
 
@@ -26,10 +25,4 @@ public class EmptyAdventure<S> implements AdventureProvider<S> {
     public void send(final CommandSource source, final ComponentLike component) {
         // do nothing
     }
-
-    @Override
-    public <SRC extends CommandSource> AdventureHelpComponent<SRC> createHelpComponent(Component component) {
-        return null;
-    }
-
 }

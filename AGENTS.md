@@ -16,7 +16,8 @@ command definition, supporting multiple backends (Paper, Velocity, Bungee, Mines
 - **Command Tree**: Commands are parsed into a tree structure (`command/tree/`), supporting nested subcommands, argument inheritance, and advanced
   usage patterns.
 - **Context & Execution**: Command execution context and argument/flag resolution are handled in `context/` and `command/`.
-- **Help System**: The help system is extensible and themeable (see `command/tree/help/`).
+- **Help System**: The help system is query/render/send based. `CommandHelp` collects `HelpResult` data, `HelpRenderer` formats it, and `HelpSender`
+  delivers it.
 
 ## Developer Workflows
 
@@ -46,7 +47,8 @@ command definition, supporting multiple backends (Paper, Velocity, Bungee, Mines
 - **Platform Adaptation**: Each platform module adapts the core API to its environment, but does not duplicate core logic.
 - **Custom Argument Types**: You can define and register custom argument types (see `groupcommand/GroupArgument.java` and its usage in
   `AnnotatedGroupCommand.java`).
-- **Custom Help Themes**: The help system supports custom themes (see `ExampleHelpTheme.java` and its use in `AnnotatedGroupCommand.java`).
+- **Custom Help Rendering**: The help system supports fully custom rendering and delivery (see `ExampleHelpRenderer.java` and its use in
+  `AnnotatedGroupCommand.java`).
 - **Kotlin Support**: Both Java and Kotlin are supported for commands and tests.
 
 ## Integration Points & Extensibility
@@ -54,13 +56,13 @@ command definition, supporting multiple backends (Paper, Velocity, Bungee, Mines
 - **Adding Platforms**: To add a new platform, create a new module and implement the necessary adapters for `CommandSource`, argument types, and event
   hooks.
 - **Custom Argument Types**: Extend argument parsing by adding new types in `command/arguments/` and registering them in the config.
-- **Responses & Help Themes**: Extend responses in `responses/` and help rendering in `command/tree/help/theme/`.
+- **Responses & Help Rendering**: Extend responses in `responses/` and help rendering in `command/tree/help/` plus `command/tree/help/renderers/`.
 
 ## Key Files & Directories
 
 - `core/src/main/java/studio/mevera/imperat/` – Core logic
 - `core/src/test/java/studio/mevera/imperat/tests/` – Test suite (integration, real-world, and regression tests)
-- `command/tree/help/` – Help system and themes
+- `command/tree/help/` – Help query/result/sender APIs
 - `build.gradle.kts` – Build and publishing configuration
 - `README.md` – High-level overview and example
 
@@ -68,7 +70,7 @@ command definition, supporting multiple backends (Paper, Velocity, Bungee, Mines
 
 - See `TestCommand.java` and `PartyCommand.java` for idiomatic command definitions.
 - See also real-world examples: `BanCommand.java`, `Ban2Command.java`, `GitCommand.java`, `ShoutCommand.java`, `GiveCmd.java`, and the `groupcommand/`
-  directory for advanced patterns (custom arguments, help themes).
+  directory for advanced patterns (custom arguments, custom help renderers).
 - Integration tests in `integration/IntegrationTest.java` and `flags/FlagsAndSwitchesTest.java` show real command usage and expected behaviors.
 
 ## External Resources

@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.tree.help.HelpEntry;
-import studio.mevera.imperat.command.tree.help.HelpEntryList;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
+import studio.mevera.imperat.command.tree.help.HelpResult;
 import studio.mevera.imperat.tests.TestCommandSource;
 
 import java.util.ArrayList;
@@ -162,7 +162,7 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
     @DisplayName("Help Entry Hiding")
     class HelpEntryHiding {
 
-        private HelpEntryList<TestCommandSource> querySecretTestHelp() {
+        private HelpResult<TestCommandSource> querySecretTestHelp() {
             Command<TestCommandSource> cmd = IMPERAT.getCommand("secrettest");
             Assertions.assertThat(cmd).as("Command 'secrettest' must be registered").isNotNull();
             assert cmd != null;
@@ -170,7 +170,7 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
             return cmd.tree().queryHelp(query);
         }
 
-        private List<String> formattedUsages(HelpEntryList<TestCommandSource> entries) {
+        private List<String> formattedUsages(HelpResult<TestCommandSource> entries) {
             List<String> usages = new ArrayList<>();
             for (HelpEntry<TestCommandSource> entry : entries) {
                 usages.add(entry.getPathway().formatted());
@@ -226,7 +226,7 @@ class SecretCommandTest extends EnhancedBaseImperatTest {
         @Test
         @DisplayName("Help entry count should exclude all secret entries")
         void helpEntryCountShouldExcludeSecret() {
-            HelpEntryList<TestCommandSource> entries = querySecretTestHelp();
+            HelpResult<TestCommandSource> entries = querySecretTestHelp();
 
             // secrettest has: root default, visible, visible child <arg>, public <name>
             // hidden and hidden deep <val> should be excluded

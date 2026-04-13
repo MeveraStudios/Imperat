@@ -32,7 +32,7 @@ public class TestCommand {
 
     @SubCommand(value = "help")
     public void help(TestCommandSource source) {
-        //help.display(source);
+        // help.show();
         source.reply("executed /test help");
     }
 

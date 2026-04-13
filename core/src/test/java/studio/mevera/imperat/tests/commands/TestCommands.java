@@ -72,7 +72,7 @@ public final class TestCommands {
                                                                                                         // .getContextResolvedArgument(CommandHelp
                                                                                                         // .class);
                                                                                                         //assert help != null;
-                                                                                                        //help.display(source);
+                                                                                                        // help.show();
 
                                                                                                         source.sendMsg("Help page= " + page);
                                                                                                     })

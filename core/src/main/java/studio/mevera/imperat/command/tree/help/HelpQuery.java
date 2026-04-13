@@ -4,15 +4,15 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.context.CommandSource;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
  * An immutable data class representing a query for help documentation.
  * <p>
  * This class encapsulates the various parameters that can be used to filter and
- * limit help entries, such as maximum depth, a result limit, and a queue of
+ * limit help entries, such as maximum depth, a result limit, and a list of
  * specific filters. It is designed to be constructed using its nested {@link Builder}.
  *
  * @param <S> The type of {@link CommandSource} from which the command was executed.
@@ -20,7 +20,7 @@ import java.util.function.Predicate;
 public final class HelpQuery<S extends CommandSource> {
 
     private final int maxDepth, limit;
-    private final @NotNull Queue<HelpFilter<S>> filters;
+    private final @NotNull List<HelpFilter<S>> filters;
     private final @NotNull Predicate<CommandPathway<S>> rootUsagePredicate;
 
     /**
@@ -29,9 +29,14 @@ public final class HelpQuery<S extends CommandSource> {
      *
      * @param maxDepth The maximum depth to traverse the command tree.
      * @param limit The maximum number of help entries to return.
-     * @param filters A queue of filters to apply to the help entries.
+     * @param filters A list of filters to apply to the help entries.
      */
-    private HelpQuery(int maxDepth, int limit, @NotNull Queue<HelpFilter<S>> filters, @NotNull Predicate<CommandPathway<S>> rootUsagePredicate) {
+    private HelpQuery(
+            int maxDepth,
+            int limit,
+            @NotNull List<HelpFilter<S>> filters,
+            @NotNull Predicate<CommandPathway<S>> rootUsagePredicate
+    ) {
         this.maxDepth = maxDepth;
         this.limit = limit;
         this.filters = filters;
@@ -67,11 +72,11 @@ public final class HelpQuery<S extends CommandSource> {
     }
 
     /**
-     * Gets the queue of filters to apply to the help entries.
+     * Gets the filters to apply to the help entries.
      *
-     * @return An unmodifiable queue of filters.
+     * @return An immutable list of filters.
      */
-    public @NotNull Queue<HelpFilter<S>> getFilters() {
+    public @NotNull List<HelpFilter<S>> getFilters() {
         return filters;
     }
 
@@ -80,6 +85,13 @@ public final class HelpQuery<S extends CommandSource> {
      */
     public @NotNull Predicate<CommandPathway<S>> getRootUsagePredicate() {
         return rootUsagePredicate;
+    }
+
+    public @NotNull HelpQuery<S> withFilter(@NotNull HelpFilter<S> filter) {
+        List<HelpFilter<S>> allFilters = new ArrayList<>(filters.size() + 1);
+        allFilters.addAll(filters);
+        allFilters.add(filter);
+        return new HelpQuery<>(maxDepth, limit, List.copyOf(allFilters), rootUsagePredicate);
     }
 
     /**
@@ -92,7 +104,7 @@ public final class HelpQuery<S extends CommandSource> {
      */
     public static class Builder<S extends CommandSource> {
 
-        private final @NotNull Queue<HelpFilter<S>> filters = new LinkedList<>();
+        private final @NotNull List<HelpFilter<S>> filters = new ArrayList<>();
         private int maxDepth = 25;
         private int limit = 50;
         private @NotNull Predicate<CommandPathway<S>> rootUsagePredicate = (u) -> u.size() > 0;
@@ -136,7 +148,7 @@ public final class HelpQuery<S extends CommandSource> {
         }
 
         /**
-         * Adds a filter to the queue of filters.
+         * Adds a filter to the query.
          *
          * @param filter The filter to add.
          * @return This builder instance.
@@ -152,7 +164,7 @@ public final class HelpQuery<S extends CommandSource> {
          * @return A new {@code HelpQuery}.
          */
         public @NotNull HelpQuery<S> build() {
-            return new HelpQuery<>(maxDepth, limit, filters, rootUsagePredicate);
+            return new HelpQuery<>(maxDepth, limit, List.copyOf(filters), rootUsagePredicate);
         }
 
     }
