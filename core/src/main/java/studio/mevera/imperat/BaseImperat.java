@@ -174,15 +174,6 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
     }
 
     private void checkAmbiguity(Command<S> command) {
-        //check if cmd exists
-        var other = getCommand(command.getName());
-        if(other != null) {
-            if (other == command) {
-                return;
-            }
-            throw new AmbiguousCommandException(command, other);
-        }
-
         //now check its tree for internal ambiguity
         AmbiguityChecker.checkAmbiguity(command);
     }

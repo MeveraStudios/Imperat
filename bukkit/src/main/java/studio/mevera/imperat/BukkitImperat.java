@@ -177,6 +177,10 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
         }
     }
 
+    public void updateCommand(Command<BukkitCommandSource> command) {
+        registerSimpleCommand(command);
+    }
+
     /**
      * Unregisters a command from the internal registry
      *
