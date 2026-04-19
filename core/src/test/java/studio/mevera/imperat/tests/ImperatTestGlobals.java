@@ -20,6 +20,7 @@ import studio.mevera.imperat.tests.commands.MultipleVariantsCmd;
 import studio.mevera.imperat.tests.commands.MyCustomAnnotation;
 import studio.mevera.imperat.tests.commands.OptionalArgCommand;
 import studio.mevera.imperat.tests.commands.RankCommand;
+import studio.mevera.imperat.tests.commands.RankRegressionCommand;
 import studio.mevera.imperat.tests.commands.SecretCommand;
 import studio.mevera.imperat.tests.commands.SetRankCmd;
 import studio.mevera.imperat.tests.commands.SomeClass;
@@ -104,6 +105,7 @@ public class ImperatTestGlobals {
                     new String[]{ann.name()});
             return List.of(cmdAnn);
         });
+        IMPERAT.registerCommand(RankRegressionCommand.class);
         IMPERAT.registerCommands(TestCommand.class, Test2Command.class, Test3Command.class, TestCustomAnnotationCmd.class);
         IMPERAT.registerCommand(BuyCommand.class);
         IMPERAT.registerCommand(ExceptionHandlerTestCmd.class);
