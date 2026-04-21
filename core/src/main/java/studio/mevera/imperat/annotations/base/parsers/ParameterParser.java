@@ -72,7 +72,6 @@ final class ParameterParser<S extends CommandSource> {
         boolean optional = param.isOptional();
         boolean greedy = param.getAnnotation(Greedy.class) != null;
 
-
         // Collect validators
         List<ArgValidator<S>> validators = parseValidators(param);
         var suggestionProviderFunction = parseSuggestions(param);
@@ -120,6 +119,7 @@ final class ParameterParser<S extends CommandSource> {
         if (formatAnn != null) {
             argument.setFormat(config.replacePlaceholders(formatAnn.value()));
         }
+
 
         argument = AnnotationArgumentDecorator.decorate(
                 argument, param
@@ -196,6 +196,10 @@ final class ParameterParser<S extends CommandSource> {
                 throw new IllegalStateException(
                         "Failed to create suggestion provider for parameter: " + param.getName(), e);
             }
+        } else if (param.isAnnotationPresent(Values.class)) {
+            Values valuesAnn = param.getAnnotation(Values.class);
+            assert valuesAnn != null;
+            return SuggestionProvider.staticSuggestions(valuesAnn.value());
         }
 
         return null;
@@ -231,7 +235,6 @@ final class ParameterParser<S extends CommandSource> {
             }
         }
 
-        // @Values annotation (constrained values)
         Values valuesAnn = param.getAnnotation(Values.class);
         if (valuesAnn != null) {
             Set<String> values = Arrays.stream(valuesAnn.value())
