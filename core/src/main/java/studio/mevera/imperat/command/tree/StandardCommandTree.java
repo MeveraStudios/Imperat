@@ -506,6 +506,10 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         // Step 3: Traverse tree children looking for a match
         final var rootChildren = root.getChildren();
         if (rootChildren.isEmpty()) {
+            CommandPathway<S> directUsage = getUsableExecutableUsage(root);
+            if (directUsage != null && canPathwayConsumeInput(context, directUsage)) {
+                return executePathway(context, root, directUsage, rootCommand, new ArrayList<>(2));
+            }
             return noMatchFromNode(root, 0);
         }
 
@@ -1293,7 +1297,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         if (!Objects.equals(usage, command.getDefaultPathway())) {
             return usage;
         }
-        return hasDedicatedDefaultPathway(command) ? usage : null;
+        return hasDedicatedDefaultPathway(command) || !usage.getFlagExtractor().getRegisteredFlags().isEmpty() ? usage : null;
     }
 
     private void computeCompletionCaches(@NotNull CommandNode<S, ?> node) {
@@ -1525,6 +1529,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
 
         Map<Argument<S>, SuggestionProvider<S>> candidates = new LinkedHashMap<>();
         collectMatchingChildren(root, 0, context, candidates);
+        collectRootOnlyFlagSuggestions(context, candidates);
 
         List<String> list = new ArrayList<>();
         for (var candidate : candidates.entrySet()) {
@@ -1539,6 +1544,49 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         return !hasPrefix ? list : list.stream()
                                    .filter((suggestion) -> suggestion.startsWith(prefix))
                                    .toList();
+    }
+
+    private void collectRootOnlyFlagSuggestions(
+            @NotNull SuggestionContext<S> context,
+            @NotNull Map<Argument<S>, SuggestionProvider<S>> candidates
+    ) {
+        if (!root.getChildren().isEmpty() || !candidates.isEmpty()) {
+            return;
+        }
+
+        CommandPathway<S> rootUsage = getUsableExecutableUsage(root);
+        if (rootUsage == null || root.getCompletionCache().visibleFlags().isEmpty()) {
+            return;
+        }
+
+        int lastIndex = context.getArgToComplete().index();
+        if (skipRecognizedFlags(context.arguments(), rootUsage, 0) < lastIndex) {
+            return;
+        }
+
+        int prevIndex = lastIndex - 1;
+        String prevInput = context.arguments().getOr(prevIndex, null);
+        if (prevInput != null && context.isFlagPosition(prevIndex)) {
+            FlagArgument<S> flagData = findFlagArgumentForToken(root, prevInput);
+            if (flagData != null && !flagData.flagData().isSwitch()) {
+                addSuggestionCandidate(flagData, candidates);
+                return;
+            }
+        }
+
+        List<FlagArgument<S>> unusedFlags = new ArrayList<>(root.getCompletionCache().visibleFlags());
+        for (int i = 0; i < lastIndex; i++) {
+            if (!context.isFlagPosition(i)) {
+                continue;
+            }
+
+            String argInput = context.arguments().getOr(i, null);
+            if (argInput == null) {
+                continue;
+            }
+            unusedFlags.removeIf((flagArg) -> flagArg.flagData().acceptsInput(argInput));
+        }
+        addSuggestionCandidates(unusedFlags, candidates);
     }
 
     private boolean hasBlankGapBeforeCursor(@NotNull SuggestionContext<S> context) {
@@ -1654,7 +1702,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             if (currentNode.isLast()) {
                 //we are in a situation of extra input args , extra apart from the nodes!
                 //TODO check for flags
-                List<FlagArgument<S>> unusedFlags = currentNode.getCompletionCache().visibleFlags();
+                List<FlagArgument<S>> unusedFlags = new ArrayList<>(currentNode.getCompletionCache().visibleFlags());
                 for (int i = depth + 1; i < lastIndex - 1; i++) {
                     if (!context.isFlagPosition(i)) {
                         continue;

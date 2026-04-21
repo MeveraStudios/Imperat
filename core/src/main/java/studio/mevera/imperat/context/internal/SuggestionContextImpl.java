@@ -42,7 +42,7 @@ final class SuggestionContextImpl<S extends CommandSource> extends ContextImpl<S
             return false;
         }
         boolean singleStartFlag = str.charAt(0) == FLAG_START;
-        boolean doubleStartFlag = singleStartFlag && str.charAt(1) == FLAG_START;
+        boolean doubleStartFlag = str.length() > 1 && singleStartFlag && str.charAt(1) == FLAG_START;
 
         int maxLength = doubleStartFlag ? 2 : singleStartFlag ? 1 : -1;
         if (maxLength == -1) {
