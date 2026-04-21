@@ -1550,17 +1550,13 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             @NotNull SuggestionContext<S> context,
             @NotNull Map<Argument<S>, SuggestionProvider<S>> candidates
     ) {
-        if (!root.getChildren().isEmpty() || !candidates.isEmpty()) {
-            return;
-        }
-
         CommandPathway<S> rootUsage = getUsableExecutableUsage(root);
         if (rootUsage == null || root.getCompletionCache().visibleFlags().isEmpty()) {
             return;
         }
 
         int lastIndex = context.getArgToComplete().index();
-        if (skipRecognizedFlags(context.arguments(), rootUsage, 0) < lastIndex) {
+        if (hasMatchedRootLiteralBeforeCursor(context, rootUsage, lastIndex)) {
             return;
         }
 
@@ -1569,6 +1565,7 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
         if (prevInput != null && context.isFlagPosition(prevIndex)) {
             FlagArgument<S> flagData = findFlagArgumentForToken(root, prevInput);
             if (flagData != null && !flagData.flagData().isSwitch()) {
+                removeRootLiteralCandidates(candidates);
                 addSuggestionCandidate(flagData, candidates);
                 return;
             }
@@ -1587,6 +1584,36 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             unusedFlags.removeIf((flagArg) -> flagArg.flagData().acceptsInput(argInput));
         }
         addSuggestionCandidates(unusedFlags, candidates);
+    }
+
+    private boolean hasMatchedRootLiteralBeforeCursor(
+            @NotNull SuggestionContext<S> context,
+            @NotNull CommandPathway<S> rootUsage,
+            int lastIndex
+    ) {
+        for (int i = 0; i < lastIndex; i++) {
+            String argInput = context.arguments().getOr(i, null);
+            if (argInput == null || argInput.isBlank()) {
+                continue;
+            }
+
+            FlagData<S> flagData = rootUsage.getFlagDataFromInput(argInput);
+            if (flagData != null) {
+                if (!flagData.isSwitch()) {
+                    i++;
+                }
+                continue;
+            }
+
+            return root.getCompletionCache().literalChildLookup().containsKey(argInput.toLowerCase(Locale.ROOT));
+        }
+        return false;
+    }
+
+    private void removeRootLiteralCandidates(@NotNull Map<Argument<S>, SuggestionProvider<S>> candidates) {
+        for (var literalChild : root.getCompletionCache().literalChildren()) {
+            candidates.remove(literalChild.getData());
+        }
     }
 
     private boolean hasBlankGapBeforeCursor(@NotNull SuggestionContext<S> context) {

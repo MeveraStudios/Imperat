@@ -11,6 +11,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
@@ -88,6 +89,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
 
             }
         }
+        appendFlagSuggestionTunnel(root.getData(), root, builder);
         return builder;
     }
 
@@ -157,8 +159,26 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             }
         }
 
+        appendFlagSuggestionTunnel(rootImperatNode.getData(), currentImperatNode, childBuilder);
 
         return childBuilder.build();
+    }
+
+    private <BS> void appendFlagSuggestionTunnel(
+            Command<S> command,
+            studio.mevera.imperat.command.tree.CommandNode<S, ?> scopeNode,
+            ArgumentBuilder<BS, ?> parentBuilder
+    ) {
+        CommandPathway<S> flagScope = resolveFlagScopePathway(scopeNode);
+        if (flagScope == null || flagScope.getFlagExtractor().getRegisteredFlags().isEmpty()) {
+            return;
+        }
+
+        RequiredArgumentBuilder<BS, String> tunnelBuilder =
+                RequiredArgumentBuilder.argument(flagTunnelName(scopeNode), StringArgumentType.greedyString());
+        tunnelBuilder.suggests(createFlagSuggestionProvider(command, flagScope));
+        executor(tunnelBuilder);
+        parentBuilder.then(tunnelBuilder);
     }
 
     private @NotNull <BS> SuggestionProvider<BS> createSuggestionProvider(
@@ -194,6 +214,129 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
                                return builder.buildFuture();
                            });
         };
+    }
+
+    private @NotNull <BS> SuggestionProvider<BS> createFlagSuggestionProvider(
+            Command<S> command,
+            CommandPathway<S> flagScope
+    ) {
+        return (context, builder) -> {
+            SuggestionContext<S> suggestionContext = createSuggestionContext(command, context.getSource(), context.getInput());
+            CompletionArg arg = suggestionContext.getArgToComplete();
+
+            boolean valueCompletion = isValueFlagInputPosition(flagScope, suggestionContext, arg);
+            if (!valueCompletion && !shouldSuggestFlagNames(arg)) {
+                return builder.buildFuture();
+            }
+
+            String normalizedInput = normalizeInput(context.getInput());
+            return dispatcher.autoComplete(wrapCommandSource(context.getSource()), normalizedInput)
+                           .thenCompose((results) -> {
+                               var targetBuilder = valueCompletion
+                                                           ? builder.createOffset(resolveFlagValueSuggestionStart(context.getInput(), arg))
+                                                           : builder;
+                               results.stream()
+                                       .filter((result) -> valueCompletion || result.startsWith("-"))
+                                       .forEachOrdered(targetBuilder::suggest);
+                               return targetBuilder.buildFuture();
+                           });
+        };
+    }
+
+    private @NotNull SuggestionContext<S> createSuggestionContext(
+            Command<S> command,
+            Object rawSource,
+            String rawInput
+    ) {
+        S source = wrapCommandSource(rawSource);
+        String input = normalizeInput(rawInput);
+        int firstSpaceIndex = input.indexOf(' ');
+        String label = firstSpaceIndex == -1 ? input : input.substring(0, firstSpaceIndex);
+        boolean endsWithSpace = !input.isEmpty() && Character.isWhitespace(input.charAt(input.length() - 1));
+        int argumentsStart = firstSpaceIndex == -1 ? input.length() : firstSpaceIndex + 1;
+        int argumentsEnd = endsWithSpace ? input.length() - 1 : input.length();
+        String argumentsSection = argumentsStart >= argumentsEnd
+                                          ? ""
+                                          : input.substring(argumentsStart, argumentsEnd);
+        ArgumentInput args = ArgumentInput.parseAutoCompletion(argumentsSection, endsWithSpace);
+        return dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
+    }
+
+    private boolean isValueFlagInputPosition(
+            CommandPathway<S> flagScope,
+            SuggestionContext<S> suggestionContext,
+            CompletionArg arg
+    ) {
+        int previousIndex = arg.index() - 1;
+        String previousInput = suggestionContext.arguments().getOr(previousIndex, null);
+        if (previousInput == null || !suggestionContext.isFlagPosition(previousIndex)) {
+            return false;
+        }
+
+        var flagData = flagScope.getFlagDataFromInput(previousInput);
+        return flagData != null && !flagData.isSwitch();
+    }
+
+    private boolean shouldSuggestFlagNames(CompletionArg arg) {
+        return arg.isEmpty() || arg.value().startsWith("-");
+    }
+
+    private int resolveFlagValueSuggestionStart(String rawInput, CompletionArg arg) {
+        if (arg.isEmpty()) {
+            return rawInput.length();
+        }
+        return Math.max(0, rawInput.length() - arg.value().length());
+    }
+
+    private CommandPathway<S> resolveFlagScopePathway(
+            studio.mevera.imperat.command.tree.CommandNode<S, ?> scopeNode
+    ) {
+        CommandPathway<S> directUsage = scopeNode.getExecutableUsage();
+        if (directUsage != null) {
+            return directUsage;
+        }
+
+        CommandPathway<S> descendantUsage = findExecutableUsageInSubtree(scopeNode);
+        if (descendantUsage != null) {
+            return descendantUsage;
+        }
+
+        var parent = scopeNode.getParent();
+        while (parent != null) {
+            if (parent.getExecutableUsage() != null) {
+                return parent.getExecutableUsage();
+            }
+            parent = parent.getParent();
+        }
+
+        return null;
+    }
+
+    private CommandPathway<S> findExecutableUsageInSubtree(
+            studio.mevera.imperat.command.tree.CommandNode<S, ?> scopeNode
+    ) {
+        for (var child : scopeNode.getChildren()) {
+            if (child.getExecutableUsage() != null) {
+                return child.getExecutableUsage();
+            }
+
+            CommandPathway<S> descendantUsage = findExecutableUsageInSubtree(child);
+            if (descendantUsage != null) {
+                return descendantUsage;
+            }
+        }
+        return null;
+    }
+
+    private String normalizeInput(String input) {
+        while (input.startsWith("/")) {
+            input = input.substring(1);
+        }
+        return input;
+    }
+
+    private String flagTunnelName(studio.mevera.imperat.command.tree.CommandNode<S, ?> scopeNode) {
+        return "_imperat_flags_" + scopeNode.getDepth();
     }
 
     private void executor(ArgumentBuilder<?, ?> builder) {

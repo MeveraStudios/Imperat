@@ -137,6 +137,27 @@ class EnhancedFlagArgumentTest extends EnhancedBaseImperatTest {
         }
     }
 
+    @RootCommand("example3")
+    public static final class MixedRootFlagAndSubcommandCommand {
+
+        @Execute
+        public void root(
+                TestCommandSource source,
+                @Flag({"scenario", "sc"})
+                @Suggest({"kindergarten", "castle", "sandstorm", "tsunami"})
+                String scenario
+        ) {
+        }
+
+        @SubCommand("play")
+        public void play(TestCommandSource source) {
+        }
+
+        @SubCommand("mix")
+        public void mix(TestCommandSource source) {
+        }
+    }
+
     @Nested
     @DisplayName("Value Flag Scenarios")
     class ValueFlagArgumentScenarios {
@@ -289,6 +310,26 @@ class EnhancedFlagArgumentTest extends EnhancedBaseImperatTest {
             assertThat(result)
                     .isSuccessful()
                     .hasFlagValue("scenario", "castle");
+        }
+
+        @Test
+        @DisplayName("Should merge root flags with root literal suggestions")
+        void testMixedRootFlagNameCompletion() {
+            var suggestions = tabComplete(MixedRootFlagAndSubcommandCommand.class, cfg -> {
+            }, "example3 ");
+
+            Assertions.assertThat(suggestions)
+                    .containsExactlyInAnyOrder("play", "mix", "-scenario", "-sc");
+        }
+
+        @Test
+        @DisplayName("Should suggest root flag values even when root has literal children")
+        void testMixedRootFlagValueCompletion() {
+            var suggestions = tabComplete(MixedRootFlagAndSubcommandCommand.class, cfg -> {
+            }, "example3 -sc ");
+
+            Assertions.assertThat(suggestions)
+                    .containsExactlyInAnyOrder("kindergarten", "castle", "sandstorm", "tsunami");
         }
     }
 }
