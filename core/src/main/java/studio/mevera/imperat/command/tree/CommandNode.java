@@ -115,12 +115,24 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
         if (this.isLiteral()) {
             String in = ctx.arguments().getOr(depth, null);
             if (in == null) {
-                return ParseResult.failed(new IllegalArgumentException("Empty input given for a literal node"));
+                return ParseResult.failed(
+                        new IllegalArgumentException("Empty input given for a literal node"),
+                        data,
+                        null,
+                        depth,
+                        depth
+                );
             }
             if (data.asCommand().hasName(in)) {
                 return ParseResult.successful(data.asCommand(), data, in, depth, depth + 1);
             } else {
-                return ParseResult.failed(new CommandException("Unknown sub command '" + in + "'"));
+                return ParseResult.failed(
+                        new CommandException("Unknown sub command '" + in + "'"),
+                        data,
+                        in,
+                        depth,
+                        depth + 1
+                );
             }
         }
 
@@ -128,7 +140,13 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
         if (!isGreedyParam() && baseCount == 1 && requestedTokensToConsume <= 1) {
             String rawInput = ctx.arguments().getOr(depth, null);
             if (rawInput == null) {
-                return ParseResult.failed(new IllegalArgumentException("No input token available for " + data.format()));
+                return ParseResult.failed(
+                        new IllegalArgumentException("No input token available for " + data.format()),
+                        data,
+                        null,
+                        depth,
+                        depth
+                );
             }
 
             if (resolveFlagData(ctx, flagScopePathway, depth) == null) {
@@ -136,7 +154,7 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
                     var obj = type.parse(ctx, this.data, rawInput);
                     return ParseResult.successful(obj, data, rawInput, data.getPosition(), depth + 1);
                 } catch (Exception e) {
-                    return ParseResult.failed(e);
+                    return ParseResult.failed(e, data, rawInput, data.getPosition(), depth + 1);
                 }
             }
         }
@@ -147,12 +165,19 @@ public abstract class CommandNode<S extends CommandSource, T extends Argument<S>
             throw new IllegalArgumentException("Number of args to consume for type " + type.getClass().getSimpleName() + " must be at least 1");
         }
 
+        MatchCollection parseOutcome = null;
         try {
-            var parseOutcome = collectMatchInput(ctx, depth, tokensToConsume, flagScopePathway);
+            parseOutcome = collectMatchInput(ctx, depth, tokensToConsume, flagScopePathway);
             var obj = type.parse(ctx, this.data, parseOutcome.input());
             return ParseResult.successful(obj, data, parseOutcome.input(), data.getPosition(), parseOutcome.nextDepth());
         } catch (Exception e) {
-            return ParseResult.failed(e);
+            return ParseResult.failed(
+                    e,
+                    data,
+                    parseOutcome == null ? null : parseOutcome.input(),
+                    data.getPosition(),
+                    parseOutcome == null ? depth : parseOutcome.nextDepth()
+            );
         }
     }
 

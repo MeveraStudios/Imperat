@@ -30,13 +30,19 @@ public final class ParseResult<S extends CommandSource> {
         this.nextDepth = nextDepth;
     }
 
-    private ParseResult(Throwable error) {
+    private ParseResult(
+            Throwable error,
+            @Nullable Argument<S> argument,
+            @Nullable String rawInput,
+            int inputPosition,
+            int nextDepth
+    ) {
         this.error = error;
         this.value = null;
-        this.argument = null;
-        this.rawInput = null;
-        this.inputPosition = -1;
-        this.nextDepth = -1;
+        this.argument = argument;
+        this.rawInput = rawInput;
+        this.inputPosition = inputPosition;
+        this.nextDepth = nextDepth;
     }
 
     public static <S extends CommandSource> ParseResult<S> successful(
@@ -50,7 +56,17 @@ public final class ParseResult<S extends CommandSource> {
     }
 
     public static <S extends CommandSource> ParseResult<S> failed(Throwable ex) {
-        return new ParseResult<>(ex);
+        return new ParseResult<>(ex, null, null, -1, -1);
+    }
+
+    public static <S extends CommandSource> ParseResult<S> failed(
+            Throwable ex,
+            @Nullable Argument<S> argument,
+            @Nullable String rawInput,
+            int inputPosition,
+            int nextDepth
+    ) {
+        return new ParseResult<>(ex, argument, rawInput, inputPosition, nextDepth);
     }
 
     public boolean isSuccessful() {
@@ -82,11 +98,11 @@ public final class ParseResult<S extends CommandSource> {
     }
 
     public boolean canReuseInExecution() {
-        return argument != null;
+        return isSuccessful() && argument != null;
     }
 
     public @NotNull ParsedArgument<S> toParsedArgument() {
-        if (argument == null) {
+        if (!isSuccessful() || argument == null) {
             throw new IllegalStateException("This parse result does not carry a reusable parsed argument");
         }
         return new ParsedArgument<>(rawInput, argument, inputPosition, value);

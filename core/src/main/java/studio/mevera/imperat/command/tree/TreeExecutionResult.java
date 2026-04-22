@@ -28,6 +28,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
     private final @NotNull Command<S> lastCommand;
     private final @NotNull List<ParseResult<S>> parsedArguments;
     private final int furthestMatchDepth;
+    private final int matchScore;
 
     private TreeExecutionResult(
             @NotNull Status status,
@@ -37,7 +38,8 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @Nullable PermissionHolder deniedPermissionHolder,
             @NotNull Command<S> lastCommand,
             @NotNull List<ParseResult<S>> parsedArguments,
-            int furthestMatchDepth
+            int furthestMatchDepth,
+            int matchScore
     ) {
         this.status = status;
         this.executionContext = executionContext;
@@ -47,6 +49,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
         this.lastCommand = lastCommand;
         this.parsedArguments = parsedArguments;
         this.furthestMatchDepth = furthestMatchDepth;
+        this.matchScore = matchScore;
     }
 
     /**
@@ -58,10 +61,11 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @NotNull CommandPathway<S> matchedPathway,
             @NotNull Command<S> lastCommand,
             @NotNull List<ParseResult<S>> parsedArguments,
-            int furthestMatchDepth
+            int furthestMatchDepth,
+            int matchScore
     ) {
         return new TreeExecutionResult<>(Status.SUCCESS, executionContext, closestUsage, matchedPathway, null, lastCommand,
-                List.copyOf(parsedArguments), furthestMatchDepth);
+                List.copyOf(parsedArguments), furthestMatchDepth, matchScore);
     }
 
     /**
@@ -71,14 +75,16 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @Nullable CommandPathway<S> closestUsage,
             @Nullable PermissionHolder deniedPermissionHolder,
             @NotNull Command<S> lastCommand,
-            int furthestMatchDepth
+            int furthestMatchDepth,
+            int matchScore
     ) {
         return new TreeExecutionResult<>(Status.PERMISSION_DENIED, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage,
                 closestUsage,
                 deniedPermissionHolder,
                 lastCommand,
                 List.of(),
-                furthestMatchDepth);
+                furthestMatchDepth,
+                matchScore);
     }
 
     /**
@@ -87,10 +93,11 @@ public final class TreeExecutionResult<S extends CommandSource> {
     public static <S extends CommandSource> TreeExecutionResult<S> noMatch(
             @Nullable CommandPathway<S> closestUsage,
             @NotNull Command<S> lastCommand,
-            int furthestMatchDepth
+            int furthestMatchDepth,
+            int matchScore
     ) {
         return new TreeExecutionResult<>(Status.NO_MATCH, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage, closestUsage,
-                null, lastCommand, List.of(), furthestMatchDepth);
+                null, lastCommand, List.of(), furthestMatchDepth, matchScore);
     }
 
     public @NotNull Status getStatus() {
@@ -123,6 +130,10 @@ public final class TreeExecutionResult<S extends CommandSource> {
 
     public int getFurthestMatchDepth() {
         return furthestMatchDepth;
+    }
+
+    public int getMatchScore() {
+        return matchScore;
     }
 
     public boolean isSuccess() {
