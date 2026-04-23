@@ -539,6 +539,28 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         if (treeResult.getStatus() == TreeExecutionResult.Status.NO_MATCH) {
             ImperatDebugger.debug("No matching pathway found!");
             var closestUsage = treeResult.getClosestUsage();
+
+            // If the NO_MATCH was caused by an ArgumentType#parse throwing an exception
+            // AND the user has registered a handler for that exception (directly, via a
+            // superclass, or anywhere in its cause chain — either command-locally or
+            // globally), surface the exception as-is so the handler actually fires for the
+            // original type. Otherwise fall back to InvalidSyntaxException (with the parse
+            // error attached as its cause, so it's still preserved for diagnostics).
+            Throwable parseError = treeResult.getParseError();
+            if (parseError instanceof InvalidSyntaxException syntaxException) {
+                throw syntaxException;
+            }
+            if (parseError != null && hasRegisteredHandlerFor(parseError, treeResult.getLastCommand())) {
+                if (parseError instanceof CommandException commandException) {
+                    throw commandException;
+                }
+                if (parseError instanceof RuntimeException runtimeException) {
+                    throw runtimeException;
+                }
+                // Any other (checked, non-CommandException) Throwable: rare, since
+                // ArgumentType#parse only declares CommandException. Keep cause for handlers.
+            }
+
             String invalidUsage = UsageFormatting.formatInput(
                     config.commandPrefix(),
                     context.getRootCommandLabelUsed(),
@@ -546,7 +568,8 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
             );
             throw new InvalidSyntaxException(
                     invalidUsage,
-                    closestUsage
+                    closestUsage,
+                    parseError
             );
         }
 
@@ -579,6 +602,31 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         for (var cmd : commands.values()) {
             cmd.visualizeTree();
         }
+    }
+
+    /**
+     * Walks the {@code parseError} cause chain and, for each throwable in it, checks whether
+     * the given command (plus its ancestor commands) or the global config has a registered
+     * handler that can resolve it. Mirrors the dispatch order used by
+     * {@code ImperatConfigImpl.handleExecutionError}.
+     */
+    private boolean hasRegisteredHandlerFor(@NotNull Throwable parseError, @NotNull Command<S> lastCommand) {
+        Throwable current = parseError;
+        while (current != null) {
+            Class<? extends Throwable> type = current.getClass();
+            Command<S> cmd = lastCommand;
+            while (cmd != null) {
+                if (cmd.getErrorHandlerFor(type) != null) {
+                    return true;
+                }
+                cmd = cmd.getParent();
+            }
+            if (config.getErrorHandlerFor(type) != null) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
 }

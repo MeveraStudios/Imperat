@@ -498,13 +498,14 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
             int matchScore,
             int fallbackDepth
     ) {
-        int failureDepth = parseResult.getNextDepth() > fallbackDepth ? parseResult.getNextDepth() : fallbackDepth;
+        int failureDepth = Math.max(parseResult.getNextDepth(), fallbackDepth);
         CommandPathway<S> closestUsage = resolveClosestUsageAfterParseFailure(context, node, parseResult);
         return TreeExecutionResult.noMatch(
                 closestUsage,
                 getCommandFromNode(node),
                 failureDepth,
-                advanceMatchScore(matchScore, node)
+                advanceMatchScore(matchScore, node),
+                parseResult.getError()
         );
     }
 

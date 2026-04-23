@@ -81,6 +81,14 @@ public final class ParseResult<S extends CommandSource> {
         return value;
     }
 
+    /**
+     * The exception thrown by {@link studio.mevera.imperat.command.arguments.type.ArgumentType#parse}
+     * (or a structural error raised during parse orchestration). {@code null} on success.
+     */
+    public @Nullable Throwable getError() {
+        return error;
+    }
+
     public @Nullable Argument<S> getArgument() {
         return argument;
     }

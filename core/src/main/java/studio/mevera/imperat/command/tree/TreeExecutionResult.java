@@ -29,6 +29,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
     private final @NotNull List<ParseResult<S>> parsedArguments;
     private final int furthestMatchDepth;
     private final int matchScore;
+    private final @Nullable Throwable parseError;
 
     private TreeExecutionResult(
             @NotNull Status status,
@@ -39,7 +40,8 @@ public final class TreeExecutionResult<S extends CommandSource> {
             @NotNull Command<S> lastCommand,
             @NotNull List<ParseResult<S>> parsedArguments,
             int furthestMatchDepth,
-            int matchScore
+            int matchScore,
+            @Nullable Throwable parseError
     ) {
         this.status = status;
         this.executionContext = executionContext;
@@ -50,6 +52,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
         this.parsedArguments = parsedArguments;
         this.furthestMatchDepth = furthestMatchDepth;
         this.matchScore = matchScore;
+        this.parseError = parseError;
     }
 
     /**
@@ -65,7 +68,7 @@ public final class TreeExecutionResult<S extends CommandSource> {
             int matchScore
     ) {
         return new TreeExecutionResult<>(Status.SUCCESS, executionContext, closestUsage, matchedPathway, null, lastCommand,
-                List.copyOf(parsedArguments), furthestMatchDepth, matchScore);
+                List.copyOf(parsedArguments), furthestMatchDepth, matchScore, null);
     }
 
     /**
@@ -84,7 +87,8 @@ public final class TreeExecutionResult<S extends CommandSource> {
                 lastCommand,
                 List.of(),
                 furthestMatchDepth,
-                matchScore);
+                matchScore,
+                null);
     }
 
     /**
@@ -96,8 +100,25 @@ public final class TreeExecutionResult<S extends CommandSource> {
             int furthestMatchDepth,
             int matchScore
     ) {
+        return noMatch(closestUsage, lastCommand, furthestMatchDepth, matchScore, null);
+    }
+
+    /**
+     * Creates a no-match result that carries the underlying parse error raised by an
+     * {@link studio.mevera.imperat.command.arguments.type.ArgumentType#parse} call, so the
+     * original exception (e.g. a user-thrown {@link studio.mevera.imperat.exception.CommandException}
+     * subclass) can be surfaced to the configured exception handler instead of being
+     * replaced by a generic {@code InvalidSyntaxException}.
+     */
+    public static <S extends CommandSource> TreeExecutionResult<S> noMatch(
+            @Nullable CommandPathway<S> closestUsage,
+            @NotNull Command<S> lastCommand,
+            int furthestMatchDepth,
+            int matchScore,
+            @Nullable Throwable parseError
+    ) {
         return new TreeExecutionResult<>(Status.NO_MATCH, null, closestUsage == null ? lastCommand.getDefaultPathway() : closestUsage, closestUsage,
-                null, lastCommand, List.of(), furthestMatchDepth, matchScore);
+                null, lastCommand, List.of(), furthestMatchDepth, matchScore, parseError);
     }
 
     public @NotNull Status getStatus() {
@@ -134,6 +155,14 @@ public final class TreeExecutionResult<S extends CommandSource> {
 
     public int getMatchScore() {
         return matchScore;
+    }
+
+    /**
+     * The exception thrown by the failing {@code ArgumentType#parse} call that caused this
+     * {@link Status#NO_MATCH}, or {@code null} if this result is not tied to a specific parse failure.
+     */
+    public @Nullable Throwable getParseError() {
+        return parseError;
     }
 
     public boolean isSuccess() {

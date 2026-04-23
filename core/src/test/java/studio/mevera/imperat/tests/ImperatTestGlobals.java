@@ -25,6 +25,7 @@ import studio.mevera.imperat.tests.commands.SecretCommand;
 import studio.mevera.imperat.tests.commands.SetRankCmd;
 import studio.mevera.imperat.tests.commands.SomeClass;
 import studio.mevera.imperat.tests.commands.Test2Command;
+import studio.mevera.imperat.tests.commands.ThrowingParseCommand;
 import studio.mevera.imperat.tests.commands.Test3Command;
 import studio.mevera.imperat.tests.commands.TestAC;
 import studio.mevera.imperat.tests.commands.TestAC2;
@@ -60,6 +61,8 @@ import studio.mevera.imperat.tests.parameters.CustomDuration;
 import studio.mevera.imperat.tests.parameters.CustomDurationArgumentType;
 import studio.mevera.imperat.tests.parameters.JavaDurationArgumentType;
 import studio.mevera.imperat.tests.parameters.TestPlayerParamType;
+import studio.mevera.imperat.tests.parameters.ThrowingArgumentType;
+import studio.mevera.imperat.tests.parameters.ThrowingValue;
 import studio.mevera.imperat.tests.syntax.commands.UsageTestCommand;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.TypeWrap;
@@ -82,6 +85,7 @@ public class ImperatTestGlobals {
                                                       .argType(CustomDuration.class, new CustomDurationArgumentType<>())
                                                       .argType(BigDecimal.class, new BigDecimalParamType())
                                                       .argType(Currency.class, new CurrencyParamType())
+                                                      .argType(ThrowingValue.class, new ThrowingArgumentType())
                                                       .handleMiddleOptionalArgSkipping(true)
                                                       .contextArgumentProvider(new TypeWrap<CommandHelp<TestCommandSource>>() {
                                                       }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
@@ -109,6 +113,7 @@ public class ImperatTestGlobals {
         IMPERAT.registerCommands(TestCommand.class, Test2Command.class, Test3Command.class, TestCustomAnnotationCmd.class);
         IMPERAT.registerCommand(BuyCommand.class);
         IMPERAT.registerCommand(ExceptionHandlerTestCmd.class);
+        IMPERAT.registerCommand(ThrowingParseCommand.class);
         IMPERAT.registerCommand(ReqCmd.class);
         IMPERAT.registerCommand(MultipleVariantsCmd.class);
         IMPERAT.registerSimpleCommand(MULTIPLE_OPTIONAL_CMD);
@@ -168,5 +173,7 @@ public class ImperatTestGlobals {
         BuyCommand.lastHandledExceptionMessage = null;
         ExceptionHandlerTestCmd.lastHandledMessage = null;
         ExceptionHandlerTestCmd.lastHandledType = null;
+        ThrowingParseCommand.lastHandledMessage = null;
+        ThrowingParseCommand.lastHandledType = null;
     }
 }
