@@ -274,7 +274,12 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             if (method.isAnnotationPresent(PathwayCommand.class)) {
                 PathwayCommand ann = method.getAnnotation(PathwayCommand.class);
                 assert ann != null;
-                pathwaySyntaxParser.loadCommand(currentCommand, ann.value(), method);
+                for (String syntax : ann.value()) {
+                    String rootToken = syntax.substring(0, syntax.indexOf(' '));
+                    String rootName = rootToken.split(PathwaySyntaxParser.LITERAL_SPLIT)[0];
+                    Command<S> providedRoot = currentCommand.hasName(rootName) ? currentCommand : null;
+                    pathwaySyntaxParser.loadCommand(providedRoot, syntax, method);
+                }
             }
         }
 
@@ -409,20 +414,22 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
             PathwayCommand ann = method.getAnnotation(PathwayCommand.class);
             assert ann != null;
 
-            String syntax = ann.value();
-            String rootFormat = syntax.substring(0, syntax.indexOf(' '));
+            boolean secret = method.isAnnotationPresent(Secret.class);
+            for (String syntax : ann.value()) {
+                String rootFormat = syntax.substring(0, syntax.indexOf(' '));
 
-            List<String> cmdNames = new ArrayList<>(Arrays.asList(rootFormat.split(PathwaySyntaxParser.LITERAL_SPLIT)));
+                List<String> cmdNames = new ArrayList<>(Arrays.asList(rootFormat.split(PathwaySyntaxParser.LITERAL_SPLIT)));
 
-            command = Command.create(imperat, cmdNames.get(0))
-                              .aliases(cmdNames.subList(1, cmdNames.size()))
-                              .supressPermissionsForAutoCompletion(ann.suppressPermissionCheckDuringAutoCompletion())
-                              .build();
+                Command<S> builtRoot = Command.create(imperat, cmdNames.get(0))
+                                              .aliases(cmdNames.subList(1, cmdNames.size()))
+                                              .supressPermissionsForAutoCompletion(ann.suppressPermissionCheckDuringAutoCompletion())
+                                              .build();
 
-            if (method.isAnnotationPresent(Secret.class)) {
-                command.setSecret(true);
+                if (secret) {
+                    builtRoot.setSecret(true);
+                }
+                pathwaySyntaxParser.loadCommand(builtRoot, syntax, method);
             }
-            pathwaySyntaxParser.loadCommand(command, syntax, method);
             return null;
         } else {
             return null;

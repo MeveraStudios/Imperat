@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface PathwayCommand {
 
-    String value();
+    String[] value();
 
     boolean suppressPermissionCheckDuringAutoCompletion() default false;
 }
