@@ -14,6 +14,14 @@ public class ParsedArgument<S extends CommandSource> {
     public ParsedArgument(
             @Nullable String raw,
             Argument<S> originalArgument,
+            @Nullable Object argumentParsedValue
+    ) {
+        this(raw, originalArgument, -1, argumentParsedValue);
+    }
+
+    public ParsedArgument(
+            @Nullable String raw,
+            Argument<S> originalArgument,
             int inputPosition,
             @Nullable Object argumentParsedValue
     ) {
@@ -31,12 +39,12 @@ public class ParsedArgument<S extends CommandSource> {
         return originalArgument;
     }
 
-    public int getInputPosition() {
-        return inputPosition;
-    }
-
     public String getArgumentName() {
         return originalArgument.getName();
+    }
+
+    public int getInputPosition() {
+        return inputPosition;
     }
 
     public <T> @Nullable T getArgumentParsedValue() {
@@ -48,7 +56,6 @@ public class ParsedArgument<S extends CommandSource> {
         return "Argument{" +
                        "raw='" + raw + '\'' +
                        ", parameter=" + originalArgument.format() +
-                       ", index=" + inputPosition +
                        ", value=" + argumentParsedValue +
                        '}';
     }

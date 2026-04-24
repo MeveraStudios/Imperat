@@ -28,8 +28,24 @@ public final class RawInputStream<S extends CommandSource> implements Iterator<S
         return new RawInputStream<>(context, context.arguments().copy());
     }
 
+    public static <S extends CommandSource> RawInputStream<S> newStream(CommandContext<S> context, ArgumentInput input) {
+        return new RawInputStream<>(context, input.copy());
+    }
+
     public void setRawIndex(int rawIndex) {
         this.rawIndex = rawIndex;
+    }
+
+    public int getRawIndex() {
+        return rawIndex;
+    }
+
+    public int size() {
+        return immutableInput.size();
+    }
+
+    public int remaining() {
+        return immutableInput.size() - (rawIndex + 1);
     }
 
     @Override

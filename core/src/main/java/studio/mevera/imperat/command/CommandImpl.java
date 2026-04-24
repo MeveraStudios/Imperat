@@ -15,6 +15,7 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
+import studio.mevera.imperat.command.tree.ParsedNode;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
@@ -165,7 +166,7 @@ final class CommandImpl<S extends CommandSource> implements Command<S> {
     }
 
     @Override
-    public @NotNull TreeExecutionResult<S> execute(@UnknownNullability ExecutionContext<S> context) throws CommandException {
+    public @NotNull List<ParsedNode<S>> execute(@UnknownNullability ExecutionContext<S> context) throws CommandException {
         ArgumentInput arguments = context.arguments();
         var copy = arguments.copy();
         return tree.execute(context, copy);

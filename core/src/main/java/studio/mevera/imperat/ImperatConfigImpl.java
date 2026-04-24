@@ -79,7 +79,7 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
                                                                          invalidUsage.append(" ")
                                                                                  .append(String.join(" ", ctx.arguments()));
                                                                      }
-                                                                     var closestUsage = ctx.getTreeExecutionResult().getClosestUsage();
+                                                                     var closestUsage = ctx.getDetectedPathway();
 
                                                                      throw new InvalidSyntaxException(
                                                                              invalidUsage.toString(),

@@ -1,14 +1,19 @@
 package studio.mevera.imperat;
 
+import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.tree.Node;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 final class AmbiguityChecker {
@@ -18,83 +23,94 @@ final class AmbiguityChecker {
     }
 
     static <S extends CommandSource> void checkAmbiguity(Command<S> command) {
-        command.visualizeTree();
         var rootNode = command.tree().rootNode();
-        checkAmbiguity(
-                rootNode,
-                rootNode
-        );
+        checkAmbiguity(command, rootNode);
     }
 
-    static <S extends CommandSource> void checkAmbiguity(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
-        AmbiguityResult<S> result = checkIsNodeAmbiguous(root, node);
-        if(result.isAmbiguous()) {
-            throw new AmbiguousCommandException(root.getData(), node, result.argumentNodes());
+    private static <S extends CommandSource> void checkAmbiguity(Command<S> rootCommand, Node<S> node) {
+        AmbiguityResult<S> result = checkIsNodeAmbiguous(node);
+        if (result.isAmbiguous()) {
+            throw new AmbiguousCommandException(rootCommand, node, result.argumentFormats());
         }
 
-        for (CommandNode<S, ?> child : node.getChildren()) {
-            checkAmbiguity(root, child);
+        for (Node<S> child : node.getChildren()) {
+            checkAmbiguity(rootCommand, child);
         }
     }
 
-    static <S extends CommandSource> AmbiguityResult<S> checkIsNodeAmbiguous(LiteralCommandNode<S> root, CommandNode<S, ?> node) {
-        if (node.isGreedyParam() && !node.isLast()) {
-            // Limited greedy (limit != -1) is allowed to have trailing args — the cap is enforced at parse time
-            boolean isUnlimited = node.getData().greedyLimit() == -1;
-            if (isUnlimited) {
-                throw new AmbiguousCommandException("Greedy parameter '" + node.format() + "' in command '" + root.format() + "' must be the last"
-                                                            + " parameter of the command !");
+    private static <S extends CommandSource> AmbiguityResult<S> checkIsNodeAmbiguous(@NotNull Node<S> node) {
+        if (node.isGreedy()) {
+            boolean hasTrailingArguments = !node.isLeaf() || !node.getOptionalArguments().isEmpty();
+            boolean isUnlimitedGreedy = node.getMainArgument().greedyLimit() == -1;
+            if (isUnlimitedGreedy && hasTrailingArguments) {
+                throw new AmbiguousCommandException(
+                        "Greedy parameter '" + node.format() + "' must be the last parameter of the command pathway."
+                );
             }
         }
-        if(node.isLast()) {
+
+        List<Argument<S>> siblingArguments = new ArrayList<>();
+        for (Node<S> child : node.getChildren()) {
+            siblingArguments.add(child.getMainArgument());
+        }
+        siblingArguments.addAll(node.getOptionalArguments());
+
+        if (siblingArguments.isEmpty()) {
             return AmbiguityResult.failure();
         }
-
-        var children = node.getChildren()
-                               .stream().filter((n)-> !n.isFlag() && !n.isLiteral())
-                               .toList();
-
-        return detectAmbiguity(children);
+        return detectAmbiguity(siblingArguments);
     }
 
-    private static <S extends CommandSource> AmbiguityResult<S> detectAmbiguity(Collection<CommandNode<S, ?>> nodes) {
+    private static <S extends CommandSource> AmbiguityResult<S> detectAmbiguity(Collection<? extends Argument<S>> arguments) {
         Set<Type> types = new HashSet<>();
         Set<Priority> priorities = new HashSet<>();
         int requiredCount = 0;
         int optionalCount = 0;
+        List<String> formats = new ArrayList<>(arguments.size());
+        int checkedArguments = 0;
 
-        for (CommandNode<S, ?> node : nodes) {
-            if (node.isRequired()) {
+        for (Argument<S> argument : arguments) {
+            if (argument.isCommand() || argument.isGreedy()) {
+                continue;
+            }
+
+            if (argument.isRequired()) {
                 requiredCount++;
-            } else if (node.isOptional()) {
+            } else if (argument.isOptional()) {
                 optionalCount++;
             }
 
-            types.add(node.getData().valueType());
-            priorities.add(node.getData().type().getPriority());
+            types.add(argument.valueType());
+            priorities.add(argument.type().getPriority());
+            formats.add(argument.format());
+            checkedArguments++;
+        }
+
+        if (checkedArguments <= 1) {
+            return AmbiguityResult.failure();
         }
 
         return new AmbiguityResult<>(
-                nodes,
-                (requiredCount > 0 && optionalCount == 0) || (requiredCount == 0 && optionalCount > 0),
-                types.size() < nodes.size(),
-                priorities.size() < nodes.size()
+                formats,
+                (requiredCount == checkedArguments) || (optionalCount == checkedArguments),
+                types.size() < checkedArguments,
+                priorities.size() < checkedArguments
         );
     }
 
     record AmbiguityResult<S extends CommandSource>(
-            Collection<CommandNode<S, ?>> argumentNodes,
+            Collection<String> argumentFormats,
             boolean allSameNature,
             boolean hasDuplicateTypes,
             boolean hasDuplicatePriorities
     ) {
 
-        public static <S extends CommandSource> AmbiguityResult<S> failure() {
+        static <S extends CommandSource> AmbiguityResult<S> failure() {
             return new AmbiguityResult<>(Collections.emptyList(), false, false, false);
         }
 
-        public boolean isAmbiguous() {
-            return argumentNodes.size() > 1 && allSameNature && (hasDuplicateTypes || hasDuplicatePriorities);
+        boolean isAmbiguous() {
+            return argumentFormats.size() > 1 && allSameNature && (hasDuplicateTypes || hasDuplicatePriorities);
         }
     }
 }

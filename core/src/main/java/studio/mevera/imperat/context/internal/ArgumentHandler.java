@@ -8,7 +8,6 @@ public sealed interface ArgumentHandler<S extends CommandSource>
         permits
         OptionalArgumentHandler {
 
-
-    void handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> stream) throws CommandException;
+    void handle(ExecutionContext<S> context, Cursor<S> stream) throws CommandException;
 
 }

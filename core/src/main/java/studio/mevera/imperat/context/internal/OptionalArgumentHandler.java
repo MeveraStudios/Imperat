@@ -12,7 +12,7 @@ import studio.mevera.imperat.util.Patterns;
 public final class OptionalArgumentHandler<S extends CommandSource> implements ArgumentHandler<S> {
 
     @Override
-    public void handle(TreeExecutionResult<S> result, ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
+    public void handle(ExecutionContext<S> context, Cursor<S> cursor) throws CommandException {
         Argument<S> currentParameter = cursor.currentParameterIfPresent();
         String currentRaw = cursor.currentRawIfPresent();
 

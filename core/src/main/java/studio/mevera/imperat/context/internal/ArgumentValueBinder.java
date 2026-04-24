@@ -3,13 +3,19 @@ package studio.mevera.imperat.context.internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.FlagData;
 import studio.mevera.imperat.context.ParsedArgument;
+import studio.mevera.imperat.exception.CombinedFlagsException;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
+import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.TypeWrap;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 final class ArgumentValueBinder {
 
@@ -23,6 +29,7 @@ final class ArgumentValueBinder {
             @NotNull Cursor<S> cursor
     ) throws CommandException {
         Argument<S> argument = requireCurrentParameter(cursor);
+        int rawPosition = cursor.currentRawPosition();
         Cursor<S> working = cursor.copy();
         String input = collectInput(context, working, argument);
         Object value = argument.type().parse(context, argument, input);
@@ -30,7 +37,7 @@ final class ArgumentValueBinder {
         context.parseArgument(new ParsedArgument<>(
                 input,
                 argument,
-                cursor.currentParameterPosition(),
+                rawPosition,
                 value
         ));
 
@@ -38,40 +45,47 @@ final class ArgumentValueBinder {
         cursor.skipParameter();
     }
 
-    static <S extends CommandSource> void bindParsedParameter(
-            @NotNull ExecutionContext<S> context,
-            @NotNull Cursor<S> cursor,
-            @NotNull ParseResult<S> parseResult
-    ) throws CommandException {
-        Argument<S> argument = requireCurrentParameter(cursor);
-        if (parseResult.getArgument() != argument) {
-            throw new IllegalStateException("Pre-parsed argument does not match the current cursor parameter");
-        }
-
-        context.parseArgument(parseResult.toParsedArgument());
-
-        while (cursor.currentRawPosition() < parseResult.getNextDepth()) {
-            cursor.skipRaw();
-        }
-        cursor.skipParameter();
-    }
-
     static <S extends CommandSource> boolean skipCurrentFlag(
             @NotNull ExecutionContext<S> context,
             @NotNull Cursor<S> cursor
-    ) {
+    ) throws CommandException {
         String currentRaw = cursor.currentRawIfPresent();
         if (currentRaw == null || !Patterns.isInputFlag(currentRaw)) {
             return false;
         }
 
-        FlagData<S> flagData = context.getDetectedPathway().getFlagDataFromInput(currentRaw);
-        if (flagData == null) {
+        var pathway = context.getDetectedPathway();
+        if (pathway == null) {
             return false;
         }
 
-        cursor.skipRaw();
-        if (!flagData.isSwitch()) {
+        Set<FlagArgument<S>> extracted = pathway.getFlagExtractor().extract(Patterns.withoutFlagSign(currentRaw));
+        if (extracted.isEmpty()) {
+            return false;
+        }
+
+        long numberOfSwitches = extracted.stream().filter(FlagArgument::isSwitch).count();
+        long numberOfTrueFlags = extracted.size() - numberOfSwitches;
+        if (numberOfSwitches > 0 && numberOfTrueFlags > 0) {
+            throw new CombinedFlagsException("Unsupported use of a mixture of switches and true flags!");
+        }
+
+        if (numberOfTrueFlags > 0) {
+            boolean sameType = extracted.stream()
+                                       .map(FlagArgument::inputValueType)
+                                       .distinct()
+                                       .count() <= 1;
+            if (!sameType) {
+                throw new CombinedFlagsException("You cannot use compressed true-flags, while they are not of same input type");
+            }
+        }
+
+        cursor.skipRaw(); // skip the flag token
+        if (numberOfTrueFlags > 0) {
+            if (!cursor.isCurrentRawInputAvailable()) {
+                throw ResponseException.of(ResponseKey.MISSING_FLAG_INPUT)
+                              .withPlaceholder("flags", extracted.stream().map(FlagArgument::getName).collect(Collectors.joining(",")));
+            }
             cursor.skipRaw();
         }
         return true;

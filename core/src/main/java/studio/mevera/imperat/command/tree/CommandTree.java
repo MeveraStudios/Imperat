@@ -24,22 +24,16 @@ import java.util.List;
 public interface CommandTree<S extends CommandSource> {
 
     static <S extends CommandSource> CommandTree<S> create(ImperatConfig<S> imperatConfig, Command<S> command) {
-        return new StandardCommandTree<>(imperatConfig, command);
+        return new SuperCommandTree<>(imperatConfig, command);
     }
 
-    /**
-     * Gets the root command of this command tree.
-     *
-     * @return the root command, never null
-     */
-    @NotNull Command<S> root();
 
     /**
      * Gets the root node of this command tree.
      *
      * @return the root command node, never null
      */
-    @NotNull LiteralCommandNode<S> rootNode();
+    @NotNull Node<S> rootNode();
 
     /**
      * The number of nodes cached in this {@link CommandTree}.
@@ -70,7 +64,7 @@ public interface CommandTree<S extends CommandSource> {
      * @return the result of the tree execution containing status and resolved context
      * @throws CommandException if an error occurs during argument resolution or execution
      */
-    @NotNull TreeExecutionResult<S> execute(ExecutionContext<S> context, @NotNull ArgumentInput input) throws CommandException;
+    @NotNull List<ParsedNode<S>> execute(ExecutionContext<S> context, @NotNull ArgumentInput input) throws CommandException;
 
     /**
      * Generates tab-completion suggestions based on the current command context.

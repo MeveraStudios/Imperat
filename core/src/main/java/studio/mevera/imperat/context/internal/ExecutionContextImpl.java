@@ -7,6 +7,8 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.tree.ParseResult;
+import studio.mevera.imperat.command.tree.ParsedNode;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -18,18 +20,15 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.responses.ResponseKey;
-import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Patterns;
 import studio.mevera.imperat.util.Registry;
 import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.UsageFormatting;
 
 import java.lang.reflect.Type;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
@@ -49,9 +48,7 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
     private final Registry<String, ParsedArgument<S>> allResolvedArgs = new Registry<>(LinkedHashMap::new);
 
     //last command used
-    private final Command<S> lastCommand;
-
-    private TreeExecutionResult<S> treeExecutionResult;
+    private Command<S> lastCommand;
 
     ExecutionContextImpl(
             CommandContext<S> context,
@@ -160,14 +157,7 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
     }
 
 
-    @Override
-    public @NotNull TreeExecutionResult<S> getTreeExecutionResult() {
-        if (treeExecutionResult == null) {
-            throw new IllegalStateException("The ExecutionContext hasn't been resolved yet, please call ExecutionContext#resolve");
-        }
-        return treeExecutionResult;
-    }
-
+    /*
     @Override
     public void handleRemainingParsing(TreeExecutionResult<S> result) throws CommandException {
         if (pathway == null) {
@@ -287,6 +277,8 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
         );
         return new InvalidSyntaxException(invalidUsage, closestUsage);
     }
+    */
+
 
     private void parseMissingOptional(Cursor<S> cursor, Argument<S> optionalParameter) throws CommandException {
         Object value = getDefaultValue(optionalParameter);
@@ -294,7 +286,6 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
                 new ParsedArgument<>(
                         null,
                         optionalParameter,
-                        cursor.position().getParameter(),
                         value
                 )
         );
@@ -413,7 +404,7 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
             raw = builder.toString();
         }
 
-        final ParsedArgument<S> parsedArgument = new ParsedArgument<>(raw, argument, cursor.position().parameter, value);
+        final ParsedArgument<S> parsedArgument = new ParsedArgument<>(raw, argument, value);
         parseArgument(parsedArgument);
     }
 
@@ -443,8 +434,14 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
     }
 
     @Override
+    public void setLastUsedCommand(@NotNull Command<S> command) {
+        this.lastCommand = command;
+    }
+
+    @Override
     public void setDetectedPathway(CommandPathway<S> pathway) {
         this.pathway = pathway;
+        this.lastCommand = resolveLastCommand(pathway, this.command());
     }
 
     @Override
@@ -454,21 +451,186 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
     }
 
     @Override
-    public void debug() {
-        if (allResolvedArgs.size() == 0) {
-            ImperatDebugger.debug("No arguments were resolved!");
-            return;
+    public void parse(List<ParsedNode<S>> parsedNodes) throws CommandException {
+        CommandPathway<S> usage = this.getDetectedPathway();
+        if (usage == null) {
+            throw invalidSyntax(null);
         }
 
-        for (var arg : allResolvedArgs.getAll()) {
-            ImperatDebugger.debug("Argument '%s' at index #%s with input='%s' with value='%s'",
-                    arg.getOriginalArgument().format(), arg.getInputPosition(), arg.getArgumentRawInput(), arg.getArgumentParsedValue());
+        boolean usageStartsWithCommand = !usage.getArguments().isEmpty()
+                                                 && usage.getArguments().get(0).isCommand();
+        if (!usageStartsWithCommand) {
+            this.lastCommand = resolveLastCommandFromParsedNodes(parsedNodes, this.lastCommand);
         }
+        int rawOffset = calculateRawOffset(this.lastCommand);
+
+        Cursor<S> cursor = Cursor.of(this.arguments(), usage);
+        for (int i = 0; i < rawOffset && cursor.isCurrentRawInputAvailable(); i++) {
+            cursor.skipRaw();
+        }
+        OptionalArgumentHandler<S> optionalArgumentHandler = new OptionalArgumentHandler<>();
+
+        while (cursor.isCurrentParameterAvailable()) {
+            Argument<S> currentParameter = cursor.currentParameterIfPresent();
+            if (currentParameter == null) {
+                break;
+            }
+
+            String currentRaw = cursor.currentRawIfPresent();
+            if (currentParameter.isCommand()) {
+                if (currentRaw == null) {
+                    throw invalidSyntax(null);
+                }
+                try {
+                    ArgumentValueBinder.bindCurrentSubCommand(cursor);
+                } catch (CommandException ex) {
+                    throw invalidSyntax(ex);
+                }
+                this.lastCommand = currentParameter.asCommand();
+                continue;
+            }
+
+            if (currentRaw == null) {
+                if (!currentParameter.isOptional()) {
+                    throw invalidSyntax(null);
+                }
+                parseMissingOptional(cursor, currentParameter);
+                cursor.skipParameter();
+                continue;
+            }
+
+            if (ArgumentValueBinder.skipCurrentFlag(this, cursor)) {
+                continue;
+            }
+
+            if (currentParameter.isOptional()) {
+                optionalArgumentHandler.handle(this, cursor);
+                continue;
+            }
+
+            ArgumentValueBinder.bindCurrentParameter(this, cursor);
+        }
+
+        Command<S> scopedCommand = this.lastCommand;
+        for (int rPos = rawOffset; rPos < cursor.rawsLength(); rPos++) {
+            String raw = this.getRawArgument(rPos);
+            if (raw == null) {
+                continue;
+            }
+
+            if (!Patterns.isInputFlag(raw)) {
+                var sub = scopedCommand.getSubCommand(raw, false);
+                if (sub != null) {
+                    scopedCommand = sub;
+                }
+                continue;
+            }
+
+            String nextRaw = rPos + 1 < cursor.rawsLength() ? this.getRawArgument(rPos + 1) : null;
+            Set<FlagArgument<S>> extracted = usage.getFlagExtractor().extract(Patterns.withoutFlagSign(raw));
+            String inputRaw = validateExtractedFlagsAndGetInputRaw(raw, nextRaw, extracted);
+
+            for (var flagParam : extracted) {
+                boolean foundOutsideScope = true;
+                for (var commandPathway : scopedCommand.getDedicatedPathways()) {
+                    if (commandPathway.getFlagExtractor().getRegisteredFlags().contains(flagParam)) {
+                        foundOutsideScope = false;
+                        break;
+                    }
+                }
+                if (foundOutsideScope) {
+                    throw ResponseException.of(ResponseKey.FLAG_OUTSIDE_SCOPE)
+                                  .withPlaceholder("flag_input", raw)
+                                  .withPlaceholder("wrong_cmd", scopedCommand.getName());
+                }
+
+                this.resolveFlag(
+                        ParsedFlagArgument.forFlag(
+                                flagParam,
+                                raw,
+                                inputRaw,
+                                rPos,
+                                flagParam.isSwitch() ? rPos : rPos + 1,
+                                flagParam.isSwitch()
+                                        ? true
+                                        : Objects.requireNonNull(flagParam.flagData().inputType()).parse(this, flagParam, inputRaw)
+                        )
+                );
+            }
+
+            if (extracted.stream().anyMatch(flag -> !flag.isSwitch())) {
+                rPos++;
+            }
+        }
+
+        for (FlagArgument<S> registered : usage.getFlagExtractor().getRegisteredFlags()) {
+            if (this.hasResolvedFlag(registered.flagData())) {
+                continue;
+            }
+            resolveFlagDefaultValue(registered);
+        }
+
+        this.lastCommand = scopedCommand;
     }
 
-    @Override
-    public void setTreeResult(TreeExecutionResult<S> treeResult) {
-        this.treeExecutionResult = treeResult;
+    @SuppressWarnings("unchecked")
+    private @NotNull Command<S> resolveLastCommandFromParsedNodes(
+            @NotNull List<ParsedNode<S>> parsedNodes,
+            @NotNull Command<S> fallback
+    ) {
+        Command<S> resolved = fallback;
+        for (ParsedNode<S> parsedNode : parsedNodes) {
+            Argument<S> main = parsedNode.getMainArgument();
+            if (!main.isCommand()) {
+                continue;
+            }
+
+            ParseResult<S> parseResult = parsedNode.getParseResults().get(main.getName());
+            if (parseResult != null && parseResult.getParsedValue() instanceof Command<?> command) {
+                resolved = (Command<S>) command;
+                continue;
+            }
+
+            if (!parsedNode.isRoot()) {
+                resolved = main.asCommand();
+            }
+        }
+        return resolved;
+    }
+
+    private int calculateRawOffset(@NotNull Command<S> targetCommand) {
+        int offset = 0;
+        Command<S> current = targetCommand;
+        while (current != null && current != this.command()) {
+            offset++;
+            current = current.getParent();
+        }
+        return Math.max(offset, 0);
+    }
+
+    private @NotNull Command<S> resolveLastCommand(@Nullable CommandPathway<S> pathway, @NotNull Command<S> fallback) {
+        if (pathway == null) {
+            return fallback;
+        }
+        Command<S> resolved = fallback;
+        for (Argument<S> argument : pathway.getArguments()) {
+            if (argument.isCommand()) {
+                resolved = argument.asCommand();
+            }
+        }
+        return resolved;
+    }
+
+    private InvalidSyntaxException invalidSyntax(@Nullable Throwable cause) {
+        String invalidUsage = UsageFormatting.formatInput(
+                imperatConfig().commandPrefix(),
+                getRootCommandLabelUsed(),
+                arguments().join(" ")
+        );
+        if (cause == null) {
+            return new InvalidSyntaxException(invalidUsage, getDetectedPathway());
+        }
+        return new InvalidSyntaxException(invalidUsage, getDetectedPathway(), cause);
     }
 
 }

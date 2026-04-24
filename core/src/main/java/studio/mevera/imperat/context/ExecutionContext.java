@@ -8,11 +8,11 @@ import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.tree.ParsedNode;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
-import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -47,11 +47,7 @@ import java.util.Optional;
 @Context
 public interface ExecutionContext<S extends CommandSource> extends CommandContext<S> {
 
-    @NotNull TreeExecutionResult<S> getTreeExecutionResult();
-
     void setDetectedPathway(CommandPathway<S> pathway);
-
-    void handleRemainingParsing(TreeExecutionResult<S> result) throws CommandException;
 
     /**
      * Retrieves a flag by its name if it was provided in the command input.
@@ -180,6 +176,11 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
      */
     Command<S> getLastUsedCommand();
 
+    @ApiStatus.Internal
+    default void setLastUsedCommand(@NotNull Command<S> command) {
+        throw new UnsupportedOperationException("setLastUsedCommand is not supported by this context implementation");
+    }
+
     /**
      * Gets the command usage pattern that matched the input.
      *
@@ -244,12 +245,7 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
      */
     boolean hasResolvedFlag(FlagData<S> flagData);
 
-    /**
-     * Debugs the current resolved arguments cached/mapped.<br>
-     * This requires {@link ImperatDebugger} to be enabled.<br>
-     * Example: <code>ImperatDebugger.setEnabled(true)</code>
-     */
-    void debug();
 
-    void setTreeResult(TreeExecutionResult<S> treeResult);
+    void parse(List<ParsedNode<S>> parsedNodes) throws CommandException;
+
 }

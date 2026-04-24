@@ -17,6 +17,7 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
+import studio.mevera.imperat.command.tree.ParsedNode;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
@@ -161,7 +162,7 @@ public interface Command<S extends CommandSource> extends Argument<S>, BaseThrow
      * @throws CommandException if an error occurs during execution
      */
     @NotNull
-    TreeExecutionResult<S> execute(ExecutionContext<S> context) throws CommandException;
+    List<ParsedNode<S>> execute(ExecutionContext<S> context) throws CommandException;
 
     /**
      * @return The description of a command

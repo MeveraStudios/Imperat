@@ -289,6 +289,22 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
     }
 
     default String formatted() {
+        List<Argument<S>> arguments = getArgumentsWithFlags();
+        if (!arguments.isEmpty() && !arguments.get(0).isCommand()) {
+            Command<S> owner = arguments.get(0).getParent();
+            if (owner != null && owner.hasParent()) {
+                List<String> prefixes = new ArrayList<>();
+                Command<S> current = owner;
+                while (current != null && current.hasParent()) {
+                    prefixes.add(0, current.getName());
+                    current = current.getParent();
+                }
+
+                if (!prefixes.isEmpty()) {
+                    return format(String.join(" ", prefixes), this);
+                }
+            }
+        }
         return format((String) null, this);
     }
 

@@ -2,6 +2,7 @@ package studio.mevera.imperat.exception;
 
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.command.tree.Node;
 import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Collection;
@@ -17,11 +18,11 @@ public final class AmbiguousCommandException extends RuntimeException {
      */
     public <S extends CommandSource> AmbiguousCommandException(
             final Command<S> rootCommand,
-            final CommandNode<S, ?> node,
-            final Collection<CommandNode<S, ?>> filteredChildren
+            final Node<S> node,
+            final Collection<String> ambiguousArguments
     ) {
         super(
-                getAmbiguousParameterMsg(rootCommand, node, filteredChildren)
+                getAmbiguousParameterMsg(rootCommand, node, ambiguousArguments)
         );
     }
 
@@ -41,15 +42,15 @@ public final class AmbiguousCommandException extends RuntimeException {
 
     private static <S extends CommandSource> String getAmbiguousParameterMsg(
             Command<S> rootCmd,
-            CommandNode<S, ?> node,
-            Collection<CommandNode<S, ?>> filteredChildren
+            Node<S> node,
+            Collection<String> ambiguousArguments
     ) {
 
         return String.format(
                 "Root-RootCommand '%s' has node '%s' with ambiguous arguments '%s' \n Tree >>\n %s !",
                 rootCmd,
                 node.format(),
-                filteredChildren.stream().map(CommandNode::format).collect(Collectors.joining(",")),
+                ambiguousArguments.stream().collect(Collectors.joining(",")),
                 rootCmd.getVisualizer().getVisualizationString()
         );
     }
