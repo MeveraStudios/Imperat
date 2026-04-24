@@ -3,7 +3,6 @@ package studio.mevera.imperat.context.internal;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.tree.ParseResult;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;

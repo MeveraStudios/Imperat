@@ -8,7 +8,6 @@ import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;

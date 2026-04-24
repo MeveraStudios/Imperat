@@ -9,7 +9,6 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
-import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;

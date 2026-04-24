@@ -15,7 +15,6 @@ import studio.mevera.imperat.command.processors.CommandPreProcessor;
 import studio.mevera.imperat.command.suggestions.AutoCompleter;
 import studio.mevera.imperat.command.tree.CommandTree;
 import studio.mevera.imperat.command.tree.CommandTreeVisualizer;
-import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;

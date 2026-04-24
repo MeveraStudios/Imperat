@@ -2,7 +2,6 @@ package studio.mevera.imperat.exception;
 
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.tree.CommandNode;
 import studio.mevera.imperat.context.CommandSource;
 
 import java.util.Collection;

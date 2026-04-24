@@ -3,7 +3,6 @@ package studio.mevera.imperat.context.internal;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.command.arguments.FlagArgument;
-import studio.mevera.imperat.command.tree.TreeExecutionResult;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.CommandException;
