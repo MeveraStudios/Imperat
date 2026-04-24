@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://raw.githubusercontent.com/MeveraStudios/Imperat/refs/heads/master/assets/logo.png" alt="Imperat Logo" width="400"/> 
+<img src="https://raw.githubusercontent.com/MeveraStudios/Imperat/refs/heads/master/assets/imperat-hex-shield.png" alt="Imperat Logo" width="200"/> 
 </div>
 
 # Imperat - The Blazing Fast Command Framework
