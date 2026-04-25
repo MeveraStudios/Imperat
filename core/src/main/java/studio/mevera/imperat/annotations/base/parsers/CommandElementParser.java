@@ -442,7 +442,9 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
                                                     + "with either of these annotations.");
         }*/
 
-        command = parseMetaDataForCmd(command, method);
+        if (!method.isAnnotationPresent(SubCommand.class)) {
+            command = parseMetaDataForCmd(command, method);
+        }
 
         if (method.isAnnotationPresent(Secret.class)) {
             command.setSecret(true);
