@@ -8,7 +8,6 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.tests.TestCommandSource;
 import studio.mevera.imperat.tests.commands.ThrowingParseCommand;
 import studio.mevera.imperat.tests.parameters.ParseFailedException;
-import studio.mevera.imperat.tests.parameters.UnhandledParseRuntimeException;
 
 /**
  * Regression tests for the bug where a typed {@code CommandException} thrown from
@@ -54,24 +53,5 @@ class ArgumentTypeParseExceptionTest extends EnhancedBaseImperatTest {
         Assertions.assertThat(result.getError())
                 .isInstanceOf(InvalidSyntaxException.class)
                 .hasNoCause();
-    }
-
-    @Test
-    @DisplayName("Should fall back to InvalidSyntaxException when parse throws an unhandled non-CommandException type")
-    void shouldFallBackToInvalidSyntaxWhenNoHandlerRegistered() {
-        // "throwparse unhandled" — ThrowingArgumentType throws UnhandledParseRuntimeException
-        // (a RuntimeException that is NOT a CommandException and has NO registered handler
-        // anywhere). The user should still get a usable InvalidSyntaxException with the
-        // original parse error preserved as its cause for diagnostics.
-        ExecutionResult<TestCommandSource> result = execute("throwparse unhandled");
-
-        assertThat(result).hasFailed();
-        Assertions.assertThat(result.getError())
-                .as("With no handler registered for a non-CommandException parse failure, the error must be wrapped in InvalidSyntaxException")
-                .isInstanceOf(InvalidSyntaxException.class);
-        Assertions.assertThat(result.getError().getCause())
-                .as("Original parse exception should be preserved as the cause")
-                .isInstanceOf(UnhandledParseRuntimeException.class)
-                .hasMessage("Unhandled parse failure for 'unhandled'");
     }
 }

@@ -239,23 +239,11 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             // (the framework strips the label before dispatching). Insert a synthetic
             // parsed node so downstream consumers have the command on the chain.
 
-            // Eagerly bind any optionals/inline flags that root owns BEFORE descending
-            // into children. This mirrors Node.parseArgument's behaviour for normal
-            // nodes so root-attached optionals (e.g. @Execute root pathway with a
-            // single optional arg) are resolvable as a valid match for partial input.
             int rootSaved = stream.getRawIndex();
-            Map<String, ParseResult<S>> rootResults = new HashMap<>();
-            node.parseOptionalsAndFlags(stream, rootResults);
-            int afterRootParse = stream.getRawIndex();
-
-            ParsedNode<S> rootParsed = new ParsedNode<>(node, rootResults);
+            ParsedNode<S> rootParsed = new ParsedNode<>(node, new HashMap<>());
             path.add(rootParsed);
-
-            // root is a valid candidate as soon as it has consumed everything (or
-            // there is nothing left). Anything still in the stream beyond root's
-            // optionals is for the children, so partial root matches are skipped.
-            addExecutionCandidates(node, stream, path, candidates, afterRootParse, false);
-            if (!node.isLeaf()) {
+            addExecutionCandidates(node, stream, path, candidates, rootSaved, false);
+            if (!node.isLeaf() && stream.hasNext()) {
                 for (Node<S> child : node.children) {
                     int saved = stream.getRawIndex();
                     traverse(child, stream, path, candidates);
@@ -263,6 +251,26 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
                 }
             }
             path.remove(path.size() - 1);
+
+            stream.setRawIndex(rootSaved);
+            Map<String, ParseResult<S>> rootResults = new HashMap<>();
+            node.parseOptionalsAndFlags(stream, rootResults);
+            int afterRootParse = stream.getRawIndex();
+            if (!rootResults.isEmpty() || afterRootParse != rootSaved) {
+                ParsedNode<S> rootWithOptionals = new ParsedNode<>(node, rootResults);
+                path.add(rootWithOptionals);
+                if (node.isLeaf() || hasExecutableTerminal(node)) {
+                    addExecutionCandidates(node, stream, path, candidates, afterRootParse, node.isLeaf());
+                }
+                if (!node.isLeaf() && stream.hasNext()) {
+                    for (Node<S> child : node.children) {
+                        int saved = stream.getRawIndex();
+                        traverse(child, stream, path, candidates);
+                        stream.setRawIndex(saved);
+                    }
+                }
+                path.remove(path.size() - 1);
+            }
             stream.setRawIndex(rootSaved);
             return;
         }
@@ -286,7 +294,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
         int afterParse = stream.getRawIndex();
 
         if (node.isLeaf()) {
-            addExecutionCandidates(node, stream, path, candidates, afterParse, true);
+            addExecutionCandidates(node, stream, path, candidates, afterParse, allowsLeafPartialCandidate(node));
         } else if (!stream.hasNext()) {
             // input exhausted mid-tree: still a candidate (lower-scoring, but may be the best)
             addExecutionCandidates(node, stream, path, candidates, afterParse, true);
@@ -300,6 +308,20 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
         path.remove(path.size() - 1);
         stream.setRawIndex(saved);
+    }
+
+    private boolean allowsLeafPartialCandidate(Node<S> node) {
+        if (node.isGreedy() || !node.getOptionalArguments().isEmpty()) {
+            return true;
+        }
+        for (CommandPathway<S> pathway : candidatePathwaysForNode(node)) {
+            for (Argument<S> argument : pathway) {
+                if (argument.isOptional()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void addExecutionCandidates(
@@ -330,6 +352,18 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
     private List<CommandPathway<S>> candidatePathwaysForNode(Node<S> node) {
         List<CommandPathway<S>> pathways = new ArrayList<>();
+        if (node.isRoot()) {
+            CommandPathway<S> currentDefault = root.getMainArgument().asCommand().getDefaultPathway();
+            addPathwayScope(pathways, currentDefault);
+            for (CommandPathway<S> pathway : node.getTerminalPathways()) {
+                if (pathway.isDefault() && pathway != currentDefault) {
+                    continue;
+                }
+                addPathwayScope(pathways, pathway);
+            }
+            return pathways;
+        }
+
         for (CommandPathway<S> pathway : node.getTerminalPathways()) {
             addPathwayScope(pathways, pathway);
         }
@@ -337,6 +371,15 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             addPathwayScope(pathways, node.getOriginalPathway());
         }
         return pathways;
+    }
+
+    private boolean hasExecutableTerminal(Node<S> node) {
+        for (CommandPathway<S> pathway : node.getTerminalPathways()) {
+            if (pathway.getMethodElement() != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @SuppressWarnings("unchecked")
@@ -1117,6 +1160,9 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
         //we find shortest executable node and get its pathway
         var parsedNodesList = treeMatch.parsedNodes();
+        if (parsedNodesList.isEmpty()) {
+            return treeMatch.pathway() != null ? treeMatch.pathway() : root.getOriginalPathway();
+        }
         ParsedNode<S> node = parsedNodesList.get(parsedNodesList.size() - 1);
         CommandPathway<S> pathway = node.originalPathway;
 
