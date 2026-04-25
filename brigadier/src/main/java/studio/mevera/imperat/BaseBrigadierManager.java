@@ -9,16 +9,23 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
+import studio.mevera.imperat.command.tree.Node;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
+import studio.mevera.imperat.util.Patterns;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("unchecked")
 public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> implements BrigadierManager<S> {
@@ -29,11 +36,11 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         this.dispatcher = dispatcher;
     }
 
-    private static <BS> com.mojang.brigadier.tree.LiteralCommandNode<BS> cloneWithDiffName(
-            com.mojang.brigadier.tree.LiteralCommandNode<BS> brigOriginalNode,
+    private static <BS> LiteralCommandNode<BS> cloneWithDiffName(
+            LiteralCommandNode<BS> brigOriginalNode,
             String newName
     ) {
-        var clone = new com.mojang.brigadier.tree.LiteralCommandNode<>(newName,
+        var clone = new LiteralCommandNode<>(newName,
                 brigOriginalNode.getCommand(), brigOriginalNode.getRequirement(), brigOriginalNode.getRedirect(),
                 brigOriginalNode.getRedirectModifier(), brigOriginalNode.isFork());
         for (var child : brigOriginalNode.getChildren()) {
@@ -42,140 +49,166 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         return clone;
     }
 
-    @Override
-    public @NotNull <BS> com.mojang.brigadier.tree.LiteralCommandNode<BS> parseCommandIntoNode(@NotNull Command<S> command) {
-        var tree = command.tree();
-        var root = tree.rootNode();
-        return this.<BS>convertRoot(root).build();
-    }
-
     private static <S extends CommandSource, BS> void injectCommandNodeAliasesIntoBrigadier(
-            LiteralCommandNode<S> imperatCommandNode,
-            com.mojang.brigadier.tree.LiteralCommandNode<BS> brigCommandNode,
-            LiteralArgumentBuilder<BS> parentBrigNodeBuilder
+            Command<S> imperatCommand,
+            LiteralCommandNode<BS> brigCommandNode,
+            ArgumentBuilder<BS, ?> parentBrigNodeBuilder
     ) {
-        //child is sub-command/literal, check if that literal (sub-cmd) has aliases,
-        for (var alias : imperatCommandNode.getData().aliases()) {
-            com.mojang.brigadier.tree.LiteralCommandNode<BS>
-                    aliasBrigNode = cloneWithDiffName(brigCommandNode, alias);
-            parentBrigNodeBuilder.then(aliasBrigNode);
+        for (var alias : imperatCommand.aliases()) {
+            parentBrigNodeBuilder.then(cloneWithDiffName(brigCommandNode, alias));
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private <BS> LiteralArgumentBuilder<BS> convertRoot(LiteralCommandNode<S> root) {
+    @Override
+    public @NotNull <BS> LiteralCommandNode<BS> parseCommandIntoNode(@NotNull Command<S> command) {
+        return this.<BS>convertRoot(command.tree().rootNode()).build();
+    }
+
+    private <BS> LiteralArgumentBuilder<BS> convertRoot(Node<S> root) {
+        Command<S> rootCommand = root.getMainArgument().asCommand();
         LiteralArgumentBuilder<BS> builder = (LiteralArgumentBuilder<BS>)
-                                                    literal(root.getData().getName())
+                                                     literal(rootCommand.getName())
                     .requires((obj) -> {
                         var source = wrapCommandSource(obj);
-                        return root.getData().isIgnoringACPerms()
-                                       || dispatcher.config().getPermissionChecker().hasPermission(source, root.getData());
+                        return rootCommand.isIgnoringACPerms()
+                                       || dispatcher.config().getPermissionChecker().hasPermission(source, rootCommand);
                     });
         executor(builder);
-
-        for (var child : root.getChildren()) {
-
-            var innerChildBrigNode = this.<BS>convertImperatNodeToBrigadierNode(root, child);
-            builder.then(innerChildBrigNode);
-
-            if (child instanceof LiteralCommandNode) {
-                //adding aliases for the literal child
-                injectCommandNodeAliasesIntoBrigadier(
-                        (LiteralCommandNode<S>) child,
-                        (com.mojang.brigadier.tree.LiteralCommandNode<BS>) innerChildBrigNode,
-                        builder
-                );
-
-            }
-        }
-        appendFlagSuggestionTunnel(root.getData(), root, builder);
+        appendContinuations(rootCommand, root, builder, 0);
         return builder;
     }
 
-    protected <BS> com.mojang.brigadier.tree.CommandNode<BS> convertImperatNodeToBrigadierNode(
-            LiteralCommandNode<S> rootImperatNode,
-            studio.mevera.imperat.command.tree.CommandNode<S, ?> currentImperatNode
+    protected <BS> CommandNode<BS> convertImperatNodeToBrigadierNode(
+            Command<S> rootCommand,
+            Node<S> currentImperatNode
     ) {
-        var argType = getArgumentType(currentImperatNode.getData());
-
-        ArgumentBuilder<BS, ?> childBuilder = currentImperatNode instanceof LiteralCommandNode<?> ?
-                                                      LiteralArgumentBuilder.literal(currentImperatNode.getData().getName())
-                                                      : RequiredArgumentBuilder.argument(currentImperatNode.getData().getName(), argType);
-
-        childBuilder.requires((obj) -> {
-            var permissionResolver = dispatcher.config().getPermissionChecker();
-            var source = wrapCommandSource(obj);
-
-            if (currentImperatNode instanceof LiteralCommandNode<?> literalCommandNode
-                        && literalCommandNode.getData().isIgnoringACPerms()) {
-                return true;
-            }
-
-            return (permissionResolver.hasPermission(source, currentImperatNode.getData()));
-        });
-
+        ArgumentBuilder<BS, ?> childBuilder = createBrigadierBuilder(rootCommand, currentImperatNode);
         executor(childBuilder);
-        if (!(currentImperatNode instanceof LiteralCommandNode<?>)) {
+
+        Argument<S> main = currentImperatNode.getMainArgument();
+        if (!main.isCommand()) {
             ((RequiredArgumentBuilder<BS, ?>) childBuilder).suggests(
-                    createSuggestionProvider(rootImperatNode.getData(), currentImperatNode.getData())
+                    createSuggestionProvider(rootCommand, main)
             );
         }
 
-        if (currentImperatNode.isTrueFlag()) {
-            String name = currentImperatNode.getData().getName() + "_value";
-            ArgumentNode<S> flagValueNode =
-                    studio.mevera.imperat.command.tree.CommandNode.createArgumentNode(
-                            currentImperatNode,
-                            Argument.required(name, dispatcher.config()
-                                                            .getArgumentType(currentImperatNode.getData().asFlagParameter().inputValueType()))
-                                    .permission(currentImperatNode.getPermissionsData())
-                                    .build(),
-                            currentImperatNode.getDepth() + 1,
-                            currentImperatNode.getExecutableUsage()
-                    );
-
-            for (var trueFlagChildren : currentImperatNode.getChildren()) {
-                flagValueNode.addChild(trueFlagChildren);
-            }
-
-            childBuilder.then(convertImperatNodeToBrigadierNode(rootImperatNode, flagValueNode));
-            return childBuilder.build();
-        }
-
-
-        for (var innerChild : currentImperatNode.getChildren()) {
-            var innerChildBrigNode = this.<BS>convertImperatNodeToBrigadierNode(rootImperatNode, innerChild);
-            childBuilder.then(innerChildBrigNode);
-
-            if (innerChild instanceof LiteralCommandNode && childBuilder instanceof LiteralArgumentBuilder) {
-                //adding aliases for the literal child
-                injectCommandNodeAliasesIntoBrigadier(
-                        (LiteralCommandNode<S>) innerChild,
-                        (com.mojang.brigadier.tree.LiteralCommandNode<BS>) innerChildBrigNode,
-                        (LiteralArgumentBuilder<BS>) childBuilder
-                );
-
-            }
-        }
-
-        appendFlagSuggestionTunnel(rootImperatNode.getData(), currentImperatNode, childBuilder);
-
+        appendContinuations(rootCommand, currentImperatNode, childBuilder, 0);
         return childBuilder.build();
+    }
+
+    private <BS> ArgumentBuilder<BS, ?> createBrigadierBuilder(
+            Command<S> rootCommand,
+            Node<S> currentImperatNode
+    ) {
+        Argument<S> argument = currentImperatNode.getMainArgument();
+        ArgumentBuilder<BS, ?> builder = argument.isCommand()
+                                                 ? LiteralArgumentBuilder.literal(argument.asCommand().getName())
+                                                 : RequiredArgumentBuilder.argument(argument.getName(), getArgumentType(argument));
+
+        builder.requires((obj) -> isNodeVisible(rootCommand, currentImperatNode, wrapCommandSource(obj)));
+        return builder;
+    }
+
+    private boolean isNodeVisible(Command<S> rootCommand, Node<S> node, S source) {
+        Argument<S> argument = node.getMainArgument();
+        if (argument.isCommand() && argument.asCommand().isSecret()) {
+            return false;
+        }
+
+        if (rootCommand.isIgnoringACPerms() || (argument.isCommand() && argument.asCommand().isIgnoringACPerms())) {
+            return true;
+        }
+
+        var checker = dispatcher.config().getPermissionChecker();
+        return checker.hasPermission(source, node.getOriginalPathway())
+                       && checker.hasPermission(source, argument);
+    }
+
+    private <BS> void appendContinuations(
+            Command<S> rootCommand,
+            Node<S> scopeNode,
+            ArgumentBuilder<BS, ?> parentBuilder,
+            int optionalIndex
+    ) {
+        appendFlagSuggestionTunnel(rootCommand, scopeNode, parentBuilder);
+        appendOptionalContinuation(rootCommand, scopeNode, parentBuilder, optionalIndex);
+        appendChildContinuations(rootCommand, scopeNode, parentBuilder);
+    }
+
+    private <BS> void appendOptionalContinuation(
+            Command<S> rootCommand,
+            Node<S> scopeNode,
+            ArgumentBuilder<BS, ?> parentBuilder,
+            int optionalIndex
+    ) {
+        List<Argument<S>> optionals = new ArrayList<>(scopeNode.getOptionalArguments());
+        if (optionalIndex >= optionals.size()) {
+            return;
+        }
+
+        Argument<S> optional = optionals.get(optionalIndex);
+        RequiredArgumentBuilder<BS, ?> optionalBuilder =
+                RequiredArgumentBuilder.argument(optional.getName(), getArgumentType(optional));
+        optionalBuilder.requires((obj) -> isArgumentVisible(rootCommand, optional, scopeNode.getOriginalPathway(), wrapCommandSource(obj)));
+        optionalBuilder.suggests(createSuggestionProvider(rootCommand, optional));
+        executor(optionalBuilder);
+
+        appendContinuations(rootCommand, scopeNode, optionalBuilder, optionalIndex + 1);
+        parentBuilder.then(optionalBuilder);
+    }
+
+    private <BS> void appendChildContinuations(
+            Command<S> rootCommand,
+            Node<S> scopeNode,
+            ArgumentBuilder<BS, ?> parentBuilder
+    ) {
+        for (Node<S> child : scopeNode.getChildren()) {
+            var childBrigNode = this.<BS>convertImperatNodeToBrigadierNode(rootCommand, child);
+            parentBuilder.then(childBrigNode);
+
+            Argument<S> childArgument = child.getMainArgument();
+            if (childArgument.isCommand()) {
+                injectCommandNodeAliasesIntoBrigadier(
+                        childArgument.asCommand(),
+                        (LiteralCommandNode<BS>) childBrigNode,
+                        parentBuilder
+                );
+            }
+        }
+    }
+
+    private boolean isArgumentVisible(
+            Command<S> rootCommand,
+            Argument<S> argument,
+            @Nullable CommandPathway<S> pathway,
+            S source
+    ) {
+        if (argument.isCommand() && argument.asCommand().isSecret()) {
+            return false;
+        }
+
+        if (rootCommand.isIgnoringACPerms() || (argument.isCommand() && argument.asCommand().isIgnoringACPerms())) {
+            return true;
+        }
+
+        var checker = dispatcher.config().getPermissionChecker();
+        return (pathway == null || checker.hasPermission(source, pathway))
+                       && checker.hasPermission(source, argument);
     }
 
     private <BS> void appendFlagSuggestionTunnel(
             Command<S> command,
-            studio.mevera.imperat.command.tree.CommandNode<S, ?> scopeNode,
+            Node<S> scopeNode,
             ArgumentBuilder<BS, ?> parentBuilder
     ) {
-        CommandPathway<S> flagScope = resolveFlagScopePathway(scopeNode);
-        if (flagScope == null || flagScope.getFlagExtractor().getRegisteredFlags().isEmpty()) {
+        List<CommandPathway<S>> flagScopes = resolveFlagScopePathways(command, scopeNode);
+        if (flagScopes.stream().allMatch((pathway) -> pathway.getFlagExtractor().getRegisteredFlags().isEmpty())) {
             return;
         }
 
         RequiredArgumentBuilder<BS, String> tunnelBuilder =
                 RequiredArgumentBuilder.argument(flagTunnelName(scopeNode), StringArgumentType.greedyString());
-        tunnelBuilder.suggests(createFlagSuggestionProvider(command, flagScope));
+        tunnelBuilder.suggests(createFlagSuggestionProvider(command, flagScopes));
         executor(tunnelBuilder);
         parentBuilder.then(tunnelBuilder);
     }
@@ -185,31 +218,20 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             Argument<S> parameter
     ) {
         return (context, builder) -> {
-            S source = this.wrapCommandSource(context.getSource());
+            SuggestionContext<S> ctx = createSuggestionContext(command, context.getSource(), context.getInput());
+            CompletionArg arg = ctx.getArgToComplete();
+
             String paramFormat = parameter.format();
             Description desc = parameter.getDescription();
             Message tooltip = new LiteralMessage(paramFormat + (desc.isEmpty() ? "" : " - " + desc.getValue()));
-
-            String input = context.getInput();
-            while (input.startsWith("/")) {
-                input = input.substring(1);
-            }
-
-            int firstSpaceIndex = input.indexOf(' ');
-            String label = input.substring(0, firstSpaceIndex);
-
-            String argsInput = input.substring(firstSpaceIndex);
-            ArgumentInput args = ArgumentInput.parseAutoCompletion(argsInput, false);
-
-            SuggestionContext<S> ctx = dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
-            CompletionArg arg = ctx.getArgToComplete();
 
             return dispatcher.config().getParameterSuggestionResolver(parameter).provideAsynchronously(ctx, parameter)
                            .thenCompose((results) -> {
                                results
                                        .stream()
-                                       .filter((c) -> arg.isEmpty() || c.toLowerCase().startsWith(arg.value().toLowerCase()))
-                                       .forEachOrdered((res) -> builder.suggest(res, tooltip));
+                                       .filter((candidate) -> arg.isEmpty()
+                                                                      || candidate.toLowerCase().startsWith(arg.value().toLowerCase()))
+                                       .forEachOrdered((result) -> builder.suggest(result, tooltip));
                                return builder.buildFuture();
                            });
         };
@@ -217,25 +239,24 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
 
     private @NotNull <BS> SuggestionProvider<BS> createFlagSuggestionProvider(
             Command<S> command,
-            CommandPathway<S> flagScope
+            List<CommandPathway<S>> flagScopes
     ) {
         return (context, builder) -> {
             SuggestionContext<S> suggestionContext = createSuggestionContext(command, context.getSource(), context.getInput());
             CompletionArg arg = suggestionContext.getArgToComplete();
 
-            boolean valueCompletion = isValueFlagInputPosition(flagScope, suggestionContext, arg);
-            if (!valueCompletion && !shouldSuggestFlagNames(arg)) {
+            boolean valueCompletion = isValueFlagInputPosition(command, flagScopes, suggestionContext, arg);
+            boolean completingAfterFlag = hasFlagInputBeforeOrAtCompletion(suggestionContext, arg);
+            if (!valueCompletion && !completingAfterFlag && !shouldSuggestFlagNames(arg)) {
                 return builder.buildFuture();
             }
 
             String normalizedInput = normalizeInput(context.getInput());
             return dispatcher.autoComplete(wrapCommandSource(context.getSource()), normalizedInput)
                            .thenCompose((results) -> {
-                               var targetBuilder = valueCompletion
-                                                           ? builder.createOffset(resolveFlagValueSuggestionStart(context.getInput(), arg))
-                                                           : builder;
+                               var targetBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
                                results.stream()
-                                       .filter((result) -> valueCompletion || result.startsWith("-"))
+                                       .filter((result) -> valueCompletion || completingAfterFlag || result.startsWith("-"))
                                        .forEachOrdered(targetBuilder::suggest);
                                return targetBuilder.buildFuture();
                            });
@@ -262,69 +283,171 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
     }
 
     private boolean isValueFlagInputPosition(
-            CommandPathway<S> flagScope,
+            Command<S> command,
+            List<CommandPathway<S>> flagScopes,
             SuggestionContext<S> suggestionContext,
             CompletionArg arg
     ) {
         int previousIndex = arg.index() - 1;
         String previousInput = suggestionContext.arguments().getOr(previousIndex, null);
-        if (previousInput == null || !suggestionContext.isFlagPosition(previousIndex)) {
+        if (previousInput == null || !Patterns.isInputFlag(previousInput)) {
             return false;
         }
 
-        var flagData = flagScope.getFlagDataFromInput(previousInput);
-        return flagData != null && !flagData.isSwitch();
+        Boolean scopedMatch = isValueFlagInScopes(flagScopes, previousInput);
+        if (scopedMatch != null) {
+            return scopedMatch;
+        }
+        Boolean commandMatch = isValueFlagInScopes(allCommandPathways(command), previousInput);
+        return commandMatch != null && commandMatch;
+    }
+
+    private @Nullable Boolean isValueFlagInScopes(List<CommandPathway<S>> flagScopes, String previousInput) {
+        for (CommandPathway<S> flagScope : flagScopes) {
+            var flagData = flagScope.getFlagDataFromInput(previousInput);
+            if (flagData != null) {
+                return !flagData.isSwitch();
+            }
+        }
+        return null;
+    }
+
+    private boolean hasFlagInputBeforeOrAtCompletion(SuggestionContext<S> suggestionContext, CompletionArg arg) {
+        int maxIndex = Math.min(arg.index(), suggestionContext.arguments().size() - 1);
+        for (int index = 0; index <= maxIndex; index++) {
+            String input = suggestionContext.arguments().getOr(index, null);
+            if (input != null && Patterns.isInputFlag(input)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean shouldSuggestFlagNames(CompletionArg arg) {
         return arg.isEmpty() || arg.value().startsWith("-");
     }
 
-    private int resolveFlagValueSuggestionStart(String rawInput, CompletionArg arg) {
+    private int resolveSuggestionStart(String rawInput, CompletionArg arg) {
         if (arg.isEmpty()) {
             return rawInput.length();
         }
         return Math.max(0, rawInput.length() - arg.value().length());
     }
 
-    private CommandPathway<S> resolveFlagScopePathway(
-            studio.mevera.imperat.command.tree.CommandNode<S, ?> scopeNode
-    ) {
-        CommandPathway<S> directUsage = scopeNode.getExecutableUsage();
-        if (directUsage != null) {
-            return directUsage;
-        }
+    private List<CommandPathway<S>> resolveFlagScopePathways(Command<S> rootCommand, Node<S> scopeNode) {
+        List<CommandPathway<S>> scopes = new ArrayList<>();
+        addPathwayScope(scopes, scopeNode.getOriginalPathway());
 
-        CommandPathway<S> descendantUsage = findExecutableUsageInSubtree(scopeNode);
-        if (descendantUsage != null) {
-            return descendantUsage;
-        }
-
-        var parent = scopeNode.getParent();
-        while (parent != null) {
-            if (parent.getExecutableUsage() != null) {
-                return parent.getExecutableUsage();
+        Argument<S> main = scopeNode.getMainArgument();
+        if (main.isCommand()) {
+            Command<S> commandScope = main.asCommand();
+            for (CommandPathway<S> pathway : commandScope.getDedicatedPathways()) {
+                addPathwayScope(scopes, pathway);
             }
-            parent = parent.getParent();
+            addPathwayScope(scopes, commandScope.getDefaultPathway());
         }
 
-        return null;
+        for (CommandPathway<S> pathway : rootPathwaysForCommandScope(rootCommand, commandChainForNode(scopeNode))) {
+            addPathwayScope(scopes, pathway);
+        }
+        return scopes;
     }
 
-    private CommandPathway<S> findExecutableUsageInSubtree(
-            studio.mevera.imperat.command.tree.CommandNode<S, ?> scopeNode
-    ) {
-        for (var child : scopeNode.getChildren()) {
-            if (child.getExecutableUsage() != null) {
-                return child.getExecutableUsage();
-            }
-
-            CommandPathway<S> descendantUsage = findExecutableUsageInSubtree(child);
-            if (descendantUsage != null) {
-                return descendantUsage;
+    private void addPathwayScope(List<CommandPathway<S>> scopes, @Nullable CommandPathway<S> pathway) {
+        if (pathway == null) {
+            return;
+        }
+        for (CommandPathway<S> existing : scopes) {
+            if (existing == pathway) {
+                return;
             }
         }
-        return null;
+        scopes.add(pathway);
+    }
+
+    private List<String> commandChainForNode(Node<S> node) {
+        List<String> chain = new ArrayList<>();
+        Node<S> current = node;
+        while (current != null && !current.isRoot()) {
+            Argument<S> main = current.getMainArgument();
+            if (main.isCommand()) {
+                chain.add(0, main.asCommand().getName());
+            }
+            current = current.getParent();
+        }
+        return chain;
+    }
+
+    private List<CommandPathway<S>> rootPathwaysForCommandScope(Command<S> rootCommand, List<String> commandChain) {
+        List<CommandPathway<S>> rootPathways = new ArrayList<>();
+        for (CommandPathway<S> pathway : rootCommand.getDedicatedPathways()) {
+            addPathwayScope(rootPathways, pathway);
+        }
+        addPathwayScope(rootPathways, rootCommand.getDefaultPathway());
+
+        List<CommandPathway<S>> scoped = new ArrayList<>();
+        for (CommandPathway<S> pathway : rootPathways) {
+            if (isExactCommandScope(pathway, commandChain)) {
+                addPathwayScope(scoped, pathway);
+            }
+        }
+        return scoped;
+    }
+
+    private List<CommandPathway<S>> allCommandPathways(Command<S> command) {
+        List<CommandPathway<S>> pathways = new ArrayList<>();
+        List<Command<S>> visitedCommands = new ArrayList<>();
+        collectCommandPathways(command, visitedCommands, pathways);
+        return pathways;
+    }
+
+    private void collectCommandPathways(
+            Command<S> command,
+            List<Command<S>> visitedCommands,
+            List<CommandPathway<S>> pathways
+    ) {
+        for (Command<S> visited : visitedCommands) {
+            if (visited == command) {
+                return;
+            }
+        }
+        visitedCommands.add(command);
+
+        for (CommandPathway<S> pathway : command.getDedicatedPathways()) {
+            addPathwayScope(pathways, pathway);
+        }
+        addPathwayScope(pathways, command.getDefaultPathway());
+
+        for (Command<S> child : command.getSubCommands()) {
+            collectCommandPathways(child, visitedCommands, pathways);
+        }
+    }
+
+    private boolean isExactCommandScope(CommandPathway<S> pathway, List<String> commandChain) {
+        int commandPrefixLength = leadingCommandPrefixLength(pathway);
+        if (commandPrefixLength != commandChain.size()) {
+            return false;
+        }
+
+        List<Argument<S>> arguments = pathway.getArguments();
+        for (int i = 0; i < commandChain.size(); i++) {
+            Argument<S> argument = arguments.get(i);
+            if (!argument.isCommand() || !argument.asCommand().hasName(commandChain.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int leadingCommandPrefixLength(CommandPathway<S> pathway) {
+        int count = 0;
+        for (Argument<S> argument : pathway.getArguments()) {
+            if (!argument.isCommand()) {
+                break;
+            }
+            count++;
+        }
+        return count;
     }
 
     private String normalizeInput(String input) {
@@ -334,8 +457,18 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         return input;
     }
 
-    private String flagTunnelName(studio.mevera.imperat.command.tree.CommandNode<S, ?> scopeNode) {
-        return "_imperat_flags_" + scopeNode.getDepth();
+    private String flagTunnelName(Node<S> scopeNode) {
+        return "_imperat_flags_" + nodeDepth(scopeNode);
+    }
+
+    private int nodeDepth(Node<S> node) {
+        int depth = 0;
+        Node<S> current = node;
+        while (current.getParent() != null) {
+            depth++;
+            current = current.getParent();
+        }
+        return depth;
     }
 
     private void executor(ArgumentBuilder<?, ?> builder) {

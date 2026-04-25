@@ -46,10 +46,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -393,7 +391,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         try {
             context.command().visualizeTree();
             return handleExecution(context);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             //handle here
             this.config().handleExecutionError(ex, context, BaseImperat.class, "execute(CommandContext<S> context)");
             return ExecutionResult.failure(ex, context);
@@ -501,7 +499,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         this.annotationParser = parser;
     }
 
-    private ExecutionResult<S> handleExecution(CommandContext<S> context) throws Exception {
+    private ExecutionResult<S> handleExecution(CommandContext<S> context) throws Throwable {
         Command<S> command = context.command();
         S source = context.source();
 
@@ -526,21 +524,23 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
                 null,
                 command
         );
-        var parsedNodes = command.execute(executionContext);
-        Pair<Command<S>, CommandPathway<S>> resolvedPath = resolvePathSelection(command, parsedNodes, context.arguments());
-        Command<S> terminalCommand = resolvedPath.left();
-        CommandPathway<S> closestUsage = resolvedPath.right();
-        if (closestUsage == null) {
+        var treeMatch = command.execute(executionContext);
+        var parsedNodes = treeMatch.parsedNodes();
+        Command<S> terminalCommand = treeMatch.command();
+        CommandPathway<S> detectedPathway = treeMatch.pathway();
+        if (detectedPathway == null) {
+            System.out.println("DETECTED PATHWAY IS NULL !");
             String invalidUsage = UsageFormatting.formatInput(
                     config.commandPrefix(),
                     context.getRootCommandLabelUsed(),
                     context.arguments().join(" ")
             );
-            throw new InvalidSyntaxException(invalidUsage, null, null);
+            throw new InvalidSyntaxException(invalidUsage, command.tree().getClosestPathwayToContext(context, treeMatch));
         }
 
-        executionContext.setDetectedPathway(closestUsage);
+        executionContext.setDetectedPathway(detectedPathway);
         executionContext.setLastUsedCommand(terminalCommand);
+        executionContext.setTreeMatch(treeMatch);
 
         Optional<Pair<ParsedNode<S>, Argument<S>>> inAccessibleNode =
                 parsedNodes.stream().map((n) -> {
@@ -550,44 +550,25 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
                         .filter(Objects::nonNull)
                         .findFirst();
 
-        if (inAccessibleNode.isPresent() || !config.getPermissionChecker().hasPermission(source, closestUsage)) {
+        if (inAccessibleNode.isPresent() || !config.getPermissionChecker().hasPermission(source, detectedPathway)) {
             var inAccessible = inAccessibleNode.orElse(null);
             PermissionHolder holder;
             if (inAccessible == null) {
-                holder = closestUsage;
+                holder = detectedPathway;
             } else {
                 holder = inAccessible.right();
             }
             throw new PermissionDeniedException(
                     command.getName(),
-                    closestUsage,
+                    detectedPathway,
                     holder
             );
         }
 
         // SUCCESS: The tree already resolved args and created ExecutionContext
         //We actually parse
-        try {
-            executionContext.parse(parsedNodes);
-        } catch (Throwable parseError) {
-            if (parseError instanceof InvalidSyntaxException invalidSyntaxException) {
-                throw invalidSyntaxException;
-            }
-
-            if (hasRegisteredHandlerFor(parseError, executionContext.getLastUsedCommand())) {
-                if (parseError instanceof Exception ex) {
-                    throw ex;
-                }
-                throw new RuntimeException(parseError);
-            }
-
-            String invalidUsage = UsageFormatting.formatInput(
-                    config.commandPrefix(),
-                    context.getRootCommandLabelUsed(),
-                    context.arguments().join(" ")
-            );
-            throw new InvalidSyntaxException(invalidUsage, closestUsage, parseError);
-        }
+        System.out.println("Trying to parse!");
+        executionContext.parse(parsedNodes);
 
         // Post-processing
         var postProcessEvent = new CommandPostProcessEvent<>(command, executionContext);
@@ -596,7 +577,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         // Execute
         if (!postProcessEvent.isCancelled()) {
             ImperatDebugger.debug("Executing command '%s' for source '%s'", command.getName(), source);
-            closestUsage.execute(this, source, executionContext);
+            detectedPathway.execute(this, source, executionContext);
             return ExecutionResult.of(executionContext, context);
         } else {
             ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPostProcessEvent.", command.getName());
@@ -634,229 +615,6 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
             current = current.getCause();
         }
         return false;
-    }
-
-    private Pair<Command<S>, CommandPathway<S>> resolvePathSelection(
-            @NotNull Command<S> rootCommand,
-            @NotNull List<ParsedNode<S>> parsedNodes,
-            @NotNull ArgumentInput input
-    ) {
-        Command<S> terminalCommand = resolveTerminalCommand(rootCommand, parsedNodes);
-        ParsedNode<S> lastNode = parsedNodes.isEmpty() ? null : parsedNodes.get(parsedNodes.size() - 1);
-        CommandPathway<S> rootAligned = chooseRootAlignedPathway(rootCommand, terminalCommand, lastNode, input);
-        if (rootAligned != null) {
-            return new Pair<>(rootCommand, rootAligned);
-        }
-        CommandPathway<S> pathway = chooseBestPathway(rootCommand, terminalCommand, lastNode, input);
-        if (pathway == null && lastNode != null) {
-            pathway = lastNode.getOriginalPathway();
-        }
-        return new Pair<>(terminalCommand, pathway);
-    }
-
-    @SuppressWarnings("unchecked")
-    private @NotNull Command<S> resolveTerminalCommand(
-            @NotNull Command<S> rootCommand,
-            @NotNull List<ParsedNode<S>> parsedNodes
-    ) {
-        Command<S> resolved = rootCommand;
-        for (ParsedNode<S> parsedNode : parsedNodes) {
-            Argument<S> main = parsedNode.getMainArgument();
-            if (!main.isCommand()) {
-                continue;
-            }
-
-            var parseResult = parsedNode.getParseResults().get(main.getName());
-            if (parseResult != null && parseResult.getParsedValue() instanceof Command<?> parsedCommand) {
-                resolved = (Command<S>) parsedCommand;
-                continue;
-            }
-
-            if (!parsedNode.isRoot()) {
-                resolved = main.asCommand();
-            }
-        }
-        return resolved;
-    }
-
-    private @Nullable CommandPathway<S> chooseBestPathway(
-            @NotNull Command<S> rootCommand,
-            @NotNull Command<S> terminalCommand,
-            @Nullable ParsedNode<S> lastNode,
-            @NotNull ArgumentInput input
-    ) {
-        List<CommandPathway<S>> pathways = new ArrayList<>(terminalCommand.getDedicatedPathways());
-        CommandPathway<S> defaultPathway = terminalCommand.getDefaultPathway();
-        if (defaultPathway != null && !pathways.contains(defaultPathway)) {
-            pathways.add(defaultPathway);
-        }
-        if (pathways.isEmpty()) {
-            return terminalCommand.getDefaultPathway();
-        }
-
-        int commandDepth = commandDepth(rootCommand, terminalCommand);
-        boolean terminalHasChildren = !terminalCommand.getSubCommands().isEmpty();
-        boolean terminalIsRoot = terminalCommand == rootCommand;
-
-        return pathways.stream()
-                       .max(Comparator.comparingInt(pathway ->
-                                                            scorePathway(pathway, input, commandDepth, terminalHasChildren, terminalIsRoot)))
-                       .orElse(null);
-    }
-
-    private @Nullable CommandPathway<S> chooseRootAlignedPathway(
-            @NotNull Command<S> rootCommand,
-            @NotNull Command<S> terminalCommand,
-            @Nullable ParsedNode<S> lastNode,
-            @NotNull ArgumentInput input
-    ) {
-        List<String> chain = commandChainFromRoot(rootCommand, terminalCommand);
-        List<CommandPathway<S>> allRootPathways = new ArrayList<>(rootCommand.getDedicatedPathways());
-        CommandPathway<S> rootDefaultPathway = rootCommand.getDefaultPathway();
-        if (rootDefaultPathway != null && !allRootPathways.contains(rootDefaultPathway)) {
-            allRootPathways.add(rootDefaultPathway);
-        }
-
-        List<CommandPathway<S>> aligned = new ArrayList<>();
-        for (CommandPathway<S> pathway : allRootPathways) {
-            if (isAlignedWithCommandChain(pathway, chain)) {
-                aligned.add(pathway);
-            }
-        }
-
-        if (aligned.isEmpty()) {
-            return null;
-        }
-
-        boolean terminalHasChildren = !terminalCommand.getSubCommands().isEmpty();
-        boolean terminalIsRoot = terminalCommand == rootCommand;
-        return aligned.stream()
-                       .max(Comparator.comparingInt(pathway ->
-                                                            scorePathway(pathway, input, 0, terminalHasChildren, terminalIsRoot)))
-                       .orElse(null);
-    }
-
-    private int scorePathway(
-            @NotNull CommandPathway<S> pathway,
-            @NotNull ArgumentInput input,
-            int commandDepth,
-            boolean terminalHasChildren,
-            boolean terminalIsRoot
-    ) {
-        List<Argument<S>> arguments = pathway.getArguments();
-        int requiredCount = (int) arguments.stream().filter(Argument::isRequired).count();
-        int optionalCount = arguments.size() - requiredCount;
-        int flagCount = pathway.getFlagExtractor().getRegisteredFlags().size();
-        int remainingTokens = Math.max(0, input.size() - commandDepth);
-        int matchedRequired = Math.min(requiredCount, remainingTokens);
-        int missingRequired = Math.max(0, requiredCount - remainingTokens);
-
-        int literalPrefixScore = scoreCommandLiteralPrefix(arguments, input, commandDepth);
-        if (literalPrefixScore == Integer.MIN_VALUE) {
-            return Integer.MIN_VALUE;
-        }
-
-        int score = literalPrefixScore;
-        if (remainingTokens > 0) {
-            if (!arguments.isEmpty() || flagCount > 0) {
-                score += 500;
-            } else {
-                score -= 700;
-            }
-        } else if (requiredCount == 0) {
-            score += 120;
-        }
-
-        if (terminalHasChildren && remainingTokens == 0 && !terminalIsRoot) {
-            if (requiredCount > 0) {
-                score += 400;
-            }
-            if (arguments.isEmpty() && flagCount == 0) {
-                score -= 500;
-            }
-        }
-
-        if (missingRequired > 0) {
-            score -= missingRequired * 100;
-        }
-
-        score += matchedRequired * 40;
-        score += optionalCount * 10;
-        score += flagCount * 15;
-
-        if (pathway.isDefault()) {
-            score -= 20;
-        }
-        if (pathway.isDefault() && pathway.getMethodElement() == null) {
-            score -= 400;
-        }
-        return score;
-    }
-
-    private int scoreCommandLiteralPrefix(
-            @NotNull List<Argument<S>> arguments,
-            @NotNull ArgumentInput input,
-            int commandDepth
-    ) {
-        int score = 0;
-        int tokenIndex = commandDepth;
-        for (Argument<S> argument : arguments) {
-            if (!argument.isCommand()) {
-                break;
-            }
-
-            String token = input.getOr(tokenIndex, null);
-            if (token == null || !argument.asCommand().hasName(token)) {
-                return Integer.MIN_VALUE;
-            }
-            score += 250;
-            tokenIndex++;
-        }
-        return score;
-    }
-
-    private int commandDepth(@NotNull Command<S> rootCommand, @NotNull Command<S> terminalCommand) {
-        int depth = 0;
-        Command<S> current = terminalCommand;
-        while (current != null && current != rootCommand) {
-            depth++;
-            current = current.getParent();
-        }
-        return Math.max(depth, 0);
-    }
-
-    private @NotNull List<String> commandChainFromRoot(@NotNull Command<S> rootCommand, @NotNull Command<S> terminalCommand) {
-        if (terminalCommand == rootCommand) {
-            return Collections.emptyList();
-        }
-
-        List<String> names = new ArrayList<>();
-        Command<S> current = terminalCommand;
-        while (current != null && current != rootCommand) {
-            names.add(current.getName());
-            current = current.getParent();
-        }
-        Collections.reverse(names);
-        return names;
-    }
-
-    private boolean isAlignedWithCommandChain(@NotNull CommandPathway<S> pathway, @NotNull List<String> chain) {
-        if (chain.isEmpty()) {
-            return true;
-        }
-
-        List<Argument<S>> arguments = pathway.getArguments();
-        if (arguments.size() < chain.size()) {
-            return false;
-        }
-
-        for (int i = 0; i < chain.size(); i++) {
-            Argument<S> argument = arguments.get(i);
-            if (!argument.isCommand() || !argument.asCommand().hasName(chain.get(i))) {
-                return false;
-            }
-        }
-        return true;
     }
 
 }

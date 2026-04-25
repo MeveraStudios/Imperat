@@ -20,16 +20,7 @@ public final class InvalidSyntaxException extends CommandException {
      * @param closestUsage  the closest valid usage hint, or {@code null} if unavailable
      */
     public <S extends CommandSource> InvalidSyntaxException(String invalidUsage, @Nullable CommandPathway<S> closestUsage) {
-        this(invalidUsage, closestUsage, null);
-    }
-
-    /**
-     * @param invalidUsage  what the user actually typed (e.g. "/give sword stone")
-     * @param closestUsage  the closest valid usage hint, or {@code null} if unavailable
-     * @param cause         the underlying exception that caused the invalid syntax (e.g. a parse failure), or {@code null}
-     */
-    public <S extends CommandSource> InvalidSyntaxException(String invalidUsage, @Nullable CommandPathway<S> closestUsage, @Nullable Throwable cause) {
-        super("Invalid command usage '%s'", cause, invalidUsage);
+        super("Invalid command usage '%s'", invalidUsage);
         this.invalidUsage = invalidUsage;
         this.closestUsage = closestUsage;
     }

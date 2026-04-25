@@ -41,7 +41,8 @@ public class Node<S extends CommandSource> implements Prioritizable {
      * The map of flags for this node.
      */
     final FlagExtractor<S> flags;
-    final Map<String, Node<S>> children = new HashMap<>();
+    final PriorityList<Node<S>> children = new PriorityList<>();
+    final List<CommandPathway<S>> terminalPathways = new ArrayList<>();
     final @NotNull CommandPathway<S> originalPathway;
     @Nullable Node<S> parent;
 
@@ -73,6 +74,19 @@ public class Node<S extends CommandSource> implements Prioritizable {
         return originalPathway;
     }
 
+    public @NotNull List<CommandPathway<S>> getTerminalPathways() {
+        return List.copyOf(terminalPathways);
+    }
+
+    void addTerminalPathway(@NotNull CommandPathway<S> pathway) {
+        for (CommandPathway<S> existing : terminalPathways) {
+            if (existing == pathway) {
+                return;
+            }
+        }
+        terminalPathways.add(pathway);
+    }
+
     public boolean isExecutable() {
         return isLeaf();
     }
@@ -96,6 +110,17 @@ public class Node<S extends CommandSource> implements Prioritizable {
         }
         parseResultMap.put(main.getName(), mainParsedResult);
 
+        parseOptionalsAndFlags(inputStream, parseResultMap);
+        return new ParsedNode<>(this, parseResultMap);
+    }
+
+    /**
+     * Consumes the trailing optionals and inline flags this node owns. Stops as soon
+     * as a non-flag token has no remaining optional to bind to (so children can
+     * still pick it up). Used by {@link #parseArgument(RawInputStream)} for normal
+     * nodes and by the tree directly for the synthetic root traversal.
+     */
+    public void parseOptionalsAndFlags(RawInputStream<S> inputStream, Map<String, ParseResult<S>> parseResultMap) {
         Iterator<Argument<S>> optionalsIterator = optionals.iterator();
         while (inputStream.hasNext()) {
             String peek = inputStream.next();
@@ -126,11 +151,15 @@ public class Node<S extends CommandSource> implements Prioritizable {
                 break;
             }
             Argument<S> optional = optionalsIterator.next();
+            int beforeOptional = inputStream.getRawIndex();
             ParseResult<S> optionalParseResult = this.parseArgument(optional, inputStream);
+            if (optionalParseResult.isFailureScore() && !optional.isCommand()) {
+                // failed optional should not steal input meant for children/siblings
+                inputStream.setRawIndex(beforeOptional);
+                break;
+            }
             parseResultMap.put(optional.getName(), optionalParseResult);
         }
-
-        return new ParsedNode<>(this, parseResultMap);
     }
 
     private ParseResult<S> parseFlagArgument(
@@ -162,7 +191,7 @@ public class Node<S extends CommandSource> implements Prioritizable {
     private ParseResult<S> parseArgument(Argument<S> argument, RawInputStream<S> inputStream) {
         StringBuilder builder = new StringBuilder();
 
-        if (argument.isGreedy()) {
+        if (isGreedyArgument(argument)) {
             int limit = argument.greedyLimit();
             int consumed = 0;
             while (inputStream.hasNext()) {
@@ -179,7 +208,7 @@ public class Node<S extends CommandSource> implements Prioritizable {
             final int toConsume = argument.type().getNumberOfParametersToConsume(argument);
             int consumed = 0;
             while (inputStream.hasNext() && consumed < toConsume) {
-                if (builder.length() > 0) {
+                if (!builder.isEmpty()) {
                     builder.append(' ');
                 }
                 builder.append(inputStream.next());
@@ -223,15 +252,15 @@ public class Node<S extends CommandSource> implements Prioritizable {
     }
 
     public boolean isGreedy() {
-        return getMainArgument().isGreedy();
+        return isGreedyArgument(getMainArgument());
+    }
+
+    private boolean isGreedyArgument(Argument<S> argument) {
+        return argument.isGreedy() || argument.type().isGreedy(argument);
     }
 
     public PriorityList<Node<S>> getChildren() {
-        PriorityList<Node<S>> sorted = new PriorityList<>();
-        for (Node<S> child : children.values()) {
-            sorted.add(child);
-        }
-        return sorted;
+        return children;
     }
 
     @Override

@@ -8,6 +8,7 @@ import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.tree.CommandTreeMatch;
 import studio.mevera.imperat.command.tree.ParsedNode;
 import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
@@ -246,6 +247,10 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
     boolean hasResolvedFlag(FlagData<S> flagData);
 
 
-    void parse(List<ParsedNode<S>> parsedNodes) throws CommandException;
+    void parse(List<ParsedNode<S>> parsedNodes) throws Throwable;
 
+
+    CommandTreeMatch<S> getTreeMatch();
+
+    void setTreeMatch(CommandTreeMatch<S> treeMatch);
 }

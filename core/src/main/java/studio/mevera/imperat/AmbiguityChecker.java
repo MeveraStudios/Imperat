@@ -70,7 +70,7 @@ final class AmbiguityChecker {
         int checkedArguments = 0;
 
         for (Argument<S> argument : arguments) {
-            if (argument.isCommand() || argument.isGreedy()) {
+            if (argument.isCommand() || isGreedyArgument(argument)) {
                 continue;
             }
 
@@ -96,6 +96,10 @@ final class AmbiguityChecker {
                 types.size() < checkedArguments,
                 priorities.size() < checkedArguments
         );
+    }
+
+    private static <S extends CommandSource> boolean isGreedyArgument(Argument<S> argument) {
+        return argument.isGreedy() || argument.type().isGreedy(argument);
     }
 
     record AmbiguityResult<S extends CommandSource>(

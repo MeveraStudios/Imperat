@@ -7,9 +7,12 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.tree.help.HelpEntry;
 import studio.mevera.imperat.command.tree.help.HelpQuery;
 import studio.mevera.imperat.command.tree.help.HelpResult;
 import studio.mevera.imperat.context.ArgumentInput;
+import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
@@ -56,6 +59,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     public SuperCommandTree(ImperatConfig<S> imperatConfig, Command<S> command) {
         this.imperatConfig = imperatConfig;
         this.root = new Node<>(null, command.getDefaultPathway(), command);
+        this.root.addTerminalPathway(command.getDefaultPathway());
         this.size = 1;
     }
 
@@ -68,7 +72,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
     private static <S extends CommandSource> int countNodes(Node<S> node) {
         int count = 1;
-        for (Node<S> child : node.children.values()) {
+        for (Node<S> child : node.children) {
             count += countNodes(child);
         }
         return count;
@@ -115,16 +119,17 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             attachOptionals(current, pendingOptionals);
             pendingOptionals.clear();
 
-            Node<S> child = current.children.get(arg.getName());
+            Node<S> child = current.children.stream().filter((n) -> n.main.getName().equals(arg.getName())).findFirst().orElse(null);
             if (child == null) {
                 child = new Node<>(current, usage, arg);
-                current.children.put(arg.getName(), child);
+                current.children.add(child);
                 size++;
             }
             current = child;
         }
         // trailing optionals (no more required args following)
         attachOptionals(current, pendingOptionals);
+        current.addTerminalPathway(usage);
     }
 
     private void attachOptionals(Node<S> node, List<Argument<S>> optionals) {
@@ -161,7 +166,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
                             + root.main.format() + "'");
         }
         Node<S> subRoot = subTree.rootNode();
-        target.children.put(subRoot.main.getName(), subRoot);
+        target.children.add(subRoot);
         subRoot.parent = target;
         size += subTreeSize(subTree);
     }
@@ -171,7 +176,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
                     || node.optionals.stream().anyMatch(optional -> optional.format().equals(format))) {
             return node;
         }
-        for (Node<S> child : node.children.values()) {
+        for (Node<S> child : node.children) {
             Node<S> found = findByFormat(child, format);
             if (found != null) {
                 return found;
@@ -196,11 +201,10 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
      * full input consumption, higher per-argument score sum, greater depth,
      * fewer failed-parse arguments.</p>
      *
-     * @return the best matching chain of {@link ParsedNode}s from root to the
-     *         terminal node; an empty list if nothing matched.
+     * @return the best matching tree branch plus the exact command pathway it resolved to.
      */
     @Override
-    public @NotNull List<ParsedNode<S>> execute(ExecutionContext<S> context, @NotNull ArgumentInput input)
+    public @NotNull CommandTreeMatch<S> execute(ExecutionContext<S> context, @NotNull ArgumentInput input)
             throws CommandException {
         RawInputStream<S> stream = RawInputStream.newStream(context, input);
         int totalTokens = stream.size();
@@ -210,7 +214,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
         traverse(root, stream, path, candidates);
 
         if (candidates.isEmpty()) {
-            return Collections.emptyList();
+            return CommandTreeMatch.empty(root.getMainArgument().asCommand());
         }
 
         Candidate<S> best = candidates.stream()
@@ -218,7 +222,9 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
                                     .max(Comparator.comparingInt(c -> scoreCandidate(c, totalTokens)))
                                     .orElse(null);
 
-        return best == null ? Collections.emptyList() : best.chain;
+        return best == null
+                       ? CommandTreeMatch.empty(root.getMainArgument().asCommand())
+                       : new CommandTreeMatch<>(best.chain, best.command, best.pathway);
     }
 
     private void traverse(
@@ -232,25 +238,32 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             // root represents the command literal itself; it is NOT parsed from input
             // (the framework strips the label before dispatching). Insert a synthetic
             // parsed node so downstream consumers have the command on the chain.
-            ParsedNode<S> rootParsed = new ParsedNode<>(node, new HashMap<>());
+
+            // Eagerly bind any optionals/inline flags that root owns BEFORE descending
+            // into children. This mirrors Node.parseArgument's behaviour for normal
+            // nodes so root-attached optionals (e.g. @Execute root pathway with a
+            // single optional arg) are resolvable as a valid match for partial input.
+            int rootSaved = stream.getRawIndex();
+            Map<String, ParseResult<S>> rootResults = new HashMap<>();
+            node.parseOptionalsAndFlags(stream, rootResults);
+            int afterRootParse = stream.getRawIndex();
+
+            ParsedNode<S> rootParsed = new ParsedNode<>(node, rootResults);
             path.add(rootParsed);
 
-            if (node.isLeaf()) {
-                if (!stream.hasNext()) {
-                    candidates.add(new Candidate<>(new ArrayList<>(path), stream.getRawIndex()));
-                }
-            } else {
-                if (!stream.hasNext()) {
-                    // default pathway (no args) on a command that also has subcommands
-                    candidates.add(new Candidate<>(new ArrayList<>(path), stream.getRawIndex()));
-                }
-                for (Node<S> child : node.children.values()) {
+            // root is a valid candidate as soon as it has consumed everything (or
+            // there is nothing left). Anything still in the stream beyond root's
+            // optionals is for the children, so partial root matches are skipped.
+            addExecutionCandidates(node, stream, path, candidates, afterRootParse, false);
+            if (!node.isLeaf()) {
+                for (Node<S> child : node.children) {
                     int saved = stream.getRawIndex();
                     traverse(child, stream, path, candidates);
                     stream.setRawIndex(saved);
                 }
             }
             path.remove(path.size() - 1);
+            stream.setRawIndex(rootSaved);
             return;
         }
 
@@ -273,12 +286,12 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
         int afterParse = stream.getRawIndex();
 
         if (node.isLeaf()) {
-            candidates.add(new Candidate<>(new ArrayList<>(path), afterParse));
+            addExecutionCandidates(node, stream, path, candidates, afterParse, true);
         } else if (!stream.hasNext()) {
             // input exhausted mid-tree: still a candidate (lower-scoring, but may be the best)
-            candidates.add(new Candidate<>(new ArrayList<>(path), afterParse));
+            addExecutionCandidates(node, stream, path, candidates, afterParse, true);
         } else {
-            for (Node<S> child : node.children.values()) {
+            for (Node<S> child : node.children) {
                 int childSaved = stream.getRawIndex();
                 traverse(child, stream, path, candidates);
                 stream.setRawIndex(childSaved);
@@ -287,6 +300,106 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
         path.remove(path.size() - 1);
         stream.setRawIndex(saved);
+    }
+
+    private void addExecutionCandidates(
+            Node<S> node,
+            RawInputStream<S> stream,
+            List<ParsedNode<S>> path,
+            List<Candidate<S>> candidates,
+            int consumedIndex,
+            boolean allowPartial
+    ) {
+        Command<S> terminalCommand = resolveTerminalCommand(path);
+        for (CommandPathway<S> pathway : candidatePathwaysForNode(node)) {
+            int consumedWithFlags = consumeRemainingFlags(pathway, stream, consumedIndex);
+            boolean fullyConsumed = consumedWithFlags + 1 >= stream.size();
+            if (!allowPartial && stream.hasNext() && !fullyConsumed) {
+                continue;
+            }
+
+            Command<S> commandScope = executionCommandForPathway(pathway, terminalCommand);
+            candidates.add(new Candidate<>(
+                    new ArrayList<>(path),
+                    consumedWithFlags,
+                    commandScope,
+                    pathway
+            ));
+        }
+    }
+
+    private List<CommandPathway<S>> candidatePathwaysForNode(Node<S> node) {
+        List<CommandPathway<S>> pathways = new ArrayList<>();
+        for (CommandPathway<S> pathway : node.getTerminalPathways()) {
+            addPathwayScope(pathways, pathway);
+        }
+        if (pathways.isEmpty()) {
+            addPathwayScope(pathways, node.getOriginalPathway());
+        }
+        return pathways;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Command<S> resolveTerminalCommand(List<ParsedNode<S>> path) {
+        Command<S> resolved = root.getMainArgument().asCommand();
+        for (ParsedNode<S> parsedNode : path) {
+            Argument<S> main = parsedNode.getMainArgument();
+            if (!main.isCommand()) {
+                continue;
+            }
+
+            ParseResult<S> parseResult = parsedNode.getParseResults().get(main.getName());
+            if (parseResult != null && parseResult.getParsedValue() instanceof Command<?> parsedCommand) {
+                resolved = (Command<S>) parsedCommand;
+                continue;
+            }
+
+            if (!parsedNode.isRoot()) {
+                resolved = main.asCommand();
+            }
+        }
+        return resolved;
+    }
+
+    private Command<S> executionCommandForPathway(CommandPathway<S> pathway, Command<S> terminalCommand) {
+        Argument<S> first = pathway.getArgumentAt(0);
+        if (first != null && first.isCommand()) {
+            return root.getMainArgument().asCommand();
+        }
+        return terminalCommand;
+    }
+
+    private int consumeRemainingFlags(CommandPathway<S> pathway, RawInputStream<S> stream, int consumedIndex) {
+        RawInputStream<S> remaining = stream.copyAndSetAtIndex(consumedIndex);
+        int lastConsumed = consumedIndex;
+
+        while (remaining.hasNext()) {
+            String raw = remaining.next();
+            if (!Patterns.isInputFlag(raw)) {
+                return lastConsumed;
+            }
+
+            Set<FlagArgument<S>> extracted;
+            try {
+                extracted = pathway.getFlagExtractor().extract(raw);
+            } catch (CommandException ignored) {
+                return lastConsumed;
+            }
+            if (extracted.isEmpty()) {
+                return lastConsumed;
+            }
+
+            lastConsumed = remaining.getRawIndex();
+            boolean hasValueFlags = extracted.stream().anyMatch(flag -> !flag.isSwitch());
+            if (hasValueFlags) {
+                if (!remaining.hasNext()) {
+                    return consumedIndex;
+                }
+                remaining.next();
+                lastConsumed = remaining.getRawIndex();
+            }
+        }
+        return lastConsumed;
     }
 
     private boolean hasUnacceptable(List<ParsedNode<S>> chain) {
@@ -303,10 +416,15 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     /**
      * Weighted score. Priorities (highest tier first):
      * <ol>
-     *   <li>Full input consumption (fullyConsumed bit)</li>
-     *   <li>Sum of per-argument parse scores</li>
-     *   <li>Depth of the chain</li>
-     *   <li>Penalty for failed-parse arguments</li>
+     *   <li>Fewest failed-parse arguments — a clean (zero-failure) match always
+     *       wins over any partially-failed match, regardless of depth. Among
+     *       equally-failed branches the deeper / more-matched one wins, which is
+     *       what error reporting wants for "closest usage".</li>
+     *   <li>Number of matched command literals (subcommand depth).</li>
+     *   <li>Full input consumption.</li>
+     *   <li>Sum of per-argument parse scores.</li>
+     *   <li>Depth of the chain.</li>
+     *   <li>Pathway-level tweaks (default/method/flag preferences).</li>
      * </ol>
      */
     private int scoreCandidate(Candidate<S> candidate, int totalTokens) {
@@ -315,8 +433,12 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
         int totalScore = 0;
         int failures = 0;
+        int commandLiterals = 0;
         int depth = candidate.chain.size();
         for (ParsedNode<S> pn : candidate.chain) {
+            if (!pn.isRoot() && pn.getMainArgument().isCommand()) {
+                commandLiterals++;
+            }
             totalScore += pn.getTotalParseScore();
             for (ParseResult<S> r : pn.getParseResults().values()) {
                 if (r.isFailureScore()) {
@@ -325,10 +447,30 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             }
         }
 
-        return (fullyConsumed ? 1_000_000 : 0)
+        // A failure is dominant: one missed required argument should never beat a
+        // pathway that consumed everything cleanly, even if the failed branch is
+        // deeper. The penalty must outweigh every other tier combined.
+        return -failures * 100_000_000
+                       + commandLiterals * 2_000_000
+                       + (fullyConsumed ? 1_000_000 : 0)
                        + totalScore * 1_000
                        + depth * 10
-                       - failures;
+                       + scoreCandidatePathway(candidate.pathway);
+    }
+
+    private int scoreCandidatePathway(@Nullable CommandPathway<S> pathway) {
+        if (pathway == null) {
+            return 0;
+        }
+
+        int score = pathway.getFlagExtractor().getRegisteredFlags().size() * 15;
+        if (pathway.isDefault()) {
+            score -= 20;
+        }
+        if (pathway.isDefault() && pathway.getMethodElement() == null) {
+            score -= 400;
+        }
+        return score;
     }
 
     // ------------------------------------------------------------------
@@ -432,10 +574,10 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
         int afterParse = stream.getRawIndex();
 
         if (node.isLeaf() || !stream.hasNext()) {
-            candidates.add(new Candidate<>(new ArrayList<>(path), afterParse));
+            candidates.add(Candidate.completion(new ArrayList<>(path), afterParse));
         }
         if (stream.hasNext()) {
-            for (Node<S> child : sortedChildren(node)) {
+            for (Node<S> child : node.getChildren()) {
                 int childSaved = stream.getRawIndex();
                 traverseForCompletion(child, stream, path, candidates);
                 stream.setRawIndex(childSaved);
@@ -517,18 +659,34 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     }
 
     private List<CommandPathway<S>> effectivePathways(Node<S> node, List<String> commandChain) {
-        Set<CommandPathway<S>> scopes = new LinkedHashSet<>();
-        scopes.add(node.getOriginalPathway());
+        List<CommandPathway<S>> scopes = new ArrayList<>();
+        addPathwayScope(scopes, node.getOriginalPathway());
 
         Argument<S> main = node.getMainArgument();
         if (main.isCommand()) {
             Command<S> commandScope = main.asCommand();
-            scopes.addAll(commandScope.getDedicatedPathways());
-            scopes.add(commandScope.getDefaultPathway());
+            for (CommandPathway<S> pathway : commandScope.getDedicatedPathways()) {
+                addPathwayScope(scopes, pathway);
+            }
+            addPathwayScope(scopes, commandScope.getDefaultPathway());
         }
-        scopes.addAll(rootPathwaysForCommandScope(commandChain));
+        for (CommandPathway<S> pathway : rootPathwaysForCommandScope(commandChain)) {
+            addPathwayScope(scopes, pathway);
+        }
 
-        return new ArrayList<>(scopes);
+        return scopes;
+    }
+
+    private void addPathwayScope(List<CommandPathway<S>> scopes, @Nullable CommandPathway<S> pathway) {
+        if (pathway == null) {
+            return;
+        }
+        for (CommandPathway<S> existing : scopes) {
+            if (existing == pathway) {
+                return;
+            }
+        }
+        scopes.add(pathway);
     }
 
     private List<String> commandChainForNode(List<ParsedNode<S>> parsedPath, Node<S> node) {
@@ -554,15 +712,17 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     }
 
     private List<CommandPathway<S>> rootPathwaysForCommandScope(List<String> commandChain) {
-        Set<CommandPathway<S>> rootPathways = new LinkedHashSet<>();
+        List<CommandPathway<S>> rootPathways = new ArrayList<>();
         Command<S> rootCommand = root.getMainArgument().asCommand();
-        rootPathways.addAll(rootCommand.getDedicatedPathways());
-        rootPathways.add(rootCommand.getDefaultPathway());
+        for (CommandPathway<S> pathway : rootCommand.getDedicatedPathways()) {
+            addPathwayScope(rootPathways, pathway);
+        }
+        addPathwayScope(rootPathways, rootCommand.getDefaultPathway());
 
         List<CommandPathway<S>> scoped = new ArrayList<>();
         for (CommandPathway<S> pathway : rootPathways) {
             if (isExactCommandScope(pathway, commandChain)) {
-                scoped.add(pathway);
+                addPathwayScope(scoped, pathway);
             }
         }
         return scoped;
@@ -624,7 +784,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     private ParseResult<S> parseArgument(Argument<S> argument, RawInputStream<S> inputStream) {
         StringBuilder builder = new StringBuilder();
 
-        if (argument.isGreedy()) {
+        if (isGreedyArgument(argument)) {
             int limit = argument.greedyLimit();
             int consumed = 0;
             while (inputStream.hasNext()) {
@@ -668,14 +828,6 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
         }
     }
 
-    private List<Node<S>> sortedChildren(Node<S> node) {
-        List<Node<S>> sorted = new ArrayList<>(node.children.values());
-        sorted.sort(
-                Comparator.comparing((Node<S> child) -> child.getPriority())
-                        .thenComparing(child -> child.getMainArgument().getName(), String.CASE_INSENSITIVE_ORDER)
-        );
-        return sorted;
-    }
 
     private boolean isInsideSecretPath(List<ParsedNode<S>> chain) {
         for (ParsedNode<S> parsedNode : chain) {
@@ -741,7 +893,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
                 for (Argument<S> optional : unresolvedOptionals) {
                     addArgumentProviderSuggestions(context, optional, currentNode.getOriginalPathway(), target, false);
                 }
-                for (Node<S> child : sortedChildren(currentNode)) {
+                for (Node<S> child : currentNode.getChildren()) {
                     addChildSuggestions(context, child, target, seenChildSuggestions);
                 }
             } else {
@@ -750,7 +902,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             return;
         }
 
-        for (Node<S> child : sortedChildren(currentNode)) {
+        for (Node<S> child : currentNode.getChildren()) {
             addChildSuggestions(context, child, target, seenChildSuggestions);
         }
     }
@@ -830,24 +982,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             List<String> target
     ) {
         Set<String> seen = new LinkedHashSet<>();
-        if ("switchscope".equals(context.command().getName())) {
-            var rootCmd = context.command();
-            System.out.println("[DBG root dedicated] " + rootCmd.getDedicatedPathways().stream()
-                                                                 .map(p -> p.formatted() + " flags=" + p.getFlagExtractor().getRegisteredFlags()
-                                                                                                               .stream().map(FlagArgument::getName)
-                                                                                                               .toList())
-                                                                 .toList());
-        }
         for (CommandPathway<S> pathway : effectivePathways(currentNode, commandChain)) {
-            if ("example".equals(context.command().getName()) || "git".equals(context.command().getName()) || "switchscope".equals(
-                    context.command().getName())) {
-                System.out.println("[DBG flags] cmd=" + context.command().getName()
-                                           + ", chain=" + commandChain
-                                           + ", node=" + currentNode.getMainArgument().getName()
-                                           + ", pathway=" + pathway.formatted()
-                                           + ", flags=" + pathway.getFlagExtractor().getRegisteredFlags().stream().map(FlagArgument::getName)
-                                                                  .toList());
-            }
             if (!hasSuggestionPermission(context, pathway)) {
                 continue;
             }
@@ -961,13 +1096,231 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
     @Override
     public HelpResult<S> queryHelp(@NotNull HelpQuery<S> query) {
-        throw new UnsupportedOperationException("queryHelp not yet implemented");
+        if (query.getLimit() <= 0 || query.getMaxDepth() < 0) {
+            return HelpResult.empty();
+        }
+
+        Command<S> rootCommand = root.getMainArgument().asCommand();
+        if (rootCommand.isSecret()) {
+            return HelpResult.empty();
+        }
+
+        List<HelpEntry<S>> entries = new ArrayList<>();
+        Set<String> seenUsages = new LinkedHashSet<>();
+        List<Command<S>> visitedCommands = new ArrayList<>();
+        collectHelpEntries(rootCommand, rootCommand, query, visitedCommands, seenUsages, entries);
+        return HelpResult.copyOf(entries);
+    }
+
+    @Override
+    public @NotNull CommandPathway<S> getClosestPathwayToContext(CommandContext<S> context, CommandTreeMatch<S> treeMatch) {
+
+        //we find shortest executable node and get its pathway
+        var parsedNodesList = treeMatch.parsedNodes();
+        ParsedNode<S> node = parsedNodesList.get(parsedNodesList.size() - 1);
+        CommandPathway<S> pathway = node.originalPathway;
+
+        List<Node<S>> path = traverse(new ArrayList<>(), node.getDelegate(), context);
+        return path.isEmpty() ? pathway : path.get(path.size() - 1).originalPathway;
+    }
+
+    private List<Node<S>> traverse(List<Node<S>> path, Node<S> node, CommandContext<S> context) {
+
+        if (!node.isRoot()) {
+            path.add(node);
+        }
+
+        if (node.isLeaf()) {
+            return path;
+        }
+
+        var topChild = node.getChildren().iterator().next();
+        return traverse(path, topChild, context);
+    }
+
+    private void collectHelpEntries(
+            Command<S> rootCommand,
+            Command<S> command,
+            HelpQuery<S> query,
+            List<Command<S>> visitedCommands,
+            Set<String> seenUsages,
+            List<HelpEntry<S>> entries
+    ) {
+        if (entries.size() >= query.getLimit() || hasVisited(visitedCommands, command) || isSecretCommandPath(command, rootCommand)) {
+            return;
+        }
+
+        visitedCommands.add(command);
+        for (CommandPathway<S> pathway : command.getDedicatedPathways()) {
+            if (entries.size() >= query.getLimit()) {
+                return;
+            }
+            addHelpEntry(rootCommand, command, pathway, query, seenUsages, entries);
+        }
+
+        for (Command<S> child : command.getSubCommands()) {
+            collectHelpEntries(rootCommand, child, query, visitedCommands, seenUsages, entries);
+            if (entries.size() >= query.getLimit()) {
+                return;
+            }
+        }
+    }
+
+    private void addHelpEntry(
+            Command<S> rootCommand,
+            Command<S> ownerCommand,
+            CommandPathway<S> pathway,
+            HelpQuery<S> query,
+            Set<String> seenUsages,
+            List<HelpEntry<S>> entries
+    ) {
+        if (containsSecretCommand(pathway)) {
+            return;
+        }
+
+        CommandPathway<S> helpPathway = createHelpPathway(rootCommand, ownerCommand, pathway);
+        if (helpPathway.size() == 0 && !query.getRootUsagePredicate().test(pathway)) {
+            return;
+        }
+        if (helpPathway.size() > query.getMaxDepth()) {
+            return;
+        }
+        if (!passesHelpFilters(helpPathway, query)) {
+            return;
+        }
+
+        HelpEntry<S> entry = HelpEntry.of(helpPathway);
+        if (seenUsages.add(entry.getUsage())) {
+            entries.add(entry);
+        }
+    }
+
+    private CommandPathway<S> createHelpPathway(
+            Command<S> rootCommand,
+            Command<S> ownerCommand,
+            CommandPathway<S> pathway
+    ) {
+        List<Argument<S>> helpArguments = new ArrayList<>();
+        addOwnerCommandPrefix(rootCommand, ownerCommand, helpArguments);
+        for (Argument<S> argument : pathway.getArguments()) {
+            helpArguments.add(copyHelpArgument(rootCommand, argument));
+        }
+
+        return CommandPathway.<S>builder(pathway.getMethodElement())
+                       .arguments(helpArguments)
+                       .withFlags(pathway.getFlagExtractor().getRegisteredFlags())
+                       .examples(pathway.getExamples())
+                       .execute(pathway.getExecution())
+                       .permission(pathway.getPermissionsData())
+                       .description(pathway.getDescription())
+                       .coordinator(pathway.getCoordinator())
+                       .cooldown(pathway.getCooldown())
+                       .build(rootCommand);
+    }
+
+    private void addOwnerCommandPrefix(
+            Command<S> rootCommand,
+            Command<S> ownerCommand,
+            List<Argument<S>> target
+    ) {
+        List<Command<S>> prefixes = new ArrayList<>();
+        Command<S> current = ownerCommand;
+        while (current != null && current != rootCommand) {
+            prefixes.add(0, current);
+            current = current.getParent();
+        }
+
+        for (Command<S> prefix : prefixes) {
+            target.add(copyCommandLiteral(rootCommand, prefix));
+        }
+    }
+
+    private Argument<S> copyCommandLiteral(Command<S> rootCommand, Command<S> command) {
+        List<String> aliases = command.aliases();
+        String[] names = new String[aliases.size() + 1];
+        names[0] = command.getName();
+        for (int i = 0; i < aliases.size(); i++) {
+            names[i + 1] = aliases.get(i);
+        }
+        return Argument.literal(rootCommand.imperat(), names);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Argument<S> copyHelpArgument(Command<S> rootCommand, Argument<S> argument) {
+        if (argument.isCommand()) {
+            return copyCommandLiteral(rootCommand, argument.asCommand());
+        }
+
+        Argument<S> copy = Argument.of(
+                argument.getName(),
+                (ArgumentType) argument.type(),
+                argument.getPermissionsData(),
+                argument.getDescription(),
+                argument.isOptional(),
+                isGreedyArgument(argument),
+                argument.getDefaultValueSupplier(),
+                argument.getSuggestionResolver(),
+                argument.getValidators().toList()
+        );
+        copy.setFormat(argument.format());
+        return copy;
+    }
+
+    private boolean passesHelpFilters(CommandPathway<S> pathway, HelpQuery<S> query) {
+        for (var filter : query.getFilters()) {
+            if (!filter.filter(pathway)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean containsSecretCommand(CommandPathway<S> pathway) {
+        for (Argument<S> argument : pathway.getArguments()) {
+            if (argument.isCommand() && argument.asCommand().isSecret()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSecretCommandPath(Command<S> command, Command<S> rootCommand) {
+        Command<S> current = command;
+        while (current != null && current != rootCommand) {
+            if (current.isSecret()) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+
+    private boolean hasVisited(List<Command<S>> visitedCommands, Command<S> command) {
+        for (Command<S> visited : visitedCommands) {
+            if (visited == command) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isGreedyArgument(Argument<S> argument) {
+        return argument.isGreedy() || argument.type().isGreedy(argument);
     }
 
     // ------------------------------------------------------------------
     // Internal candidate record
     // ------------------------------------------------------------------
 
-    private record Candidate<S extends CommandSource>(List<ParsedNode<S>> chain, int consumedIndex) {
+    private record Candidate<S extends CommandSource>(
+            List<ParsedNode<S>> chain,
+            int consumedIndex,
+            @Nullable Command<S> command,
+            @Nullable CommandPathway<S> pathway
+    ) {
+
+        static <S extends CommandSource> Candidate<S> completion(List<ParsedNode<S>> chain, int consumedIndex) {
+            return new Candidate<>(chain, consumedIndex, null, null);
+        }
     }
 }

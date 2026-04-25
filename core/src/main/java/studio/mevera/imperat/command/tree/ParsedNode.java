@@ -5,6 +5,7 @@ import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.permissions.PermissionChecker;
+import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +32,11 @@ public final class ParsedNode<S extends CommandSource> extends Node<S> {
     public int getTotalParseScore() {
         return getParseResults().values().stream().mapToInt(ParseResult::getParseScore)
                        .sum();
+    }
+
+    @Override
+    public PriorityList<Node<S>> getChildren() {
+        return delegate.getChildren();
     }
 
     @Override
