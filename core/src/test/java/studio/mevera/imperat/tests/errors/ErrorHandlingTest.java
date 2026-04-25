@@ -14,6 +14,7 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.ExecutionResult;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.exception.UnknownCommandException;
 import studio.mevera.imperat.tests.BaseImperatTest;
@@ -127,6 +128,32 @@ public class ErrorHandlingTest extends BaseImperatTest {
         ExecutionResult<TestCommandSource> allowedResult = execute(
                 (src) -> src.withPerm("methodperm.use"),
                 "methodperm"
+        );
+        assertSuccess(allowedResult);
+    }
+
+    @Test
+    @DisplayName("Should report invalid syntax before method subcommand pathway permission when required argument is missing")
+    void testIncompleteMethodSubCommandPathwayPermission() {
+        ExecutionResult<TestCommandSource> result = execute("methodperm add");
+
+        assertFailure(result, InvalidSyntaxException.class);
+    }
+
+    @Test
+    @DisplayName("Should deny method subcommand pathway permission only after syntax matches")
+    void testMethodSubCommandPathwayPermissionAfterSyntaxMatch() {
+        ExecutionResult<TestCommandSource> deniedResult = execute("methodperm add mqzen");
+
+        assertFailure(deniedResult, PermissionDeniedException.class);
+        assertNotNull(deniedResult.getError());
+
+        PermissionDeniedException denied = (PermissionDeniedException) deniedResult.getError();
+        assertInstanceOf(CommandPathway.class, denied.getPermissionIssuer());
+
+        ExecutionResult<TestCommandSource> allowedResult = execute(
+                (src) -> src.withPerm("methodperm.add"),
+                "methodperm add mqzen"
         );
         assertSuccess(allowedResult);
     }
