@@ -957,7 +957,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             Set<String> seen
     ) {
         Argument<S> main = child.getMainArgument();
-        if (!isSuggestionVisible(context, main, child.getOriginalPathway())) {
+        if (!isChildSuggestionVisible(context, child)) {
             return;
         }
 
@@ -969,6 +969,54 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
                 target.add(suggestion);
             }
         }
+    }
+
+    private boolean isChildSuggestionVisible(SuggestionContext<S> context, Node<S> child) {
+        Argument<S> main = child.getMainArgument();
+        if (!main.isCommand()) {
+            return isSuggestionVisible(context, main, child.getOriginalPathway());
+        }
+
+        if (main.asCommand().isSecret()) {
+            return false;
+        }
+
+        if (context.command().isIgnoringACPerms()) {
+            return true;
+        }
+
+        var checker = imperatConfig.getPermissionChecker();
+        if (!checker.hasPermission(context.source(), main)) {
+            return false;
+        }
+
+        return hasVisibleExecutablePathway(context, child);
+    }
+
+    private boolean hasVisibleExecutablePathway(SuggestionContext<S> context, Node<S> node) {
+        var checker = imperatConfig.getPermissionChecker();
+        boolean hasExecutableTerminal = false;
+        for (CommandPathway<S> pathway : node.getTerminalPathways()) {
+            if (pathway.getMethodElement() == null) {
+                continue;
+            }
+            hasExecutableTerminal = true;
+            if (checker.hasPermission(context.source(), pathway)) {
+                return true;
+            }
+        }
+
+        if (hasExecutableTerminal) {
+            return false;
+        }
+
+        for (Node<S> child : node.getChildren()) {
+            if (hasVisibleExecutablePathway(context, child)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void addArgumentProviderSuggestions(

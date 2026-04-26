@@ -87,6 +87,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
         return (B) this;
     }
 
+    public B responses(Consumer<ResponsesConfig<S>> consumer) {
+        consumer.accept(new ResponsesConfig<>(config));
+        return (B) this;
+    }
+
     public B globalCoordinator(CommandCoordinator<S> commandCoordinator) {
         config.setGlobalCommandCoordinator(commandCoordinator);
         return (B) this;
@@ -130,6 +135,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
         return (B) this;
     }
 
+    public B returnResolvers(Consumer<ReturnResolversConfig<S>> consumer) {
+        consumer.accept(new ReturnResolversConfig<>(config));
+        return (B) this;
+    }
+
     /**
      * Registers a dependency resolver for a specific type and returns the current {@code ConfigBuilder} instance.
      *
@@ -140,6 +150,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
     // Dependency Resolver
     public B dependencyResolver(Type type, DependencySupplier resolver) {
         config.registerDependencyResolver(type, resolver);
+        return (B) this;
+    }
+
+    public B dependencies(Consumer<DependenciesConfig<S>> consumer) {
+        consumer.accept(new DependenciesConfig<>(config));
         return (B) this;
     }
 
@@ -178,6 +193,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
      */
     public <A extends Annotation> B annotationReplacer(Class<A> annotationType, AnnotationReplacer<A> replacer) {
         config.registerAnnotationReplacer(annotationType, replacer);
+        return (B) this;
+    }
+
+    public B annotations(Consumer<AnnotationsConfig<S>> consumer) {
+        consumer.accept(new AnnotationsConfig<>(config));
         return (B) this;
     }
 
@@ -237,6 +257,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
         return (B) this;
     }
 
+    public B errorHandlers(Consumer<ErrorHandlersConfig<S>> consumer) {
+        consumer.accept(new ErrorHandlersConfig<>(config));
+        return (B) this;
+    }
+
 
     /**
      * Registers a context resolver factory for the specified type.
@@ -270,6 +295,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
         return (B) this;
     }
 
+    public B contextArguments(Consumer<ContextArgumentsConfig<S>> consumer) {
+        consumer.accept(new ContextArgumentsConfig<>(config));
+        return (B) this;
+    }
+
     /**
      * Registers a parameter type and its associated resolver for parsing command arguments.
      *
@@ -293,6 +323,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
      */
     public B argTypeHandler(ArgumentTypeHandler<S> handler) {
         config.registerArgTypeHandler(handler);
+        return (B) this;
+    }
+
+    public B argTypes(Consumer<ArgumentTypesConfig<S>> consumer) {
+        consumer.accept(new ArgumentTypesConfig<>(config));
         return (B) this;
     }
 
@@ -336,6 +371,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
         return (B) this;
     }
 
+    public B sourceProviders(Consumer<SourceProvidersConfig<S>> consumer) {
+        consumer.accept(new SourceProvidersConfig<>(config));
+        return (B) this;
+    }
+
     /**
      * Registers a placeholder with the configuration.
      *
@@ -346,6 +386,11 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
     // Placeholder
     public B placeholder(Placeholder placeholder) {
         config.registerPlaceholder(placeholder);
+        return (B) this;
+    }
+
+    public B placeholders(Consumer<PlaceholdersConfig<S>> consumer) {
+        consumer.accept(new PlaceholdersConfig<>(config));
         return (B) this;
     }
 
@@ -398,6 +443,16 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
      */
     public B instanceFactory(InstanceFactory<S> instanceFactory) {
         config.setInstanceFactory(instanceFactory);
+        return (B) this;
+    }
+
+    public B execution(Consumer<ExecutionConfig<S>> consumer) {
+        consumer.accept(new ExecutionConfig<>(config));
+        return (B) this;
+    }
+
+    public B runtime(Consumer<RuntimeConfig<S>> consumer) {
+        consumer.accept(new RuntimeConfig<>(config));
         return (B) this;
     }
 

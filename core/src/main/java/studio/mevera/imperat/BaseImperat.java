@@ -6,100 +6,48 @@ import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.AnnotationReader;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.suggestions.AutoCompleter;
-import studio.mevera.imperat.command.tree.ParsedNode;
-import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.ExecutionResult;
-import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.events.Event;
-import studio.mevera.imperat.events.EventBus;
-import studio.mevera.imperat.events.EventExceptionHandler;
 import studio.mevera.imperat.events.EventListenerConsumer;
-import studio.mevera.imperat.events.EventSubscription;
 import studio.mevera.imperat.events.ExecutionStrategy;
-import studio.mevera.imperat.events.exception.EventException;
-import studio.mevera.imperat.events.types.CommandPostProcessEvent;
 import studio.mevera.imperat.events.types.CommandPostRegistrationEvent;
-import studio.mevera.imperat.events.types.CommandPreProcessEvent;
 import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
-import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.exception.InvalidSyntaxException;
-import studio.mevera.imperat.exception.PermissionDeniedException;
-import studio.mevera.imperat.exception.ResponseException;
-import studio.mevera.imperat.exception.UnknownCommandException;
-import studio.mevera.imperat.permissions.PermissionHolder;
-import studio.mevera.imperat.responses.ResponseKey;
 import studio.mevera.imperat.util.ImperatDebugger;
-import studio.mevera.imperat.util.Pair;
 import studio.mevera.imperat.util.Preconditions;
 import studio.mevera.imperat.util.TypeWrap;
-import studio.mevera.imperat.util.UsageFormatting;
 import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
 
 public abstract class BaseImperat<S extends CommandSource> implements Imperat<S> {
 
     protected final ImperatConfig<S> config;
-    private final Map<String, Command<S>> commands = new HashMap<>();
+    private final CommandRegistry<S> commandRegistry = new CommandRegistry<>();
+    private final ImperatExecutor<S> executor;
+    private final ImperatAutoCompleter<S> autoCompleter;
     private @NotNull AnnotationParser<S> annotationParser;
 
     protected BaseImperat(@NotNull ImperatConfig<S> config) {
         this.config = config;
-        annotationParser = AnnotationParser.defaultParser(this);
+        this.executor = new ImperatExecutor<>(this, config);
+        this.autoCompleter = new ImperatAutoCompleter<>(this, config);
+        this.annotationParser = AnnotationParser.defaultParser(this);
+
         config.applyAnnotationReplacers(this);
-        if(config.getEventBus().isDummyBus()) {
-            config.setEventBus(
-                    EventBus.builder()
-                            .exceptionHandler(
-                                    new EventExceptionHandler() {
-                                           @Override
-                                           public <E extends Event> void handle(
-                                                   E event,
-                                                   Throwable exception,
-                                                   EventSubscription<E> subscription
-                                           ) {
-                                               var ctxFactory = config.getContextFactory();
-                                               CommandContext<S> dummy = ctxFactory.createDummyContext(BaseImperat.this);
-                                               String methodName = "handle(event, exception, subscription)";
-                                               config.handleExecutionError(
-                                                       new EventException(event, subscription, exception),
-                                                       dummy ,
-                                                       EventBus.class,
-                                                       methodName
-                                               );
-                                           }
-                                       }
-                            )
-                            .executorService(ForkJoinPool.commonPool())
-                            .build()
-            );
+        if (config.getEventBus().isDummyBus()) {
+            config.setEventBus(DefaultEventBusFactory.create(this, config));
         }
-
-        this.registerEvents();
-    }
-
-    private static PermissionHolder deniedPermissionHolder(PermissionHolder denied, PermissionHolder fallback) {
-        return denied == null ? fallback : denied;
+        new ImperatEventBootstrap<>(this, config).registerDefaultListeners();
     }
 
     @Override
@@ -122,22 +70,11 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         return config.getEventBus().unregister(subscriptionId);
     }
 
-    /**
-     * The config for imperat
-     *
-     * @return the config holding all variables.
-     */
     @Override
     public @NotNull ImperatConfig<S> config() {
         return config;
     }
 
-    /**
-     * Checks whether the valueType can be a command sender
-     *
-     * @param type the valueType
-     * @return whether the valueType can be a command sender
-     */
     @Override
     public boolean canBeSender(Type type) {
         return TypeWrap.of(CommandSource.class).isSupertypeOf(type);
@@ -152,43 +89,22 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
      */
     @Override
     public void registerSimpleCommand(Command<S> command) {
-        checkAmbiguity(command);
+        AmbiguityChecker.checkAmbiguity(command);
         CommandPreRegistrationEvent<S> preRegistrationEvent = new CommandPreRegistrationEvent<>(command);
         publishEvent(preRegistrationEvent);
 
-        if(!preRegistrationEvent.isCancelled()) {
+        if (!preRegistrationEvent.isCancelled()) {
             Throwable error = null;
             try {
-                this.registerCmd(command);
-            }catch (Throwable ex) {
+                commandRegistry.register(command);
+            } catch (Throwable ex) {
                 error = ex;
-            }finally {
+            } finally {
                 CommandPostRegistrationEvent<S> postRegistrationEvent = new CommandPostRegistrationEvent<>(command, error);
                 publishEvent(postRegistrationEvent);
             }
-        }
-        else {
-            //debug cancelled command registration
+        } else {
             ImperatDebugger.debug("Registration of command '%s' was cancelled by an CommandPreRegistrationEvent.", command.getName());
-        }
-
-    }
-
-    private void checkAmbiguity(Command<S> command) {
-        //now check its tree for internal ambiguity
-        AmbiguityChecker.checkAmbiguity(command);
-    }
-
-
-    private void registerCmd(@NotNull Command<S> command) {
-
-        this.commands.put(command.getName().trim().toLowerCase(), command);
-        for (var aliases : command.aliases()) {
-            this.commands.put(aliases.trim().toLowerCase(), command);
-        }
-
-        for(var shortcut : command.getAllShortcuts()) {
-            this.commands.put(shortcut.getName(), shortcut);
         }
     }
 
@@ -202,65 +118,32 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
     public void registerCommand(Class<?> commandClass) {
         Preconditions.notNull(commandClass, "commandClass");
         Object classInstance = config.getInstanceFactory().createInstance(config, commandClass);
-        annotationParser.parseCommandClass(
-                Objects.requireNonNull(classInstance)
-        );
+        annotationParser.parseCommandClass(Objects.requireNonNull(classInstance));
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void registerCommand(Object commandInstance) {
         if (commandInstance instanceof Command<?> command) {
             registerSimpleCommand((Command<S>) command);
         } else {
-            // For non-RootCommand, non-Class instances, parse as annotated instance
-            annotationParser.parseCommandClass(
-                    Objects.requireNonNull(commandInstance)
-            );
+            annotationParser.parseCommandClass(Objects.requireNonNull(commandInstance));
         }
     }
 
-    /**
-     * Unregisters a command from the internal registry
-     *
-     * @param name the name of the command to unregister
-     */
     @Override
     public void unregisterCommand(String name) {
-        Preconditions.notNull(name, "commandToRemove");
-        Command<S> removed = commands.remove(name.trim().toLowerCase());
-        if (removed != null) {
-            for (var aliases : removed.aliases()) {
-                commands.remove(aliases.trim().toLowerCase());
-            }
-        }
+        commandRegistry.unregister(name);
     }
 
-    /**
-     * Unregisters all commands from the internal registry
-     */
     @Override
     public void unregisterAllCommands() {
-        commands.clear();
+        commandRegistry.clear();
     }
 
-    /**
-     * @param name the name/alias of the command
-     * @return fetches {@link Command} with specific name/alias
-     */
     @Override
     public @Nullable Command<S> getCommand(final String name) {
-        final String cmdName = name.toLowerCase();
-        final Command<S> result = commands.get(cmdName);
-
-        if (result != null) {
-            return result;
-        }
-        for (Command<S> headCommands : commands.values()) {
-            if (headCommands.hasName(cmdName)) {
-                return headCommands;
-            }
-        }
-        return null;
+        return commandRegistry.get(name);
     }
 
     /**
@@ -277,22 +160,11 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         annotationParser.registerAnnotations(type);
     }
 
-    /**
-     * Registers {@link AnnotationReplacer}
-     *
-     * @param type     the valueType to replace the annotation by
-     * @param replacer the replacer
-     */
     @Override
     public <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer) {
         annotationParser.registerAnnotationReplacer(type, replacer);
     }
 
-    /**
-     * @param owningCommand the command owning this sub-command
-     * @param name          the name of the subcommand you're looking for
-     * @return the subcommand of a command
-     */
     @Override
     public @Nullable Command<S> getSubCommand(String owningCommand, String name) {
         Command<S> owningCmd = getCommand(owningCommand);
@@ -306,7 +178,6 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
                 return result;
             }
         }
-
         return null;
     }
 
@@ -316,171 +187,47 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         }
 
         for (Command<S> other : sub.getSubCommands()) {
-
             if (other.hasName(name)) {
                 return other;
-            } else {
-                return search(other, name);
             }
+            return search(other, name);
         }
-
         return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private void registerEvents() {
-
-        this.listen(CommandPreProcessEvent.class, (event) -> {
-            // Per-command pre-processing, executed after global pre-processing.
-            Command<S> command = event.getCommand();
-            CommandContext<S> context = event.getContext();
-            try {
-                command.preProcess(context);
-            } catch (CommandException e) {
-                event.setCancelled(true);
-                throw new RuntimeException(e);
-            }
-        }, Priority.NORMAL, ExecutionStrategy.SYNC);
-
-        this.listen(CommandPostProcessEvent.class, (event) -> {
-            // Per-command post-processing, executed before global post-processing.
-            Command<S> command = event.getCommand();
-            ExecutionContext<S> context = event.getContext();
-            try {
-                command.postProcess(context);
-            } catch (CommandException e) {
-                throw new RuntimeException(e);
-            }
-        }, Priority.NORMAL, ExecutionStrategy.SYNC);
-        this.listen(CommandPostProcessEvent.class, (event) -> {
-            var context = event.getContext();
-
-
-            var source = context.source();
-            var pathway = context.getDetectedPathway();
-            var handler = pathway.getCooldownHandler();
-            var cooldown = pathway.getCooldown();
-
-            if (handler.hasCooldown(source)) {
-                assert cooldown != null;
-                if (cooldown.permission() == null
-                            || cooldown.permission().isEmpty()
-                            || !context.imperatConfig().getPermissionChecker().hasPermission(source, cooldown.permission())) {
-
-                    var cooldownDuration = cooldown.toDuration();
-                    Instant lastTimeExecuted = (Instant) handler.getLastTimeExecuted(source).orElseThrow();
-                    var elapsed = Duration.between(lastTimeExecuted, Instant.now());
-                    var remaining = cooldownDuration.minus(elapsed);
-                    var remainingDuration = remaining.isNegative() ? Duration.ZERO : remaining;
-
-                    event.setCancelled(true);
-                    throw ResponseException.of(ResponseKey.COOLDOWN)
-                                  .withPlaceholder("seconds", String.valueOf(remainingDuration.toSeconds()))
-                                  .withPlaceholder("remaining_duration", remainingDuration.toString())
-                                  .withPlaceholder("cooldown_duration", cooldownDuration.toString())
-                                  .withPlaceholder("last_executed", lastTimeExecuted.toString());
-                }
-            }
-            handler.registerExecutionMoment(source);
-        }, Priority.NORMAL, ExecutionStrategy.SYNC);
     }
 
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull CommandContext<S> context) {
-
-        try {
-            context.command().visualizeTree();
-            return handleExecution(context);
-        } catch (Throwable ex) {
-            //handle here
-            this.config().handleExecutionError(ex, context, BaseImperat.class, "execute(CommandContext<S> context)");
-            return ExecutionResult.failure(ex, context);
-        }
+        return executor.execute(context);
     }
 
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull Command<S> command, @NotNull String commandName, String[] rawInput) {
-        ArgumentInput rawArguments = ArgumentInput.parse(rawInput);
-        CommandContext<S> plainContext = config.getContextFactory()
-                                          .createContext(this, source, command, commandName, rawArguments);
-
-        return execute(plainContext);
+        return executor.execute(source, command, commandName, rawInput);
     }
 
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull S source, @NotNull String commandName, String[] rawInput) {
-        Command<S> command = getCommand(commandName);
-        if (command == null) {
-            throw new UnknownCommandException(commandName);
-        }
-        return execute(source, command, commandName, rawInput);
+        return executor.execute(source, commandName, rawInput);
     }
 
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String commandName, @NotNull String rawArgsOneLine) {
-        return execute(sender, commandName, rawArgsOneLine.split(" "));
+        return executor.execute(sender, commandName, rawArgsOneLine);
     }
 
     @Override
     public @NotNull ExecutionResult<S> execute(@NotNull S sender, @NotNull String line) {
-        if (line.isBlank()) {
-            throw new UnknownCommandException(line);
-        }
-        String[] lineArgs = line.split(" ");
-        String[] argumentsOnly = new String[lineArgs.length - 1];
-        System.arraycopy(lineArgs, 1, argumentsOnly, 0, lineArgs.length - 1);
-        return execute(sender, lineArgs[0], argumentsOnly);
+        return executor.execute(sender, line);
     }
 
-    /**
-     * @param source          the sender writing the command
-     * @param fullCommandLine the full command line
-     * @return the suggestions at the current position
-     */
     @Override
     public CompletableFuture<List<String>> autoComplete(@NotNull S source, @NotNull String fullCommandLine) {
-        int firstSpace = fullCommandLine.indexOf(' ');
-        if (firstSpace == -1) {
-            return CompletableFuture.completedFuture(Collections.emptyList());
-        }
-
-        String cmdName = fullCommandLine.substring(0, firstSpace);
-        Command<S> command = getCommand(cmdName);
-        if (command == null) {
-            return CompletableFuture.completedFuture(Collections.emptyList());
-        }
-
-        boolean endsWithSpace = Character.isWhitespace(fullCommandLine.charAt(fullCommandLine.length() - 1));
-        int argumentsStart = firstSpace + 1;
-        int argumentsEnd = endsWithSpace ? fullCommandLine.length() - 1 : fullCommandLine.length();
-        String argumentsSection = argumentsStart >= argumentsEnd
-                                          ? ""
-                                          : fullCommandLine.substring(argumentsStart, argumentsEnd);
-        ArgumentInput argumentInput = ArgumentInput.parseAutoCompletion(
-                argumentsSection,
-                endsWithSpace
-        );
-
-        SuggestionContext<S> context = this.config.getContextFactory()
-                                               .createSuggestionContext(
-                                                       this, source, command, cmdName, argumentInput
-                                               );
-        return command.autoCompleter()
-                       .autoComplete(context)
-                       .exceptionally((ex) -> {
-                           this.config.handleExecutionError(ex, context, AutoCompleter.class, "autoComplete(dispatcher, sender, args)");
-                           return Collections.emptyList();
-                       });
+        return autoCompleter.autoComplete(source, fullCommandLine);
     }
 
-    /**
-     * Gets all registered commands
-     *
-     * @return the registered commands
-     */
     @Override
     public Collection<? extends Command<S>> getRegisteredCommands() {
-        return commands.values();
+        return commandRegistry.values();
     }
 
     @Override
@@ -488,133 +235,16 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         return annotationParser;
     }
 
-    /**
-     * Changes the instance of {@link AnnotationParser}
-     *
-     * @param parser the parser
-     */
     @Override
     public void setAnnotationParser(AnnotationParser<S> parser) {
         Preconditions.notNull(parser, "Parser");
         this.annotationParser = parser;
     }
 
-    private ExecutionResult<S> handleExecution(CommandContext<S> context) throws Throwable {
-        Command<S> command = context.command();
-        S source = context.source();
-
-        Pair<PermissionHolder, Boolean> commandPermissionResult = config.getPermissionChecker().checkPermission(source, command);
-        if (!commandPermissionResult.right()) {
-            throw new PermissionDeniedException(
-                    command.getName(),
-                    command.getDefaultPathway(),
-                    deniedPermissionHolder(command, commandPermissionResult.left())
-            );
-        }
-        var preProcessEvent = new CommandPreProcessEvent<>(command, context);
-        this.publishEvent(preProcessEvent);
-        if (preProcessEvent.isCancelled()) {
-            ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPreProcessEvent.", command.getName());
-            return ExecutionResult.failure(context);
-        }
-
-        // Direct execution: traverse tree, resolve args, and execute in one step
-        ExecutionContext<S> executionContext = config.getContextFactory().createExecutionContext(
-                context,
-                null,
-                command
-        );
-        var treeMatch = command.execute(executionContext);
-        var parsedNodes = treeMatch.parsedNodes();
-        Command<S> terminalCommand = treeMatch.command();
-        CommandPathway<S> detectedPathway = treeMatch.pathway();
-        if (detectedPathway == null) {
-            System.out.println("DETECTED PATHWAY IS NULL !");
-            String invalidUsage = UsageFormatting.formatInput(
-                    config.commandPrefix(),
-                    context.getRootCommandLabelUsed(),
-                    context.arguments().join(" ")
-            );
-            throw new InvalidSyntaxException(invalidUsage, command.tree().getClosestPathwayToContext(context, treeMatch));
-        }
-
-        executionContext.setDetectedPathway(detectedPathway);
-        executionContext.setLastUsedCommand(terminalCommand);
-        executionContext.setTreeMatch(treeMatch);
-
-        Optional<Pair<ParsedNode<S>, Argument<S>>> inAccessibleNode =
-                parsedNodes.stream().map((n) -> {
-                            var argOpt = n.findInAccessibleArgument(config, source);
-                            return argOpt.map(argument -> new Pair<>(n, argument)).orElse(null);
-                        })
-                        .filter(Objects::nonNull)
-                        .findFirst();
-
-        if (inAccessibleNode.isPresent() || !config.getPermissionChecker().hasPermission(source, detectedPathway)) {
-            var inAccessible = inAccessibleNode.orElse(null);
-            PermissionHolder holder;
-            if (inAccessible == null) {
-                holder = detectedPathway;
-            } else {
-                holder = inAccessible.right();
-            }
-            throw new PermissionDeniedException(
-                    command.getName(),
-                    detectedPathway,
-                    holder
-            );
-        }
-
-        // SUCCESS: The tree already resolved args and created ExecutionContext
-        //We actually parse
-        System.out.println("Trying to parse!");
-        executionContext.parse(parsedNodes);
-
-        // Post-processing
-        var postProcessEvent = new CommandPostProcessEvent<>(command, executionContext);
-        this.publishEvent(postProcessEvent);
-
-        // Execute
-        if (!postProcessEvent.isCancelled()) {
-            ImperatDebugger.debug("Executing command '%s' for source '%s'", command.getName(), source);
-            detectedPathway.execute(this, source, executionContext);
-            return ExecutionResult.of(executionContext, context);
-        } else {
-            ImperatDebugger.debug("Execution of command '%s' was cancelled by a CommandPostProcessEvent.", command.getName());
-            return ExecutionResult.failure(executionContext);
-        }
-    }
-
     @Override
     public void debug() {
-        for (var cmd : commands.values()) {
+        for (var cmd : commandRegistry.values()) {
             cmd.visualizeTree();
         }
     }
-
-    /**
-     * Walks the {@code parseError} cause chain and, for each throwable in it, checks whether
-     * the given command (plus its ancestor commands) or the global config has a registered
-     * handler that can resolve it. Mirrors the dispatch order used by
-     * {@code ImperatConfigImpl.handleExecutionError}.
-     */
-    private boolean hasRegisteredHandlerFor(@NotNull Throwable parseError, @NotNull Command<S> lastCommand) {
-        Throwable current = parseError;
-        while (current != null) {
-            Class<? extends Throwable> type = current.getClass();
-            Command<S> cmd = lastCommand;
-            while (cmd != null) {
-                if (cmd.getErrorHandlerFor(type) != null) {
-                    return true;
-                }
-                cmd = cmd.getParent();
-            }
-            if (config.getErrorHandlerFor(type) != null) {
-                return true;
-            }
-            current = current.getCause();
-        }
-        return false;
-    }
-
 }
