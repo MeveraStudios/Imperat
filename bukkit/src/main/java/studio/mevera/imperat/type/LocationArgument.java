@@ -9,12 +9,14 @@ import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
+import studio.mevera.imperat.command.arguments.type.Cursor;
+import studio.mevera.imperat.command.arguments.type.GreedyArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 
-public class LocationArgument extends ArgumentType<BukkitCommandSource, Location> {
+public class LocationArgument extends GreedyArgumentType<BukkitCommandSource, Location> {
 
     private final static String SINGLE_STRING_SEPARATOR = ";";
     private final static String SELF_LOCATION_SYMBOL = "~";
@@ -53,7 +55,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
             }
             x = playerLocation.getX();
         } else {
-            x = doubleParser.parse(context, argument, split[1]);
+            x = doubleParser.parse(context, argument, Cursor.single(context, split[1]));
         }
 
         double y;
@@ -63,7 +65,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
             }
             y = playerLocation.getY();
         } else {
-            y = doubleParser.parse(context, argument, split[2]);
+            y = doubleParser.parse(context, argument, Cursor.single(context, split[2]));
         }
 
         double z;
@@ -73,7 +75,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
             }
             z = playerLocation.getZ();
         } else {
-            z = doubleParser.parse(context, argument, split[3]);
+            z = doubleParser.parse(context, argument, Cursor.single(context, split[3]));
         }
 
         float yaw = 0.0f;
@@ -86,7 +88,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
                 }
                 yaw = playerLocation.getYaw();
             } else {
-                yaw = (float) doubleParser.parse(context, argument, split[4]).doubleValue();
+                yaw = (float) doubleParser.parse(context, argument, Cursor.single(context, split[4])).doubleValue();
             }
         }
 
@@ -97,7 +99,7 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
                 }
                 pitch = playerLocation.getPitch();
             } else {
-                pitch = (float) doubleParser.parse(context, argument, split[5]).doubleValue();
+                pitch = (float) doubleParser.parse(context, argument, Cursor.single(context, split[5])).doubleValue();
             }
         }
 
@@ -133,8 +135,4 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
                        .withPlaceholder("inputYaw", inputYaw != null ? inputYaw : "");
     }
 
-    @Override
-    public boolean isGreedy(Argument<BukkitCommandSource> parameter) {
-        return true;
-    }
 }

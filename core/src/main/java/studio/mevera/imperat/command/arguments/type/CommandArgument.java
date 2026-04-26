@@ -7,7 +7,7 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandException;
 
-public final class CommandArgument<S extends CommandSource> extends ArgumentType<S, Command<S>> {
+public final class CommandArgument<S extends CommandSource> extends SimpleArgumentType<S, Command<S>> {
 
     private final Command<S> command;
 

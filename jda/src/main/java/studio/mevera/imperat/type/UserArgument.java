@@ -5,13 +5,13 @@ import net.dv8tion.jda.api.entities.User;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.JdaCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.responses.JdaResponseKey;
 
-public final class UserArgument extends ArgumentType<JdaCommandSource, User> {
+public final class UserArgument extends SimpleArgumentType<JdaCommandSource, User> {
 
     private final JDA jda;
 

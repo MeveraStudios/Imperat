@@ -6,6 +6,7 @@ import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.Cursor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 
@@ -28,11 +29,15 @@ public class BukkitArgumentType<T> extends ArgumentType<BukkitCommandSource, T> 
     }
 
     @Override
-    public T parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument, @NotNull String input)
+    public T parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument,
+            @NotNull Cursor<BukkitCommandSource> cursor)
             throws CommandException {
-        // Multi-token brigadier types (e.g. BlockPos: "x y z") are pre-joined
-        // into {@code input} by the command tree because of the
-        // {@link #getNumberOfParametersToConsume(Argument)} override below.
+        // Multi-token brigadier types (e.g. BlockPos: "x y z") need their
+        // tokens joined for Brigadier's StringReader. The command tree allots
+        // {@code minecraftArgumentType.getConsumedArgs()} tokens via
+        // {@link #getNumberOfParametersToConsume(Argument)}; we drain whatever
+        // remains in the cursor.
+        String input = cursor.collectRemaining();
         try {
             return argumentType.parse(new com.mojang.brigadier.StringReader(input));
         } catch (CommandSyntaxException ex) {

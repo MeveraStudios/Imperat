@@ -7,13 +7,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.VelocityCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.responses.VelocityResponseKey;
 
-public final class ServerInfoArgument extends ArgumentType<VelocityCommandSource, ServerInfo> {
+public final class ServerInfoArgument extends SimpleArgumentType<VelocityCommandSource, ServerInfo> {
 
     private final ProxyServer server;
 

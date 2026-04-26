@@ -20,13 +20,23 @@ public final class CompletableFutureArgument<S extends CommandSource, T> extends
     }
 
     @Override
-    public CompletableFuture<T> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) {
+    public CompletableFuture<T> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull Cursor<S> cursor) {
         if (typeResolver == null) {
             throw new IllegalStateException("No type parameter for type '" + type.getTypeName() + "'");
         }
+        // Drain the cursor on the calling thread (cursors aren't thread-safe)
+        // and hand the inner parse a fresh single-/multi-token cursor on the
+        // async worker.
+        String drained = typeResolver.isGreedy(argument)
+                                 ? cursor.collectRemaining()
+                                 : cursor.nextOrNull();
+        if (drained == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+        String input = drained;
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return typeResolver.parse(context, argument, input);
+                return typeResolver.parse(context, argument, Cursor.single(context, input));
             } catch (Exception ex) {
                 context.imperatConfig().handleExecutionError(ex, context, CompletableFutureArgument.class, "parse");
                 return null;

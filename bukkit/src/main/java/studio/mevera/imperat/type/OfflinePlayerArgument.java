@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.ArgumentParseException;
@@ -17,7 +17,7 @@ import studio.mevera.imperat.responses.BukkitResponseKey;
 import java.util.Arrays;
 import java.util.List;
 
-public class OfflinePlayerArgument extends ArgumentType<BukkitCommandSource, OfflinePlayer> {
+public class OfflinePlayerArgument extends SimpleArgumentType<BukkitCommandSource, OfflinePlayer> {
 
 
     private final PlayerSuggestionProvider playerSuggestionResolver = new PlayerSuggestionProvider();

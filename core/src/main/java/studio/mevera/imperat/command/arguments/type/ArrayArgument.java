@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public abstract class ArrayArgument<S extends CommandSource, E> extends ArgumentType<S, E[]> {
+public abstract class ArrayArgument<S extends CommandSource, E> extends GreedyArgumentType<S, E[]> {
 
     private final Function<Integer, Object[]> initializer;
     private final ArgumentType<S, E> componentType;
@@ -23,23 +23,19 @@ public abstract class ArrayArgument<S extends CommandSource, E> extends Argument
     }
 
     @Override
-    public E[] parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException {
-        if (input.isBlank()) {
+    @SuppressWarnings("unchecked")
+    public E[] parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String joinedInput) throws CommandException {
+        if (joinedInput.isBlank()) {
             return (E[]) initializer.apply(0);
         }
 
-        String[] raws = input.split(" ");
+        String[] raws = joinedInput.split(" ");
         List<E> elements = new ArrayList<>(raws.length);
         for (String raw : raws) {
-            elements.add(componentType.parse(context, argument, raw));
+            elements.add(componentType.parse(context, argument, Cursor.single(context, raw)));
         }
 
         E[] array = (E[]) initializer.apply(elements.size());
         return elements.toArray(array);
-    }
-
-    @Override
-    public boolean isGreedy(Argument<S> parameter) {
-        return true;
     }
 }

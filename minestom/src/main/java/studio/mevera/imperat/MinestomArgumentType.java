@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.Cursor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 
@@ -36,12 +37,15 @@ public final class MinestomArgumentType<T> extends ArgumentType<MinestomCommandS
 
     @Override
     @SuppressWarnings("unchecked")
-    public T parse(@NotNull CommandContext<MinestomCommandSource> context, @NonNull Argument<MinestomCommandSource> argument, @NotNull String input)
+    public T parse(@NotNull CommandContext<MinestomCommandSource> context, @NonNull Argument<MinestomCommandSource> argument,
+            @NotNull Cursor<MinestomCommandSource> cursor)
             throws CommandException {
-        // The command tree pre-joins the consumed tokens into {@code input}
-        // based on {@link #getNumberOfParametersToConsume(Argument)} and
-        // {@link #isGreedy(Argument)}, so Minestom receives the same string it
-        // would have seen via the legacy cursor path.
+        // Drain the cursor's full budget — fixed-arity Minestom types declare
+        // their token count via {@link #getNumberOfParametersToConsume},
+        // greedy ones use {@code -1} (unbounded). Either way, joining the
+        // budget tokens with a single space produces the input Minestom's
+        // own parser expects.
+        String input = cursor.collectRemaining();
         try {
             return (T) getMinestomType(argument.getName()).parse(context.source().origin(), input);
         } catch (ArgumentSyntaxException exception) {

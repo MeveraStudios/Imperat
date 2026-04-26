@@ -10,6 +10,8 @@ import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
+import studio.mevera.imperat.command.arguments.type.Cursor;
+import studio.mevera.imperat.command.arguments.type.GreedyArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.InvalidLocationFormatException;
@@ -17,7 +19,7 @@ import studio.mevera.imperat.exception.UnknownWorldException;
 
 import java.util.Objects;
 
-public class LocationArgument extends ArgumentType<HytaleCommandSource, Location> {
+public class LocationArgument extends GreedyArgumentType<HytaleCommandSource, Location> {
 
     private final static String SINGLE_STRING_SEPARATOR = ";";
     private final static String SELF_LOCATION_SYMBOL = "~";
@@ -70,7 +72,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             x = playerLocation.getPosition().getX();
         } else {
-            x = Objects.requireNonNull(doubleParser.parse(context, currentArg, split[1]));
+            x = Objects.requireNonNull(doubleParser.parse(context, currentArg, Cursor.single(context, split[1])));
         }
 
         double y;
@@ -81,7 +83,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             y = playerLocation.getPosition().getY();
         } else {
-            y = Objects.requireNonNull(doubleParser.parse(context, currentArg, split[2]));
+            y = Objects.requireNonNull(doubleParser.parse(context, currentArg, Cursor.single(context, split[2])));
         }
 
         double z;
@@ -92,7 +94,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
             }
             z = playerLocation.getPosition().getZ();
         } else {
-            z = Objects.requireNonNull(doubleParser.parse(context, currentArg, split[3]));
+            z = Objects.requireNonNull(doubleParser.parse(context, currentArg, Cursor.single(context, split[3])));
         }
 
         float yaw = 0.0f;
@@ -106,7 +108,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 yaw = playerLocation.getRotation().getYaw();
             } else {
-                yaw = (float) Objects.requireNonNull(doubleParser.parse(context, currentArg, split[4])).doubleValue();
+                yaw = (float) Objects.requireNonNull(doubleParser.parse(context, currentArg, Cursor.single(context, split[4]))).doubleValue();
             }
         }
 
@@ -118,7 +120,7 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
                 }
                 pitch = playerLocation.getRotation().getPitch();
             } else {
-                pitch = (float) Objects.requireNonNull(doubleParser.parse(context, currentArg, split[5])).doubleValue();
+                pitch = (float) Objects.requireNonNull(doubleParser.parse(context, currentArg, Cursor.single(context, split[5]))).doubleValue();
             }
         }
 
@@ -131,8 +133,4 @@ public class LocationArgument extends ArgumentType<HytaleCommandSource, Location
         return location;
     }
 
-    @Override
-    public boolean isGreedy(Argument<HytaleCommandSource> parameter) {
-        return true;
-    }
 }

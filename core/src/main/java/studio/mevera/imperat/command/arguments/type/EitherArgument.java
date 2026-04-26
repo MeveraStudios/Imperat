@@ -8,7 +8,7 @@ import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.util.TypeWrap;
 
-public class EitherArgument<S extends CommandSource, A, B> extends ArgumentType<S, Either<A, B>> {
+public class EitherArgument<S extends CommandSource, A, B> extends SimpleArgumentType<S, Either<A, B>> {
     private final TypeWrap<A> primaryType;
     private final TypeWrap<B> fallbackType;
 
@@ -23,6 +23,7 @@ public class EitherArgument<S extends CommandSource, A, B> extends ArgumentType<
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Either<A, B> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException {
         var cfg = context.imperatConfig();
         ArgumentType<S, A> primaryArgType = (ArgumentType<S, A>) cfg.getArgumentType(primaryType.getType());
@@ -32,14 +33,14 @@ public class EitherArgument<S extends CommandSource, A, B> extends ArgumentType<
                                                .formatted(primaryType.getType().getTypeName(), fallbackType.getType().getTypeName()));
         }
         try {
-            A primaryValue = primaryArgType.parse(context, argument, input);
+            A primaryValue = primaryArgType.parse(context, argument, Cursor.single(context, input));
             if (primaryValue != null) {
                 return Either.ofPrimary(primaryValue);
             }
         } catch (Exception ignored) {
             // Try fallback
         }
-        B fallbackValue = fallbackArgType.parse(context, argument, input);
+        B fallbackValue = fallbackArgType.parse(context, argument, Cursor.single(context, input));
         return Either.ofFallback(fallbackValue);
     }
 

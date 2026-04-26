@@ -428,7 +428,11 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
         if (raw == null) {
             return null;
         }
-        return argument.type().parse(this, argument, raw);
+        return argument.type().parse(
+                this,
+                argument,
+                studio.mevera.imperat.command.arguments.type.Cursor.single(this, raw)
+        );
     }
 
     private void resolveFlagDefaultValue(FlagArgument<S> flagArgument) throws CommandException {
@@ -440,7 +444,11 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
         String defValue = flagArgument.getDefaultValueSupplier().provide(this, flagArgument);
         if (defValue != null) {
             Object flagValueResolved = flagArgument.getDefaultValueSupplier().isEmpty() ? null
-                                               : Objects.requireNonNull(flagArgument.flagData().inputType()).parse(this, flagArgument, defValue);
+                                               : Objects.requireNonNull(flagArgument.flagData().inputType()).parse(
+                    this,
+                    flagArgument,
+                    studio.mevera.imperat.command.arguments.type.Cursor.single(this, defValue)
+            );
             this.resolveFlag(ParsedFlagArgument.forDefaultFlag(flagArgument, defValue, flagValueResolved));
         }
     }

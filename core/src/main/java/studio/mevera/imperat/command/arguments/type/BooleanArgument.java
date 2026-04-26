@@ -10,7 +10,7 @@ import studio.mevera.imperat.util.priority.Priority;
 
 import java.util.Map;
 
-public final class BooleanArgument<S extends CommandSource> extends ArgumentType<S, Boolean> {
+public final class BooleanArgument<S extends CommandSource> extends SimpleArgumentType<S, Boolean> {
 
     private final static Map<String, Boolean> VARIANTS = Map.of(
             "t", true, "f", false,

@@ -8,7 +8,7 @@ import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.ResponseKey;
 
-public final class CharacterArgument<S extends CommandSource> extends ArgumentType<S, Character> {
+public final class CharacterArgument<S extends CommandSource> extends SimpleArgumentType<S, Character> {
     @Override
     public Character parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws ResponseException {
         if (input.length() > 1) {

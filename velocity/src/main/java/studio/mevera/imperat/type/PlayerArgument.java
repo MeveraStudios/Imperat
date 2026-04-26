@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.VelocityCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
@@ -16,7 +16,7 @@ import studio.mevera.imperat.responses.VelocityResponseKey;
 
 import java.util.List;
 
-public final class PlayerArgument extends ArgumentType<VelocityCommandSource, Player> {
+public final class PlayerArgument extends SimpleArgumentType<VelocityCommandSource, Player> {
 
     private final ProxyServer proxyServer;
     private final PlayerSuggestionProvider playerSuggestionResolver;

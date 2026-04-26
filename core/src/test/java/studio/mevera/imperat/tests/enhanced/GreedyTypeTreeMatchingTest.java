@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import studio.mevera.imperat.annotations.types.Execute;
 import studio.mevera.imperat.annotations.types.RootCommand;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.GreedyArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.TestCommandSource;
@@ -58,7 +58,7 @@ class GreedyTypeTreeMatchingTest extends EnhancedBaseImperatTest {
         }
     }
 
-    public static final class RecordingMessageType extends ArgumentType<TestCommandSource, RecordingMessage> {
+    public static final class RecordingMessageType extends GreedyArgumentType<TestCommandSource, RecordingMessage> {
 
         private static final List<String> SEEN_INPUTS = new ArrayList<>();
 
@@ -78,11 +78,6 @@ class GreedyTypeTreeMatchingTest extends EnhancedBaseImperatTest {
         ) throws CommandException {
             SEEN_INPUTS.add(input);
             return new RecordingMessage(input);
-        }
-
-        @Override
-        public boolean isGreedy(Argument<TestCommandSource> parameter) {
-            return true;
         }
     }
 }

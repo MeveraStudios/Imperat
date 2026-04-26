@@ -870,7 +870,11 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             return ParseResult.failedParse(flag, sharedValueInput, new IllegalStateException("Missing input type for value flag"));
         }
         try {
-            Object parsed = inputType.parse(inputStream.getContext(), flag, sharedValueInput);
+            Object parsed = inputType.parse(
+                    inputStream.getContext(),
+                    flag,
+                    studio.mevera.imperat.command.arguments.type.Cursor.single(inputStream.getContext(), sharedValueInput)
+            );
             return ParseResult.of(flag, sharedValueInput, parsed, null);
         } catch (Throwable error) {
             return ParseResult.of(flag, sharedValueInput, null, error);
@@ -878,52 +882,75 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     }
 
     private ParseResult<S> parseArgument(Argument<S> argument, RawInputStream<S> inputStream) {
-        StringBuilder builder = new StringBuilder();
+        // Tab-completion variant: collect tokens up to the budget, hand the
+        // type a Cursor over them, advance the stream by the type's actual
+        // consumption. Mirrors the execution path's protocol in {@link Node}
+        // but keeps the completion walk's relaxed "blank input → failure
+        // result rather than throw" handling intact.
+        int beforeIndex = inputStream.getRawIndex();
+        List<String> tokens = collectTokensForCompletion(argument, inputStream);
 
-        if (isGreedyArgument(argument)) {
-            int limit = argument.greedyLimit();
-            int consumed = 0;
-            while (inputStream.hasNext()) {
-                if (limit > 0 && consumed >= limit) {
-                    break;
-                }
-                if (builder.length() > 0) {
-                    builder.append(' ');
-                }
-                builder.append(inputStream.next());
-                consumed++;
-            }
-        } else {
-            final int toConsume = argument.type().getNumberOfParametersToConsume(argument);
-            int consumed = 0;
-            while (inputStream.hasNext() && consumed < toConsume) {
-                if (builder.length() > 0) {
-                    builder.append(' ');
-                }
-                builder.append(inputStream.next());
-                consumed++;
-            }
-        }
-
-        final String input = builder.toString();
-        if (input.isBlank()) {
+        if (tokens.isEmpty()) {
+            inputStream.setRawIndex(beforeIndex);
             if (argument.isCommand()) {
-                return ParseResult.unacceptableParse(argument, input, new IndexOutOfBoundsException());
+                return ParseResult.unacceptableParse(argument, "", new IndexOutOfBoundsException());
             }
-            return ParseResult.failedParse(argument, input, null);
+            return ParseResult.failedParse(argument, "", null);
         }
+
+        var rootCursor = studio.mevera.imperat.command.arguments.type.Cursor.of(inputStream.getContext(), tokens);
+        var probe = rootCursor.snapshot();
 
         try {
-            var result = argument.type().parse(inputStream.getContext(), argument, input);
-            return ParseResult.of(argument, input, result, null);
-        } catch (Throwable error) {
-            if (argument.isCommand()) {
-                return ParseResult.unacceptableParse(argument, input, error);
+            var result = argument.type().parse(inputStream.getContext(), argument, probe);
+            rootCursor.commitFrom(probe);
+            int consumedTokenCount = probe.position();
+            if (!isGreedyArgument(argument)) {
+                inputStream.setRawIndex(beforeIndex + consumedTokenCount);
             }
-            return ParseResult.of(argument, input, null, error);
+            String consumedInput = rootCursor.slice(0, consumedTokenCount);
+            return ParseResult.of(argument, consumedInput, result, null);
+        } catch (Throwable error) {
+            // Failure leaves inputStream at its post-collection position so
+            // the candidate is still admitted with a failure ParseResult.
+            String attemptedInput = rootCursor.slice(0, tokens.size());
+            if (argument.isCommand()) {
+                return ParseResult.unacceptableParse(argument, attemptedInput, error);
+            }
+            return ParseResult.of(argument, attemptedInput, null, error);
         }
     }
 
+
+    /**
+     * Tab-completion budget collection: pulls tokens up to the argument's
+     * declared budget. The completion walk doesn't apply greedy-flag-aware
+     * extraction (that's an execution-only concern handled in
+     * {@link Node#collectGreedyTokens}); here we treat greedy as "consume up
+     * to limit" without flag awareness.
+     */
+    private List<String> collectTokensForCompletion(Argument<S> argument, RawInputStream<S> inputStream) {
+        if (isGreedyArgument(argument)) {
+            int limit = argument.greedyLimit();
+            List<String> collected = new ArrayList<>();
+            while (inputStream.hasNext()) {
+                if (limit > 0 && collected.size() >= limit) {
+                    break;
+                }
+                collected.add(inputStream.next());
+            }
+            return collected;
+        }
+        int toConsume = argument.type().getNumberOfParametersToConsume(argument);
+        if (toConsume <= 0) {
+            return List.of();
+        }
+        List<String> collected = new ArrayList<>(toConsume);
+        while (inputStream.hasNext() && collected.size() < toConsume) {
+            collected.add(inputStream.next());
+        }
+        return collected;
+    }
 
     private boolean isInsideSecretPath(List<ParsedNode<S>> chain) {
         for (ParsedNode<S> parsedNode : chain) {

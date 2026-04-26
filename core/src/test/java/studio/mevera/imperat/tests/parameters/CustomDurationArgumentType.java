@@ -2,13 +2,13 @@ package studio.mevera.imperat.tests.parameters;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 
-public class CustomDurationArgumentType<S extends CommandSource> extends ArgumentType<S, CustomDuration> {
+public class CustomDurationArgumentType<S extends CommandSource> extends SimpleArgumentType<S, CustomDuration> {
 
     private final SuggestionProvider<S> resolver = SuggestionProvider.staticSuggestions(
             "permanent", "30d", "1y", "5y"

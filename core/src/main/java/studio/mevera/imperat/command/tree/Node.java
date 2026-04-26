@@ -5,6 +5,8 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
+import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.Cursor;
 import studio.mevera.imperat.command.flags.FlagExtractor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
@@ -251,7 +253,11 @@ public class Node<S extends CommandSource> implements Prioritizable {
             return ParseResult.failedParse(flag, sharedValueInput, new IllegalStateException("Missing input type for value flag"));
         }
         try {
-            Object parsed = inputType.parse(inputStream.getContext(), flag, sharedValueInput);
+            Object parsed = inputType.parse(
+                    inputStream.getContext(),
+                    flag,
+                    Cursor.single(inputStream.getContext(), sharedValueInput)
+            );
             return ParseResult.of(flag, sharedValueInput, parsed, null);
         } catch (Throwable error) {
             return ParseResult.of(flag, sharedValueInput, null, error);
@@ -276,98 +282,148 @@ public class Node<S extends CommandSource> implements Prioritizable {
      * {@link #parseOptionalsAndFlags} to test downstream optionals); probes
      * must not produce side effects.</p>
      */
+    /**
+     * Hands the argument's type a {@link Cursor} over the tokens the tree has
+     * allocated to it, then commits the cursor's actual consumption back to
+     * {@code inputStream}.
+     *
+     * <p>Token budget construction differs by argument shape:
+     * <ul>
+     *   <li>Greedy → {@link #collectGreedyTokens} applies reservation,
+     *       type-discrimination yield, and inline flag extraction.</li>
+     *   <li>Non-greedy → up to {@link ArgumentType#getNumberOfParametersToConsume}
+     *       tokens are pulled from the stream.</li>
+     * </ul></p>
+     *
+     * <p>Rollback policy:
+     * <ul>
+     *   <li>On a thrown {@link Throwable}: roll {@code inputStream} fully back
+     *       to its position before this method ran. The cursor's snapshot
+     *       protocol means partial advancement leaks nothing.</li>
+     *   <li>On success: advance {@code inputStream} by the number of tokens
+     *       the type actually consumed via the cursor (which may be fewer than
+     *       the budget for variable-arity types).</li>
+     * </ul></p>
+     */
     private ParseResult<S> parseArgument(
             Argument<S> argument,
             RawInputStream<S> inputStream,
             @Nullable Map<String, ParseResult<S>> flagSink
     ) {
-        StringBuilder builder = new StringBuilder();
+        int beforeIndex = inputStream.getRawIndex();
+        boolean greedy = isGreedyArgument(argument);
+        List<String> tokens = greedy
+                                      ? collectGreedyTokens(argument, inputStream, flagSink)
+                                      : collectFixedTokens(argument, inputStream);
 
-        if (isGreedyArgument(argument)) {
-            // Greedy collection has to honour two constraints inherited from
-            // the legacy ArgumentValueBinder.collectGreedyInput logic, otherwise
-            // a greedy main slurps tokens that downstream required arguments
-            // need:
-            //
-            //  1. RESERVATION — when the next downstream required argument is
-            //     also string-shaped (cannot discriminate by type), reserve
-            //     enough tokens for it (and any further required args). The
-            //     greedy limit is clamped to {@code available - reserve}.
-            //  2. TYPE-DISCRIMINATION YIELD — when the next downstream required
-            //     argument has a discriminating type (non-String), the greedy
-            //     stops as soon as it sees a token that the downstream type
-            //     accepts, leaving that token for the downstream parse.
-            //
-            // The "first token always wins" rule is preserved: discrimination
-            // and limit checks only fire once we already have at least one
-            // token in the buffer.
-            int limit = argument.greedyLimit();
-            Argument<S> nextDownstream = nextDiscriminatingArgument();
-            boolean nextCanDiscriminate = canDiscriminate(nextDownstream);
-            int effectiveLimit = limit;
-            if (nextDownstream != null && !nextCanDiscriminate) {
-                int reserve = countReservedRawsForDownstream();
-                int rawsAvailable = inputStream.size() - (inputStream.getRawIndex() + 1);
-                int maxByReserve = rawsAvailable - reserve;
-                effectiveLimit = limit > 0 ? Math.min(limit, maxByReserve) : maxByReserve;
-                effectiveLimit = Math.max(effectiveLimit, 1);
-            }
-
-            int consumed = 0;
-            while (inputStream.hasNext()) {
-                if (effectiveLimit > 0 && consumed >= effectiveLimit) {
-                    break;
-                }
-                String peek = inputStream.next();
-                if (flagSink != null && Patterns.isInputFlag(peek)
-                            && tryExtractInlineFlag(peek, inputStream, flagSink)) {
-                    // The token was a registered flag for this pathway; it has
-                    // been bound into {@code flagSink} (along with any value
-                    // token for value flags). Don't add it to the greedy buffer.
-                    continue;
-                }
-                if (consumed > 0
-                            && nextCanDiscriminate
-                            && matchesParameterType(inputStream.getContext(), nextDownstream, peek)) {
-                    // Hand the token back to the downstream parse.
-                    inputStream.backward();
-                    break;
-                }
-                if (builder.length() > 0) {
-                    builder.append(' ');
-                }
-                builder.append(peek);
-                consumed++;
-            }
-        } else {
-            final int toConsume = argument.type().getNumberOfParametersToConsume(argument);
-            int consumed = 0;
-            while (inputStream.hasNext() && consumed < toConsume) {
-                if (!builder.isEmpty()) {
-                    builder.append(' ');
-                }
-                builder.append(inputStream.next());
-                consumed++;
-            }
-        }
-
-        final String input = builder.toString();
-        if (input.isBlank()) {
+        if (tokens.isEmpty()) {
+            inputStream.setRawIndex(beforeIndex);
             if (argument.isCommand()) {
-                return ParseResult.unacceptableParse(argument, input, new IndexOutOfBoundsException());
+                return ParseResult.unacceptableParse(argument, "", new IndexOutOfBoundsException());
             }
-            return ParseResult.failedParse(argument, input, null);
+            return ParseResult.failedParse(argument, "", null);
         }
+
+        Cursor<S> rootCursor = Cursor.of(inputStream.getContext(), tokens);
+        Cursor<S> probe = rootCursor.snapshot();
 
         try {
-            var result = argument.type().parse(inputStream.getContext(), argument, input);
-            return ParseResult.of(argument, input, result, null);
-        } catch (Throwable error) {
-            if (argument.isCommand()) {
-                return ParseResult.unacceptableParse(argument, input, error);
+            var value = argument.type().parse(inputStream.getContext(), argument, probe);
+            rootCursor.commitFrom(probe);
+
+            int consumedTokenCount = probe.position();
+            if (!greedy) {
+                // Fixed-arity: roll inputStream back by the unused budget so
+                // the next argument sees those tokens. (Greedy types are
+                // expected to consume the full budget; their pre-collection
+                // already left {@code inputStream} at the right place.)
+                inputStream.setRawIndex(beforeIndex + consumedTokenCount);
             }
-            return ParseResult.of(argument, input, null, error);
+
+            String consumedInput = rootCursor.slice(0, consumedTokenCount);
+            return ParseResult.of(argument, consumedInput, value, null);
+        } catch (Throwable error) {
+            // Don't roll inputStream back — the budget tokens *were* allocated
+            // to this argument, the type just failed to parse them. Mirrors
+            // the legacy behaviour where a failed parse still committed the
+            // pre-joined input span; the candidate is admitted with a failure
+            // ParseResult and the drain re-throws the typed error so users
+            // can register exception handlers for it.
+            String attemptedInput = rootCursor.slice(0, tokens.size());
+            if (argument.isCommand()) {
+                return ParseResult.unacceptableParse(argument, attemptedInput, error);
+            }
+            return ParseResult.of(argument, attemptedInput, null, error);
         }
+    }
+
+    /**
+     * Greedy budget collection. Pulls tokens from {@code inputStream} subject
+     * to:
+     * <ul>
+     *   <li>The argument's {@code @Greedy(limit = N)} cap.</li>
+     *   <li>Reservation for downstream required arguments when the next one
+     *       cannot discriminate by type (string-shaped).</li>
+     *   <li>Type-discrimination yield when the next arg is a non-String type
+     *       that accepts a token.</li>
+     *   <li>Inline registered flag extraction into {@code flagSink} (when
+     *       non-null). Flag tokens advance the stream but are not added to the
+     *       greedy budget.</li>
+     * </ul>
+     */
+    List<String> collectGreedyTokens(
+            Argument<S> argument,
+            RawInputStream<S> inputStream,
+            @Nullable Map<String, ParseResult<S>> flagSink
+    ) {
+        int limit = argument.greedyLimit();
+        Argument<S> nextDownstream = nextDiscriminatingArgument();
+        boolean nextCanDiscriminate = canDiscriminate(nextDownstream);
+        int effectiveLimit = limit;
+        if (nextDownstream != null && !nextCanDiscriminate) {
+            int reserve = countReservedRawsForDownstream();
+            int rawsAvailable = inputStream.size() - (inputStream.getRawIndex() + 1);
+            int maxByReserve = rawsAvailable - reserve;
+            effectiveLimit = limit > 0 ? Math.min(limit, maxByReserve) : maxByReserve;
+            effectiveLimit = Math.max(effectiveLimit, 1);
+        }
+
+        List<String> collected = new ArrayList<>();
+        while (inputStream.hasNext()) {
+            if (effectiveLimit > 0 && collected.size() >= effectiveLimit) {
+                break;
+            }
+            String peek = inputStream.next();
+            if (flagSink != null && Patterns.isInputFlag(peek)
+                        && tryExtractInlineFlag(peek, inputStream, flagSink)) {
+                continue;
+            }
+            if (!collected.isEmpty()
+                        && nextCanDiscriminate
+                        && matchesParameterType(inputStream.getContext(), nextDownstream, peek)) {
+                inputStream.backward();
+                break;
+            }
+            collected.add(peek);
+        }
+        return collected;
+    }
+
+    /**
+     * Fixed-arity budget collection. Pulls up to
+     * {@link ArgumentType#getNumberOfParametersToConsume} tokens from the
+     * stream. Negative or zero declared counts collect nothing.
+     */
+    private List<String> collectFixedTokens(Argument<S> argument, RawInputStream<S> inputStream) {
+        int toConsume = argument.type().getNumberOfParametersToConsume(argument);
+        if (toConsume <= 0) {
+            return List.of();
+        }
+        List<String> collected = new ArrayList<>(toConsume);
+        while (inputStream.hasNext() && collected.size() < toConsume) {
+            collected.add(inputStream.next());
+        }
+        return collected;
     }
 
     /**
@@ -529,7 +585,7 @@ public class Node<S extends CommandSource> implements Prioritizable {
             return false;
         }
         try {
-            argument.type().parse(context, argument, input);
+            argument.type().parse(context, argument, Cursor.single(context, input));
             return true;
         } catch (Exception ignored) {
             return false;

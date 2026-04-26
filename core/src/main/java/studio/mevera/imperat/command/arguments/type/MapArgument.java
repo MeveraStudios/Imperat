@@ -11,7 +11,7 @@ import studio.mevera.imperat.util.TypeWrap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> extends ArgumentType<S, M> {
+public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> extends GreedyArgumentType<S, M> {
     private final static String ENTRY_SEPARATOR = ",";
     private final Supplier<M> mapInitializer;
     private final ArgumentType<S, K> keyResolver;
@@ -30,9 +30,12 @@ public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> ext
     }
 
     @Override
-    public M parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException {
+    public M parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String joinedInput) throws CommandException {
         M newMap = mapInitializer.get();
-        for (String raw : input.split(" ")) {
+        if (joinedInput.isEmpty()) {
+            return newMap;
+        }
+        for (String raw : joinedInput.split(" ")) {
             parseAndAddEntry(context, argument, raw, newMap);
         }
         return newMap;
@@ -53,13 +56,8 @@ public class MapArgument<S extends CommandSource, K, V, M extends Map<K, V>> ext
         String keyRaw = split[0];
         String valueRaw = split[1];
 
-        K key = keyResolver.parse(context, argument, keyRaw);
-        V value = valueResolver.parse(context, argument, valueRaw);
+        K key = keyResolver.parse(context, argument, Cursor.single(context, keyRaw));
+        V value = valueResolver.parse(context, argument, Cursor.single(context, valueRaw));
         map.put(key, value);
-    }
-
-    @Override
-    public boolean isGreedy(Argument<S> parameter) {
-        return true;
     }
 }

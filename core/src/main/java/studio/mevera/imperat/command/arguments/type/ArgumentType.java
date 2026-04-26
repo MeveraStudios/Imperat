@@ -20,8 +20,20 @@ import java.util.List;
 
 /**
  * Base class for defining parameter types in a command processing framework.
- * This class handles the basic functionality for managing type information and
- * suggestions for parameters.
+ *
+ * <p>Argument types parse raw input tokens into typed values. The parse
+ * contract is a single method, {@link #parse(CommandContext, Argument, Cursor)},
+ * which receives a transactional {@link Cursor} over the input tokens the
+ * command tree has allocated to this argument. The cursor is detached: the
+ * tree commits a successful parse's advancement back to the underlying input
+ * stream and silently rolls back on a thrown {@link CommandException}.</p>
+ *
+ * <p>For the common single-token case, prefer extending
+ * {@link SimpleArgumentType} — it handles the cursor and exposes a String
+ * input. For greedy types that consume all remaining tokens (with optional
+ * limit and downstream-aware reservation), extend {@link GreedyArgumentType}.
+ * Extend this class directly only when you need full cursor control: peek,
+ * consume a variable number of tokens based on input shape, etc.</p>
  *
  * @param <S> The type of the source from which the command originates.
  * @param <T> The type of the parameter being handled.
@@ -78,23 +90,26 @@ public abstract class ArgumentType<S extends CommandSource, T>
 
 
     /**
-     * Parses the argument value from the given input string, using the provided
-     * execution context. This method is responsible for converting the raw input into the appropriate type,
-     * handling any necessary validation or error handling during the parsing process.
+     * Parses the argument value by reading from {@code cursor}.
      *
-     * <p>The command tree pre-joins the raw tokens consumed by this argument
-     * (controlled by {@link #getNumberOfParametersToConsume(Argument)} and
-     * {@link #isGreedy(Argument)}) into the {@code input} string. Argument-type
-     * implementations must therefore parse from {@code input} alone, without
-     * any cursor-style navigation.</p>
+     * <p>The cursor is a detached snapshot; the tree commits the cursor's
+     * final position back to the underlying input stream only on a successful
+     * return. Throwing any {@link CommandException} signals a parse failure
+     * and rolls back any tokens this type consumed from the cursor.</p>
      *
-     * @param context  the execution context.
-     * @param argument the argument with this type.
-     * @param input    the raw input string to parse.
+     * <p>Implementations should consume the tokens that comprise this
+     * argument's value and return the parsed result. Tokens not consumed
+     * within this argument's budget are returned to the input stream for
+     * subsequent arguments.</p>
+     *
+     * @param context  the execution / command context.
+     * @param argument the argument descriptor (name, position, modifiers).
+     * @param cursor   a transactional cursor over the input tokens allocated
+     *                 to this argument.
      * @return the resolved value of type T.
      * @throws CommandException if parsing fails.
      */
-    public abstract T parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException;
+    public abstract T parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull Cursor<S> cursor) throws CommandException;
 
     /**
      * Returns the suggestion resolver associated with this parameter type.

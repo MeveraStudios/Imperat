@@ -10,7 +10,7 @@ import studio.mevera.imperat.responses.ResponseKey;
 
 import java.util.UUID;
 
-public final class UUIDArgument<S extends CommandSource> extends ArgumentType<S, UUID> {
+public final class UUIDArgument<S extends CommandSource> extends SimpleArgumentType<S, UUID> {
 
     public UUIDArgument() {
         super();

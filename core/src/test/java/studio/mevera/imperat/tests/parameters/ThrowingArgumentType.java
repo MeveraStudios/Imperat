@@ -3,6 +3,7 @@ package studio.mevera.imperat.tests.parameters;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.tests.TestCommandSource;
@@ -13,7 +14,7 @@ import studio.mevera.imperat.tests.TestCommandSource;
  * {@code ArgumentType#parse} are propagated to command-specific exception handlers
  * instead of being swallowed into a generic {@code InvalidSyntaxException}.
  */
-public final class ThrowingArgumentType extends ArgumentType<TestCommandSource, ThrowingValue> {
+public final class ThrowingArgumentType extends SimpleArgumentType<TestCommandSource, ThrowingValue> {
 
     @Override
     public ThrowingValue parse(
@@ -30,10 +31,5 @@ public final class ThrowingArgumentType extends ArgumentType<TestCommandSource, 
             throw new UnhandledParseRuntimeException("Unhandled parse failure for '" + input + "'");
         }
         return new ThrowingValue(input);
-    }
-
-    @Override
-    public int getNumberOfParametersToConsume(Argument<TestCommandSource> argument) {
-        return 1;
     }
 }

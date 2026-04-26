@@ -34,7 +34,7 @@ public class FlagArgumentType<S extends CommandSource> extends ArgumentType<S, P
 
 
     @Override
-    public ParsedFlagArgument<S> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+    public ParsedFlagArgument<S> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull Cursor<S> cursor)
             throws CommandException {
         throw new UnsupportedOperationException(
                 "FlagArgumentType.parse must not be called: the command tree binds flags directly via Node#parseFlagArgument."

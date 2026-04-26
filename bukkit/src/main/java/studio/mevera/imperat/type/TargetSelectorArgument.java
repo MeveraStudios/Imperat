@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.Version;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
@@ -25,7 +25,7 @@ import studio.mevera.imperat.selector.field.operators.OperatorField;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class TargetSelectorArgument extends ArgumentType<BukkitCommandSource, TargetSelector> {
+public final class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSource, TargetSelector> {
 
     private final static char PARAMETER_START = '[';
     private final static char PARAMETER_END = ']';

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.Cursor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
@@ -37,8 +38,11 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleCommandSource, T> 
 
     @Override
     public @Nullable T parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull Argument<HytaleCommandSource> argument,
-            @NotNull String input) throws CommandException {
-        // This type is not intended for direct string parsing; must use cursor-based parsing.
+            @NotNull Cursor<HytaleCommandSource> cursor) throws CommandException {
+        // Hytale's parser maintains its own multi-token position over the
+        // full raw input array, so we hand it the entire context and only
+        // drain the cursor through to the budget length.
+        String input = cursor.collectRemaining();
         String[] rawInput = context.arguments().toArray(String[]::new);
         final ParseResult parseResult = new ParseResult();
         T parsedArg = hytaleArgType.parse(rawInput, parseResult);

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
+import studio.mevera.imperat.command.arguments.type.Cursor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
@@ -27,7 +28,8 @@ public class PlayerArgument extends HytaleArgumentType<PlayerRef> {
 
     @Override
     public @NotNull PlayerRef parse(@NotNull CommandContext<HytaleCommandSource> context, @NotNull Argument<HytaleCommandSource> argument,
-            @NotNull String input) throws CommandException {
+            @NotNull Cursor<HytaleCommandSource> cursor) throws CommandException {
+        String input = cursor.collectRemaining();
         if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
                 throw new UnknownPlayerException(input);

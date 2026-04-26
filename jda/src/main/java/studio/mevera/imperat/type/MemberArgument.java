@@ -4,14 +4,14 @@ import net.dv8tion.jda.api.entities.Member;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.JdaCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.exception.NoDMSException;
 import studio.mevera.imperat.responses.JdaResponseKey;
 
-public final class MemberArgument extends ArgumentType<JdaCommandSource, Member> {
+public final class MemberArgument extends SimpleArgumentType<JdaCommandSource, Member> {
 
     @Override
     public @NotNull Member parse(@NotNull CommandContext<JdaCommandSource> context, @NotNull Argument<JdaCommandSource> argument,

@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import studio.mevera.imperat.BungeeCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.ArgumentParseException;
@@ -16,7 +16,7 @@ import studio.mevera.imperat.responses.BungeeResponseKey;
 
 import java.util.List;
 
-public final class ProxiedPlayerArgument extends ArgumentType<BungeeCommandSource, ProxiedPlayer> {
+public final class ProxiedPlayerArgument extends SimpleArgumentType<BungeeCommandSource, ProxiedPlayer> {
 
     private final ProxiedPlayerSuggestionProvider PROXIED_PLAYER_SUGGESTION_RESOLVER = new ProxiedPlayerSuggestionProvider();
 

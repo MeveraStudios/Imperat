@@ -2,13 +2,13 @@ package studio.mevera.imperat.tests.commands.realworld.economy;
 
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.tests.TestCommandSource;
 
-public final class CurrencyParamType extends ArgumentType<TestCommandSource, Currency> {
+public final class CurrencyParamType extends SimpleArgumentType<TestCommandSource, Currency> {
 
 
     @Override

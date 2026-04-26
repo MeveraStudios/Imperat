@@ -12,7 +12,7 @@ import studio.mevera.imperat.util.TypeWrap;
 import java.lang.reflect.Type;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public final class EnumArgument<S extends CommandSource> extends ArgumentType<S, Enum<?>> {
+public final class EnumArgument<S extends CommandSource> extends SimpleArgumentType<S, Enum<?>> {
     public EnumArgument(TypeWrap<Enum<?>> typeWrap) {
         super(typeWrap.getType());
         Class<? extends Enum<?>> type = (Class<? extends Enum<?>>) typeWrap.getType();

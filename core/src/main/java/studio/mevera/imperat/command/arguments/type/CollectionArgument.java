@@ -10,7 +10,7 @@ import studio.mevera.imperat.util.TypeWrap;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-public class CollectionArgument<S extends CommandSource, E, C extends Collection<E>> extends ArgumentType<S, C> {
+public class CollectionArgument<S extends CommandSource, E, C extends Collection<E>> extends GreedyArgumentType<S, C> {
 
     private final Supplier<C> collectionSupplier;
     private final ArgumentType<S, E> componentResolver;
@@ -22,19 +22,15 @@ public class CollectionArgument<S extends CommandSource, E, C extends Collection
     }
 
     @Override
-    public C parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input) throws CommandException {
-        String[] raws = input.split(" ");
+    public C parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String joinedInput) throws CommandException {
         C newCollection = collectionSupplier.get();
-        for (String raw : raws) {
-            E value = componentResolver.parse(context, argument, raw);
+        if (joinedInput.isEmpty()) {
+            return newCollection;
+        }
+        for (String raw : joinedInput.split(" ")) {
+            E value = componentResolver.parse(context, argument, Cursor.single(context, raw));
             newCollection.add(value);
         }
-
         return newCollection;
-    }
-
-    @Override
-    public boolean isGreedy(Argument<S> parameter) {
-        return true;
     }
 }
