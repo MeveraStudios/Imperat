@@ -10,7 +10,6 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.tree.CommandTreeMatch;
 import studio.mevera.imperat.command.tree.ParsedNode;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
@@ -140,19 +139,6 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
      * @return a collection of resolved flags
      */
     Collection<? extends ParsedFlagArgument> getResolvedFlags();
-
-    /**
-     * Resolves and registers a command argument.
-     *
-     * @param <T> the type of the argument value
-     * @param stream the stream having the current input's data.
-     * @param value the resolved value.
-     * @throws CommandException if resolution fails.
-     */
-    <T> void parseArgument(
-            Cursor<S> stream,
-            @Nullable T value
-    ) throws CommandException;
 
     /**
      * Registers a resolved argument in the context.

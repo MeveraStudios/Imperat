@@ -3,7 +3,6 @@ package studio.mevera.imperat.selector.field.filters;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -19,8 +18,7 @@ final class NameField extends PredicateField<String> {
     }
 
     @Override
-    protected @NotNull EntityCondition getCondition(String value, Cursor<BukkitCommandSource> cursor,
-            CommandContext<BukkitCommandSource> context) {
+    protected @NotNull EntityCondition getCondition(String value, CommandContext<BukkitCommandSource> context) {
         return (sender, entity) -> entity.getName().equalsIgnoreCase(value);
     }
 

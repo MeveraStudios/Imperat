@@ -5,8 +5,6 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -39,15 +37,14 @@ public final class OptionalArgument<S extends CommandSource, T> extends Argument
     }
 
     @Override
-    public Optional<T> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
-            throws CommandException, ResponseException {
-        T value = typeResolver.parse(context, argument, input);
-        return Optional.ofNullable(value);
+    public int getNumberOfParametersToConsume(Argument<S> argument) {
+        return typeResolver.getNumberOfParametersToConsume(argument);
     }
 
     @Override
-    public Optional<T> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws CommandException, ResponseException {
-        T value = typeResolver.parse(context, cursor);
+    public Optional<T> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
+            throws CommandException, ResponseException {
+        T value = typeResolver.parse(context, argument, input);
         return Optional.ofNullable(value);
     }
 }

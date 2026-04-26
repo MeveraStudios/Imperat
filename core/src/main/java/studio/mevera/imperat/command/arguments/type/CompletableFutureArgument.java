@@ -5,8 +5,6 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.DefaultValueProvider;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.util.TypeWrap;
 
@@ -37,22 +35,6 @@ public final class CompletableFutureArgument<S extends CommandSource, T> extends
     }
 
     @Override
-    public CompletableFuture<T> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) {
-        if (typeResolver == null) {
-            throw new IllegalStateException("No type parameter for type '" + type.getTypeName() + "'");
-        }
-        Cursor<S> copyStream = cursor.copy();
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return typeResolver.parse(context, copyStream);
-            } catch (Exception ex) {
-                context.imperatConfig().handleExecutionError(ex, context, CompletableFutureArgument.class, "parse");
-                return null;
-            }
-        });
-    }
-
-    @Override
     public SuggestionProvider<S> getSuggestionProvider() {
         return typeResolver.getSuggestionProvider();
     }
@@ -65,6 +47,11 @@ public final class CompletableFutureArgument<S extends CommandSource, T> extends
     @Override
     public boolean isGreedy(Argument<S> parameter) {
         return typeResolver.isGreedy(parameter);
+    }
+
+    @Override
+    public int getNumberOfParametersToConsume(Argument<S> argument) {
+        return typeResolver.getNumberOfParametersToConsume(argument);
     }
 
 }

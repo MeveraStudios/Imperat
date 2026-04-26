@@ -4,7 +4,6 @@ import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.selector.EntityCondition;
 import studio.mevera.imperat.selector.field.AbstractField;
@@ -30,22 +29,20 @@ public abstract class PredicateField<V> extends AbstractField<V> implements Pred
     }
 
     /**
-     * Generates an {@link EntityCondition} based on the given value and command input stream.
-     * This method is intended to be implemented by subclasses to provide specific
-     * filtering conditions for entities.
+     * Generates an {@link EntityCondition} based on the given value and execution
+     * context. Subclasses provide specific filtering conditions for entities.
      *
-     * @param value              The value used to generate the condition.
-     * @param cursor The stream providing command input data.
-     * @param context the context.
-     * @return The condition that will be used to filter entities based on the value and input data.
+     * @param value   The value used to generate the condition.
+     * @param context The execution context.
+     * @return The condition that will be used to filter entities.
      */
     @NotNull
-    protected abstract EntityCondition getCondition(V value, Cursor<BukkitCommandSource> cursor, CommandContext<BukkitCommandSource> context);
+    protected abstract EntityCondition getCondition(V value, CommandContext<BukkitCommandSource> context);
 
-    public final boolean isApplicable(BukkitCommandSource sender, Entity entity, V value, Cursor<BukkitCommandSource> cursor,
+    public final boolean isApplicable(BukkitCommandSource sender, Entity entity, V value,
             CommandContext<BukkitCommandSource> ctx) throws
             CommandException {
-        EntityCondition condition = getCondition(value, cursor, ctx);
+        EntityCondition condition = getCondition(value, ctx);
         return condition.test(sender, entity);
     }
 }

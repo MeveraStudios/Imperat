@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -222,9 +223,16 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
                                     .max(Comparator.comparingInt(c -> scoreCandidate(c, totalTokens)))
                                     .orElse(null);
 
-        return best == null
-                       ? CommandTreeMatch.empty(root.getMainArgument().asCommand())
-                       : new CommandTreeMatch<>(best.chain, best.command, best.pathway);
+        if (best == null) {
+            return CommandTreeMatch.empty(root.getMainArgument().asCommand());
+        }
+        return new CommandTreeMatch<>(
+                best.chain,
+                best.trailingFlagResults,
+                best.command,
+                best.pathway,
+                best.consumedIndex
+        );
     }
 
     private void traverse(
@@ -334,7 +342,8 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     ) {
         Command<S> terminalCommand = resolveTerminalCommand(path);
         for (CommandPathway<S> pathway : candidatePathwaysForNode(node)) {
-            int consumedWithFlags = consumeRemainingFlags(pathway, stream, consumedIndex);
+            TrailingFlags<S> trailing = consumeRemainingFlags(pathway, stream, consumedIndex);
+            int consumedWithFlags = trailing.consumedIndex();
             boolean fullyConsumed = consumedWithFlags + 1 >= stream.size();
             if (!allowPartial && stream.hasNext() && !fullyConsumed) {
                 continue;
@@ -343,6 +352,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             Command<S> commandScope = executionCommandForPathway(pathway, terminalCommand);
             candidates.add(new Candidate<>(
                     new ArrayList<>(path),
+                    trailing.results(),
                     consumedWithFlags,
                     commandScope,
                     pathway
@@ -412,37 +422,80 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
         return terminalCommand;
     }
 
-    private int consumeRemainingFlags(CommandPathway<S> pathway, RawInputStream<S> stream, int consumedIndex) {
+    /**
+     * Walks input from {@code consumedIndex} forward, recognising any registered
+     * flags for {@code pathway}. Each recognised flag is materialised into a
+     * {@link ParseResult} (using {@link #parseFlagArgument} which delegates to
+     * the flag's input type for value flags), so the execution-context drain
+     * receives a fully-parsed value with no need for a second pass over raw
+     * input.
+     *
+     * <p>If a value flag runs out of input mid-parse, the entire trailing-flag
+     * region is discarded and {@code consumedIndex} is returned unchanged —
+     * scoring then sees the candidate as "did not fully consume" and another
+     * pathway can take precedence. This matches the legacy
+     * scoring-only helper, plus error-bearing {@link ParseResult}s for the drain
+     * to surface.</p>
+     */
+    private TrailingFlags<S> consumeRemainingFlags(CommandPathway<S> pathway, RawInputStream<S> stream, int consumedIndex) {
         RawInputStream<S> remaining = stream.copyAndSetAtIndex(consumedIndex);
+        Map<String, ParseResult<S>> results = null;
         int lastConsumed = consumedIndex;
 
         while (remaining.hasNext()) {
             String raw = remaining.next();
             if (!Patterns.isInputFlag(raw)) {
-                return lastConsumed;
+                break;
             }
 
             Set<FlagArgument<S>> extracted;
             try {
                 extracted = pathway.getFlagExtractor().extract(raw);
             } catch (CommandException ignored) {
-                return lastConsumed;
+                break;
             }
             if (extracted.isEmpty()) {
-                return lastConsumed;
+                break;
             }
 
-            lastConsumed = remaining.getRawIndex();
             boolean hasValueFlags = extracted.stream().anyMatch(flag -> !flag.isSwitch());
+            String sharedValueInput = null;
             if (hasValueFlags) {
                 if (!remaining.hasNext()) {
-                    return consumedIndex;
+                    // Value-flag with no value to bind: discard the partially-consumed
+                    // trailing region. Scoring will see this candidate as not fully
+                    // consumed; a different pathway may fit better.
+                    return new TrailingFlags<>(consumedIndex, Collections.emptyMap());
                 }
-                remaining.next();
-                lastConsumed = remaining.getRawIndex();
+                sharedValueInput = remaining.next();
             }
+
+            if (results == null) {
+                results = new LinkedHashMap<>();
+            }
+            for (FlagArgument<S> flag : extracted) {
+                results.put(flag.getName(), parseFlagArgument(flag, raw, sharedValueInput, remaining));
+            }
+            lastConsumed = remaining.getRawIndex();
         }
-        return lastConsumed;
+
+        return new TrailingFlags<>(
+                lastConsumed,
+                results == null ? Collections.emptyMap() : results
+        );
+    }
+
+    /**
+     * Trailing-flag parse output. Carried separately from the main {@link Candidate#chain}
+     * so that the failure-penalty in {@link #scoreCandidate} (which is positional-arg
+     * sensitive) does not unfairly penalise a candidate whose owner pathway uniquely
+     * accepts the flag — error reporting for malformed flag values is handled at
+     * drain time instead.
+     */
+    private record TrailingFlags<S extends CommandSource>(
+            int consumedIndex,
+            Map<String, ParseResult<S>> results
+    ) {
     }
 
     private boolean hasUnacceptable(List<ParsedNode<S>> chain) {
@@ -1205,7 +1258,6 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
     @Override
     public @NotNull CommandPathway<S> getClosestPathwayToContext(CommandContext<S> context, CommandTreeMatch<S> treeMatch) {
-
         //we find shortest executable node and get its pathway
         var parsedNodesList = treeMatch.parsedNodes();
         if (parsedNodesList.isEmpty()) {
@@ -1408,13 +1460,14 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
 
     private record Candidate<S extends CommandSource>(
             List<ParsedNode<S>> chain,
+            Map<String, ParseResult<S>> trailingFlagResults,
             int consumedIndex,
             @Nullable Command<S> command,
             @Nullable CommandPathway<S> pathway
     ) {
 
         static <S extends CommandSource> Candidate<S> completion(List<ParsedNode<S>> chain, int consumedIndex) {
-            return new Candidate<>(chain, consumedIndex, null, null);
+            return new Candidate<>(chain, Collections.emptyMap(), consumedIndex, null, null);
         }
     }
 }

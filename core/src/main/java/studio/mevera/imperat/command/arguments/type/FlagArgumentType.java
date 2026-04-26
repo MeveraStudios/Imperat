@@ -5,15 +5,21 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.FlagData;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.context.internal.ParsedFlagArgument;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 
 import java.util.Collections;
 
+/**
+ * The argument-type marker for flag parameters. Flag parsing itself happens
+ * inside the command tree (see {@code Node#parseFlagArgument} and
+ * {@code SuperCommandTree#consumeRemainingFlags}); this type exists only to
+ * declare that a parameter is a flag and to drive flag-name suggestions, so
+ * its {@link #parse} method should never be reached on the canonical execution
+ * path.
+ */
 public class FlagArgumentType<S extends CommandSource> extends ArgumentType<S, ParsedFlagArgument<S>> {
     private final FlagData<S> flagData;
 
@@ -30,38 +36,10 @@ public class FlagArgumentType<S extends CommandSource> extends ArgumentType<S, P
     @Override
     public ParsedFlagArgument<S> parse(@NotNull CommandContext<S> context, @NotNull Argument<S> argument, @NotNull String input)
             throws CommandException {
-        throw new UnsupportedOperationException("FlagArgumentType does not support parse(ExecutionContext, String)");
+        throw new UnsupportedOperationException(
+                "FlagArgumentType.parse must not be called: the command tree binds flags directly via Node#parseFlagArgument."
+        );
     }
-
-    @Override
-    public ParsedFlagArgument<S> parse(@NotNull ExecutionContext<S> context, @NotNull Cursor<S> cursor) throws CommandException {
-        var currentParameter = cursor.currentParameterIfPresent();
-        if (currentParameter == null) {
-            throw new IllegalArgumentException("No parameter at cursor position for flag parsing");
-        }
-        if (!currentParameter.isFlag()) {
-            throw new IllegalArgumentException("Parameter is not a flag for FlagArgumentType");
-        }
-        FlagArgument<S> flagArgument = currentParameter.asFlagParameter();
-        String rawInput = cursor.currentRaw().orElse(null);
-        if (flagArgument.isSwitch()) {
-            return ParsedFlagArgument.forSwitch(flagArgument, rawInput, cursor.currentRawPosition());
-        }
-        // Value flag: must parse the value argument
-        ArgumentType<S, ?> inputType = flagArgument.flagData().inputType();
-        if (inputType == null) {
-            throw new IllegalArgumentException("FlagArgumentType: value flag missing input type");
-        }
-        int currentPosition = cursor.currentRawPosition();
-        String valueRaw = cursor.hasNextRaw() ? cursor.peekRawIfPresent() : null;
-        if (valueRaw == null) {
-            throw new IllegalArgumentException("No value provided for flag argument");
-        }
-        cursor.skipRaw(); // advance to value
-        Object value = inputType.parse(context, cursor);
-        return ParsedFlagArgument.forFlag(flagArgument, rawInput, valueRaw, currentPosition, currentPosition + 1, value);
-    }
-
 
     @Override
     public SuggestionProvider<S> getSuggestionProvider() {

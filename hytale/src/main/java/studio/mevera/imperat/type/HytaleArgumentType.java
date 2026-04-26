@@ -8,8 +8,6 @@ import studio.mevera.imperat.HytaleCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
@@ -48,26 +46,6 @@ public class HytaleArgumentType<T> extends ArgumentType<HytaleCommandSource, T> 
             throw exceptionProvider.fetch(input);
         }
         return parsedArg;
-    }
-
-    @Override
-    public @Nullable T parse(@NotNull ExecutionContext<HytaleCommandSource> context, @NotNull Cursor<HytaleCommandSource> cursor)
-            throws CommandException {
-        String[] rawInput = context.arguments().toArray(String[]::new);
-        final ParseResult parseResult = new ParseResult();
-        T parsedArg = hytaleArgType.parse(rawInput, parseResult);
-        if (parseResult.failed()) {
-            // Use the current raw input for error context if available
-            String input = cursor.currentRawIfPresent();
-            throw exceptionProvider.fetch(input != null ? input : "<unknown>");
-        } else {
-            // Success, skip the same amount
-            int numberOfArgs = hytaleArgType.getNumberOfParameters();
-            for (int i = 1; i < numberOfArgs; i++) {
-                cursor.skipRaw();
-            }
-            return parsedArg;
-        }
     }
 
     @Override

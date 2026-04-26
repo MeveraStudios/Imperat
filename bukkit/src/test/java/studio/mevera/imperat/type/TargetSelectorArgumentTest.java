@@ -6,50 +6,42 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
-import studio.mevera.imperat.BukkitCommandSource;
-import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
+import studio.mevera.imperat.selector.CharStream;
 import studio.mevera.imperat.selector.SelectionType;
-import studio.mevera.imperat.selector.TargetSelector;
 
 class TargetSelectorArgumentTest {
 
     @Test
     void resolvesTypeAfterMentionCharacter() throws Exception {
-        Cursor<BukkitCommandSource> cursor = selectorCursor("@p");
+        CharStream stream = new CharStream("@p");
 
-        SelectionType type = TargetSelectorArgument.resolveSelectionType(cursor, "@p");
+        SelectionType type = TargetSelectorArgument.resolveSelectionType(stream, "@p");
 
         assertSame(SelectionType.CLOSEST_PLAYER, type);
-        assertNull(cursor.currentLetter().orElse(null));
+        assertNull(stream.peek());
     }
 
     @Test
     void keepsCursorOnParameterBlockStart() throws Exception {
-        Cursor<BukkitCommandSource> cursor = selectorCursor("@a[tag=test]");
+        CharStream stream = new CharStream("@a[tag=test]");
 
-        SelectionType type = TargetSelectorArgument.resolveSelectionType(cursor, "@a[tag=test]");
+        SelectionType type = TargetSelectorArgument.resolveSelectionType(stream, "@a[tag=test]");
 
         assertSame(SelectionType.ALL_PLAYERS, type);
-        assertEquals(Character.valueOf('['), cursor.currentLetter().orElse(null));
+        assertEquals(Character.valueOf('['), stream.peek());
     }
 
     @Test
     void rejectsUnknownSelectionTypes() {
-        Cursor<BukkitCommandSource> cursor = selectorCursor("@x");
+        CharStream stream = new CharStream("@x");
 
         ResponseException exception = assertThrows(
                 ResponseException.class,
-                () -> TargetSelectorArgument.resolveSelectionType(cursor, "@x")
+                () -> TargetSelectorArgument.resolveSelectionType(stream, "@x")
         );
 
         assertSame(BukkitResponseKey.UNKNOWN_SELECTION_TYPE, exception.getResponseKey());
-    }
-
-    private Cursor<BukkitCommandSource> selectorCursor(String input) {
-        var argument = Argument.<BukkitCommandSource, TargetSelector>required("selector", new TargetSelectorArgument()).build();
-        return Cursor.ofSingleString(argument, input);
     }
 }

@@ -14,10 +14,7 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.ContextFactory;
-import studio.mevera.imperat.context.internal.Cursor;
-import studio.mevera.imperat.context.internal.OptionalArgumentHandler;
 import studio.mevera.imperat.events.EventBus;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.permissions.PermissionChecker;
@@ -155,8 +152,9 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      * the parameter 'b' to the value that suits its type.
      * with no respect for the order of optional arguments.
      * <p>
-     * Else if the option is disabled, then Imperat's {@link OptionalArgumentHandler}
-     * will respect the order of the optional arguments, and will resolve the arguments in order.
+     * Else if the option is disabled, the command tree will respect the declaration order
+     * of the optional arguments, leaving an unbindable token for downstream nodes/siblings
+     * (matching the legacy linear-bind behaviour).
      *
      *
      * @return Whether to handle the skipping of consecutive optional argument
@@ -205,7 +203,7 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      *
      * @param Argument the parameter of a command's usage
      * @param <T>              the valueType of value that will be resolved by
-     * {@link ArgumentType#parse(CommandContext, Argument, String)} OR {@link ArgumentType#parse(ExecutionContext, Cursor)} during execution
+     * {@link ArgumentType#parse(CommandContext, Argument, String)} during execution
      * @return the context resolver for this parameter's value valueType
      */
     default <T> ContextArgumentProvider<S, T> getContextArgumentProvider(Argument<S> Argument) {

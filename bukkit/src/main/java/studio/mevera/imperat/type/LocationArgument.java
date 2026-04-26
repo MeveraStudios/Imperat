@@ -10,13 +10,9 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
 import studio.mevera.imperat.context.CommandContext;
-import studio.mevera.imperat.context.ExecutionContext;
-import studio.mevera.imperat.context.internal.Cursor;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
-
-import java.util.Objects;
 
 public class LocationArgument extends ArgumentType<BukkitCommandSource, Location> {
 
@@ -106,13 +102,6 @@ public class LocationArgument extends ArgumentType<BukkitCommandSource, Location
         }
 
         return createLocation(world, x, y, z, yaw, pitch);
-    }
-
-    @Override
-    public Location parse(@NotNull ExecutionContext<BukkitCommandSource> context, @NotNull Cursor<BukkitCommandSource> cursor)
-            throws CommandException {
-        String currentRaw = cursor.currentRaw().orElse("");
-        return parse(context, Objects.requireNonNull(cursor.currentParameterIfPresent()), currentRaw);
     }
 
     private Location createLocation(World world, double x, double y, double z, float yaw, float pitch) {
