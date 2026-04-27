@@ -21,12 +21,21 @@ import studio.mevera.imperat.util.priority.Priority;
 import studio.mevera.imperat.util.priority.PriorityList;
 
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.URI;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 /**
  * Registry for {@link ArgumentType} instances, managing type resolution through a chain of handlers.
@@ -58,6 +67,27 @@ public final class ArgumentTypeRegistry<S extends CommandSource> {
         registerResolver(UUID.class, ArgumentTypes::uuid, Priority.HIGH);
         registerResolver(String.class, ArgumentTypes::string, Priority.LOW);
         registerResolver(char.class, ArgumentTypes::character, Priority.LOW.plus(1));
+
+        // Builtins for less-universal JDK types — registered at slightly-above-LOW
+        // so a user `.argType(Type.class, customResolver)` (defaults to HIGH)
+        // always overrides the framework default. Without this, PriorityList
+        // would tie-break by insertion order and the builtin (added first in
+        // the ctor) would shadow the user override.
+
+        // java.time
+        registerResolver(Duration.class, ArgumentTypes::duration, Priority.LOW.plus(1));
+        registerResolver(Instant.class, ArgumentTypes::instant, Priority.LOW.plus(1));
+        registerResolver(LocalDate.class, ArgumentTypes::localDate, Priority.LOW.plus(1));
+        registerResolver(LocalDateTime.class, ArgumentTypes::localDateTime, Priority.LOW.plus(1));
+
+        // arbitrary precision numerics
+        registerResolver(BigDecimal.class, ArgumentTypes::bigDecimal, Priority.LOW.plus(1));
+        registerResolver(BigInteger.class, ArgumentTypes::bigInteger, Priority.LOW.plus(1));
+
+        // misc JDK
+        registerResolver(Path.class, ArgumentTypes::path, Priority.LOW.plus(1));
+        registerResolver(Pattern.class, ArgumentTypes::regex, Priority.LOW.plus(1));
+        registerResolver(URI.class, ArgumentTypes::uri, Priority.LOW.plus(1));
 
         // Register built-in handlers for complex types
         registerHandler(arrayHandler);

@@ -48,6 +48,42 @@ public final class ArgumentTypes {
         return new UUIDArgument<>();
     }
 
+    public static <S extends CommandSource> DurationArgument<S> duration() {
+        return new DurationArgument<>();
+    }
+
+    public static <S extends CommandSource> InstantArgument<S> instant() {
+        return new InstantArgument<>();
+    }
+
+    public static <S extends CommandSource> LocalDateArgument<S> localDate() {
+        return new LocalDateArgument<>();
+    }
+
+    public static <S extends CommandSource> LocalDateTimeArgument<S> localDateTime() {
+        return new LocalDateTimeArgument<>();
+    }
+
+    public static <S extends CommandSource> BigDecimalArgument<S> bigDecimal() {
+        return new BigDecimalArgument<>();
+    }
+
+    public static <S extends CommandSource> BigIntegerArgument<S> bigInteger() {
+        return new BigIntegerArgument<>();
+    }
+
+    public static <S extends CommandSource> PathArgument<S> path() {
+        return new PathArgument<>();
+    }
+
+    public static <S extends CommandSource> PatternArgument<S> regex() {
+        return new PatternArgument<>();
+    }
+
+    public static <S extends CommandSource> URIArgument<S> uri() {
+        return new URIArgument<>();
+    }
+
     public static <S extends CommandSource, E> ArrayArgument<S, E> array(
             TypeWrap<E[]> type,
             Function<Integer, Object[]> initializer,

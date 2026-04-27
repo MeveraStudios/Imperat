@@ -9,43 +9,80 @@ import studio.mevera.imperat.exception.CommandException;
 import java.lang.reflect.Type;
 
 /**
- * Convenience base class for argument types that consume <b>exactly one</b>
- * raw input token. The framework reads the single token off the
- * {@link Cursor} and forwards it as a {@code String} to
- * {@link #parse(CommandContext, Argument, String)}, sparing the implementer
+ * Convenience base class for argument types that consume a <b>fixed number</b>
+ * of raw input tokens and parse them as a single joined {@link String}. The
+ * framework reads {@link #getNumberOfParametersToConsume} tokens off the
+ * {@link Cursor}, joins them with a single space, and forwards the result to
+ * {@link #parse(CommandContext, Argument, String)} — sparing the implementer
  * any cursor handling.
  *
- * <p>Use this for the overwhelming majority of argument types (numerics,
- * booleans, enums, names, IDs, single-word semantics). For types that
- * consume zero, several, or a variable number of tokens, extend
- * {@link ArgumentType} directly; for whitespace-joined "rest of the line"
- * inputs, extend {@link GreedyArgumentType}.</p>
+ * <p>The default arity is one token (the overwhelming majority of types:
+ * numerics, booleans, enums, names, IDs, single-word semantics). Pass a
+ * different value via {@link #SimpleArgumentType(int)} (or its overloads) to
+ * consume multiple tokens — useful for types whose textual form is
+ * whitespace-separated but whose token count is fixed (e.g. a 3-token
+ * coordinate triple, a 2-token ISO date+time pair).</p>
+ *
+ * <p>For variable-arity "rest of the line" inputs, extend
+ * {@link GreedyArgumentType} instead. For full cursor control (peek-driven
+ * parsing, optional consumption, etc.), extend {@link ArgumentType} directly.</p>
  *
  * <p>The {@link #getNumberOfParametersToConsume} and {@link #isGreedy}
- * properties are fixed: a {@code SimpleArgumentType} always consumes exactly
- * one token and is never greedy. Both methods are {@code final} to enforce
- * the contract.</p>
+ * properties are fixed at construction: a {@code SimpleArgumentType} consumes
+ * its configured number of tokens, never greedy. Both methods are {@code final}
+ * to enforce the contract.</p>
  *
  * @param <S> the command source type
  * @param <T> the parsed value type
  */
 public abstract class SimpleArgumentType<S extends CommandSource, T> extends ArgumentType<S, T> {
 
+    private static final int DEFAULT_NUMBER_OF_PARAMETERS = 1;
+
+    private final int numberOfParameters;
+
     public SimpleArgumentType() {
-        super();
+        this(DEFAULT_NUMBER_OF_PARAMETERS);
     }
 
     public SimpleArgumentType(Class<T> type) {
-        super(type);
+        this(type, DEFAULT_NUMBER_OF_PARAMETERS);
     }
 
     public SimpleArgumentType(Type type) {
+        this(type, DEFAULT_NUMBER_OF_PARAMETERS);
+    }
+
+    public SimpleArgumentType(int numberOfParameters) {
+        super();
+        this.numberOfParameters = validate(numberOfParameters);
+    }
+
+    public SimpleArgumentType(Class<T> type, int numberOfParameters) {
         super(type);
+        this.numberOfParameters = validate(numberOfParameters);
+    }
+
+    public SimpleArgumentType(Type type, int numberOfParameters) {
+        super(type);
+        this.numberOfParameters = validate(numberOfParameters);
+    }
+
+    private static int validate(int numberOfParameters) {
+        if (numberOfParameters < 1) {
+            throw new IllegalArgumentException(
+                    "SimpleArgumentType numberOfParameters must be >= 1 (got "
+                            + numberOfParameters
+                            + "); use GreedyArgumentType for variable-arity, or ArgumentType for zero/optional consumption."
+            );
+        }
+        return numberOfParameters;
     }
 
     /**
-     * Reads the single token allocated to this argument from {@code cursor}
-     * and forwards it as a String to {@link #parse(CommandContext, Argument, String)}.
+     * Reads the configured number of tokens allocated to this argument from
+     * {@code cursor}, joins them with a single space, and forwards the result
+     * to {@link #parse(CommandContext, Argument, String)}.
      */
     @Override
     public final T parse(
@@ -53,22 +90,26 @@ public abstract class SimpleArgumentType<S extends CommandSource, T> extends Arg
             @NotNull Argument<S> argument,
             @NotNull Cursor<S> cursor
     ) throws CommandException {
-        String token = cursor.nextOrNull();
-        if (token == null) {
+        if (cursor.remaining() < numberOfParameters) {
             throw new IllegalArgumentException(
                     "Argument type '" + getClass().getSimpleName()
-                            + "' expected one input token but the cursor is at end of input"
+                            + "' expected " + numberOfParameters
+                            + " input token(s) but the cursor has " + cursor.remaining()
+                            + " remaining"
             );
         }
-        return parse(context, argument, token);
+        String joined = cursor.collect(numberOfParameters);
+        return parse(context, argument, joined);
     }
 
     /**
-     * Parse a single already-extracted input token into the typed value.
+     * Parse the joined input tokens (one for default arity, multiple
+     * space-joined when the argument type is configured for higher arity)
+     * into the typed value.
      *
      * @param context  the execution / command context
      * @param argument the argument descriptor
-     * @param input    the raw token (never null, never blank under normal use)
+     * @param input    the joined raw token(s) (never null, never blank under normal use)
      * @return the resolved value of type T
      * @throws CommandException if parsing fails
      */
@@ -80,7 +121,7 @@ public abstract class SimpleArgumentType<S extends CommandSource, T> extends Arg
 
     @Override
     public final int getNumberOfParametersToConsume(Argument<S> argument) {
-        return 1;
+        return numberOfParameters;
     }
 
     @Override

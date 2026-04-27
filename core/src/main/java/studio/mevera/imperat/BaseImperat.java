@@ -6,6 +6,7 @@ import studio.mevera.imperat.annotations.base.AnnotationParser;
 import studio.mevera.imperat.annotations.base.AnnotationReader;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.command.CommandRegistry;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
@@ -32,23 +33,62 @@ import java.util.concurrent.CompletableFuture;
 public abstract class BaseImperat<S extends CommandSource> implements Imperat<S> {
 
     protected final ImperatConfig<S> config;
-    private final CommandRegistry<S> commandRegistry = new CommandRegistry<>();
+    private final CommandRegistry<S> commandRegistry;
     private final ImperatExecutor<S> executor;
     private final ImperatAutoCompleter<S> autoCompleter;
-    private @NotNull AnnotationParser<S> annotationParser;
+
+    /**
+     * Lazily initialized — built on first call that needs annotation parsing.
+     * Programmatic-only embedders (no annotated command classes, no
+     * {@code @ExceptionHandler}-annotated objects, no replacers) never
+     * trigger construction. {@code volatile} for safe double-checked init.
+     */
+    private volatile @Nullable AnnotationParser<S> annotationParser;
 
     protected BaseImperat(@NotNull ImperatConfig<S> config) {
+        this(config, new MapCommandRegistry<>());
+    }
+
+    /**
+     * Constructor accepting a custom {@link CommandRegistry} — useful for
+     * embedders needing persistence, distributed lookups, or audit logging on
+     * the storage path. The default constructor wires {@link MapCommandRegistry}.
+     */
+    protected BaseImperat(@NotNull ImperatConfig<S> config, @NotNull CommandRegistry<S> commandRegistry) {
         this.config = config;
+        this.commandRegistry = commandRegistry;
         this.executor = new ImperatExecutor<>(this, config);
         this.autoCompleter = new ImperatAutoCompleter<>(this, config);
-        this.annotationParser = AnnotationParser.defaultParser(this);
 
-        // ImperatConfig is sealed permits ImperatConfigImpl, so the cast is safe by design.
-        ((ImperatConfigImpl<S>) config).installAnnotationReplacersInto(this);
         if (config.getEventBus().isDummyBus()) {
             config.setEventBus(DefaultEventBusFactory.create(this, config));
         }
         new ImperatEventBootstrap<>(this, config).registerDefaultListeners();
+    }
+
+    /**
+     * Returns the (possibly-just-built) annotation parser. The first caller
+     * triggers construction and replays any annotation replacers staged on the
+     * config; subsequent calls return the cached instance.
+     *
+     * <p>Holding off until first use means a fully programmatic embedder —
+     * one that registers via {@link #registerSimpleCommand} only — never pays
+     * the parser-construction cost.</p>
+     */
+    private @NotNull AnnotationParser<S> getOrInitParser() {
+        AnnotationParser<S> existing = annotationParser;
+        if (existing != null) {
+            return existing;
+        }
+        synchronized (this) {
+            if (annotationParser == null) {
+                annotationParser = AnnotationParser.defaultParser(this);
+                // Replay replacers staged on the config now that the parser exists.
+                // ImperatConfig is sealed permits ImperatConfigImpl; cast is safe.
+                ((ImperatConfigImpl<S>) config).installAnnotationReplacersInto(this);
+            }
+            return annotationParser;
+        }
     }
 
     @Override
@@ -119,7 +159,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
     public void registerCommand(Class<?> commandClass) {
         Preconditions.notNull(commandClass, "commandClass");
         Object classInstance = config.getInstanceFactory().createInstance(config, commandClass);
-        annotationParser.parseCommandClass(Objects.requireNonNull(classInstance));
+        getOrInitParser().parseCommandClass(Objects.requireNonNull(classInstance));
     }
 
     @Override
@@ -128,7 +168,7 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         if (commandInstance instanceof Command<?> command) {
             registerSimpleCommand((Command<S>) command);
         } else {
-            annotationParser.parseCommandClass(Objects.requireNonNull(commandInstance));
+            getOrInitParser().parseCommandClass(Objects.requireNonNull(commandInstance));
         }
     }
 
@@ -158,12 +198,12 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
     @SafeVarargs
     @Override
     public final void registerAnnotations(Class<? extends Annotation>... type) {
-        annotationParser.registerAnnotations(type);
+        getOrInitParser().registerAnnotations(type);
     }
 
     @Override
     public <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer) {
-        annotationParser.registerAnnotationReplacer(type, replacer);
+        getOrInitParser().registerAnnotationReplacer(type, replacer);
     }
 
     @Override
@@ -233,13 +273,15 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
 
     @Override
     public @NotNull AnnotationParser<S> getAnnotationParser() {
-        return annotationParser;
+        return getOrInitParser();
     }
 
     @Override
     public void setAnnotationParser(AnnotationParser<S> parser) {
         Preconditions.notNull(parser, "Parser");
-        this.annotationParser = parser;
+        synchronized (this) {
+            this.annotationParser = parser;
+        }
     }
 
     @Override
