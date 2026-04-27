@@ -20,7 +20,7 @@ jobs:
       - name: 📐 Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: azul
+          distribution: temurin
           java-version: 21
 
       - name: 📐 Setup Gradle
