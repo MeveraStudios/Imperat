@@ -6,7 +6,6 @@ import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.annotations.base.element.MethodElement;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
-import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextArgumentProviderFactory;
@@ -16,60 +15,69 @@ import studio.mevera.imperat.command.SourceProviderRegistry;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
+import studio.mevera.imperat.config.BehaviorSettings;
+import studio.mevera.imperat.config.CommandErrorDispatcher;
+import studio.mevera.imperat.config.CoroutineSupport;
+import studio.mevera.imperat.config.registries.AnnotationReplacerRegistry;
+import studio.mevera.imperat.config.registries.DependencyRegistry;
+import studio.mevera.imperat.config.registries.ErrorHandlerRegistry;
 import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
-import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.internal.ContextFactory;
 import studio.mevera.imperat.events.EventBus;
-import studio.mevera.imperat.events.exception.EventException;
-import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.exception.InvalidSyntaxException;
-import studio.mevera.imperat.exception.PermissionDeniedException;
-import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.permissions.PermissionChecker;
-import studio.mevera.imperat.permissions.PermissionHolder;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
-import studio.mevera.imperat.placeholders.PlaceholderResolver;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.DependencySupplier;
 import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseRegistry;
-import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
-import studio.mevera.imperat.util.Registry;
-import studio.mevera.imperat.util.UsageFormatting;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Concrete {@link ImperatConfig} backed by per-concern registries plus a
+ * {@link BehaviorSettings} bag for scalar flags. The class is intentionally
+ * thin: each interface method delegates to either a registry or a strategy
+ * field, so there is exactly one place to look when modifying behaviour for
+ * a given concern.
+ *
+ * @param <S> the command-source type
+ */
 final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<S> {
 
-    private EventBus eventBus;
-    private CommandParsingMode parsingMode = CommandParsingMode.JAVA;
-    private final Registry<Type, DependencySupplier> dependencyResolverRegistry = new Registry<>();
-    private final ContextArgumentProviderRegistry<S> contextArgumentProviderRegistry;
+    // --- Registries (one per concern) ---------------------------------
     private final ArgumentTypeRegistry<S> argumentTypeRegistry;
+    private final ContextArgumentProviderRegistry<S> contextArgumentProviderRegistry;
     private final SourceProviderRegistry<S> sourceProviderRegistry;
     private final ReturnResolverRegistry<S> returnResolverRegistry;
-    private final Map<Class<? extends Throwable>, CommandExceptionHandler<?, S>> errorHandlers = new HashMap<>();
-    private final Map<Class<?>, AnnotationReplacer<?>> annotationReplacerMap = new HashMap<>();
-    private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
-    private @NotNull SuggestionProvider<S> defaultSuggestionProvider =
-            (context, input) ->
-                    Collections.emptyList();
+    private final ResponseRegistry responseRegistry;
+    private final PlaceholderRegistry placeholderRegistry;
+    private final ErrorHandlerRegistry<S> errorHandlerRegistry;
+    private final AnnotationReplacerRegistry annotationReplacerRegistry;
+    private final DependencyRegistry dependencyRegistry;
+
+    // --- Settings + dispatcher ----------------------------------------
+    private final BehaviorSettings<S> behaviorSettings = new BehaviorSettings<>();
+    private final CommandErrorDispatcher<S> errorDispatcher;
+
+    // --- Pluggable strategies (1:1 user-overridable singletons) -------
     private @NotNull PermissionChecker<S> permissionChecker = (source, permission) -> true;
     private @NotNull ContextFactory<S> contextFactory;
-    private boolean overlapOptionalParameterSuggestions = false;
-    private boolean handleExecutionConsecutiveOptionalArgumentsSkip = false;
-    private String commandPrefix = "/";
+    private @NotNull SuggestionProvider<S> defaultSuggestionProvider =
+            (context, input) -> Collections.emptyList();
+    private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
+    private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
+    private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
+    private EventBus eventBus = EventBus.createDummy();
     private CommandPathway.Builder<S> globalDefaultUsage = CommandPathway.<S>builder()
                                                                  .execute((src, ctx) -> {
                                                                      StringBuilder invalidUsage =
@@ -88,465 +96,104 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
                                                                      );
                                                                  });
 
-    private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
-
-    private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
-
-    private final ResponseRegistry responseRegistry = ResponseRegistry.createDefault();
-    private final PlaceholderRegistry placeholderRegistry = PlaceholderRegistry.createDefault();
-
-    private Object coroutineScope = null; // Will be CoroutineScope if set
-    private static final boolean COROUTINES_AVAILABLE;
-
-    static {
-        boolean available = false;
-        try {
-            Class.forName("kotlinx.coroutines.CoroutineScope");
-            available = true;
-        } catch (ClassNotFoundException e) {
-            // Coroutines not available
-        }
-        COROUTINES_AVAILABLE = available;
-    }
+    // --- Optional ------------------------------------------------------
+    private @Nullable Object coroutineScope;
 
     ImperatConfigImpl() {
-        contextArgumentProviderRegistry = ContextArgumentProviderRegistry.createDefault();
-        argumentTypeRegistry = ArgumentTypeRegistry.createDefault();
-        sourceProviderRegistry = SourceProviderRegistry.createDefault();
-        returnResolverRegistry = ReturnResolverRegistry.createDefault();
-        contextFactory = ContextFactory.defaultFactory();
+        this.contextArgumentProviderRegistry = ContextArgumentProviderRegistry.createDefault();
+        this.argumentTypeRegistry = ArgumentTypeRegistry.createDefault();
+        this.sourceProviderRegistry = SourceProviderRegistry.createDefault();
+        this.returnResolverRegistry = ReturnResolverRegistry.createDefault();
+        this.responseRegistry = ResponseRegistry.createDefault();
+        this.placeholderRegistry = PlaceholderRegistry.createDefault();
+        // ErrorHandlerRegistry needs ResponseRegistry to be constructed first
+        // because the default ResponseException handler reads from it.
+        this.errorHandlerRegistry = ErrorHandlerRegistry.createDefault(responseRegistry);
+        this.annotationReplacerRegistry = new AnnotationReplacerRegistry();
+        this.dependencyRegistry = new DependencyRegistry();
+        this.contextFactory = ContextFactory.defaultFactory();
+        this.errorDispatcher = new CommandErrorDispatcher<>(errorHandlerRegistry);
 
-        // register some defaults:
-        this.regDefThrowableResolvers();
         this.registerSourceProvider(CommandSource.class, (source, ctx) -> source);
-
-        this.eventBus = EventBus.createDummy();
     }
 
-    private static @Nullable String formatPermissionHolder(@Nullable PermissionHolder holder) {
-        if (holder == null) {
-            return null;
-        }
-        if (holder instanceof CommandPathway<?> pathway) {
-            return pathway.formatted();
-        }
-        if (holder instanceof Command<?> command) {
-            return command.getName();
-        }
-        if (holder instanceof studio.mevera.imperat.command.arguments.Argument<?> argument) {
-            return argument.format();
-        }
-        return holder.toString();
-    }
-
+    // ------------------------------------------------------------------
+    // Behaviour scalars (delegated to BehaviorSettings)
+    // ------------------------------------------------------------------
 
     @Override
     public String commandPrefix() {
-        return commandPrefix;
+        return behaviorSettings.commandPrefix();
     }
 
     @Override
     public void setCommandPrefix(String cmdPrefix) {
-        this.commandPrefix = cmdPrefix;
+        behaviorSettings.setCommandPrefix(cmdPrefix);
     }
 
+    @Override
+    public boolean isOptionalParameterSuggestionOverlappingEnabled() {
+        return behaviorSettings.isOverlapOptionalParameterSuggestions();
+    }
 
-    /**
-     * @return {@link PermissionChecker} for the dispatcher
-     */
+    @Override
+    public void setOptionalParameterSuggestionOverlap(boolean enabled) {
+        behaviorSettings.setOverlapOptionalParameterSuggestions(enabled);
+    }
+
+    @Override
+    public boolean handleExecutionMiddleOptionalSkipping() {
+        return behaviorSettings.handleExecutionMiddleOptionalSkipping();
+    }
+
+    @Override
+    public void setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean toggle) {
+        behaviorSettings.setHandleExecutionMiddleOptionalSkipping(toggle);
+    }
+
+    @Override
+    public ImperatConfig<S> setCommandParsingMode(CommandParsingMode mode) {
+        behaviorSettings.setParsingMode(mode);
+        return this;
+    }
+
+    @Override
+    public CommandParsingMode getCommandParsingMode() {
+        return behaviorSettings.parsingMode();
+    }
+
+    // ------------------------------------------------------------------
+    // Strategy slots
+    // ------------------------------------------------------------------
+
     @Override
     public @NotNull PermissionChecker<S> getPermissionChecker() {
         return permissionChecker;
     }
 
-    /**
-     * Sets the permission resolver for the platform
-     *
-     * @param permissionChecker the permission resolver to set
-     */
     @Override
     public void setPermissionResolver(@NotNull PermissionChecker<S> permissionChecker) {
         this.permissionChecker = permissionChecker;
     }
 
-    /**
-     * @return the factory for creation of
-     * command related contexts {@link CommandContext}
-     */
     @Override
     public @NotNull ContextFactory<S> getContextFactory() {
         return contextFactory;
     }
 
-
-    /**
-     * sets the context factory {@link ContextFactory} for the contexts
-     *
-     * @param contextFactory the context factory to set
-     */
     @Override
     public void setContextFactory(@NotNull ContextFactory<S> contextFactory) {
         this.contextFactory = contextFactory;
     }
 
-    /**
-     * Checks whether the valueType has
-     * a registered context-resolver
-     *
-     * @param type the valueType
-     * @return whether the valueType has
-     * a context-resolver
-     */
-    @Override
-    public boolean hasContextResolver(Type type) {
-        return getContextArgumentProvider(type) != null;
-    }
-
-    /**
-     * @return the registry for responses/messages.
-     */
-    @Override
-    public @NotNull ResponseRegistry getResponseRegistry() {
-        return responseRegistry;
-    }
-
-    /**
-     * Registers a context resolver factory
-     *
-     * @param factory the factory to register
-     */
-    @Override
-    public <T> void registerContextArgumentProviderFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
-        contextArgumentProviderRegistry.registerFactory(type, factory);
-    }
-
-    /**
-     * @return returns the factory for creation of
-     * {@link ContextArgumentProvider}
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> @Nullable ContextArgumentProviderFactory<S, T> getContextArgumentProviderFactory(Type type) {
-        return (ContextArgumentProviderFactory<S, T>) contextArgumentProviderRegistry.getFactoryFor(type).orElse(null);
-    }
-
-    /**
-     * Fetches {@link ContextArgumentProvider} for a certain valueType
-     *
-     * @param resolvingContextType the valueType for this resolver
-     * @return the context resolver
-     */
-    @Override
-    public <T> @Nullable ContextArgumentProvider<S, T> getContextArgumentProvider(Type resolvingContextType) {
-        return contextArgumentProviderRegistry.getContextArgumentWithoutParameterElement(resolvingContextType);
-    }
-
-    /**
-     * Fetches the context resolver for {@link ParameterElement} of a method
-     *
-     * @param element the element
-     * @return the {@link ContextArgumentProvider} for this element
-     */
-    @Override
-    public <T> @Nullable ContextArgumentProvider<S, T> getContextArgumentProviderFor(@NotNull ParameterElement element) {
-        Preconditions.notNull(element, "element");
-        return contextArgumentProviderRegistry.getContextArgumentProvider(element.getType(), element);
-    }
-
-    /**
-     * Registers {@link ContextArgumentProvider}
-     *
-     * @param type     the class-valueType of value being resolved from context
-     * @param resolver the resolver for this value
-     */
-    @Override
-    public <T> void registerContextArgumentProvider(Type type, @NotNull ContextArgumentProvider<S, T> resolver) {
-        contextArgumentProviderRegistry.registerProvider(type, resolver);
-    }
-
-    @Override
-    public <T> void registerArgType(Type type, @NotNull ArgumentType<S, T> resolver) {
-        Preconditions.notNull(type, "type");
-        Preconditions.notNull(resolver, "resolver");
-        argumentTypeRegistry.registerResolver(type, () -> resolver);
-    }
-
-
-    /**
-     * Registers a custom {@link ArgumentTypeHandler}.
-     * <p>
-     * The handler will be added to the priority list and checked during type resolution
-     * based on its priority.
-     * </p>
-     *
-     * @param handler the handler to register
-     */
-    @Override
-    public void registerArgTypeHandler(@NotNull ArgumentTypeHandler<S> handler) {
-        argumentTypeRegistry.registerHandler(handler);
-    }
-
-    /**
-     * Retrieves the {@link ArgumentTypeRegistry} associated with this registrar.
-     *
-     * @return the {@link ArgumentTypeRegistry} instance
-     */
-    @Override
-    public ArgumentTypeRegistry<S> getArgumentTypeRegistry() {
-        return argumentTypeRegistry;
-    }
-
-    /**
-     * Retrieves the default suggestion resolver associated with this registrar.
-     *
-     * @return the {@link SuggestionProvider} instance used as the default resolver
-     */
     @Override
     public @NotNull SuggestionProvider<S> getDefaultSuggestionResolver() {
         return defaultSuggestionProvider;
     }
 
-    /**
-     * Sets the default suggestion resolver to be used when no specific
-     * suggestion resolver is provided. The default suggestion resolver
-     * handles the auto-completion of arguments/parameters for commands.
-     *
-     * @param defaultSuggestionProvider the {@link SuggestionProvider} to be set as default
-     */
     @Override
     public void setDefaultSuggestionProvider(@NotNull SuggestionProvider<S> defaultSuggestionProvider) {
         this.defaultSuggestionProvider = defaultSuggestionProvider;
-    }
-
-
-    /**
-     * Fetches {@link ArgumentType} for a certain value
-     *
-     * @param resolvingValueType the value that the resolver ends providing it from the context
-     * @return the context resolver of a certain valueType
-     */
-    @Override
-    public @Nullable ArgumentType<S, ?> getArgumentType(Type resolvingValueType) {
-        return argumentTypeRegistry.getResolver(resolvingValueType).orElse(null);
-    }
-
-    @Override
-    public <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer) {
-        annotationReplacerMap.put(type, replacer);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <A extends Annotation> void applyAnnotationReplacers(Imperat<S> imperat) {
-        this.annotationReplacerMap.forEach((type, replacer) -> {
-            Class<A> annType = (Class<A>) type;
-            AnnotationReplacer<A> annReplacer = (AnnotationReplacer<A>) replacer;
-            imperat.registerAnnotationReplacer(annType, annReplacer);
-        });
-    }
-
-    /**
-     * Determines whether multiple optional parameters can be suggested simultaneously
-     * during tab completion at the same command depth level.
-     *
-     * <p>When enabled ({@code true}), all available optional parameters will be included
-     * in tab completion suggestions, allowing users to see all possible optional arguments
-     * they can provide at the current position.
-     *
-     * <p>When disabled ({@code false}), only the first optional parameter (typically based
-     * on priority or registration order) will be suggested, preventing overwhelming users
-     * with too many optional choices and reducing ambiguity in command completion.
-     *
-     * <p>This setting does not affect:
-     * <ul>
-     *   <li>Required parameters - they are always suggested</li>
-     *   <li>RootCommand structure - the actual command tree remains unchanged</li>
-     *   <li>Parameter validation - all parameters remain functionally available</li>
-     * </ul>
-     *
-     * @return {@code true} if multiple optional parameters can overlap in suggestions,
-     * {@code false} if only one optional parameter should be suggested at a time
-     * @see #setOptionalParameterSuggestionOverlap(boolean)
-     */
-    @Override
-    public boolean isOptionalParameterSuggestionOverlappingEnabled() {
-        return overlapOptionalParameterSuggestions;
-    }
-
-    /**
-     * Sets whether multiple optional parameters can be suggested simultaneously
-     * during tab completion at the same command depth level.
-     *
-     * <p>This is a configuration setting that affects the behavior of tab completion
-     * suggestions without modifying the underlying command structure. The command
-     * tree and parameter validation remain unchanged regardless of this setting.
-     *
-     * <p><strong>Examples:</strong>
-     * <pre>{@code
-     * // RootCommand structure: /command [count] [extra]
-     * //                              \[extra]
-     *
-     * // When enabled (true):
-     * /command <TAB> → shows: [count], [extra]
-     *
-     * // When disabled (false):
-     * /command <TAB> → shows: [count] (first optional only)
-     * }</pre>
-     *
-     * @param enabled {@code true} to allow multiple optional parameter suggestions,
-     *                {@code false} to limit to one optional parameter suggestion
-     * @see #isOptionalParameterSuggestionOverlappingEnabled()
-     */
-    @Override
-    public void setOptionalParameterSuggestionOverlap(boolean enabled) {
-        this.overlapOptionalParameterSuggestions = enabled;
-    }
-
-    @Override
-    public boolean handleExecutionMiddleOptionalSkipping() {
-        return handleExecutionConsecutiveOptionalArgumentsSkip;
-    }
-
-    @Override
-    public void setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean toggle) {
-        this.handleExecutionConsecutiveOptionalArgumentsSkip = toggle;
-    }
-
-
-    /**
-     * Fetches the suggestion provider/resolver for a specific valueType of
-     * argument or parameter.
-     *
-     * @param type the valueType
-     * @return the {@link SuggestionProvider} instance for that valueType
-     */
-    @Override
-    public @Nullable SuggestionProvider<S> getSuggestionProviderForType(Type type) {
-        return argumentTypeRegistry.getResolver(type)
-                       .map(ArgumentType::getSuggestionProvider)
-                       .orElse(null);
-    }
-
-    /**
-     * Registers a placeholder
-     *
-     * @param placeholder to register
-     */
-    @Override
-    public void registerPlaceholder(Placeholder placeholder) {
-        placeholderRegistry.setData(placeholder.id(), placeholder);
-    }
-
-    /**
-     * The id/format of this placeholder, must be unique and lowercase
-     *
-     * @param id the id for the placeholder
-     * @return the placeholder
-     */
-    @Override
-    public Optional<Placeholder> getPlaceHolder(String id) {
-        return placeholderRegistry.getData(id);
-    }
-
-    /**
-     * Replaces the placeholders of input by their {@link PlaceholderResolver}
-     *
-     * @param input the input
-     * @return the processed/replaced text input.
-     */
-    @Override
-    public @NotNull String replacePlaceholders(String input) {
-        return placeholderRegistry.applyPlaceholders(input);
-    }
-
-    /**
-     * Replaces the placeholders on each string of the array,
-     * modifying the input array content.
-     *
-     * @param array the array to replace its string contents
-     * @return The placeholder replaced String array
-     */
-    @Override
-    public @NotNull String[] replacePlaceholders(String[] array) {
-        return placeholderRegistry.resolvedArray(array);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public @Nullable <R> SourceProvider<S, R> getSourceProviderFor(Type type) {
-        return (SourceProvider<S, R>) sourceProviderRegistry.getData(type).orElse(null);
-    }
-
-    @Override
-    public <R> void registerSourceProvider(Type type, SourceProvider<S, R> sourceProvider) {
-        sourceProviderRegistry.setData(type, sourceProvider);
-    }
-
-    @Override @SuppressWarnings("unchecked")
-    public @Nullable <T> ReturnResolver<S, T> getReturnResolver(MethodElement method) {
-        if (method.getSpecificReturnResolver() != null) {
-            // If the method has a specific return resolver (via annotation), use it directly
-            return (ReturnResolver<S, T>) method.getSpecificReturnResolver();
-        }
-        return returnResolverRegistry.getReturnResolver(method.getReturnType());
-    }
-
-    @Override
-    public <T> void registerReturnResolver(Type type, ReturnResolver<S, T> returnResolver) {
-        returnResolverRegistry.setData(type, returnResolver);
-    }
-
-    /**
-     * Registers the dependency to the type
-     *
-     * @param type     the type for the dependency
-     * @param resolver the resolver
-     */
-    @Override
-    public void registerDependencyResolver(Type type, DependencySupplier resolver) {
-        this.dependencyResolverRegistry.setData(type, resolver);
-    }
-
-    /**
-     * Resolves dependency of certain type
-     *
-     * @param type the type
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> @Nullable T resolveDependency(Type type) {
-        return (T) dependencyResolverRegistry.getData(type)
-                           .map(DependencySupplier::get).orElse(null);
-    }
-
-    @Override
-    @Nullable
-    @SuppressWarnings("unchecked")
-    public <T extends Throwable> CommandExceptionHandler<T, S> getErrorHandlerFor(Class<T> type) {
-        Class<?> current = type;
-        while (current != null && Throwable.class.isAssignableFrom(current)) {
-            var resolver = errorHandlers.get(current);
-            if (resolver != null) {
-                return (CommandExceptionHandler<T, S>) resolver;
-            }
-            current = current.getSuperclass();
-        }
-        return null;
-    }
-
-    @Override
-    public <T extends Throwable> void setErrorHandler(Class<T> exception, CommandExceptionHandler<T, S> handler) {
-        this.errorHandlers.put(exception, handler);
-    }
-
-    @Override
-    public CommandPathway.@NotNull Builder<S> getGlobalDefaultPathway() {
-        return globalDefaultUsage;
-    }
-
-    @Override
-    public void setGlobalDefaultPathway(CommandPathway.@NotNull Builder<S> globalDefaultUsage) {
-        this.globalDefaultUsage = globalDefaultUsage;
     }
 
     @Override
@@ -569,7 +216,6 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
         this.commandCoordinator = commandCoordinator;
     }
 
-
     @Override
     public @NotNull ThrowablePrinter getThrowablePrinter() {
         return throwablePrinter;
@@ -581,36 +227,13 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     }
 
     @Override
-    public <E extends Throwable> boolean handleExecutionError(@NotNull E throwable, CommandContext<S> context, Class<?> owning,
-            String methodName) {
-
-        //First handling the error using the Local(RootCommand's) Error Handler.
-        //if its during execution, then let's use the LAST entered RootCommand (root or sub)
-        //Since subcommands also can have their own error handlers (aka CommandExceptionHandler)
-        Command<S> cmd = context instanceof ExecutionContext<S> executionContext ? executionContext.getLastUsedCommand() : context.command();
-        while (cmd != null) {
-            var res = cmd.handleExecutionError(throwable, context, owning, methodName);
-            if (res) {
-                return true;
-            }
-            cmd = cmd.getParent();
-        }
-
-        //Trying to handle the error from the Central Throwable Handler.
-        var res = ImperatConfig.super.handleExecutionError(throwable, context, owning, methodName);
-        if (!res) {
-            throwablePrinter.print(throwable);
-        }
-        return true;
+    public CommandPathway.@NotNull Builder<S> getGlobalDefaultPathway() {
+        return globalDefaultUsage;
     }
 
-    public ImperatConfig<S> setCommandParsingMode(CommandParsingMode mode) {
-        this.parsingMode = mode;
-        return this;
-    }
-
-    public CommandParsingMode getCommandParsingMode() {
-        return parsingMode;
+    @Override
+    public void setGlobalDefaultPathway(CommandPathway.@NotNull Builder<S> globalDefaultUsage) {
+        this.globalDefaultUsage = globalDefaultUsage;
     }
 
     @Override
@@ -623,30 +246,193 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
         this.eventBus = eventBus;
     }
 
+    // ------------------------------------------------------------------
+    // ArgumentType registry
+    // ------------------------------------------------------------------
+
+    @Override
+    public <T> void registerArgType(Type type, @NotNull ArgumentType<S, T> resolver) {
+        Preconditions.notNull(type, "type");
+        Preconditions.notNull(resolver, "resolver");
+        argumentTypeRegistry.registerResolver(type, () -> resolver);
+    }
+
+    @Override
+    public void registerArgTypeHandler(@NotNull ArgumentTypeHandler<S> handler) {
+        argumentTypeRegistry.registerHandler(handler);
+    }
+
+    @Override
+    public ArgumentTypeRegistry<S> getArgumentTypeRegistry() {
+        return argumentTypeRegistry;
+    }
+
+    @Override
+    public @Nullable ArgumentType<S, ?> getArgumentType(Type resolvingValueType) {
+        return argumentTypeRegistry.getResolver(resolvingValueType).orElse(null);
+    }
+
+    @Override
+    public @Nullable SuggestionProvider<S> getSuggestionProviderForType(Type type) {
+        return argumentTypeRegistry.getResolver(type)
+                       .map(ArgumentType::getSuggestionProvider)
+                       .orElse(null);
+    }
+
+    // ------------------------------------------------------------------
+    // ContextArgumentProvider registry
+    // ------------------------------------------------------------------
+
+    @Override
+    public boolean hasContextResolver(Type type) {
+        return getContextArgumentProvider(type) != null;
+    }
+
+    @Override
+    public <T> void registerContextArgumentProviderFactory(Type type, ContextArgumentProviderFactory<S, T> factory) {
+        contextArgumentProviderRegistry.registerFactory(type, factory);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> @Nullable ContextArgumentProviderFactory<S, T> getContextArgumentProviderFactory(Type type) {
+        return (ContextArgumentProviderFactory<S, T>) contextArgumentProviderRegistry.getFactoryFor(type).orElse(null);
+    }
+
+    @Override
+    public <T> @Nullable ContextArgumentProvider<S, T> getContextArgumentProvider(Type resolvingContextType) {
+        return contextArgumentProviderRegistry.getContextArgumentWithoutParameterElement(resolvingContextType);
+    }
+
+    @Override
+    public <T> @Nullable ContextArgumentProvider<S, T> getContextArgumentProviderFor(@NotNull ParameterElement element) {
+        Preconditions.notNull(element, "element");
+        return contextArgumentProviderRegistry.getContextArgumentProvider(element.getType(), element);
+    }
+
+    @Override
+    public <T> void registerContextArgumentProvider(Type type, @NotNull ContextArgumentProvider<S, T> resolver) {
+        contextArgumentProviderRegistry.registerProvider(type, resolver);
+    }
+
+    // ------------------------------------------------------------------
+    // SourceProvider / ReturnResolver registries
+    // ------------------------------------------------------------------
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public @Nullable <R> SourceProvider<S, R> getSourceProviderFor(Type type) {
+        return (SourceProvider<S, R>) sourceProviderRegistry.getData(type).orElse(null);
+    }
+
+    @Override
+    public <R> void registerSourceProvider(Type type, SourceProvider<S, R> sourceProvider) {
+        sourceProviderRegistry.setData(type, sourceProvider);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public @Nullable <T> ReturnResolver<S, T> getReturnResolver(MethodElement method) {
+        if (method.getSpecificReturnResolver() != null) {
+            return (ReturnResolver<S, T>) method.getSpecificReturnResolver();
+        }
+        return returnResolverRegistry.getReturnResolver(method.getReturnType());
+    }
+
+    @Override
+    public <T> void registerReturnResolver(Type type, ReturnResolver<S, T> returnResolver) {
+        returnResolverRegistry.setData(type, returnResolver);
+    }
+
+    // ------------------------------------------------------------------
+    // Response + placeholder registries
+    // ------------------------------------------------------------------
+
+    @Override
+    public @NotNull ResponseRegistry getResponseRegistry() {
+        return responseRegistry;
+    }
+
+    @Override
+    public void registerPlaceholder(Placeholder placeholder) {
+        placeholderRegistry.setData(placeholder.id(), placeholder);
+    }
+
+    @Override
+    public Optional<Placeholder> getPlaceHolder(String id) {
+        return placeholderRegistry.getData(id);
+    }
+
+    @Override
+    public @NotNull String replacePlaceholders(String input) {
+        return placeholderRegistry.applyPlaceholders(input);
+    }
+
+    @Override
+    public @NotNull String[] replacePlaceholders(String[] array) {
+        return placeholderRegistry.resolvedArray(array);
+    }
+
+    // ------------------------------------------------------------------
+    // Dependency registry
+    // ------------------------------------------------------------------
+
+    @Override
+    public void registerDependencyResolver(Type type, DependencySupplier resolver) {
+        dependencyRegistry.register(type, resolver);
+    }
+
+    @Override
+    public <T> @Nullable T resolveDependency(Type type) {
+        return dependencyRegistry.resolve(type);
+    }
+
+    // ------------------------------------------------------------------
+    // Error-handler registry + dispatcher
+    // ------------------------------------------------------------------
+
+    @Override
+    public @Nullable <T extends Throwable> CommandExceptionHandler<T, S> getErrorHandlerFor(Class<T> type) {
+        return errorHandlerRegistry.getFor(type);
+    }
+
+    @Override
+    public <T extends Throwable> void setErrorHandler(Class<T> exception, CommandExceptionHandler<T, S> handler) {
+        errorHandlerRegistry.register(exception, handler);
+    }
+
+    @Override
+    public <E extends Throwable> boolean handleExecutionError(@NotNull E throwable, CommandContext<S> context, Class<?> owning,
+            String methodName) {
+        return errorDispatcher.dispatch(throwable, context, owning, methodName, throwablePrinter);
+    }
+
+    // ------------------------------------------------------------------
+    // Annotation replacers (staged before the parser exists)
+    // ------------------------------------------------------------------
+
+    @Override
+    public <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer) {
+        annotationReplacerRegistry.register(type, replacer);
+    }
+
+    /**
+     * Package-private bridge: invoked once by {@code BaseImperat}'s constructor
+     * to replay every staged {@link AnnotationReplacer} onto the freshly-built
+     * annotation parser. Hidden from the public {@link ImperatConfig} surface
+     * because users have no reason to call it.
+     */
+    void installAnnotationReplacersInto(@NotNull AnnotationInjector<S> injector) {
+        annotationReplacerRegistry.installInto(injector);
+    }
+
+    // ------------------------------------------------------------------
+    // Coroutines
+    // ------------------------------------------------------------------
+
     @Override
     public void setCoroutineScope(@NotNull Object scope) {
-        if (!COROUTINES_AVAILABLE) {
-            throw new IllegalStateException(
-                "Cannot set coroutine scope - kotlinx.coroutines is not available on the classpath. " +
-                    "Add 'org.jetbrains.kotlinx:kotlinx-coroutines-core' dependency to enable coroutine support."
-            );
-        }
-
-        // Verify it's actually a CoroutineScope using reflection
-        try {
-            Class<?> scopeClass = Class.forName("kotlinx.coroutines.CoroutineScope");
-            if (!scopeClass.isInstance(scope)) {
-                throw new IllegalArgumentException(
-                    "Provided scope must be an instance of kotlinx.coroutines.CoroutineScope, got: "
-                        + scope.getClass().getName()
-                );
-            }
-        } catch (ClassNotFoundException e) {
-            // Should never happen since we checked COROUTINES_AVAILABLE
-            throw new IllegalStateException("Coroutines check failed", e);
-        }
-
-        this.coroutineScope = scope;
+        this.coroutineScope = CoroutineSupport.requireScope(scope);
     }
 
     @Override
@@ -657,52 +443,5 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     @Override
     public boolean hasCoroutineScope() {
         return coroutineScope != null;
-    }
-
-    private void regDefThrowableResolvers() {
-        // Structural/flow exceptions — reply with their own plain message directly
-        this.setErrorHandler(InvalidSyntaxException.class, (exception, ctx) -> {
-            String invalidUsageFormat = exception.getInvalidUsage();
-            ctx.source().error("Invalid command usage: '" + invalidUsageFormat + "'");
-
-            var closestUsage = exception.getClosestUsage();
-            if (closestUsage != null) {
-                String closestUsageFormat = UsageFormatting.formatClosestUsage(
-                        ctx.imperatConfig().commandPrefix(),
-                        ctx.getRootCommandLabelUsed(),
-                        closestUsage
-                );
-                ctx.source().error("You probably meant '" + closestUsageFormat + "'");
-            }
-        });
-        this.setErrorHandler(PermissionDeniedException.class, (exception, context) -> {
-            String pathwayFormatted = CommandPathway.format(exception.getLabel(), exception.getExecutingPathway());
-            String message = "You don't have permission to execute: '" + pathwayFormatted + "'";
-            String deniedTarget = formatPermissionHolder(exception.getPermissionIssuer());
-            if (deniedTarget != null && !deniedTarget.isBlank()) {
-                message += " (denied by " + deniedTarget + ")";
-            }
-            context.source().error(message);
-        });
-
-        // All registry-driven exceptions (parse, flag, validation, cooldown, help)
-        this.setErrorHandler(ResponseException.class, (exception, context) -> {
-            var response = this.getResponseRegistry().getResponse(exception.getResponseKey());
-            if (response != null) {
-                response.sendContent(context, exception.getPlaceholderDataProvider());
-            }
-        });
-
-        this.setErrorHandler(EventException.class, (ex, ctx) -> {
-            if (ImperatDebugger.isEnabled()) {
-                ImperatDebugger.debug(ex.getMessage());
-            }
-        });
-
-        // Fallback for plain CommandException (message-only, no ResponseKey)
-        this.setErrorHandler(CommandException.class, (exception, context) ->
-                                                                  context.source().reply(exception.getMessage()));
-
-        // InvalidSourceException — system/runtime error, escalate
     }
 }

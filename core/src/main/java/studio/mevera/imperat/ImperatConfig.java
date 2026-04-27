@@ -1,6 +1,5 @@
 package studio.mevera.imperat;
 
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
@@ -12,6 +11,7 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
+import studio.mevera.imperat.command.arguments.type.Cursor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.internal.ContextFactory;
@@ -77,20 +77,18 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
     }
 
     /**
-     * Registers annotation replacer
+     * Registers an {@link AnnotationReplacer} that will be applied to the
+     * annotation parser when the owning {@link Imperat} instance is built.
+     *
+     * <p>The replacer is staged on this config; the framework forwards it to
+     * the parser internally during {@code Imperat} construction. Callers do
+     * not need to (and cannot) invoke any "apply" step themselves.</p>
+     *
      * @param type the type of annotation to register
      * @param replacer the replacer for this annotation
      * @param <A> the type of annotation to replace by the {@link AnnotationReplacer}
      */
     <A extends Annotation> void registerAnnotationReplacer(Class<A> type, AnnotationReplacer<A> replacer);
-
-    /**
-     * Apply annotation replacers.
-     * @param imperat the imperat instance
-     * @param <A> A type variable used internally
-     */
-    @ApiStatus.Internal
-    <A extends Annotation> void applyAnnotationReplacers(Imperat<S> imperat);
 
     /**
      * Determines whether multiple optional parameters can be suggested simultaneously
@@ -203,7 +201,7 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      *
      * @param Argument the parameter of a command's usage
      * @param <T>              the valueType of value that will be resolved by
-     * {@link ArgumentType#parse(CommandContext, Argument, String)} during execution
+     * {@link ArgumentType#parse(CommandContext, Argument, Cursor)} during execution
      * @return the context resolver for this parameter's value valueType
      */
     default <T> ContextArgumentProvider<S, T> getContextArgumentProvider(Argument<S> Argument) {

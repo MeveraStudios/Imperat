@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class ParsedNode<S extends CommandSource> extends Node<S> {
+    // sealed Node permits this single subtype; see Node#permits.
 
     private final Node<S> delegate;
     private final Map<String, ParseResult<S>> parseResults;
@@ -19,6 +20,18 @@ public final class ParsedNode<S extends CommandSource> extends Node<S> {
         super(delegate.parent, delegate.originalPathway, delegate.main, delegate.optionals);
         this.delegate = delegate;
         this.parseResults = parseResults;
+    }
+
+    /**
+     * Factory for callers outside the {@code command.tree} package (notably
+     * the {@code walk} strategies). Equivalent to the package-private
+     * constructor.
+     */
+    public static <S extends CommandSource> ParsedNode<S> of(
+            @NotNull Node<S> delegate,
+            @NotNull Map<String, ParseResult<S>> parseResults
+    ) {
+        return new ParsedNode<>(delegate, parseResults);
     }
 
     public Node<S> getDelegate() {

@@ -1,15 +1,15 @@
 package studio.mevera.imperat.command.tree;
 
-import static studio.mevera.imperat.command.tree.SuperCommandTree.FAILED_PARSE_SCORE;
-import static studio.mevera.imperat.command.tree.SuperCommandTree.SUCCESSFUL_PARSE_SCORE;
-import static studio.mevera.imperat.command.tree.SuperCommandTree.UNACCEPTABLE_SCORE;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.context.CommandSource;
 
 public final class ParseResult<S extends CommandSource> {
+
+    static final int SUCCESSFUL_PARSE_SCORE = 1;
+    static final int FAILED_PARSE_SCORE = 0;
+    static final int UNACCEPTABLE_SCORE = -1;
 
     final @NotNull Argument<S> argument;
     final String input;

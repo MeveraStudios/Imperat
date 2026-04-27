@@ -43,7 +43,8 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
         this.autoCompleter = new ImperatAutoCompleter<>(this, config);
         this.annotationParser = AnnotationParser.defaultParser(this);
 
-        config.applyAnnotationReplacers(this);
+        // ImperatConfig is sealed permits ImperatConfigImpl, so the cast is safe by design.
+        ((ImperatConfigImpl<S>) config).installAnnotationReplacersInto(this);
         if (config.getEventBus().isDummyBus()) {
             config.setEventBus(DefaultEventBusFactory.create(this, config));
         }

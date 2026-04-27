@@ -28,7 +28,7 @@ import java.util.Map;
  * INSTEAD OF HAVING a node for every argument.
  * @param <S> the command source
  */
-public class Node<S extends CommandSource> implements Prioritizable {
+public sealed class Node<S extends CommandSource> implements Prioritizable permits ParsedNode {
 
     /*
      * The required argument this node is based on

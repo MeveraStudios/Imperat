@@ -41,7 +41,7 @@ import java.util.NoSuchElementException;
  * @param <S> the command source type
  * @since 4.1.0
  */
-public interface Cursor<S extends CommandSource> {
+public sealed interface Cursor<S extends CommandSource> permits CursorImpl {
 
     /**
      * Constructs a cursor over the given token list with the given budget.
