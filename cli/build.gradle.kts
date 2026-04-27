@@ -2,7 +2,7 @@ repositories {
     mavenCentral()
 }
 
-val targetJavaVersion = 17
+val targetJavaVersion = 21
 
 dependencies {
     compileOnly(project(":core"))

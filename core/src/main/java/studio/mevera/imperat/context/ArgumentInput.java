@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.util.StringUtils;
 
-import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @ApiStatus.AvailableSince("1.0.0")
 @Context
-public interface ArgumentInput extends Deque<String>, List<String>, Cloneable {
+public interface ArgumentInput extends List<String>, Cloneable {
 
     static ArgumentInput parse(String[] rawArguments) {
         return StringUtils.parseToQueue(String.join(" ", rawArguments), false);
@@ -117,4 +117,35 @@ public interface ArgumentInput extends Deque<String>, List<String>, Cloneable {
     @NotNull
     ArgumentInput copy();
 
+    String pollFirst();
+
+    String pollLast();
+
+    @Override String getFirst();
+
+    @Override String getLast();
+
+    String peekFirst();
+
+    String peekLast();
+
+    boolean removeFirstOccurrence(Object o);
+
+    boolean removeLastOccurrence(Object o);
+
+    boolean offer(String s);
+
+    String remove();
+
+    String poll();
+
+    String element();
+
+    String peek();
+
+    void push(String s);
+
+    String pop();
+
+    Iterator<String> descendingIterator();
 }

@@ -68,13 +68,12 @@ final class ArgumentInputImpl extends ArrayList<String> implements ArgumentInput
         add(s);
     }
 
-    @Override
+
     public boolean offerFirst(String s) {
         addFirst(s);
         return true;
     }
 
-    @Override
     public boolean offerLast(String s) {
         return add(s);
     }
@@ -95,49 +94,41 @@ final class ArgumentInputImpl extends ArrayList<String> implements ArgumentInput
         return remove(size() - 1);
     }
 
-    @Override
-    public String pollFirst() {
+    @Override public String pollFirst() {
         return isEmpty() ? null : remove(0);
     }
 
-    @Override
-    public String pollLast() {
+    @Override public String pollLast() {
         return isEmpty() ? null : remove(size() - 1);
     }
 
-    @Override
-    public String getFirst() {
+    @Override public String getFirst() {
         if (isEmpty()) {
             throw new NoSuchElementException();
         }
         return get(0);
     }
 
-    @Override
-    public String getLast() {
+    @Override public String getLast() {
         if (isEmpty()) {
             throw new NoSuchElementException();
         }
         return get(size() - 1);
     }
 
-    @Override
-    public String peekFirst() {
+    @Override public String peekFirst() {
         return isEmpty() ? null : get(0);
     }
 
-    @Override
-    public String peekLast() {
+    @Override public String peekLast() {
         return isEmpty() ? null : get(size() - 1);
     }
 
-    @Override
-    public boolean removeFirstOccurrence(Object o) {
+    @Override public boolean removeFirstOccurrence(Object o) {
         return remove(o);
     }
 
-    @Override
-    public boolean removeLastOccurrence(Object o) {
+    @Override public boolean removeLastOccurrence(Object o) {
         for (int i = size() - 1; i >= 0; i--) {
             if (java.util.Objects.equals(get(i), o)) {
                 remove(i);
@@ -147,43 +138,35 @@ final class ArgumentInputImpl extends ArrayList<String> implements ArgumentInput
         return false;
     }
 
-    @Override
-    public boolean offer(String s) {
+    @Override public boolean offer(String s) {
         return add(s);
     }
 
-    @Override
-    public String remove() {
+    @Override public String remove() {
         return removeFirst();
     }
 
-    @Override
-    public String poll() {
+    @Override public String poll() {
         return pollFirst();
     }
 
-    @Override
-    public String element() {
+    @Override public String element() {
         return getFirst();
     }
 
-    @Override
-    public String peek() {
+    @Override public String peek() {
         return peekFirst();
     }
 
-    @Override
-    public void push(String s) {
+    @Override public void push(String s) {
         addFirst(s);
     }
 
-    @Override
-    public String pop() {
+    @Override public String pop() {
         return removeFirst();
     }
 
-    @Override
-    public Iterator<String> descendingIterator() {
+    @Override public Iterator<String> descendingIterator() {
         return new Iterator<>() {
             private int index = size() - 1;
 
