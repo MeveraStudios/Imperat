@@ -6,7 +6,7 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/studio.mevera/imperat-core?style=for-the-badge&color=blue)](https://search.maven.org/artifact/studio.mevera/imperat-core)
 [![Discord](https://img.shields.io/discord/1285395980610568192?style=for-the-badge&color=7289da&label=Discord)](https://discord.gg/McN4GMWApE)
-[![Java](https://img.shields.io/badge/Java-17%2B-orange?style=for-the-badge)](https://java.com)
+[![Java](https://img.shields.io/badge/Java-21%2B-orange?style=for-the-badge)](https://java.com)
 
 Imperat is a high performance generic command framework, designed to facilitate the creation of commands
 and replace the old boilerplate code with new modern and well organized code for your commands!

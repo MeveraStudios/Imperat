@@ -71,7 +71,7 @@ tasks.withType<JavaCompile> {
     options.compilerArgs.add("-parameters")
 }
 
-val targetJavaVersion = 17
+val targetJavaVersion = 21
 java {
     val javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
@@ -206,5 +206,5 @@ tasks.register<Test>("functionalTest") {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }

@@ -7,7 +7,7 @@ plugins {
 val baseVersion = "4.0.0"
 val releaseSnapshots = true
 val isSnapshot = System.getenv("SNAPSHOT_BUILD") == "true"
-val rootJavaVersion = 17
+val rootJavaVersion = 21
 
 tasks.register("printReleaseSnapshots") {
     doLast {

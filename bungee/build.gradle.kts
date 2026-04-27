@@ -20,7 +20,7 @@ dependencies {
     compileOnly("net.md-5:bungeecord-api:1.21-R0.2")
 }
 
-val targetJavaVersion = 17
+val targetJavaVersion = 21
 java {
     val javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
