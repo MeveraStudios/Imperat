@@ -147,12 +147,12 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
                 try {
                     var extracted = flags.extract(peek);
                     if (!extracted.isEmpty()) {
-                        boolean hasValueFlags = extracted.stream().anyMatch(flag -> !flag.isSwitch());
-                        String sharedValueInput = hasValueFlags && inputStream.hasNext() ? inputStream.next() : null;
+                        int needed = FlagValueDrain.requiredTokenCount(extracted);
+                        List<String> valueTokens = FlagValueDrain.drain(inputStream, needed);
                         for (var extractedFlag : extracted) {
                             parseResultMap.put(
                                     extractedFlag.getName(),
-                                    this.parseFlagArgument(extractedFlag, peek, sharedValueInput, inputStream)
+                                    this.parseFlagArgument(extractedFlag, peek, valueTokens, inputStream)
                             );
                         }
                         continue;
@@ -237,30 +237,31 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
     private ParseResult<S> parseFlagArgument(
             FlagArgument<S> flag,
             String rawFlagInput,
-            @Nullable String sharedValueInput,
+            @NotNull List<String> valueTokens,
             RawInputStream<S> inputStream
     ) {
         if (flag.isSwitch()) {
             return ParseResult.of(flag, rawFlagInput, true, null);
         }
 
-        if (sharedValueInput == null || sharedValueInput.isBlank()) {
-            return ParseResult.failedParse(flag, sharedValueInput == null ? "" : sharedValueInput, null);
+        String joined = FlagValueDrain.join(valueTokens);
+        if (valueTokens.isEmpty()) {
+            return ParseResult.failedParse(flag, joined, null);
         }
 
         var inputType = flag.flagData().inputType();
         if (inputType == null) {
-            return ParseResult.failedParse(flag, sharedValueInput, new IllegalStateException("Missing input type for value flag"));
+            return ParseResult.failedParse(flag, joined, new IllegalStateException("Missing input type for value flag"));
         }
         try {
             Object parsed = inputType.parse(
                     inputStream.getContext(),
                     flag,
-                    Cursor.single(inputStream.getContext(), sharedValueInput)
+                    FlagValueDrain.cursor(inputStream.getContext(), valueTokens)
             );
-            return ParseResult.of(flag, sharedValueInput, parsed, null);
+            return ParseResult.of(flag, joined, parsed, null);
         } catch (Throwable error) {
-            return ParseResult.of(flag, sharedValueInput, null, error);
+            return ParseResult.of(flag, joined, null, error);
         }
     }
 
@@ -445,12 +446,12 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             if (extracted.isEmpty()) {
                 return false;
             }
-            boolean hasValueFlags = extracted.stream().anyMatch(flag -> !flag.isSwitch());
-            String sharedValueInput = hasValueFlags && inputStream.hasNext() ? inputStream.next() : null;
+            int needed = FlagValueDrain.requiredTokenCount(extracted);
+            List<String> valueTokens = FlagValueDrain.drain(inputStream, needed);
             for (var extractedFlag : extracted) {
                 flagSink.put(
                         extractedFlag.getName(),
-                        this.parseFlagArgument(extractedFlag, rawFlagInput, sharedValueInput, inputStream)
+                        this.parseFlagArgument(extractedFlag, rawFlagInput, valueTokens, inputStream)
                 );
             }
             return true;

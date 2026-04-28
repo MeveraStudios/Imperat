@@ -6,7 +6,6 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
-import studio.mevera.imperat.command.arguments.type.Cursor;
 import studio.mevera.imperat.command.tree.CommandTreeMatch;
 import studio.mevera.imperat.command.tree.Node;
 import studio.mevera.imperat.command.tree.ParseResult;
@@ -293,20 +292,21 @@ public final class TreeParser<S extends CommandSource> {
                 break;
             }
 
-            boolean hasValueFlags = extracted.stream().anyMatch(flag -> !flag.isSwitch());
-            String sharedValueInput = null;
-            if (hasValueFlags) {
-                if (!remaining.hasNext()) {
-                    return new TrailingFlags<>(consumedIndex, Collections.emptyMap());
-                }
-                sharedValueInput = remaining.next();
+            int needed = studio.mevera.imperat.command.tree.FlagValueDrain.requiredTokenCount(extracted);
+            List<String> valueTokens = studio.mevera.imperat.command.tree.FlagValueDrain.drain(remaining, needed);
+            if (needed > 0 && valueTokens.isEmpty()) {
+                // Value-flag(s) declared but the trailing input ran out of
+                // tokens to satisfy them — discard the partial trailing-flag
+                // region (matches legacy single-token "no value to bind"
+                // semantic).
+                return new TrailingFlags<>(consumedIndex, Collections.emptyMap());
             }
 
             if (results == null) {
                 results = new LinkedHashMap<>();
             }
             for (FlagArgument<S> flag : extracted) {
-                results.put(flag.getName(), parseFlagArgument(flag, raw, sharedValueInput, remaining));
+                results.put(flag.getName(), parseFlagArgument(flag, raw, valueTokens, remaining));
             }
             lastConsumed = remaining.getRawIndex();
         }
@@ -320,30 +320,31 @@ public final class TreeParser<S extends CommandSource> {
     private ParseResult<S> parseFlagArgument(
             FlagArgument<S> flag,
             String rawFlagInput,
-            @Nullable String sharedValueInput,
+            @NotNull List<String> valueTokens,
             RawInputStream<S> inputStream
     ) {
         if (flag.isSwitch()) {
             return ParseResult.of(flag, rawFlagInput, true, null);
         }
 
-        if (sharedValueInput == null || sharedValueInput.isBlank()) {
-            return ParseResult.failedParse(flag, sharedValueInput == null ? "" : sharedValueInput, null);
+        String joined = studio.mevera.imperat.command.tree.FlagValueDrain.join(valueTokens);
+        if (valueTokens.isEmpty()) {
+            return ParseResult.failedParse(flag, joined, null);
         }
 
         var inputType = flag.flagData().inputType();
         if (inputType == null) {
-            return ParseResult.failedParse(flag, sharedValueInput, new IllegalStateException("Missing input type for value flag"));
+            return ParseResult.failedParse(flag, joined, new IllegalStateException("Missing input type for value flag"));
         }
         try {
             Object parsed = inputType.parse(
                     inputStream.getContext(),
                     flag,
-                    Cursor.single(inputStream.getContext(), sharedValueInput)
+                    studio.mevera.imperat.command.tree.FlagValueDrain.cursor(inputStream.getContext(), valueTokens)
             );
-            return ParseResult.of(flag, sharedValueInput, parsed, null);
+            return ParseResult.of(flag, joined, parsed, null);
         } catch (Throwable error) {
-            return ParseResult.of(flag, sharedValueInput, null, error);
+            return ParseResult.of(flag, joined, null, error);
         }
     }
 

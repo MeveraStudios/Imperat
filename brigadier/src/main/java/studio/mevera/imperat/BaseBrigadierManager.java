@@ -17,16 +17,31 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
-import studio.mevera.imperat.command.tree.Node;
+import studio.mevera.imperat.command.tree.projection.CommandTreeProjection;
+import studio.mevera.imperat.command.tree.projection.ProjectedFlag;
+import studio.mevera.imperat.command.tree.projection.ProjectedNode;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.util.Patterns;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
+/**
+ * Brigadier-tree builder backed by a {@link CommandTreeProjection}. The
+ * projection is built once per command at registration time; this class
+ * walks it to emit the corresponding Brigadier {@link CommandNode} graph.
+ *
+ * <p>Behaviourally equivalent to the previous monolithic walker — the
+ * projection takes over the per-scope pathway / flag resolution that was
+ * previously inlined here, leaving this class to focus on Brigadier-shape
+ * translation.</p>
+ */
 @SuppressWarnings("unchecked")
 public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> implements BrigadierManager<S> {
 
@@ -61,56 +76,57 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
 
     @Override
     public @NotNull <BS> LiteralCommandNode<BS> parseCommandIntoNode(@NotNull Command<S> command) {
-        return this.<BS>convertRoot(command.tree().rootNode()).build();
+        CommandTreeProjection<S> projection = CommandTreeProjection.of(command);
+        return this.<BS>convertRoot(command, projection.root()).build();
     }
 
-    private <BS> LiteralArgumentBuilder<BS> convertRoot(Node<S> root) {
-        Command<S> rootCommand = root.getMainArgument().asCommand();
+    private <BS> LiteralArgumentBuilder<BS> convertRoot(Command<S> rootCommand, ProjectedNode<S> root) {
+        Command<S> rootCmdLit = root.mainArgument().asCommand();
         LiteralArgumentBuilder<BS> builder = (LiteralArgumentBuilder<BS>)
-                                                     literal(rootCommand.getName())
+                                                     literal(rootCmdLit.getName())
                     .requires((obj) -> {
                         var source = wrapCommandSource(obj);
-                        return rootCommand.isIgnoringACPerms()
-                                       || dispatcher.config().getPermissionChecker().hasPermission(source, rootCommand);
+                        return rootCmdLit.isIgnoringACPerms()
+                                       || dispatcher.config().getPermissionChecker().hasPermission(source, rootCmdLit);
                     });
         executor(builder);
         appendContinuations(rootCommand, root, builder, 0);
         return builder;
     }
 
-    protected <BS> CommandNode<BS> convertImperatNodeToBrigadierNode(
+    private <BS> CommandNode<BS> convertProjectedNode(
             Command<S> rootCommand,
-            Node<S> currentImperatNode
+            ProjectedNode<S> projected
     ) {
-        ArgumentBuilder<BS, ?> childBuilder = createBrigadierBuilder(rootCommand, currentImperatNode);
+        ArgumentBuilder<BS, ?> childBuilder = createBrigadierBuilder(rootCommand, projected);
         executor(childBuilder);
 
-        Argument<S> main = currentImperatNode.getMainArgument();
+        Argument<S> main = projected.mainArgument();
         if (!main.isCommand()) {
             ((RequiredArgumentBuilder<BS, ?>) childBuilder).suggests(
                     createSuggestionProvider(rootCommand, main)
             );
         }
 
-        appendContinuations(rootCommand, currentImperatNode, childBuilder, 0);
+        appendContinuations(rootCommand, projected, childBuilder, 0);
         return childBuilder.build();
     }
 
     private <BS> ArgumentBuilder<BS, ?> createBrigadierBuilder(
             Command<S> rootCommand,
-            Node<S> currentImperatNode
+            ProjectedNode<S> projected
     ) {
-        Argument<S> argument = currentImperatNode.getMainArgument();
+        Argument<S> argument = projected.mainArgument();
         ArgumentBuilder<BS, ?> builder = argument.isCommand()
                                                  ? LiteralArgumentBuilder.literal(argument.asCommand().getName())
                                                  : RequiredArgumentBuilder.argument(argument.getName(), getArgumentType(argument));
 
-        builder.requires((obj) -> isNodeVisible(rootCommand, currentImperatNode, wrapCommandSource(obj)));
+        builder.requires((obj) -> isNodeVisible(rootCommand, projected, wrapCommandSource(obj)));
         return builder;
     }
 
-    private boolean isNodeVisible(Command<S> rootCommand, Node<S> node, S source) {
-        Argument<S> argument = node.getMainArgument();
+    private boolean isNodeVisible(Command<S> rootCommand, ProjectedNode<S> projected, S source) {
+        Argument<S> argument = projected.mainArgument();
         if (argument.isCommand() && argument.asCommand().isSecret()) {
             return false;
         }
@@ -120,28 +136,36 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         }
 
         var checker = dispatcher.config().getPermissionChecker();
-        return checker.hasPermission(source, node.getOriginalPathway())
+        return checker.hasPermission(source, projected.originalPathway())
                        && checker.hasPermission(source, argument);
     }
 
+    /**
+     * Adds — in order — the flag fallback (so {@code --flag} / unknown-flag
+     * input still dispatches into Imperat), the next nested optional
+     * continuation, and every child node. The flag fallback's suggestion
+     * provider reads from the projection's pre-resolved flag list, so we no
+     * longer round-trip through Imperat's auto-completer just to enumerate
+     * flag names.
+     */
     private <BS> void appendContinuations(
             Command<S> rootCommand,
-            Node<S> scopeNode,
+            ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder,
             int optionalIndex
     ) {
-        appendFlagSuggestionTunnel(rootCommand, scopeNode, parentBuilder);
-        appendOptionalContinuation(rootCommand, scopeNode, parentBuilder, optionalIndex);
-        appendChildContinuations(rootCommand, scopeNode, parentBuilder);
+        appendFlagFallback(rootCommand, scope, parentBuilder);
+        appendOptionalContinuation(rootCommand, scope, parentBuilder, optionalIndex);
+        appendChildContinuations(rootCommand, scope, parentBuilder);
     }
 
     private <BS> void appendOptionalContinuation(
             Command<S> rootCommand,
-            Node<S> scopeNode,
+            ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder,
             int optionalIndex
     ) {
-        List<Argument<S>> optionals = new ArrayList<>(scopeNode.getOptionalArguments());
+        List<Argument<S>> optionals = scope.optionalArguments();
         if (optionalIndex >= optionals.size()) {
             return;
         }
@@ -149,24 +173,24 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         Argument<S> optional = optionals.get(optionalIndex);
         RequiredArgumentBuilder<BS, ?> optionalBuilder =
                 RequiredArgumentBuilder.argument(optional.getName(), getArgumentType(optional));
-        optionalBuilder.requires((obj) -> isArgumentVisible(rootCommand, optional, scopeNode.getOriginalPathway(), wrapCommandSource(obj)));
+        optionalBuilder.requires((obj) -> isArgumentVisible(rootCommand, optional, scope.originalPathway(), wrapCommandSource(obj)));
         optionalBuilder.suggests(createSuggestionProvider(rootCommand, optional));
         executor(optionalBuilder);
 
-        appendContinuations(rootCommand, scopeNode, optionalBuilder, optionalIndex + 1);
+        appendContinuations(rootCommand, scope, optionalBuilder, optionalIndex + 1);
         parentBuilder.then(optionalBuilder);
     }
 
     private <BS> void appendChildContinuations(
             Command<S> rootCommand,
-            Node<S> scopeNode,
+            ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder
     ) {
-        for (Node<S> child : scopeNode.getChildren()) {
-            var childBrigNode = this.<BS>convertImperatNodeToBrigadierNode(rootCommand, child);
+        for (ProjectedNode<S> child : scope.children()) {
+            var childBrigNode = this.<BS>convertProjectedNode(rootCommand, child);
             parentBuilder.then(childBrigNode);
 
-            Argument<S> childArgument = child.getMainArgument();
+            Argument<S> childArgument = child.mainArgument();
             if (childArgument.isCommand()) {
                 injectCommandNodeAliasesIntoBrigadier(
                         childArgument.asCommand(),
@@ -196,21 +220,28 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
                        && checker.hasPermission(source, argument);
     }
 
-    private <BS> void appendFlagSuggestionTunnel(
+    /**
+     * Catch-all greedy-string node that surfaces flag-name + flag-value
+     * suggestions and dispatches any input (including {@code --}-prefixed
+     * forms or unknown flags) back into Imperat. Replaces the legacy
+     * "_imperat_flags_<depth>" tunnel; the suggestion provider now reads
+     * from the projection's flag list instead of round-tripping through the
+     * auto-completer.
+     */
+    private <BS> void appendFlagFallback(
             Command<S> command,
-            Node<S> scopeNode,
+            ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder
     ) {
-        List<CommandPathway<S>> flagScopes = resolveFlagScopePathways(command, scopeNode);
-        if (flagScopes.stream().allMatch((pathway) -> pathway.getFlagExtractor().getRegisteredFlags().isEmpty())) {
+        if (scope.flags().isEmpty()) {
             return;
         }
 
-        RequiredArgumentBuilder<BS, String> tunnelBuilder =
-                RequiredArgumentBuilder.argument(flagTunnelName(scopeNode), StringArgumentType.greedyString());
-        tunnelBuilder.suggests(createFlagSuggestionProvider(command, flagScopes));
-        executor(tunnelBuilder);
-        parentBuilder.then(tunnelBuilder);
+        RequiredArgumentBuilder<BS, String> fallback =
+                RequiredArgumentBuilder.argument(flagFallbackName(scope), StringArgumentType.greedyString());
+        fallback.suggests(createFlagSuggestionProvider(command, scope));
+        executor(fallback);
+        parentBuilder.then(fallback);
     }
 
     private @NotNull <BS> SuggestionProvider<BS> createSuggestionProvider(
@@ -239,28 +270,123 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
 
     private @NotNull <BS> SuggestionProvider<BS> createFlagSuggestionProvider(
             Command<S> command,
-            List<CommandPathway<S>> flagScopes
+            ProjectedNode<S> scope
     ) {
         return (context, builder) -> {
-            SuggestionContext<S> suggestionContext = createSuggestionContext(command, context.getSource(), context.getInput());
-            CompletionArg arg = suggestionContext.getArgToComplete();
+            SuggestionContext<S> ctx = createSuggestionContext(command, context.getSource(), context.getInput());
+            CompletionArg arg = ctx.getArgToComplete();
+            String prefix = arg.isEmpty() ? "" : arg.value();
 
-            boolean valueCompletion = isValueFlagInputPosition(command, flagScopes, suggestionContext, arg);
-            boolean completingAfterFlag = hasFlagInputBeforeOrAtCompletion(suggestionContext, arg);
-            if (!valueCompletion && !completingAfterFlag && !shouldSuggestFlagNames(arg)) {
+            ProjectedFlag<S> valueTarget = findFlagValueTarget(scope, ctx, arg);
+            if (valueTarget != null) {
+                var targetBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
+                List<String> values = collectFlagValueSuggestions(ctx, valueTarget.flag());
+                values.stream()
+                        .filter(v -> v != null && !v.isEmpty())
+                        .filter(v -> prefix.isEmpty() || v.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT)))
+                        .forEachOrdered(targetBuilder::suggest);
+                return targetBuilder.buildFuture();
+            }
+
+            if (!shouldSuggestFlagNames(arg)) {
                 return builder.buildFuture();
             }
 
-            String normalizedInput = normalizeInput(context.getInput());
-            return dispatcher.autoComplete(wrapCommandSource(context.getSource()), normalizedInput)
-                           .thenCompose((results) -> {
-                               var targetBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
-                               results.stream()
-                                       .filter((result) -> valueCompletion || completingAfterFlag || result.startsWith("-"))
-                                       .forEachOrdered(targetBuilder::suggest);
-                               return targetBuilder.buildFuture();
-                           });
+            var targetBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
+            Set<String> seen = new LinkedHashSet<>();
+            for (ProjectedFlag<S> flag : scope.flags()) {
+                if (!isFlagVisible(command, flag, ctx.source())) {
+                    continue;
+                }
+                for (String alias : flag.aliases()) {
+                    String formatted = "-" + alias;
+                    if (!seen.add(formatted)) {
+                        continue;
+                    }
+                    if (prefix.isEmpty() || formatted.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT))) {
+                        targetBuilder.suggest(formatted);
+                    }
+                }
+            }
+            return targetBuilder.buildFuture();
         };
+    }
+
+    private boolean isFlagVisible(Command<S> rootCommand, ProjectedFlag<S> flag, S source) {
+        if (rootCommand.isIgnoringACPerms()) {
+            return true;
+        }
+        var checker = dispatcher.config().getPermissionChecker();
+        return checker.hasPermission(source, flag.owningPathway())
+                       && checker.hasPermission(source, flag.flag());
+    }
+
+    /**
+     * If the cursor is currently sitting inside a flag's value span, returns
+     * that flag so the caller can surface its value suggestions. Walks
+     * BACKWARDS to the most recent flag form and returns it iff the offset
+     * between the flag and the completion position is within the flag's
+     * declared value-token arity. This generalises the legacy "previous
+     * token must be a flag" check so multi-token value flags (e.g. a 3-token
+     * coordinate triple bound to {@code -coords}) light up at every value
+     * position within the span, not just the first.
+     */
+    private @Nullable ProjectedFlag<S> findFlagValueTarget(
+            ProjectedNode<S> scope,
+            SuggestionContext<S> ctx,
+            CompletionArg arg
+    ) {
+        int completionIndex = arg.index();
+        if (completionIndex <= 0) {
+            return null;
+        }
+        for (int back = 1; back <= completionIndex; back++) {
+            int candidate = completionIndex - back;
+            String token = ctx.arguments().getOr(candidate, null);
+            if (token == null || !Patterns.isInputFlag(token)) {
+                continue;
+            }
+            for (ProjectedFlag<S> flag : scope.flags()) {
+                if (!flag.flag().flagData().acceptsInput(token)) {
+                    continue;
+                }
+                if (flag.isSwitch()) {
+                    return null;
+                }
+                if (back <= valueArityOf(flag.flag())) {
+                    return flag;
+                }
+                return null;
+            }
+            return null;
+        }
+        return null;
+    }
+
+    private int valueArityOf(FlagArgument<S> flag) {
+        var inputType = flag.flagData().inputType();
+        if (inputType == null) {
+            return 1;
+        }
+        return Math.max(1, inputType.getNumberOfParametersToConsume(flag));
+    }
+
+    private List<String> collectFlagValueSuggestions(SuggestionContext<S> ctx, FlagArgument<S> flag) {
+        var provider = flag.inputSuggestionResolver();
+        if (provider != null) {
+            List<String> result = provider.provide(ctx, flag);
+            return result == null ? List.of() : result;
+        }
+        var inputType = flag.flagData().inputType();
+        if (inputType == null) {
+            return List.of();
+        }
+        var inputProvider = inputType.getSuggestionProvider();
+        if (inputProvider == null) {
+            return List.of();
+        }
+        List<String> result = inputProvider.provide(ctx, flag);
+        return result == null ? List.of() : result;
     }
 
     private @NotNull SuggestionContext<S> createSuggestionContext(
@@ -282,47 +408,6 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         return dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
     }
 
-    private boolean isValueFlagInputPosition(
-            Command<S> command,
-            List<CommandPathway<S>> flagScopes,
-            SuggestionContext<S> suggestionContext,
-            CompletionArg arg
-    ) {
-        int previousIndex = arg.index() - 1;
-        String previousInput = suggestionContext.arguments().getOr(previousIndex, null);
-        if (previousInput == null || !Patterns.isInputFlag(previousInput)) {
-            return false;
-        }
-
-        Boolean scopedMatch = isValueFlagInScopes(flagScopes, previousInput);
-        if (scopedMatch != null) {
-            return scopedMatch;
-        }
-        Boolean commandMatch = isValueFlagInScopes(allCommandPathways(command), previousInput);
-        return commandMatch != null && commandMatch;
-    }
-
-    private @Nullable Boolean isValueFlagInScopes(List<CommandPathway<S>> flagScopes, String previousInput) {
-        for (CommandPathway<S> flagScope : flagScopes) {
-            var flagData = flagScope.getFlagDataFromInput(previousInput);
-            if (flagData != null) {
-                return !flagData.isSwitch();
-            }
-        }
-        return null;
-    }
-
-    private boolean hasFlagInputBeforeOrAtCompletion(SuggestionContext<S> suggestionContext, CompletionArg arg) {
-        int maxIndex = Math.min(arg.index(), suggestionContext.arguments().size() - 1);
-        for (int index = 0; index <= maxIndex; index++) {
-            String input = suggestionContext.arguments().getOr(index, null);
-            if (input != null && Patterns.isInputFlag(input)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean shouldSuggestFlagNames(CompletionArg arg) {
         return arg.isEmpty() || arg.value().startsWith("-");
     }
@@ -334,122 +419,6 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         return Math.max(0, rawInput.length() - arg.value().length());
     }
 
-    private List<CommandPathway<S>> resolveFlagScopePathways(Command<S> rootCommand, Node<S> scopeNode) {
-        List<CommandPathway<S>> scopes = new ArrayList<>();
-        addPathwayScope(scopes, scopeNode.getOriginalPathway());
-
-        Argument<S> main = scopeNode.getMainArgument();
-        if (main.isCommand()) {
-            Command<S> commandScope = main.asCommand();
-            for (CommandPathway<S> pathway : commandScope.getDedicatedPathways()) {
-                addPathwayScope(scopes, pathway);
-            }
-            addPathwayScope(scopes, commandScope.getDefaultPathway());
-        }
-
-        for (CommandPathway<S> pathway : rootPathwaysForCommandScope(rootCommand, commandChainForNode(scopeNode))) {
-            addPathwayScope(scopes, pathway);
-        }
-        return scopes;
-    }
-
-    private void addPathwayScope(List<CommandPathway<S>> scopes, @Nullable CommandPathway<S> pathway) {
-        if (pathway == null) {
-            return;
-        }
-        for (CommandPathway<S> existing : scopes) {
-            if (existing == pathway) {
-                return;
-            }
-        }
-        scopes.add(pathway);
-    }
-
-    private List<String> commandChainForNode(Node<S> node) {
-        List<String> chain = new ArrayList<>();
-        Node<S> current = node;
-        while (current != null && !current.isRoot()) {
-            Argument<S> main = current.getMainArgument();
-            if (main.isCommand()) {
-                chain.add(0, main.asCommand().getName());
-            }
-            current = current.getParent();
-        }
-        return chain;
-    }
-
-    private List<CommandPathway<S>> rootPathwaysForCommandScope(Command<S> rootCommand, List<String> commandChain) {
-        List<CommandPathway<S>> rootPathways = new ArrayList<>();
-        for (CommandPathway<S> pathway : rootCommand.getDedicatedPathways()) {
-            addPathwayScope(rootPathways, pathway);
-        }
-        addPathwayScope(rootPathways, rootCommand.getDefaultPathway());
-
-        List<CommandPathway<S>> scoped = new ArrayList<>();
-        for (CommandPathway<S> pathway : rootPathways) {
-            if (isExactCommandScope(pathway, commandChain)) {
-                addPathwayScope(scoped, pathway);
-            }
-        }
-        return scoped;
-    }
-
-    private List<CommandPathway<S>> allCommandPathways(Command<S> command) {
-        List<CommandPathway<S>> pathways = new ArrayList<>();
-        List<Command<S>> visitedCommands = new ArrayList<>();
-        collectCommandPathways(command, visitedCommands, pathways);
-        return pathways;
-    }
-
-    private void collectCommandPathways(
-            Command<S> command,
-            List<Command<S>> visitedCommands,
-            List<CommandPathway<S>> pathways
-    ) {
-        for (Command<S> visited : visitedCommands) {
-            if (visited == command) {
-                return;
-            }
-        }
-        visitedCommands.add(command);
-
-        for (CommandPathway<S> pathway : command.getDedicatedPathways()) {
-            addPathwayScope(pathways, pathway);
-        }
-        addPathwayScope(pathways, command.getDefaultPathway());
-
-        for (Command<S> child : command.getSubCommands()) {
-            collectCommandPathways(child, visitedCommands, pathways);
-        }
-    }
-
-    private boolean isExactCommandScope(CommandPathway<S> pathway, List<String> commandChain) {
-        int commandPrefixLength = leadingCommandPrefixLength(pathway);
-        if (commandPrefixLength != commandChain.size()) {
-            return false;
-        }
-
-        List<Argument<S>> arguments = pathway.getArguments();
-        for (int i = 0; i < commandChain.size(); i++) {
-            Argument<S> argument = arguments.get(i);
-            if (!argument.isCommand() || !argument.asCommand().hasName(commandChain.get(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private int leadingCommandPrefixLength(CommandPathway<S> pathway) {
-        int count = 0;
-        for (Argument<S> argument : pathway.getArguments()) {
-            if (!argument.isCommand()) {
-                break;
-            }
-            count++;
-        }
-        return count;
-    }
-
     private String normalizeInput(String input) {
         while (input.startsWith("/")) {
             input = input.substring(1);
@@ -457,13 +426,13 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         return input;
     }
 
-    private String flagTunnelName(Node<S> scopeNode) {
-        return "_imperat_flags_" + nodeDepth(scopeNode);
+    private String flagFallbackName(ProjectedNode<S> scope) {
+        return "_imperat_flags_" + nodeDepth(scope);
     }
 
-    private int nodeDepth(Node<S> node) {
+    private int nodeDepth(ProjectedNode<S> scope) {
         int depth = 0;
-        Node<S> current = node;
+        var current = scope.sourceNode();
         while (current.getParent() != null) {
             depth++;
             current = current.getParent();

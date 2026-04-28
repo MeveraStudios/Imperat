@@ -63,32 +63,30 @@ public final class StringUtils {
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
 
-            if (isQuoteChar(c) && i != chars.length - 1) {
-                // Check if there's a matching end quote
-                int endQuoteIndex = -1;
-                for (int j = i + 1; j < chars.length; j++) {
-                    if (isEndOfQuote(c, chars[j])) {
-                        endQuoteIndex = j;
-                        break;
-                    }
-                }
+            if (isQuoteChar(c) && i != chars.length - 1 && builder.isEmpty()) {
+                // Quoted span: scan ahead for the matching end quote, honouring
+                // backslash escapes (\" → literal ", \\ → literal \). Only
+                // treats this as a quote opener when the builder is empty —
+                // mid-token quotes (e.g. foo"bar") are kept as literal chars
+                // so identifier-like inputs are not split unexpectedly.
+                int endQuoteIndex = findClosingQuote(chars, i + 1, c);
 
-                // Only treat as quoted section if matching end quote exists
                 if (endQuoteIndex != -1) {
-                    // Add any content in builder before starting quoted section
-                    if (!builder.isEmpty()) {
-                        toCollect.add(builder.toString());
-                        builder = new StringBuilder();
+                    int j = i + 1;
+                    while (j < endQuoteIndex) {
+                        char ch = chars[j];
+                        if (ch == '\\' && j + 1 < endQuoteIndex) {
+                            char next = chars[j + 1];
+                            if (next == c || next == '\\') {
+                                builder.append(next);
+                                j += 2;
+                                continue;
+                            }
+                        }
+                        builder.append(ch);
+                        j++;
                     }
-
-                    // Collect quoted content
-                    int start = i + 1;
-                    while (start < endQuoteIndex) {
-                        builder.append(chars[start]);
-                        start++;
-                    }
-                    i = endQuoteIndex; // Skip past the end quote
-
+                    i = endQuoteIndex;
                     toCollect.add(builder.toString());
                     builder = new StringBuilder();
                     continue;
@@ -122,6 +120,29 @@ public final class StringUtils {
         }
 
         return toCollect;
+    }
+
+    /**
+     * Returns the index of the matching closing quote for the opener at
+     * {@code searchFrom - 1}, or {@code -1} if none exists. Treats
+     * {@code \"} and {@code \\} as escaped literals so the closing scan
+     * does not stop on an escaped quote.
+     */
+    private static int findClosingQuote(char[] chars, int searchFrom, char opener) {
+        for (int j = searchFrom; j < chars.length; j++) {
+            char ch = chars[j];
+            if (ch == '\\' && j + 1 < chars.length) {
+                char next = chars[j + 1];
+                if (next == opener || next == '\\') {
+                    j++; // skip escaped char
+                    continue;
+                }
+            }
+            if (isEndOfQuote(opener, ch)) {
+                return j;
+            }
+        }
+        return -1;
     }
 
     public static ArgumentInput parseToQueue(String argumentsInOneLine, boolean autoCompletion) {

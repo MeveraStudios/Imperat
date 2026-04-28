@@ -14,12 +14,14 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.FlagArgument;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -91,14 +93,17 @@ final class SlashCommandMapper {
             UsageBucket bucket = buckets.computeIfAbsent(usage.path(), key -> new UsageBucket());
             bucket.setDescriptionIfAbsent(usage.description());
             bucket.includeUsage(usage.parameters());
-
+            bucket.includeFlags(usage.flags());
         }
         return buckets;
     }
 
     private OptionsBuild mergeOptions(Collection<UsagePath> usagePaths) {
         UsageBucket bucket = new UsageBucket();
-        usagePaths.forEach(usage -> bucket.includeUsage(usage.parameters()));
+        usagePaths.forEach(usage -> {
+            bucket.includeUsage(usage.parameters());
+            bucket.includeFlags(usage.flags());
+        });
         return bucket.toOptions();
     }
 
@@ -126,7 +131,13 @@ final class SlashCommandMapper {
                         parameters.add(parameter);
                     }
                 }
-                paths.add(new UsagePath(List.copyOf(path), List.copyOf(parameters), usage.getDescription().getValueOrElse("N/A")));
+                List<FlagArgument<JdaCommandSource>> flags = new ArrayList<>(usage.getFlagExtractor().getRegisteredFlags());
+                paths.add(new UsagePath(
+                        List.copyOf(path),
+                        List.copyOf(parameters),
+                        List.copyOf(flags),
+                        usage.getDescription().getValueOrElse("N/A")
+                ));
             }
             return paths;
         }
@@ -164,8 +175,55 @@ final class SlashCommandMapper {
         return OptionType.STRING;
     }
 
-    private record UsagePath(List<String> path, List<Argument<JdaCommandSource>> parameters, String description) {
+    /**
+     * Maps an Imperat flag onto a JDA option type. Switches always become
+     * {@link OptionType#BOOLEAN}; value flags follow their declared input
+     * type's raw class.
+     */
+    private OptionType mapFlagOptionType(FlagArgument<JdaCommandSource> flag) {
+        if (flag.isSwitch()) {
+            return OptionType.BOOLEAN;
+        }
+        var inputType = flag.flagData().inputType();
+        if (inputType == null) {
+            return OptionType.STRING;
+        }
+        Class<?> raw;
+        try {
+            raw = inputType.wrappedType().getRawType();
+        } catch (Exception ex) {
+            return OptionType.STRING;
+        }
+        if (raw == null) {
+            return OptionType.STRING;
+        }
+        if (Boolean.class.isAssignableFrom(raw) || raw == boolean.class) {
+            return OptionType.BOOLEAN;
+        }
+        if (Number.class.isAssignableFrom(raw) || raw.isPrimitive() && raw != char.class) {
+            if (raw == Double.class || raw == double.class || raw == Float.class || raw == float.class) {
+                return OptionType.NUMBER;
+            }
+            return OptionType.INTEGER;
+        }
+        if (User.class.isAssignableFrom(raw) || Member.class.isAssignableFrom(raw)) {
+            return OptionType.USER;
+        }
+        if (Role.class.isAssignableFrom(raw)) {
+            return OptionType.ROLE;
+        }
+        if (GuildChannel.class.isAssignableFrom(raw)) {
+            return OptionType.CHANNEL;
+        }
+        return OptionType.STRING;
+    }
 
+    private record UsagePath(
+            List<String> path,
+            List<Argument<JdaCommandSource>> parameters,
+            List<FlagArgument<JdaCommandSource>> flags,
+            String description
+    ) {
     }
 
     private static final class OptionSpec {
@@ -184,6 +242,15 @@ final class SlashCommandMapper {
 
         static OptionSpec from(String name, Argument<JdaCommandSource> parameter, OptionType type) {
             return new OptionSpec(name, type, parameter.getDescription().getValueOrElse("N/A"), !parameter.isOptional());
+        }
+
+        /**
+         * Flags are always optional in slash terms — a discord user toggles
+         * them by including the option, omitting it leaves the flag's
+         * Imperat-side default in effect.
+         */
+        static OptionSpec flagOption(String name, FlagArgument<JdaCommandSource> flag, OptionType type) {
+            return new OptionSpec(name, type, flag.getDescription().getValueOrElse("N/A"), false);
         }
 
         void merge(Argument<JdaCommandSource> parameter, OptionType resolvedType) {
@@ -270,6 +337,22 @@ final class SlashCommandMapper {
                 if (!seen.contains(spec.name())) {
                     spec.markOptional();
                 }
+            }
+        }
+
+        /**
+         * Includes the flags belonging to this usage. Each flag is registered
+         * as an always-optional option (Discord has no concept of positional
+         * flags — toggling the option on with a value substitutes for the
+         * `--flagName value` form on Imperat's text side). De-duped by
+         * canonical name so multiple pathways referencing the same flag don't
+         * stack.
+         */
+        void includeFlags(List<FlagArgument<JdaCommandSource>> flags) {
+            for (FlagArgument<JdaCommandSource> flag : flags) {
+                String optionName = flag.getName().toLowerCase(Locale.ROOT);
+                options.computeIfAbsent(optionName,
+                        key -> OptionSpec.flagOption(optionName, flag, mapFlagOptionType(flag)));
             }
         }
 

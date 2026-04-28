@@ -179,12 +179,12 @@ public final class TreeSuggester<S extends CommandSource> {
             String peek = inputStream.next();
             Set<FlagArgument<S>> extracted = extractFlagsForNode(node, peek, commandChain);
             if (!extracted.isEmpty()) {
-                boolean hasValueFlags = extracted.stream().anyMatch(flag -> !flag.isSwitch());
-                String sharedValueInput = hasValueFlags && inputStream.hasNext() ? inputStream.next() : null;
+                int needed = studio.mevera.imperat.command.tree.FlagValueDrain.requiredTokenCount(extracted);
+                List<String> valueTokens = studio.mevera.imperat.command.tree.FlagValueDrain.drain(inputStream, needed);
                 for (var extractedFlag : extracted) {
                     parseResultMap.put(
                             extractedFlag.getName(),
-                            parseFlagArgument(extractedFlag, peek, sharedValueInput, inputStream)
+                            parseFlagArgument(extractedFlag, peek, valueTokens, inputStream)
                     );
                 }
                 continue;
@@ -325,30 +325,31 @@ public final class TreeSuggester<S extends CommandSource> {
     private ParseResult<S> parseFlagArgument(
             FlagArgument<S> flag,
             String rawFlagInput,
-            @Nullable String sharedValueInput,
+            @NotNull List<String> valueTokens,
             RawInputStream<S> inputStream
     ) {
         if (flag.isSwitch()) {
             return ParseResult.of(flag, rawFlagInput, true, null);
         }
 
-        if (sharedValueInput == null || sharedValueInput.isBlank()) {
-            return ParseResult.failedParse(flag, sharedValueInput == null ? "" : sharedValueInput, null);
+        String joined = studio.mevera.imperat.command.tree.FlagValueDrain.join(valueTokens);
+        if (valueTokens.isEmpty()) {
+            return ParseResult.failedParse(flag, joined, null);
         }
 
         var inputType = flag.flagData().inputType();
         if (inputType == null) {
-            return ParseResult.failedParse(flag, sharedValueInput, new IllegalStateException("Missing input type for value flag"));
+            return ParseResult.failedParse(flag, joined, new IllegalStateException("Missing input type for value flag"));
         }
         try {
             Object parsed = inputType.parse(
                     inputStream.getContext(),
                     flag,
-                    Cursor.single(inputStream.getContext(), sharedValueInput)
+                    studio.mevera.imperat.command.tree.FlagValueDrain.cursor(inputStream.getContext(), valueTokens)
             );
-            return ParseResult.of(flag, sharedValueInput, parsed, null);
+            return ParseResult.of(flag, joined, parsed, null);
         } catch (Throwable error) {
-            return ParseResult.of(flag, sharedValueInput, null, error);
+            return ParseResult.of(flag, joined, null, error);
         }
     }
 
@@ -662,6 +663,16 @@ public final class TreeSuggester<S extends CommandSource> {
         return used;
     }
 
+    /**
+     * Finds the flag whose value-position the cursor is currently sitting in
+     * (so its value-suggestion provider can fire). Walks BACKWARDS from the
+     * current completion index to the most recent flag form, checking that
+     * the offset between them is within the flag's declared value-token
+     * arity. This generalises the legacy "previous token must be a flag"
+     * check so that multi-token value flags (e.g. a 3-token coordinate
+     * triple bound to {@code -coords}) light up at every value position
+     * within the span, not just the first.
+     */
     private @Nullable FlagArgument<S> findFlagValueTarget(
             SuggestionContext<S> context,
             List<ParsedNode<S>> chain
@@ -671,24 +682,58 @@ public final class TreeSuggester<S extends CommandSource> {
             return null;
         }
 
-        String previousRaw = context.arguments().getOr(completionIndex - 1, null);
-        if (previousRaw == null || !Patterns.isInputFlag(previousRaw)) {
-            return null;
-        }
-
         Node<S> currentNode = chain.get(chain.size() - 1).getDelegate();
         List<String> commandChain = commandChainFromParsedPath(chain);
-        for (CommandPathway<S> pathway : effectivePathways(currentNode, commandChain)) {
+        List<CommandPathway<S>> pathways = effectivePathways(currentNode, commandChain);
+
+        // Walk backwards looking for the nearest flag form. The completion
+        // position is INSIDE that flag's value span iff the offset is < the
+        // flag's declared value-token arity.
+        for (int back = 1; back <= completionIndex; back++) {
+            int candidateIndex = completionIndex - back;
+            String token = context.arguments().getOr(candidateIndex, null);
+            if (token == null || !Patterns.isInputFlag(token)) {
+                continue;
+            }
+            FlagArgument<S> flag = resolveFlagInScopes(context, pathways, token);
+            if (flag == null || flag.isSwitch()) {
+                return null;
+            }
+            int valueArity = valueArityOf(flag);
+            // back == 1 means we're at offset 0 inside the value span; back == valueArity means offset (valueArity-1).
+            if (back <= valueArity) {
+                return flag;
+            }
+            // Found a flag, but completion has moved past its value span.
+            return null;
+        }
+        return null;
+    }
+
+    private @Nullable FlagArgument<S> resolveFlagInScopes(
+            SuggestionContext<S> context,
+            List<CommandPathway<S>> pathways,
+            String flagInput
+    ) {
+        for (CommandPathway<S> pathway : pathways) {
             if (!hasSuggestionPermission(context, pathway)) {
                 continue;
             }
             for (FlagArgument<S> flag : pathway.getFlagExtractor().getRegisteredFlags()) {
-                if (flag.flagData().acceptsInput(previousRaw)) {
-                    return flag.isSwitch() ? null : flag;
+                if (flag.flagData().acceptsInput(flagInput)) {
+                    return flag;
                 }
             }
         }
         return null;
+    }
+
+    private int valueArityOf(FlagArgument<S> flag) {
+        var inputType = flag.flagData().inputType();
+        if (inputType == null) {
+            return 1;
+        }
+        return Math.max(1, inputType.getNumberOfParametersToConsume(flag));
     }
 
     private List<String> collectFlagValueSuggestions(
