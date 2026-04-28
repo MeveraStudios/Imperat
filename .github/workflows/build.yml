@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ "master", "experimental" ]
+    branches: [ "master", "experimental", "v4-tree" ]
   pull_request:
     branches: [ "master" ]
 
@@ -29,7 +29,7 @@ jobs:
       # Cache Gradle dependencies and wrapper (skip for pull requests)
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/v4-tree')
         with:
           path: |
             ~/.gradle/caches
@@ -88,7 +88,7 @@ jobs:
 
       - name: 🚀 Gradle Snapshot
         id: publish_snapshot
-        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/experimental') && env.RELEASE_SNAPSHOTS == 'true' }}
+        if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/experimental' || github.ref == 'refs/heads/v4-tree') && env.RELEASE_SNAPSHOTS == 'true' }}
         env:
           SNAPSHOT_BUILD: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
