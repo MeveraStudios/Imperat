@@ -11,8 +11,15 @@ repositories {
 }
 
 dependencies {
+    api(project(":core"))
+    api(project(":brigadier"))
+    api(project(":adventure"))
+
     compileOnly("com.mojang:brigadier:1.0.18")
-    compileOnlyApi("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    // Modern Paper API (1.21.4+) — first version with the stable
+    // `io.papermc.paper.command.brigadier` package + `Commands.registrar()`
+    // lifecycle hook used by this module.
+    compileOnlyApi("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
 }
 
 tasks.processTestResources {
