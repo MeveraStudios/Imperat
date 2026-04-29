@@ -254,7 +254,6 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         }
 
         for (ProjectedFlag<S> projectedFlag : scope.flags()) {
-            FlagArgument<S> flag = projectedFlag.flag();
             for (String alias : projectedFlag.aliases()) {
                 LiteralArgumentBuilder<BS> flagLiteral = LiteralArgumentBuilder.literal("-" + alias);
                 flagLiteral.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));

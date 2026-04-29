@@ -85,14 +85,14 @@ class BukkitBrigadierFlagSuggestionTest {
     @Test
     @DisplayName("Should apply flag value suggestions without replacing the flag input")
     void testBrigadierAppliesFlagValueSuggestionAtValueOffset() {
-        String input = "flagtest play --scenario ";
+        String input = "flagtest play -scenario ";
         Suggestion suggestion = completeSuggestions(input)
                                         .stream()
                                         .filter(candidate -> candidate.getText().equals("kindergarten"))
                                         .findFirst()
                                         .orElseThrow();
 
-        assertEquals("flagtest play --scenario kindergarten", suggestion.apply(input));
+        assertEquals("flagtest play -scenario kindergarten", suggestion.apply(input));
     }
 
     @Test
