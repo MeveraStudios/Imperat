@@ -1,4 +1,4 @@
-package studio.mevera.imperat.paper.argument;
+package studio.mevera.imperat.backend.modern.argument;
 
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import org.bukkit.GameMode;
@@ -8,18 +8,16 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.paper.PaperCommandSource;
-import studio.mevera.imperat.paper.type.PaperLocationArgument;
-import studio.mevera.imperat.paper.type.PaperOfflinePlayerArgument;
-import studio.mevera.imperat.paper.type.PaperPlayerArgument;
+import studio.mevera.imperat.backend.modern.type.PaperLocationArgument;
+import studio.mevera.imperat.backend.modern.type.PaperOfflinePlayerArgument;
+import studio.mevera.imperat.backend.modern.type.PaperPlayerArgument;
 
 import java.util.UUID;
 
 /**
- * Default Java-type → Paper Brigadier {@code ArgumentType} mappings,
- * applied when {@link studio.mevera.imperat.paper.PaperImperatBuilder}
- * builds an instance.
+ * Default Java-type → Paper Brigadier {@code ArgumentType} mappings
  *
  * <p>Each mapping wraps a {@link PaperArgumentType} (native Paper
  * Brigadier {@code ArgumentType} + resolver) into a
@@ -36,7 +34,7 @@ public final class PaperArgumentMappings {
     private PaperArgumentMappings() {
     }
 
-    public static void applyDefaults(ImperatConfig<PaperCommandSource> config) {
+    public static void applyDefaults(ImperatConfig<BukkitCommandSource> config) {
         // Player → name-based Imperat-side argument (mirror of legacy
         // bukkit module). Suggestion provider returns online player names
         // via Imperat's customSuggestions path.

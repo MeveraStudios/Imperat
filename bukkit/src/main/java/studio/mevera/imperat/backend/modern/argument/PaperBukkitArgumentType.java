@@ -1,15 +1,15 @@
-package studio.mevera.imperat.paper.argument;
+package studio.mevera.imperat.backend.modern.argument;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.Cursor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
-import studio.mevera.imperat.paper.PaperCommandSource;
 
 import java.lang.reflect.Type;
 
@@ -29,7 +29,7 @@ import java.lang.reflect.Type;
  *
  * @since 4.0.0 (Paper module)
  */
-public class PaperBukkitArgumentType<N, T> extends ArgumentType<PaperCommandSource, T> {
+public class PaperBukkitArgumentType<N, T> extends ArgumentType<BukkitCommandSource, T> {
 
     private final PaperArgumentType<N, T> paperType;
 
@@ -52,15 +52,15 @@ public class PaperBukkitArgumentType<N, T> extends ArgumentType<PaperCommandSour
     }
 
     @Override
-    public T parse(@NotNull CommandContext<PaperCommandSource> context,
-            @NotNull Argument<PaperCommandSource> argument,
-            @NotNull Cursor<PaperCommandSource> cursor) throws CommandException {
+    public T parse(@NotNull CommandContext<BukkitCommandSource> context,
+            @NotNull Argument<BukkitCommandSource> argument,
+            @NotNull Cursor<BukkitCommandSource> cursor) throws CommandException {
         // Multi-token Paper types (positions, item-stack with components,
         // etc.) need their tokens joined for Brigadier's StringReader. The
         // tree allots tokens via {@link #getNumberOfParametersToConsume};
         // here we drain whatever the cursor was given.
 
-        Cursor<PaperCommandSource> delegate = cursor.snapshot();
+        Cursor<BukkitCommandSource> delegate = cursor.snapshot();
         String joined = delegate.collectRemaining();
 
         try {
@@ -69,7 +69,11 @@ public class PaperBukkitArgumentType<N, T> extends ArgumentType<PaperCommandSour
 
             cursor.commitFromPosition(reader.getCursor());
 
-            CommandSourceStack stack = context.source().stack();
+            // Stack is held as Object on BukkitCommandSource so the source
+            // class stays loadable on legacy classpaths. Modern backend
+            // always populates it with a CommandSourceStack instance — cast
+            // safe here since this argument type only runs on modern Paper.
+            CommandSourceStack stack = (CommandSourceStack) context.source().stack();
             return paperType.resolver().apply(nativeValue, stack);
         } catch (CommandSyntaxException ex) {
             throw new CommandException(ex.getMessage(), ex);

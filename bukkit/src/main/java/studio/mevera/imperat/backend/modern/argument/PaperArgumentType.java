@@ -1,4 +1,4 @@
-package studio.mevera.imperat.paper.argument;
+package studio.mevera.imperat.backend.modern.argument;
 
 import com.mojang.brigadier.arguments.ArgumentType;
 import io.papermc.paper.command.brigadier.CommandSourceStack;

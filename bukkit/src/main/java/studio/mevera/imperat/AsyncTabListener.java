@@ -5,7 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-public class AsyncTabListener implements Listener {
+public final class AsyncTabListener implements Listener {
 
     private final BukkitImperat imperat;
 

@@ -1,15 +1,15 @@
-package studio.mevera.imperat.paper.brigadier;
+package studio.mevera.imperat.backend.modern;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BaseBrigadierManager;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.BukkitImperat;
+import studio.mevera.imperat.backend.modern.argument.PaperBukkitArgumentType;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.arguments.Argument;
-import studio.mevera.imperat.paper.PaperCommandSource;
-import studio.mevera.imperat.paper.PaperImperat;
-import studio.mevera.imperat.paper.argument.PaperBukkitArgumentType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,23 +28,23 @@ import java.util.List;
  *
  * @since 4.0.0 (Paper module)
  */
-public final class PaperBrigadierManager extends BaseBrigadierManager<PaperCommandSource> {
+public final class ModernPaperBrigadierManager extends BaseBrigadierManager<BukkitCommandSource> {
 
-    private final PaperImperat paperImperat;
+    private final BukkitImperat bukkitImperat;
 
-    public PaperBrigadierManager(@NotNull PaperImperat imperat) {
+    public ModernPaperBrigadierManager(@NotNull BukkitImperat imperat) {
         super(imperat);
-        this.paperImperat = imperat;
+        this.bukkitImperat = imperat;
     }
 
     @Override
-    public PaperCommandSource wrapCommandSource(Object commandSource) {
-        return paperImperat.wrapSender(commandSource);
+    public BukkitCommandSource wrapCommandSource(Object commandSource) {
+        return bukkitImperat.wrapSender(commandSource);
     }
 
     @Override
     public @NotNull com.mojang.brigadier.arguments.ArgumentType<?> getArgumentType(
-            @NotNull Argument<PaperCommandSource> imperatArgument) {
+            @NotNull Argument<BukkitCommandSource> imperatArgument) {
         var type = imperatArgument.type();
         if (type instanceof PaperBukkitArgumentType<?, ?> paperType) {
             return paperType.nativeType();
@@ -57,7 +57,7 @@ public final class PaperBrigadierManager extends BaseBrigadierManager<PaperComma
      * with Paper's {@link Commands} registrar (captured during the
      * {@code COMMANDS} lifecycle event).
      */
-    public void register(@NotNull Commands registrar, @NotNull Command<PaperCommandSource> command) {
+    public void register(@NotNull Commands registrar, @NotNull Command<BukkitCommandSource> command) {
         LiteralCommandNode<CommandSourceStack> node = this.parseCommandIntoNode(command);
         String description = command.getDescription() != null
                                      ? command.getDescription().getValueOrElse("")

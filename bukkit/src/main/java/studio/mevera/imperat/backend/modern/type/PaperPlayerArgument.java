@@ -1,9 +1,10 @@
-package studio.mevera.imperat.paper.type;
+package studio.mevera.imperat.backend.modern.type;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.context.CommandContext;
@@ -11,13 +12,12 @@ import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
-import studio.mevera.imperat.paper.PaperCommandSource;
-import studio.mevera.imperat.paper.PaperResponseKey;
 import studio.mevera.imperat.providers.SuggestionProvider;
+import studio.mevera.imperat.responses.BukkitResponseKey;
 
 import java.util.List;
 
-public class PaperPlayerArgument extends SimpleArgumentType<PaperCommandSource, Player> {
+public class PaperPlayerArgument extends SimpleArgumentType<BukkitCommandSource, Player> {
 
     private final PlayerSuggestionProvider SUGGESTION_RESOLVER = new PlayerSuggestionProvider();
 
@@ -26,30 +26,30 @@ public class PaperPlayerArgument extends SimpleArgumentType<PaperCommandSource, 
     }
 
     @Override
-    public Player parse(@NotNull CommandContext<PaperCommandSource> context,
-                        @NonNull Argument<PaperCommandSource> argument,
+    public Player parse(@NotNull CommandContext<BukkitCommandSource> context,
+            @NonNull Argument<BukkitCommandSource> argument,
                         @NotNull String input) throws CommandException {
         if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
-                throw ResponseException.of(PaperResponseKey.ONLY_PLAYER);
+                throw ResponseException.of(BukkitResponseKey.ONLY_PLAYER);
             }
             return context.source().asPlayer();
         }
         Player player = Bukkit.getPlayer(input);
         if (player == null) {
-            throw new ArgumentParseException(PaperResponseKey.UNKNOWN_PLAYER, input);
+            throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_PLAYER, input);
         }
         return player;
     }
 
     @Override
-    public SuggestionProvider<PaperCommandSource> getSuggestionProvider() {
+    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
         return SUGGESTION_RESOLVER;
     }
 
-    private static final class PlayerSuggestionProvider implements SuggestionProvider<PaperCommandSource> {
+    private static final class PlayerSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
         @Override
-        public List<String> provide(SuggestionContext<PaperCommandSource> context, Argument<PaperCommandSource> argument) {
+        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument) {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         }
     }

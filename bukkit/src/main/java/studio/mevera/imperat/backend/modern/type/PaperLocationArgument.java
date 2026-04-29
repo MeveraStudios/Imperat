@@ -1,10 +1,11 @@
-package studio.mevera.imperat.paper.type;
+package studio.mevera.imperat.backend.modern.type;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypes;
@@ -13,15 +14,14 @@ import studio.mevera.imperat.command.arguments.type.GreedyArgumentType;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
-import studio.mevera.imperat.paper.PaperCommandSource;
-import studio.mevera.imperat.paper.PaperResponseKey;
+import studio.mevera.imperat.responses.BukkitResponseKey;
 
-public class PaperLocationArgument extends GreedyArgumentType<PaperCommandSource, Location> {
+public class PaperLocationArgument extends GreedyArgumentType<BukkitCommandSource, Location> {
 
     private static final String SINGLE_STRING_SEPARATOR = ";";
     private static final String SELF_LOCATION_SYMBOL = "~";
 
-    private final ArgumentType<PaperCommandSource, Double> doubleParser;
+    private final ArgumentType<BukkitCommandSource, Double> doubleParser;
 
     public PaperLocationArgument() {
         super();
@@ -29,8 +29,8 @@ public class PaperLocationArgument extends GreedyArgumentType<PaperCommandSource
     }
 
     @Override
-    public Location parse(@NotNull CommandContext<PaperCommandSource> context,
-                          @NonNull Argument<PaperCommandSource> argument,
+    public Location parse(@NotNull CommandContext<BukkitCommandSource> context,
+            @NonNull Argument<BukkitCommandSource> argument,
                           @NotNull String input) throws CommandException {
         String[] split = input.split(SINGLE_STRING_SEPARATOR);
         if (split.length < 4) {
@@ -39,7 +39,7 @@ public class PaperLocationArgument extends GreedyArgumentType<PaperCommandSource
 
         World world = Bukkit.getWorld(split[0]);
         if (world == null) {
-            throw ResponseException.of(PaperResponseKey.UNKNOWN_WORLD)
+            throw ResponseException.of(BukkitResponseKey.UNKNOWN_WORLD)
                           .withPlaceholder("name", split[0]);
         }
 
@@ -71,7 +71,7 @@ public class PaperLocationArgument extends GreedyArgumentType<PaperCommandSource
     }
 
     private double resolveCoord(String token, Double selfValue, String input, String invalidReason,
-                                CommandContext<PaperCommandSource> context, Argument<PaperCommandSource> argument,
+            CommandContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument,
                                 boolean isX, boolean isY, boolean isZ, boolean isPitch, boolean isYaw) throws CommandException {
         if (SELF_LOCATION_SYMBOL.equals(token)) {
             if (selfValue == null) {
@@ -98,7 +98,7 @@ public class PaperLocationArgument extends GreedyArgumentType<PaperCommandSource
             default -> "Unknown location error";
         };
 
-        return ResponseException.of(PaperResponseKey.INVALID_LOCATION)
+        return ResponseException.of(BukkitResponseKey.INVALID_LOCATION)
                        .withPlaceholder("input", input)
                        .withPlaceholder("cause", message)
                        .withPlaceholder("reason", reason)

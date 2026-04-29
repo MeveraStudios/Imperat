@@ -13,13 +13,13 @@ import java.util.Collections;
 import java.util.List;
 
 @ApiStatus.Internal
-final class InternalBukkitCommand extends org.bukkit.command.Command implements PluginIdentifiableCommand {
+public final class InternalBukkitCommand extends org.bukkit.command.Command implements PluginIdentifiableCommand {
 
-    @NotNull final Command<BukkitCommandSource> imperatCommand;
+    public final @NotNull Command<BukkitCommandSource> imperatCommand;
     @NotNull
     private final BukkitImperat dispatcher;
 
-    InternalBukkitCommand(
+    public InternalBukkitCommand(
             final @NotNull BukkitImperat dispatcher,
             final @NotNull Command<BukkitCommandSource> imperatCommand
     ) {

@@ -1,4 +1,4 @@
-package studio.mevera.imperat.paper.argument;
+package studio.mevera.imperat.backend.modern.argument;
 
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.command.brigadier.argument.predicate.ItemStackPredicate;

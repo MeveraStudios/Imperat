@@ -4,6 +4,7 @@ import net.kyori.adventure.text.ComponentLike;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.context.CommandSource;
@@ -50,17 +51,61 @@ public class BukkitCommandSource implements AdventureCommandSource {
     protected final AdventureProvider<CommandSender> provider;
 
     /**
+     * Optional Paper {@code CommandSourceStack} — populated only when this
+     * source was produced by the modern-Paper backend through a Brigadier
+     * dispatch. Plugins running on legacy Spigot or routed through plain
+     * {@code CommandSender} will see {@code null} here. Access via
+     * {@link #stack()}.
+     *
+     * <p>Held as {@link Object} so the field type does not force a class
+     * load of {@code io.papermc.paper.command.brigadier.CommandSourceStack}
+     * on the legacy classpath.</p>
+     */
+    protected final @Nullable Object commandSourceStack;
+
+    /**
      * Creates a new BukkitCommandSource wrapping the specified CommandSender.
+     * Used by the legacy backend and by source-provider resolvers that
+     * lack a Paper {@code CommandSourceStack}.
      *
      * @param sender the Bukkit CommandSender to wrap (player or console)
      * @param provider the Adventure provider for rich text support
      */
-    protected BukkitCommandSource(
+    public BukkitCommandSource(
             final CommandSender sender,
             final AdventureProvider<CommandSender> provider
     ) {
+        this(sender, provider, null);
+    }
+
+    /**
+     * Creates a new BukkitCommandSource wrapping a {@code CommandSender}
+     * AND its originating Paper {@code CommandSourceStack}. The stack is
+     * stored as {@link Object} to keep this class loadable on legacy
+     * classpaths where the Paper class is absent.
+     */
+    public BukkitCommandSource(
+            final CommandSender sender,
+            final AdventureProvider<CommandSender> provider,
+            final @Nullable Object commandSourceStack
+    ) {
         this.sender = sender;
         this.provider = provider;
+        this.commandSourceStack = commandSourceStack;
+    }
+
+    /**
+     * Underlying Paper {@code CommandSourceStack}, or {@code null} when
+     * this source did not originate from a modern-Paper Brigadier dispatch
+     * (i.e. legacy backend, or wrapped from a plain {@code CommandSender}).
+     *
+     * <p>Returned as {@link Object} so callers on legacy classpaths can
+     * safely reference this method without triggering a class-load failure.
+     * On modern Paper, cast to
+     * {@code io.papermc.paper.command.brigadier.CommandSourceStack}.</p>
+     */
+    public @Nullable Object stack() {
+        return commandSourceStack;
     }
 
     /**

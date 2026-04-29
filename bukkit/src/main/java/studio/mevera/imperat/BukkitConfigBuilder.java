@@ -1,8 +1,6 @@
 package studio.mevera.imperat;
 
 import net.kyori.adventure.audience.Audience;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -17,11 +15,6 @@ import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
-import studio.mevera.imperat.selector.TargetSelector;
-import studio.mevera.imperat.type.LocationArgument;
-import studio.mevera.imperat.type.OfflinePlayerArgument;
-import studio.mevera.imperat.type.PlayerArgument;
-import studio.mevera.imperat.type.TargetSelectorArgument;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.reflection.Reflections;
 
@@ -33,21 +26,23 @@ import java.util.List;
  * This builder provides a fluent API for configuring and customizing the behavior
  * of Imperat commands in a Bukkit/Spigot/Paper environment.
  *
- * <p>The builder automatically sets up:</p>
+ * <p>The builder automatically sets up backend-agnostic defaults:</p>
  * <ul>
- *   <li>Bukkit-specific parameter types (Player, Location, OfflinePlayer, TargetSelector)</li>
  *   <li>Exception handlers for common Bukkit scenarios</li>
  *   <li>CommandSource resolvers for type-safe command source handling</li>
  *   <li>Adventure API integration with automatic detection</li>
- *   <li>Entity selector support (@p, @a, @e, @r)</li>
  *   <li>Permission system integration</li>
  * </ul>
  *
+ * <p>Backend-specific defaults (parameter types, Brigadier wiring) are applied
+ * by the chosen {@link studio.mevera.imperat.backend.BukkitBackend} during
+ * {@code BukkitImperat} construction — modern Paper installs Paper-native
+ * argument types with client-side suggestions, legacy installs the existing
+ * name-based bukkit types.</p>
+ *
  * <p>Usage Example:</p>
  * <pre>{@code
- * BukkitImperat imperat = BukkitImperat.builder(plugin)
- *     .applyBrigadier(true)  // Enable Brigadier for Paper
- *     .build();
+ * BukkitImperat imperat = BukkitImperat.builder(plugin).build();
  * }</pre>
  *
  * @author Imperat Framework
@@ -60,16 +55,13 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
 
     private final Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
+    private boolean setOverrideBrigadierMessaging = true;
 
-    private final boolean supportBrigadier;
-
-    BukkitConfigBuilder(Plugin plugin, boolean supportBrigadier) {
+    BukkitConfigBuilder(Plugin plugin) {
         this.plugin = plugin;
-        this.supportBrigadier = supportBrigadier;
         config.setPermissionResolver(DEFAULT_PERMISSION_RESOLVER);
         registerBukkitResponses();
         registerSourceResolvers();
-        registerValueResolvers();
         registerContextResolvers();
         config.setDefaultSuggestionProvider(
                 (context, argument) -> {
@@ -146,15 +138,18 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
         });
     }
 
-    private void registerValueResolvers() {
-        config.registerArgType(Player.class, new PlayerArgument());
-        config.registerArgType(OfflinePlayer.class, new OfflinePlayerArgument());
-        config.registerArgType(Location.class, new LocationArgument());
-        config.registerArgType(TargetSelector.class, new TargetSelectorArgument());
-    }
-
     public BukkitConfigBuilder setAdventureProvider(AdventureProvider<CommandSender> adventureProvider) {
         this.adventureProvider = adventureProvider;
+        return this;
+    }
+
+    /**
+     * Whether the modern Paper backend should listen for {@code UnknownCommandEvent}
+     * and reroute hidden-by-permissions cases through Imperat's exception pipeline.
+     * No effect on the legacy backend. Default: {@code true}.
+     */
+    public BukkitConfigBuilder setOverrideBrigadierMessaging(boolean enabled) {
+        this.setOverrideBrigadierMessaging = enabled;
         return this;
     }
 
@@ -163,7 +158,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
         if (this.adventureProvider == null) {
             this.adventureProvider = this.loadAdventure();
         }
-        return new BukkitImperat(plugin, adventureProvider, supportBrigadier, this.config);
+        return new BukkitImperat(plugin, adventureProvider, this.config, setOverrideBrigadierMessaging);
     }
 
     @SuppressWarnings("ConstantConditions")
