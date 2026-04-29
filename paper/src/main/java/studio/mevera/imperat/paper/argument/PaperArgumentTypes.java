@@ -1,7 +1,5 @@
 package studio.mevera.imperat.paper.argument;
 
-import com.mojang.brigadier.context.CommandContext;
-import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import io.papermc.paper.command.brigadier.argument.predicate.ItemStackPredicate;
 import io.papermc.paper.command.brigadier.argument.range.DoubleRangeProvider;
@@ -18,7 +16,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
@@ -29,7 +26,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,22 +34,13 @@ import java.util.UUID;
 /**
  * Factory mirror of Paper's
  * {@link io.papermc.paper.command.brigadier.argument.ArgumentTypes}. Each
- * method returns a {@link PaperArgumentType} that pairs the native Paper
+ * method returns a {@link PaperArgumentType} pairing the native Paper
  * Brigadier {@code ArgumentType} with a resolver mapping its parsed form
- * to a friendly Java type that command methods can consume directly.
+ * to a friendly Java type.
  *
- * <p>Resolvers handle the {@code /execute}-context safely by fetching the
- * effective {@link CommandSourceStack} where required (entity/player
- * selectors, position resolvers, etc.). Where Paper's native form is
- * already the friendly type ({@code World}, {@code GameMode},
- * {@code ItemStack}, {@code NamespacedKey}, etc.) the resolver is the
- * identity function.</p>
- *
- * <p>Several factories require a current Brigadier {@link CommandContext}
- * to resolve their value (selectors, positions). Those expose the
- * resolver function as a 1-arg lambda accepting the resolver type itself
- * — the wrapper {@link PaperBukkitArgumentType} provides the context at
- * parse time.</p>
+ * <p>Selector / position resolvers receive the executing
+ * {@link io.papermc.paper.command.brigadier.CommandSourceStack} at parse
+ * time via {@link PaperBukkitArgumentType} — registration is stack-free.</p>
  *
  * @since 4.0.0 (Paper module)
  */
@@ -64,14 +51,11 @@ public final class PaperArgumentTypes {
 
     // ===== Entity / Player selectors =====================================
 
-    /**
-     * Single-entity selector — friendly result is the resolved {@link Entity}
-     * (resolver picks the first matching entity, or {@code null} if none).
-     */
-    public static PaperArgumentType<EntitySelectorArgumentResolver, Entity> entity(@NotNull CommandContext<CommandSourceStack> ctx) {
-        return PaperArgumentType.of(ArgumentTypes.entity(), resolver -> {
+    /** Single-entity selector — resolved at parse time against the source. */
+    public static PaperArgumentType<EntitySelectorArgumentResolver, Entity> entity() {
+        return PaperArgumentType.of(ArgumentTypes.entity(), (resolver, stack) -> {
             try {
-                List<Entity> resolved = resolver.resolve(ctx.getSource());
+                List<Entity> resolved = resolver.resolve(stack);
                 return resolved.isEmpty() ? null : resolved.get(0);
             } catch (Throwable ex) {
                 return null;
@@ -79,22 +63,22 @@ public final class PaperArgumentTypes {
         });
     }
 
-    /** Multi-entity selector — friendly result is the resolved list of entities. */
-    public static PaperArgumentType<EntitySelectorArgumentResolver, List<Entity>> entities(@NotNull CommandContext<CommandSourceStack> ctx) {
-        return PaperArgumentType.of(ArgumentTypes.entities(), resolver -> {
+    /** Multi-entity selector — resolved list at parse time. */
+    public static PaperArgumentType<EntitySelectorArgumentResolver, List<Entity>> entities() {
+        return PaperArgumentType.of(ArgumentTypes.entities(), (resolver, stack) -> {
             try {
-                return resolver.resolve(ctx.getSource());
+                return resolver.resolve(stack);
             } catch (Throwable ex) {
                 return List.of();
             }
         });
     }
 
-    /** Single-player selector. */
-    public static PaperArgumentType<PlayerSelectorArgumentResolver, Player> player(@NotNull CommandContext<CommandSourceStack> ctx) {
-        return PaperArgumentType.of(ArgumentTypes.player(), resolver -> {
+    /** Single-player selector — picks first match. */
+    public static PaperArgumentType<PlayerSelectorArgumentResolver, Player> player() {
+        return PaperArgumentType.of(ArgumentTypes.player(), (resolver, stack) -> {
             try {
-                List<Player> resolved = resolver.resolve(ctx.getSource());
+                List<Player> resolved = resolver.resolve(stack);
                 return resolved.isEmpty() ? null : resolved.get(0);
             } catch (Throwable ex) {
                 return null;
@@ -103,25 +87,22 @@ public final class PaperArgumentTypes {
     }
 
     /** Multi-player selector. */
-    public static PaperArgumentType<PlayerSelectorArgumentResolver, List<Player>> players(@NotNull CommandContext<CommandSourceStack> ctx) {
-        return PaperArgumentType.of(ArgumentTypes.players(), resolver -> {
+    public static PaperArgumentType<PlayerSelectorArgumentResolver, List<Player>> players() {
+        return PaperArgumentType.of(ArgumentTypes.players(), (resolver, stack) -> {
             try {
-                return resolver.resolve(ctx.getSource());
+                return resolver.resolve(stack);
             } catch (Throwable ex) {
                 return List.of();
             }
         });
     }
 
-    /**
-     * Player-profile list (offline-aware). Friendly result is the
-     * collection of player profiles resolved against the command source.
-     */
+    /** Player-profile list (offline-aware). */
     public static PaperArgumentType<PlayerProfileListResolver, Collection<com.destroystokyo.paper.profile.PlayerProfile>>
-    playerProfiles(@NotNull CommandContext<CommandSourceStack> ctx) {
-        return PaperArgumentType.of(ArgumentTypes.playerProfiles(), resolver -> {
+    playerProfiles() {
+        return PaperArgumentType.of(ArgumentTypes.playerProfiles(), (resolver, stack) -> {
             try {
-                return resolver.resolve(ctx.getSource());
+                return resolver.resolve(stack);
             } catch (Throwable ex) {
                 return List.of();
             }
@@ -130,47 +111,35 @@ public final class PaperArgumentTypes {
 
     // ===== Positions =====================================================
 
-    /**
-     * Block position — friendly result is the resolved
-     * {@link io.papermc.paper.math.BlockPosition} (Paper's vec3i analogue).
-     */
-    public static PaperArgumentType<BlockPositionResolver, io.papermc.paper.math.BlockPosition>
-    blockPosition(@NotNull CommandContext<CommandSourceStack> ctx) {
-        return PaperArgumentType.of(ArgumentTypes.blockPosition(), resolver -> {
+    public static PaperArgumentType<BlockPositionResolver, io.papermc.paper.math.BlockPosition> blockPosition() {
+        return PaperArgumentType.of(ArgumentTypes.blockPosition(), (resolver, stack) -> {
             try {
-                return resolver.resolve(ctx.getSource());
+                return resolver.resolve(stack);
             } catch (Throwable ex) {
                 return null;
             }
         });
     }
 
-    /**
-     * Fine position — sub-block precision. {@code centerIntegers=false}
-     * by default; pass {@code true} to centre whole numbers (+0.5).
-     */
-    public static PaperArgumentType<FinePositionResolver, io.papermc.paper.math.FinePosition>
-    finePosition(@NotNull CommandContext<CommandSourceStack> ctx) {
-        return finePosition(ctx, false);
+    public static PaperArgumentType<FinePositionResolver, io.papermc.paper.math.FinePosition> finePosition() {
+        return finePosition(false);
     }
 
     public static PaperArgumentType<FinePositionResolver, io.papermc.paper.math.FinePosition>
-    finePosition(@NotNull CommandContext<CommandSourceStack> ctx, boolean centerIntegers) {
-        return PaperArgumentType.of(ArgumentTypes.finePosition(centerIntegers), resolver -> {
+    finePosition(boolean centerIntegers) {
+        return PaperArgumentType.of(ArgumentTypes.finePosition(centerIntegers), (resolver, stack) -> {
             try {
-                return resolver.resolve(ctx.getSource());
+                return resolver.resolve(stack);
             } catch (Throwable ex) {
                 return null;
             }
         });
     }
 
-    /** Rotation argument (yaw, pitch). */
-    public static PaperArgumentType<RotationResolver, io.papermc.paper.math.Rotation>
-    rotation(@NotNull CommandContext<CommandSourceStack> ctx) {
-        return PaperArgumentType.of(ArgumentTypes.rotation(), resolver -> {
+    public static PaperArgumentType<RotationResolver, io.papermc.paper.math.Rotation> rotation() {
+        return PaperArgumentType.of(ArgumentTypes.rotation(), (resolver, stack) -> {
             try {
-                return resolver.resolve(ctx.getSource());
+                return resolver.resolve(stack);
             } catch (Throwable ex) {
                 return null;
             }
@@ -196,8 +165,6 @@ public final class PaperArgumentTypes {
     }
 
     public static PaperArgumentType<BlockData, BlockData> blockState() {
-        // Paper's #blockState() returns a BlockState argument; we expose
-        // BlockData since most user code wants the DSL-friendly form.
         @SuppressWarnings("unchecked")
         com.mojang.brigadier.arguments.ArgumentType<BlockData> nativeType =
                 (com.mojang.brigadier.arguments.ArgumentType<BlockData>) (com.mojang.brigadier.arguments.ArgumentType<?>) ArgumentTypes.blockState();
@@ -252,7 +219,7 @@ public final class PaperArgumentTypes {
         return time(0);
     }
 
-    public static PaperArgumentType<Integer, Integer> time(final int mintime) {
+    public static PaperArgumentType<Integer, Integer> time(int mintime) {
         return PaperArgumentType.identity(ArgumentTypes.time(mintime));
     }
 
@@ -262,53 +229,11 @@ public final class PaperArgumentTypes {
         return PaperArgumentType.identity(ArgumentTypes.uuid());
     }
 
-    /**
-     * A generic Bukkit registry resource lookup. Friendly result is the
-     * resolved registry value (e.g. {@code EntityType}, {@code Material},
-     * {@code Sound}).
-     *
-     * @param registryKey the registry to query
-     * @param <T> registry value type
-     */
     public static <T> PaperArgumentType<T, T> resource(@NotNull RegistryKey<T> registryKey) {
         return PaperArgumentType.identity(ArgumentTypes.resource(registryKey));
     }
 
-    /**
-     * Typed key for a Bukkit registry — friendly result is a
-     * {@link TypedKey} pointing at the registry entry without forcing
-     * resolution.
-     */
     public static <T> PaperArgumentType<TypedKey<T>, TypedKey<T>> resourceKey(@NotNull RegistryKey<T> registryKey) {
         return PaperArgumentType.identity(ArgumentTypes.resourceKey(registryKey));
-    }
-
-    // ===== Convenience: standalone (no-context) versions ================
-    // Some types don't actually need the CommandContext to resolve — these
-    // are exposed as plain factory methods for use in registry-default
-    // wiring where the context isn't yet available.
-
-    /** Single-player selector pre-bound to fetch the FIRST player against a context. */
-    public static PaperArgumentType<PlayerSelectorArgumentResolver, PlayerSelectorArgumentResolver> playerResolver() {
-        return PaperArgumentType.identity(ArgumentTypes.player());
-    }
-
-    /** Single-entity selector pre-bound (defer resolution to caller). */
-    public static PaperArgumentType<EntitySelectorArgumentResolver, EntitySelectorArgumentResolver> entityResolver() {
-        return PaperArgumentType.identity(ArgumentTypes.entity());
-    }
-
-    /** Resolves a snowflake {@link UUID} from the active context — convenience. */
-    public static @Nullable UUID resolveUuid(@NotNull String input) {
-        try {
-            return UUID.fromString(input);
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
-    }
-
-    /** Server context handle — used by callers needing the live Bukkit {@code Server}. */
-    public static @NotNull org.bukkit.Server server() {
-        return Bukkit.getServer();
     }
 }

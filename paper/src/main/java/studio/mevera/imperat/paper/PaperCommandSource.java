@@ -1,9 +1,7 @@
 package studio.mevera.imperat.paper;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -77,17 +75,17 @@ public class PaperCommandSource implements AdventureCommandSource {
 
     @Override
     public void reply(final String message) {
-        provider.send(this, Component.text(ChatColor.translateAlternateColorCodes('&', message)));
+        sender.sendRichMessage(message);
     }
 
     @Override
     public void warn(String message) {
-        reply(ChatColor.YELLOW + message);
+        reply("<gold>WARNING:</gold> " + message);
     }
 
     @Override
     public void error(final String message) {
-        this.reply(ChatColor.RED + message);
+        this.reply("<dark_red>ERROR:</dark_red> <red>" + message + "</red>");
     }
 
     public void reply(final ComponentLike component) {

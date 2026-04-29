@@ -58,7 +58,7 @@ public final class PaperBrigadierManager extends BaseBrigadierManager<PaperComma
      * {@code COMMANDS} lifecycle event).
      */
     public void register(@NotNull Commands registrar, @NotNull Command<PaperCommandSource> command) {
-        LiteralCommandNode<CommandSourceStack> node = this.<CommandSourceStack>parseCommandIntoNode(command);
+        LiteralCommandNode<CommandSourceStack> node = this.parseCommandIntoNode(command);
         String description = command.getDescription() != null
                                      ? command.getDescription().getValueOrElse("")
                                      : "";

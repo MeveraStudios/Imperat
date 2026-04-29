@@ -2,11 +2,17 @@ package studio.mevera.imperat.paper.argument;
 
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.paper.PaperCommandSource;
+import studio.mevera.imperat.paper.type.PaperLocationArgument;
+import studio.mevera.imperat.paper.type.PaperOfflinePlayerArgument;
+import studio.mevera.imperat.paper.type.PaperPlayerArgument;
 
 import java.util.UUID;
 
@@ -15,19 +21,13 @@ import java.util.UUID;
  * applied when {@link studio.mevera.imperat.paper.PaperImperatBuilder}
  * builds an instance.
  *
- * <p>Each mapping wraps a {@link PaperArgumentType} (which carries the
- * native Paper {@code ArgumentType} + a resolver) into a
- * {@link PaperBukkitArgumentType} (Imperat-side argument type). The
- * native type is what Paper sends to the client for native suggestions;
- * the resolver translates Paper's parsed form to the friendly Java type
- * the user's command method declares.</p>
- *
- * <p>Selector / position types that depend on a runtime
- * {@code CommandContext<CommandSourceStack>} are NOT registered here —
- * they need the live context to resolve, which {@link PaperBukkitArgumentType}'s
- * parse method does not provide directly. Plugin authors who need
- * selectors should register them at use-site via
- * {@code config.registerArgType(MyType.class, customMapping)}.</p>
+ * <p>Each mapping wraps a {@link PaperArgumentType} (native Paper
+ * Brigadier {@code ArgumentType} + resolver) into a
+ * {@link PaperBukkitArgumentType} so the Mojang client gets <b>native
+ * client-side suggestions</b> for these types — no server-side
+ * {@code customSuggestions} dance, no flaky tab completion. The resolver
+ * receives the executing {@code CommandSourceStack} at parse time so
+ * selectors (e.g. {@code @p}, {@code @a}) can resolve against the source.</p>
  *
  * @since 4.0.0 (Paper module)
  */
@@ -37,7 +37,23 @@ public final class PaperArgumentMappings {
     }
 
     public static void applyDefaults(ImperatConfig<PaperCommandSource> config) {
-        // Identity-resolved Paper types (parsed form == friendly type).
+        // Player → name-based Imperat-side argument (mirror of legacy
+        // bukkit module). Suggestion provider returns online player names
+        // via Imperat's customSuggestions path.
+        config.registerArgType(Player.class, new PaperPlayerArgument());
+
+        // OfflinePlayer kept on the legacy name-based path (Paper's
+        // playerProfiles selector returns PlayerProfile, not OfflinePlayer,
+        // and most plugin code wants the bukkit OfflinePlayer view).
+        config.registerArgType(OfflinePlayer.class, new PaperOfflinePlayerArgument());
+
+        // Location → legacy multi-token name-based parser (kept for
+        // callers using the bukkit-style "world;x;y;z" form). Plugin
+        // authors who want selector-style positions can register the
+        // FinePosition mapping themselves at use-site.
+        config.registerArgType(Location.class, new PaperLocationArgument());
+
+        // Identity-resolved native types (parsed form == friendly type).
         config.registerArgType(World.class,
                 new PaperBukkitArgumentType<>(World.class, PaperArgumentType.identity(ArgumentTypes.world())));
 
@@ -50,8 +66,7 @@ public final class PaperArgumentMappings {
         config.registerArgType(NamespacedKey.class,
                 new PaperBukkitArgumentType<>(NamespacedKey.class, PaperArgumentType.identity(ArgumentTypes.namespacedKey())));
 
-        // Override the core's UUID with Paper's native UUID arg-type so the
-        // client gets native validation + completion.
+        // Override the core's UUID with Paper's native UUID arg-type.
         config.registerArgType(UUID.class,
                 new PaperBukkitArgumentType<>(UUID.class, PaperArgumentType.identity(ArgumentTypes.uuid())));
     }

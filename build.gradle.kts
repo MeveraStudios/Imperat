@@ -71,10 +71,6 @@ tasks.withType<JavaCompile>().configureEach {
 subprojects {
     apply(plugin = "java-library")
 
-    if (project.name == "paper") {
-        return@subprojects
-    }
-
     tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
     }

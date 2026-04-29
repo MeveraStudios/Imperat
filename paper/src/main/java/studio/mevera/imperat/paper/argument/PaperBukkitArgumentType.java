@@ -2,6 +2,7 @@ package studio.mevera.imperat.paper.argument;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
@@ -58,10 +59,18 @@ public class PaperBukkitArgumentType<N, T> extends ArgumentType<PaperCommandSour
         // etc.) need their tokens joined for Brigadier's StringReader. The
         // tree allots tokens via {@link #getNumberOfParametersToConsume};
         // here we drain whatever the cursor was given.
-        String joined = cursor.collectRemaining();
+
+        Cursor<PaperCommandSource> delegate = cursor.snapshot();
+        String joined = delegate.collectRemaining();
+
         try {
-            N nativeValue = paperType.nativeType().parse(new StringReader(joined));
-            return paperType.resolver().apply(nativeValue);
+            StringReader reader = new StringReader(joined);
+            N nativeValue = paperType.nativeType().parse(reader);
+
+            cursor.commitFromPosition(reader.getCursor());
+
+            CommandSourceStack stack = context.source().stack();
+            return paperType.resolver().apply(nativeValue, stack);
         } catch (CommandSyntaxException ex) {
             throw new CommandException(ex.getMessage(), ex);
         }

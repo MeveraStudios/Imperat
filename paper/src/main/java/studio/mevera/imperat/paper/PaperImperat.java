@@ -6,6 +6,10 @@ import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.command.UnknownCommandEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +17,7 @@ import studio.mevera.imperat.BaseImperat;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.exception.PermissionDeniedException;
 import studio.mevera.imperat.paper.brigadier.PaperBrigadierManager;
 import studio.mevera.imperat.util.ImperatDebugger;
 
@@ -65,7 +70,8 @@ public final class PaperImperat extends BaseImperat<PaperCommandSource> {
     PaperImperat(
             @NotNull Plugin plugin,
             @NotNull AdventureProvider<CommandSender> adventureProvider,
-            @NotNull ImperatConfig<PaperCommandSource> config
+            @NotNull ImperatConfig<PaperCommandSource> config,
+            boolean rewriteUnknownCommandMessage
     ) {
         super(config);
         this.plugin = plugin;
@@ -74,6 +80,9 @@ public final class PaperImperat extends BaseImperat<PaperCommandSource> {
 
         ImperatDebugger.setLogger(plugin.getLogger());
         registerLifecycleHook();
+        if (rewriteUnknownCommandMessage) {
+            registerUnknownCommandListener();
+        }
     }
 
     public static PaperImperatBuilder builder(@NotNull Plugin plugin) {
@@ -90,6 +99,46 @@ public final class PaperImperat extends BaseImperat<PaperCommandSource> {
             }
             pending.clear();
         });
+    }
+
+    private static @Nullable String stripLabel(@NotNull String commandLine) {
+        String trimmed = commandLine.startsWith("/") ? commandLine.substring(1) : commandLine;
+        int space = trimmed.indexOf(' ');
+        String label = space >= 0 ? trimmed.substring(0, space) : trimmed;
+        return label.isEmpty() ? null : label.toLowerCase();
+    }
+
+    /**
+     * Wire a {@link UnknownCommandEvent} listener that routes hidden-by-
+     * permissions cases through Imperat's standard error-handling pipeline.
+     * When the typed label maps to a known Imperat command, the listener
+     * suppresses the vanilla "Unknown command" output, builds a
+     * {@link PermissionDeniedException} for the command's default pathway,
+     * and dispatches it through {@code config().handleExecutionError(...)} —
+     * the registered {@link studio.mevera.imperat.exception.CommandExceptionHandler}
+     * for {@code PermissionDeniedException} (default or user-supplied) then
+     * emits the configured message.
+     */
+    private void registerUnknownCommandListener() {
+        plugin.getServer().getPluginManager().registerEvents(new Listener() {
+            @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+            public void onUnknown(UnknownCommandEvent event) {
+                String line = event.getCommandLine();
+                if (line.isEmpty()) {
+                    return;
+                }
+                String label = stripLabel(line);
+                if (label == null) {
+                    return;
+                }
+                Command<PaperCommandSource> imperatCommand = getCommand(label);
+                if (imperatCommand == null) {
+                    return;
+                }
+                event.message(null);
+                PaperImperat.this.execute(wrapSender(event.getSender()), line);
+            }
+        }, plugin);
     }
 
     @Override

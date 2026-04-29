@@ -136,4 +136,9 @@ final class CursorImpl<S extends CommandSource> implements Cursor<S> {
     public @NotNull CommandContext<S> context() {
         return context;
     }
+
+    @Override
+    public void commitFromPosition(int pos) {
+        this.position = pos;
+    }
 }

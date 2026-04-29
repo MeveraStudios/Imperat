@@ -231,4 +231,6 @@ public sealed interface Cursor<S extends CommandSource> permits CursorImpl {
      */
     @NotNull
     CommandContext<S> context();
+
+    void commitFromPosition(int pos);
 }

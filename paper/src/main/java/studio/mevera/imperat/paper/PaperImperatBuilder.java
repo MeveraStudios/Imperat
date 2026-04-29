@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.ConfigBuilder;
+import studio.mevera.imperat.ResolverRegistrar;
 import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.adventure.CastingAdventure;
@@ -36,6 +37,7 @@ public final class PaperImperatBuilder extends ConfigBuilder<PaperCommandSource,
 
     private final Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
+    private boolean overrideBrigadierMessaging = true;
 
     PaperImperatBuilder(@NotNull Plugin plugin) {
         this.plugin = plugin;
@@ -94,7 +96,7 @@ public final class PaperImperatBuilder extends ConfigBuilder<PaperCommandSource,
     }
 
     private void registerPaperResponses() {
-        this.visit(c -> c.getResponseRegistry(), registry -> {
+        this.visit(ResolverRegistrar::getResponseRegistry, registry -> {
             registry.registerResponse(PaperResponseKey.ONLY_PLAYER, () -> "Only players can do this!");
             registry.registerResponse(PaperResponseKey.ONLY_CONSOLE, () -> "Only console can do this!");
             registry.registerResponse(PaperResponseKey.UNKNOWN_PLAYER,
@@ -114,12 +116,18 @@ public final class PaperImperatBuilder extends ConfigBuilder<PaperCommandSource,
         return this;
     }
 
+
+    public PaperImperatBuilder setOverrideBrigadierMessaging(boolean enabled) {
+        this.overrideBrigadierMessaging = enabled;
+        return this;
+    }
+
     @Override
     public @NotNull PaperImperat build() {
         if (this.adventureProvider == null) {
             this.adventureProvider = this.loadAdventure();
         }
-        return new PaperImperat(plugin, adventureProvider, this.config);
+        return new PaperImperat(plugin, adventureProvider, this.config, overrideBrigadierMessaging);
     }
 
     @SuppressWarnings("ConstantConditions")

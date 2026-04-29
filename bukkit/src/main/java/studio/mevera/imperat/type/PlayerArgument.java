@@ -11,6 +11,7 @@ import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.ArgumentParseException;
 import studio.mevera.imperat.exception.CommandException;
+import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 
@@ -29,7 +30,7 @@ public class PlayerArgument extends SimpleArgumentType<BukkitCommandSource, Play
             throws CommandException {
         if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
-                throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_PLAYER, input);
+                throw ResponseException.of(BukkitResponseKey.ONLY_PLAYER);
             }
             return context.source().asPlayer();
         }

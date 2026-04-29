@@ -25,12 +25,9 @@ import studio.mevera.imperat.command.tree.projection.ProjectedNode;
 import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
-import studio.mevera.imperat.util.Patterns;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Brigadier-tree builder backed by a {@link CommandTreeProjection}. The
@@ -154,9 +151,14 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             ArgumentBuilder<BS, ?> parentBuilder,
             int optionalIndex
     ) {
-        appendFlagFallback(rootCommand, scope, parentBuilder);
+        // Order matters for Brigadier: optional + child literals BEFORE the
+        // catch-all greedy flag fallback so the parse picks the more
+        // specific path first. With the fallback registered first, an empty
+        // input parsed cleanly into the greedy node and the client never
+        // saw the optional's suggestions.
         appendOptionalContinuation(rootCommand, scope, parentBuilder, optionalIndex);
         appendChildContinuations(rootCommand, scope, parentBuilder);
+        appendFlagFallback(rootCommand, scope, parentBuilder);
     }
 
     private <BS> void appendOptionalContinuation(
@@ -221,12 +223,26 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
     }
 
     /**
-     * Catch-all greedy-string node that surfaces flag-name + flag-value
-     * suggestions and dispatches any input (including {@code --}-prefixed
-     * forms or unknown flags) back into Imperat. Replaces the legacy
-     * "_imperat_flags_<depth>" tunnel; the suggestion provider now reads
-     * from the projection's flag list instead of round-tripping through the
-     * auto-completer.
+     * Registers each scope flag as a pair of linked Brigadier nodes:
+     * <ul>
+     *   <li>A {@link LiteralArgumentBuilder literal} per alias
+     *       ({@code -force}, {@code -f}) — child of {@code parentBuilder}.</li>
+     *   <li>For value flags, a child {@link RequiredArgumentBuilder required arg}
+     *       holding the flag's input value, with its own suggestion
+     *       provider sourced from the flag's
+     *       {@link FlagArgument#inputSuggestionResolver()}.</li>
+     * </ul>
+     *
+     * <p>Switches expose only the literal — no value child. Both nodes carry
+     * an {@code executes} callback so partial input (e.g. {@code /fly -force}
+     * with no value) still dispatches into Imperat for proper error handling.
+     * Visibility on each node mirrors the framework's
+     * {@link #isFlagVisible(Command, ProjectedFlag, CommandSource)} check.</p>
+     *
+     * <p>Replaces the legacy single-node "greedy fallback" that confused
+     * Mojang's tab UI by competing with sibling positional args for the
+     * empty-input parse — proper Brigadier branches give the client a
+     * standard tree to render.</p>
      */
     private <BS> void appendFlagFallback(
             Command<S> command,
@@ -237,11 +253,48 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             return;
         }
 
-        RequiredArgumentBuilder<BS, String> fallback =
-                RequiredArgumentBuilder.argument(flagFallbackName(scope), StringArgumentType.greedyString());
-        fallback.suggests(createFlagSuggestionProvider(command, scope));
-        executor(fallback);
-        parentBuilder.then(fallback);
+        for (ProjectedFlag<S> projectedFlag : scope.flags()) {
+            FlagArgument<S> flag = projectedFlag.flag();
+            for (String alias : projectedFlag.aliases()) {
+                LiteralArgumentBuilder<BS> flagLiteral = LiteralArgumentBuilder.literal("-" + alias);
+                flagLiteral.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
+                executor(flagLiteral);
+
+                if (!projectedFlag.isSwitch()) {
+                    RequiredArgumentBuilder<BS, String> valueBuilder =
+                            RequiredArgumentBuilder.argument(alias + "_value", StringArgumentType.string());
+                    valueBuilder.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
+                    valueBuilder.suggests(createFlagValueProvider(command, projectedFlag));
+                    executor(valueBuilder);
+                    flagLiteral.then(valueBuilder);
+                }
+
+                parentBuilder.then(flagLiteral.build());
+            }
+        }
+    }
+
+    private @NotNull <BS> com.mojang.brigadier.suggestion.SuggestionProvider<BS> createFlagValueProvider(
+            Command<S> command,
+            ProjectedFlag<S> projectedFlag
+    ) {
+        FlagArgument<S> flag = projectedFlag.flag();
+        return (context, builder) -> {
+            SuggestionContext<S> ctx = createSuggestionContext(command, context.getSource(), context.getInput());
+            CompletionArg arg = ctx.getArgToComplete();
+            String prefix = arg.isEmpty() ? "" : arg.value().toLowerCase(Locale.ROOT);
+
+            List<String> values = collectFlagValueSuggestions(ctx, flag);
+            for (String value : values) {
+                if (value == null || value.isEmpty()) {
+                    continue;
+                }
+                if (prefix.isEmpty() || value.toLowerCase(Locale.ROOT).startsWith(prefix)) {
+                    builder.suggest(value);
+                }
+            }
+            return builder.buildFuture();
+        };
     }
 
     private @NotNull <BS> SuggestionProvider<BS> createSuggestionProvider(
@@ -256,59 +309,24 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             Description desc = parameter.getDescription();
             Message tooltip = new LiteralMessage(paramFormat + (desc.isEmpty() ? "" : " - " + desc.getValue()));
 
+            // Realign suggestions to the actual arg-token start so the
+            // client renders them at the cursor instead of overwriting
+            // earlier tokens. Brigadier's default builder.start can be the
+            // start of an earlier node (e.g. the literal) when parse picks
+            // a different sibling — without this, suggestions silently get
+            // dropped client-side because their replace-range is wrong.
+            var alignedBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
+            String prefix = arg.isEmpty() ? "" : arg.value().toLowerCase();
+
             return dispatcher.config().getParameterSuggestionResolver(parameter).provideAsynchronously(ctx, parameter)
                            .thenCompose((results) -> {
                                results
                                        .stream()
-                                       .filter((candidate) -> arg.isEmpty()
-                                                                      || candidate.toLowerCase().startsWith(arg.value().toLowerCase()))
-                                       .forEachOrdered((result) -> builder.suggest(result, tooltip));
-                               return builder.buildFuture();
+                                       .filter((candidate) -> prefix.isEmpty()
+                                                                      || candidate.toLowerCase().startsWith(prefix))
+                                       .forEachOrdered((result) -> alignedBuilder.suggest(result, tooltip));
+                               return alignedBuilder.buildFuture();
                            });
-        };
-    }
-
-    private @NotNull <BS> SuggestionProvider<BS> createFlagSuggestionProvider(
-            Command<S> command,
-            ProjectedNode<S> scope
-    ) {
-        return (context, builder) -> {
-            SuggestionContext<S> ctx = createSuggestionContext(command, context.getSource(), context.getInput());
-            CompletionArg arg = ctx.getArgToComplete();
-            String prefix = arg.isEmpty() ? "" : arg.value();
-
-            ProjectedFlag<S> valueTarget = findFlagValueTarget(scope, ctx, arg);
-            if (valueTarget != null) {
-                var targetBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
-                List<String> values = collectFlagValueSuggestions(ctx, valueTarget.flag());
-                values.stream()
-                        .filter(v -> v != null && !v.isEmpty())
-                        .filter(v -> prefix.isEmpty() || v.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT)))
-                        .forEachOrdered(targetBuilder::suggest);
-                return targetBuilder.buildFuture();
-            }
-
-            if (!shouldSuggestFlagNames(arg)) {
-                return builder.buildFuture();
-            }
-
-            var targetBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
-            Set<String> seen = new LinkedHashSet<>();
-            for (ProjectedFlag<S> flag : scope.flags()) {
-                if (!isFlagVisible(command, flag, ctx.source())) {
-                    continue;
-                }
-                for (String alias : flag.aliases()) {
-                    String formatted = "-" + alias;
-                    if (!seen.add(formatted)) {
-                        continue;
-                    }
-                    if (prefix.isEmpty() || formatted.toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT))) {
-                        targetBuilder.suggest(formatted);
-                    }
-                }
-            }
-            return targetBuilder.buildFuture();
         };
     }
 
@@ -319,56 +337,6 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         var checker = dispatcher.config().getPermissionChecker();
         return checker.hasPermission(source, flag.owningPathway())
                        && checker.hasPermission(source, flag.flag());
-    }
-
-    /**
-     * If the cursor is currently sitting inside a flag's value span, returns
-     * that flag so the caller can surface its value suggestions. Walks
-     * BACKWARDS to the most recent flag form and returns it iff the offset
-     * between the flag and the completion position is within the flag's
-     * declared value-token arity. This generalises the legacy "previous
-     * token must be a flag" check so multi-token value flags (e.g. a 3-token
-     * coordinate triple bound to {@code -coords}) light up at every value
-     * position within the span, not just the first.
-     */
-    private @Nullable ProjectedFlag<S> findFlagValueTarget(
-            ProjectedNode<S> scope,
-            SuggestionContext<S> ctx,
-            CompletionArg arg
-    ) {
-        int completionIndex = arg.index();
-        if (completionIndex <= 0) {
-            return null;
-        }
-        for (int back = 1; back <= completionIndex; back++) {
-            int candidate = completionIndex - back;
-            String token = ctx.arguments().getOr(candidate, null);
-            if (token == null || !Patterns.isInputFlag(token)) {
-                continue;
-            }
-            for (ProjectedFlag<S> flag : scope.flags()) {
-                if (!flag.flag().flagData().acceptsInput(token)) {
-                    continue;
-                }
-                if (flag.isSwitch()) {
-                    return null;
-                }
-                if (back <= valueArityOf(flag.flag())) {
-                    return flag;
-                }
-                return null;
-            }
-            return null;
-        }
-        return null;
-    }
-
-    private int valueArityOf(FlagArgument<S> flag) {
-        var inputType = flag.flagData().inputType();
-        if (inputType == null) {
-            return 1;
-        }
-        return Math.max(1, inputType.getNumberOfParametersToConsume(flag));
     }
 
     private List<String> collectFlagValueSuggestions(SuggestionContext<S> ctx, FlagArgument<S> flag) {
@@ -408,10 +376,6 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         return dispatcher.config().getContextFactory().createSuggestionContext(dispatcher, source, command, label, args);
     }
 
-    private boolean shouldSuggestFlagNames(CompletionArg arg) {
-        return arg.isEmpty() || arg.value().startsWith("-");
-    }
-
     private int resolveSuggestionStart(String rawInput, CompletionArg arg) {
         if (arg.isEmpty()) {
             return rawInput.length();
@@ -424,20 +388,6 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             input = input.substring(1);
         }
         return input;
-    }
-
-    private String flagFallbackName(ProjectedNode<S> scope) {
-        return "_imperat_flags_" + nodeDepth(scope);
-    }
-
-    private int nodeDepth(ProjectedNode<S> scope) {
-        int depth = 0;
-        var current = scope.sourceNode();
-        while (current.getParent() != null) {
-            depth++;
-            current = current.getParent();
-        }
-        return depth;
     }
 
     private void executor(ArgumentBuilder<?, ?> builder) {
