@@ -2,15 +2,20 @@ package studio.mevera.imperat;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.command.UnknownCommandEvent;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.backend.BukkitBackend;
-import studio.mevera.imperat.backend.legacy.LegacyBackend;
-import studio.mevera.imperat.backend.modern.ModernPaperBackend;
+import studio.mevera.imperat.backend.capability.BukkitCapability;
+import studio.mevera.imperat.backend.capability.CapabilityResolver;
+import studio.mevera.imperat.backend.capability.RegistrationCapability;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.StringUtils;
-import studio.mevera.imperat.util.reflection.Reflections;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,7 +65,7 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
 
     private final Plugin plugin;
     private final AdventureProvider<CommandSender> adventureProvider;
-    private final BukkitBackend backend;
+    private final RegistrationCapability backend;
     private Map<String, org.bukkit.command.Command> bukkitCommands = new HashMap<>();
 
     @SuppressWarnings("unchecked") BukkitImperat(
@@ -84,21 +89,60 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
             throw new RuntimeException(e);
         }
 
-        // Probe the runtime classpath for modern Paper Brigadier support.
-        // Both gates must be present — Commands alone isn't enough; we also
-        // need the lifecycle-event API to capture the registrar safely.
-        boolean modernPaper =
-                Reflections.findClass("io.papermc.paper.command.brigadier.Commands")
-                        && Reflections.findClass("io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents");
-
-        if (modernPaper) {
-            this.backend = new ModernPaperBackend(this, plugin, adventureProvider, rewriteUnknownCommandMessage);
-        } else {
-            this.backend = new LegacyBackend(this, plugin, adventureProvider);
-        }
+        // Capability resolver picks the right registration backend based on
+        // runtime class probes (modern Paper > legacy Paper Brigadier event >
+        // Commodore > plain CommandMap). Impl class is loaded reflectively
+        // — probed-but-unselected impls never hit the classloader.
+        this.backend = CapabilityResolver.resolve(plugin);
+        this.backend.initialize(plugin, this, adventureProvider);
 
         // Argument-type defaults are registered LATE — backend-specific.
         backend.applyArgumentTypeDefaults(config);
+
+        // Permission-denied rewrite via UnknownCommandEvent is independent
+        // of registration backend — wired here so all Bukkit-flavoured
+        // backends benefit when the option is enabled.
+        if (rewriteUnknownCommandMessage) {
+            registerUnknownCommandListener();
+        }
+
+        // AsyncTabCompleteEvent listener — defensive fallback for headless
+        // test harnesses (MockBukkit) and any path where Brigadier dispatch
+        // doesn't reach the suggestion request. Brigadier is async by
+        // default on real servers; this listener is harmless when it
+        // never fires.
+        if (Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
+            plugin.getServer().getPluginManager().registerEvents(new AsyncTabListener(this), plugin);
+        }
+    }
+
+    private static String stripLabel(@NotNull String commandLine) {
+        String trimmed = commandLine.startsWith("/") ? commandLine.substring(1) : commandLine;
+        int space = trimmed.indexOf(' ');
+        String label = space >= 0 ? trimmed.substring(0, space) : trimmed;
+        return label.isEmpty() ? null : label.toLowerCase();
+    }
+
+    private void registerUnknownCommandListener() {
+        plugin.getServer().getPluginManager().registerEvents(new Listener() {
+            @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+            public void onUnknown(UnknownCommandEvent event) {
+                String line = event.getCommandLine();
+                if (line == null || line.isEmpty()) {
+                    return;
+                }
+                String label = stripLabel(line);
+                if (label == null) {
+                    return;
+                }
+                Command<BukkitCommandSource> imperatCommand = getCommand(label);
+                if (imperatCommand == null) {
+                    return;
+                }
+                event.message(null);
+                execute(wrapSender(event.getSender()), line);
+            }
+        }, plugin);
     }
 
     /**
@@ -112,9 +156,14 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
         return new BukkitConfigBuilder(plugin);
     }
 
-    /** @return the active backend (modern Paper or legacy). */
+    /** @return the active backend (modern Paper, legacy Paper, Commodore, or plain CommandMap). */
     public BukkitBackend backend() {
         return backend;
+    }
+
+    /** @return the capability that satisfied the runtime probe — for diagnostics. */
+    public BukkitCapability capability() {
+        return backend.kind();
     }
 
     @Override

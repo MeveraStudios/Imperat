@@ -1,4 +1,4 @@
-package studio.mevera.imperat.backend.legacy;
+package studio.mevera.imperat.backend.capability.impl;
 
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -6,15 +6,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.AsyncTabListener;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.BukkitImperat;
 import studio.mevera.imperat.BukkitUtil;
 import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.InternalBukkitCommand;
-import studio.mevera.imperat.Version;
 import studio.mevera.imperat.adventure.AdventureProvider;
-import studio.mevera.imperat.backend.BukkitBackend;
+import studio.mevera.imperat.backend.capability.BukkitCapability;
+import studio.mevera.imperat.backend.capability.RegistrationCapability;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.type.LocationArgument;
@@ -23,38 +22,35 @@ import studio.mevera.imperat.type.PlayerArgument;
 import studio.mevera.imperat.type.TargetSelectorArgument;
 
 /**
- * Legacy backend for Spigot / pre-1.21 Paper. Registers commands via
- * Bukkit's {@link org.bukkit.command.CommandMap} reflection and routes
- * tab completion through {@link InternalBukkitCommand#tabComplete} —
- * no Brigadier integration on this path (the dedicated NMS / Commodore
- * codepaths were dropped in favour of the modern Paper backend's
- * stable Brigadier API).
+ * {@link BukkitCapability#PLAIN_COMMAND_MAP} registration impl — universal
+ * fallback. Registers commands on Bukkit's
+ * {@link org.bukkit.command.CommandMap} via reflection. No Brigadier
+ * integration: tab completion routes through
+ * {@link InternalBukkitCommand#tabComplete} into Imperat's auto-completer.
  *
- * <p>If the runtime additionally exposes Paper's
- * {@code AsyncTabCompleteEvent}, this backend also registers an
- * {@link AsyncTabListener} so async tab completion still works on
- * legacy Paper (1.13–1.20) without Brigadier.</p>
+ * <ul>
+ *   <li><b>Range:</b> 1.8+</li>
+ *   <li><b>Platform:</b> Spigot + Paper (always available)</li>
+ * </ul>
  *
  * @since 4.0.0
  */
-public final class LegacyBackend implements BukkitBackend {
+public final class PlainCommandMapRegistration implements RegistrationCapability {
 
-    private final BukkitImperat owner;
-    private final Plugin plugin;
-    private final AdventureProvider<CommandSender> adventureProvider;
+    private BukkitImperat owner;
+    private Plugin plugin;
+    private AdventureProvider<CommandSender> adventureProvider;
 
-    public LegacyBackend(
-            @NotNull BukkitImperat owner,
-            @NotNull Plugin plugin,
-            @NotNull AdventureProvider<CommandSender> adventureProvider
-    ) {
-        this.owner = owner;
+    public PlainCommandMapRegistration() {
+    }
+
+    @Override
+    public void initialize(@NotNull Plugin plugin,
+            @NotNull BukkitImperat imperat,
+            @NotNull AdventureProvider<CommandSender> adventureProvider) {
+        this.owner = imperat;
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
-
-        if (Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
-            plugin.getServer().getPluginManager().registerEvents(new AsyncTabListener(owner), plugin);
-        }
     }
 
     @Override
@@ -70,7 +66,7 @@ public final class LegacyBackend implements BukkitBackend {
         }
         throw new IllegalArgumentException(
                 "Cannot wrap sender of type " + sender.getClass().getName()
-                        + " — expected CommandSender (legacy backend)");
+                        + " — expected CommandSender (plain command-map backend)");
     }
 
     @Override
@@ -83,11 +79,18 @@ public final class LegacyBackend implements BukkitBackend {
 
     @Override
     public void shutdown() {
-        adventureProvider.close();
+        if (adventureProvider != null) {
+            adventureProvider.close();
+        }
     }
 
     @Override
     public @NotNull AdventureProvider<CommandSender> adventureProvider() {
         return adventureProvider;
+    }
+
+    @Override
+    public @NotNull BukkitCapability kind() {
+        return BukkitCapability.PLAIN_COMMAND_MAP;
     }
 }
