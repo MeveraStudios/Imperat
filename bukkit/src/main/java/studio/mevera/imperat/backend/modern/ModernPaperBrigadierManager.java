@@ -46,19 +46,70 @@ public final class ModernPaperBrigadierManager extends BaseBrigadierManager<Bukk
     @Override
     public @NotNull com.mojang.brigadier.arguments.ArgumentType<?> getArgumentType(
             @NotNull Argument<BukkitCommandSource> imperatArgument) {
-        var type = imperatArgument.type();
+        return resolveNative(imperatArgument.type(), () -> getStringArgType(imperatArgument));
+    }
 
-        if (type instanceof PaperBukkitArgumentType<?, ?> paperType) {
+    /**
+     * Flag-value variant: route the flag's input type through the same
+     * Paper-native lookup chain so {@code --target @e[type=zombie]} renders
+     * with selector coloring + native autocomplete instead of falling
+     * through to plain string (which halts at {@code [}, painting valid
+     * selector syntax red).
+     */
+    @Override
+    protected com.mojang.brigadier.arguments.@NotNull ArgumentType<?> getFlagValueArgumentType(
+            @NotNull studio.mevera.imperat.command.arguments.FlagArgument<BukkitCommandSource> flag
+    ) {
+        var inputType = flag.flagData().inputType();
+        if (inputType == null) {
+            return super.getFlagValueArgumentType(flag);
+        }
+        return resolveNative(inputType, () -> super.getFlagValueArgumentType(flag));
+    }
+
+    /**
+     * Shared lookup: walks the Paper-native bridges in priority order and
+     * falls back to {@code defaultSupplier} when no bridge matches.
+     */
+    private com.mojang.brigadier.arguments.@NotNull ArgumentType<?> resolveNative(
+            studio.mevera.imperat.command.arguments.type.ArgumentType<BukkitCommandSource, ?> imperatType,
+            java.util.function.Supplier<com.mojang.brigadier.arguments.ArgumentType<?>> defaultSupplier
+    ) {
+        if (imperatType instanceof PaperBukkitArgumentType<?, ?> paperType) {
             return paperType.nativeType();
         }
-        // Generic Paper-native bridge: any Imperat-side ArgumentType that
-        // implements PaperNativeAware contributes its Brigadier-native
-        // counterpart for client coloring + native autocomplete, while
-        // keeping its custom server-side parse logic.
-        if (type instanceof studio.mevera.imperat.backend.modern.argument.PaperNativeAware aware) {
+        if (imperatType instanceof studio.mevera.imperat.backend.modern.argument.PaperNativeAware aware) {
             return aware.paperNativeType();
         }
-        return getStringArgType(imperatArgument);
+        return defaultSupplier.get();
+    }
+
+    /**
+     * When a flag's input type maps to a Paper-native ArgumentType, route
+     * the value-node's tab completion straight through that native type's
+     * {@code listSuggestions} — Mojang's parser knows selector filter keys,
+     * block-state keys, NBT path completions, etc., which the Imperat-side
+     * suggestion provider would never enumerate.
+     */
+    @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected <BS> @org.jetbrains.annotations.Nullable com.mojang.brigadier.suggestion.SuggestionProvider<BS>
+    createNativeFlagValueSuggester(
+            @NotNull studio.mevera.imperat.command.arguments.FlagArgument<BukkitCommandSource> flag
+    ) {
+        var inputType = flag.flagData().inputType();
+        if (inputType == null) {
+            return null;
+        }
+        com.mojang.brigadier.arguments.ArgumentType nativeType;
+        if (inputType instanceof PaperBukkitArgumentType<?, ?> paperType) {
+            nativeType = paperType.nativeType();
+        } else if (inputType instanceof studio.mevera.imperat.backend.modern.argument.PaperNativeAware aware) {
+            nativeType = aware.paperNativeType();
+        } else {
+            return null;
+        }
+        return (ctx, builder) -> nativeType.listSuggestions(ctx, builder);
     }
 
     /**

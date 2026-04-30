@@ -370,10 +370,24 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         executor(flagLiteral);
 
         if (!projectedFlag.isSwitch()) {
-            RequiredArgumentBuilder<BS, String> valueBuilder =
-                    RequiredArgumentBuilder.argument(suffixForValueArg + "_value", StringArgumentType.string());
+            // Resolve the flag's value-type to a Brigadier-native type so
+            // client-side rendering matches whatever the input ArgumentType
+            // declares (selector charset for TargetSelector, NBT braces for
+            // ItemStack, etc.) — without this the value node is stuck on
+            // stock `StringArgumentType.string()` which halts at `[`/`=`/`@`
+            // and paints valid native syntax red.
+            com.mojang.brigadier.arguments.ArgumentType<?> valueType =
+                    getFlagValueArgumentType(projectedFlag.flag());
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            RequiredArgumentBuilder<BS, ?> valueBuilder = (RequiredArgumentBuilder)
+                                                                  RequiredArgumentBuilder.argument(suffixForValueArg + "_value", valueType);
             valueBuilder.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
-            valueBuilder.suggests(createFlagValueProvider(command, projectedFlag));
+            // Prefer the value-type's own native suggestions (selector
+            // filter keys, block-state keys, NBT path completions, etc.)
+            // when the backend exposes them. Falls back to the
+            // Imperat-side createFlagValueProvider for plain flags.
+            SuggestionProvider<BS> nativeSugg = createNativeFlagValueSuggester(projectedFlag.flag());
+            valueBuilder.suggests(nativeSugg != null ? nativeSugg : createFlagValueProvider(command, projectedFlag));
             executor(valueBuilder);
             // Attach the same scope continuations (optionals, child commands,
             // OTHER flags) to the value node so the client keeps offering
@@ -549,6 +563,48 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
      */
     protected @Nullable com.mojang.brigadier.arguments.ArgumentType<?> inlineFlagArgumentType() {
         return new InlineFlagArgumentType();
+    }
+
+    /**
+     * Resolves the Brigadier {@link com.mojang.brigadier.arguments.ArgumentType}
+     * to register for a flag's VALUE node — driven by the flag's
+     * {@link FlagArgument#flagData() input type}. Default falls back to
+     * {@link StringArgumentType#string()} (no native rendering).
+     *
+     * <p>Backends that map Imperat-side {@code ArgumentType}s onto native
+     * Paper / Brigadier types (e.g. {@code ModernPaperBrigadierManager}'s
+     * {@code PaperBukkitArgumentType} + {@code PaperNativeAware} bridges)
+     * SHOULD override to delegate the flag's value-type lookup through the
+     * same channel as positional arguments — keeps client coloring +
+     * native autocomplete consistent between {@code <arg>} positional
+     * nodes and {@code --flag <arg>} flag-value nodes.</p>
+     */
+    protected com.mojang.brigadier.arguments.@NotNull ArgumentType<?> getFlagValueArgumentType(
+            @NotNull FlagArgument<S> flag
+    ) {
+        return StringArgumentType.string();
+    }
+
+    /**
+     * Optional native suggestions delegate for a flag's value node. Default
+     * returns {@code null} — the framework then uses the Imperat-side
+     * {@code createFlagValueProvider} (built from the flag's
+     * {@link FlagArgument#inputSuggestionResolver() inputSuggestionResolver}
+     * + its input type's suggestion provider).
+     *
+     * <p>Backends that map flag value-types onto Brigadier-native
+     * {@link com.mojang.brigadier.arguments.ArgumentType ArgumentTypes}
+     * (e.g. {@code ModernPaperBrigadierManager} routing {@code TargetSelector}
+     * to {@code ArgumentTypes.entities()}) SHOULD override and return a
+     * provider that delegates to {@code nativeType.listSuggestions} so
+     * the client gets selector filter keys / NBT keys / etc. directly
+     * from Mojang's native parser instead of Imperat's flat string list.
+     * Returning {@code null} means "fall back to the Imperat path".</p>
+     */
+    protected <BS> @Nullable SuggestionProvider<BS> createNativeFlagValueSuggester(
+            @NotNull FlagArgument<S> flag
+    ) {
+        return null;
     }
 
     protected StringArgumentType getStringArgType(Argument<S> parameter) {
