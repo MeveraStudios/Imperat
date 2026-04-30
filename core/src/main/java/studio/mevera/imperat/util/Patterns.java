@@ -6,8 +6,12 @@ public final class Patterns {
 
     // Allow optional `=value` suffix for the inline assignment form
     // (e.g. `--file=path.txt`, `-f=path.txt`).
-    public final static Pattern SINGLE_FLAG = Pattern.compile("-([a-zA-Z0-9_]+)(?:=(.*))?");
-    public final static Pattern DOUBLE_FLAG = Pattern.compile("--([a-zA-Z0-9_]+)(?:=(.*))?");
+    // Flag names allow alphanumerics, underscore, and internal hyphens
+    // (e.g. `--no-verify`, `--save-dev`, `--all-namespaces`). The leading
+    // char must be a letter/digit/underscore so the pattern doesn't eat
+    // an extra hyphen from `---`.
+    public final static Pattern SINGLE_FLAG = Pattern.compile("-([a-zA-Z0-9_][a-zA-Z0-9_\\-]*)(?:=(.*))?");
+    public final static Pattern DOUBLE_FLAG = Pattern.compile("--([a-zA-Z0-9_][a-zA-Z0-9_\\-]*)(?:=(.*))?");
 
     private Patterns() {
         throw new AssertionError();

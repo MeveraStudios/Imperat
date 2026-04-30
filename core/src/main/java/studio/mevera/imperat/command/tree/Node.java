@@ -107,6 +107,13 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
     public ParsedNode<S> parseArgument(RawInputStream<S> inputStream) throws CommandException {
         Map<String, ParseResult<S>> parseResultMap = new HashMap<>();
 
+        // Drain registered flags appearing BEFORE the main positional so
+        // patterns like `docker run -d --rm <image>` bind flags first and
+        // leave only the positional token(s) for the required main arg.
+        // Without this pre-drain, a String main would happily consume `-d`
+        // as its value and the trailing positional becomes orphaned.
+        drainLeadingFlags(inputStream, parseResultMap);
+
         // Threaded {@code parseResultMap} so that registered flags appearing
         // inside a greedy main argument's span are extracted into the result
         // map instead of being slurped into the greedy buffer. Non-greedy mains
@@ -119,6 +126,23 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
 
         parseOptionalsAndFlags(inputStream, parseResultMap);
         return new ParsedNode<>(this, parseResultMap);
+    }
+
+    private void drainLeadingFlags(RawInputStream<S> inputStream, Map<String, ParseResult<S>> sink) {
+        while (inputStream.hasNext()) {
+            String peek = inputStream.next();
+            if (!Patterns.isInputFlag(peek)) {
+                inputStream.backward();
+                return;
+            }
+            if (!tryExtractInlineFlag(peek, inputStream, sink)) {
+                // Token looks like a flag but is not registered for this
+                // pathway — hand it back; the main arg may still parse it
+                // (e.g. a literal that starts with `-`).
+                inputStream.backward();
+                return;
+            }
+        }
     }
 
     /**
@@ -139,7 +163,7 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             String peek = inputStream.next();
             if (Patterns.isInputFlag(peek)) {
                 try {
-                    var extracted = flags.extract(peek);
+                    var extracted = extractFlagFromAnyPathway(peek);
                     if (!extracted.isEmpty()) {
                         String inline = Patterns.inlineFlagValue(peek);
                         List<String> valueTokens;
@@ -431,7 +455,7 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             Map<String, ParseResult<S>> flagSink
     ) {
         try {
-            var extracted = flags.extract(rawFlagInput);
+            var extracted = extractFlagFromAnyPathway(rawFlagInput);
             if (extracted.isEmpty()) {
                 return false;
             }
@@ -453,6 +477,49 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
         } catch (CommandException ignored) {
             return false;
         }
+    }
+
+    /**
+     * Tries the node's {@link #originalPathway}'s {@link FlagExtractor}
+     * first, then falls back to each pathway in {@link #terminalPathways}.
+     *
+     * <p>The fallback exists because {@code parseSubTree} attaches a
+     * subcommand's tree-root to the parent tree without re-keying the
+     * {@code originalPathway} — that root carries the subcommand's
+     * empty default-pathway, while its TERMINAL pathway holds the real
+     * flag definitions. Without this lookup walk, {@code --primary}
+     * lookups against an empty {@link #originalPathway} extractor would
+     * silently fail even though the flag IS reachable from this node's
+     * terminal pathway.</p>
+     */
+    private java.util.Set<FlagArgument<S>> extractFlagFromAnyPathway(String rawFlagInput) throws CommandException {
+        try {
+            var primary = flags.extract(rawFlagInput);
+            if (!primary.isEmpty()) {
+                return primary;
+            }
+        } catch (CommandException ignored) {
+            // Try terminal pathways before propagating.
+        }
+        CommandException lastFailure = null;
+        for (CommandPathway<S> pathway : terminalPathways) {
+            FlagExtractor<S> extractor = pathway.getFlagExtractor();
+            if (extractor == flags) {
+                continue;
+            }
+            try {
+                var found = extractor.extract(rawFlagInput);
+                if (!found.isEmpty()) {
+                    return found;
+                }
+            } catch (CommandException ex) {
+                lastFailure = ex;
+            }
+        }
+        if (lastFailure != null) {
+            throw lastFailure;
+        }
+        return java.util.Collections.emptySet();
     }
 
     public Argument<S> getMainArgument() {

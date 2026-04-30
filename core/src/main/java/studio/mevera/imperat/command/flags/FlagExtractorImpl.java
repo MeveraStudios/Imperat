@@ -84,6 +84,15 @@ final class FlagExtractorImpl<S extends CommandSource> implements FlagExtractor<
         if (longForm) {
             FlagArgument<S> primary = primaryByName.get(name);
             if (primary == null) {
+                // Fallback: in some build pipelines the pathway hosts a stale
+                // FlagExtractor with empty primaryByName but a populated alias
+                // trie. If the full long name maps to a single trie entry,
+                // accept it — preserves correctness without weakening the
+                // strict "primary must use --" rule for combine semantics.
+                MatchResult<S> exact = aliasTrie.findLongestMatch(name, 0);
+                if (exact.isFound() && exact.matchLength() == name.length()) {
+                    return new LinkedHashSet<>(List.of(exact.flagArgumentData()));
+                }
                 throw new ArgumentParseException(ResponseKey.UNKNOWN_FLAG, name);
             }
             return new LinkedHashSet<>(List.of(primary));
