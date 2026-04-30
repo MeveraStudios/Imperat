@@ -443,12 +443,19 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
 
         String defValue = flagArgument.getDefaultValueSupplier().provide(this, flagArgument);
         if (defValue != null) {
-            Object flagValueResolved = flagArgument.getDefaultValueSupplier().isEmpty() ? null
-                                               : Objects.requireNonNull(flagArgument.flagData().inputType()).parse(
-                    this,
-                    flagArgument,
-                    studio.mevera.imperat.command.arguments.type.Cursor.single(this, defValue)
-            );
+            // Blank defaults (`@Default("")`, `@Default(" ")`) signal
+            // "no value, keep null at runtime" — the input type's parse
+            // would typically reject blank input ("Input is empty"),
+            // skip parse entirely and register the flag with a null
+            // resolved value.
+            boolean parsable = !flagArgument.getDefaultValueSupplier().isEmpty()
+                    && !defValue.isBlank();
+            Object flagValueResolved = parsable
+                    ? Objects.requireNonNull(flagArgument.flagData().inputType()).parse(
+                            this,
+                            flagArgument,
+                            studio.mevera.imperat.command.arguments.type.Cursor.single(this, defValue))
+                    : null;
             this.resolveFlag(ParsedFlagArgument.forDefaultFlag(flagArgument, defValue, flagValueResolved));
         }
     }
