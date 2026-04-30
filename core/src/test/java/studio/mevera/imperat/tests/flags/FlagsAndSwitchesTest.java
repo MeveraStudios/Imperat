@@ -64,7 +64,7 @@ public class FlagsAndSwitchesTest extends BaseImperatTest {
     @Test
     @DisplayName("Should handle flag aliases")
     void testFlagAliases() {
-        ExecutionResult<TestCommandSource> result = execute("ban mqzen -silent");
+        ExecutionResult<TestCommandSource> result = execute("ban mqzen --silent");
         assertSuccess(result);
         assertArgument(result, "target", "mqzen");
         assertFlag(result, "silent", true);

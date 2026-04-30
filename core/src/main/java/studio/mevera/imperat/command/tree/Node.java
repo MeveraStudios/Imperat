@@ -141,8 +141,16 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
                 try {
                     var extracted = flags.extract(peek);
                     if (!extracted.isEmpty()) {
-                        int needed = FlagValueDrain.requiredTokenCount(extracted);
-                        List<String> valueTokens = FlagValueDrain.drain(inputStream, needed);
+                        String inline = Patterns.inlineFlagValue(peek);
+                        List<String> valueTokens;
+                        if (inline != null) {
+                            // `--name=value` / `-n=value` form: the value is
+                            // already in the flag token, no stream drain needed.
+                            valueTokens = List.of(inline);
+                        } else {
+                            int needed = FlagValueDrain.requiredTokenCount(extracted);
+                            valueTokens = FlagValueDrain.drain(inputStream, needed);
+                        }
                         for (var extractedFlag : extracted) {
                             parseResultMap.put(
                                     extractedFlag.getName(),
@@ -427,8 +435,14 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             if (extracted.isEmpty()) {
                 return false;
             }
-            int needed = FlagValueDrain.requiredTokenCount(extracted);
-            List<String> valueTokens = FlagValueDrain.drain(inputStream, needed);
+            String inline = Patterns.inlineFlagValue(rawFlagInput);
+            List<String> valueTokens;
+            if (inline != null) {
+                valueTokens = List.of(inline);
+            } else {
+                int needed = FlagValueDrain.requiredTokenCount(extracted);
+                valueTokens = FlagValueDrain.drain(inputStream, needed);
+            }
             for (var extractedFlag : extracted) {
                 flagSink.put(
                         extractedFlag.getName(),

@@ -22,30 +22,73 @@ import java.util.stream.Collectors;
 final class FlagExtractorImpl<S extends CommandSource> implements FlagExtractor<S> {
 
     private final CommandPathway<S> usage;
-    private final FlagTrie<S> flagTrie;
+    private final FlagTrie<S> aliasTrie;
+    private final Map<String, FlagArgument<S>> primaryByName = new HashMap<>();
     private final Set<FlagArgument<S>> registeredFlagArguments = new LinkedHashSet<>();
 
     FlagExtractorImpl(CommandPathway<S> usage) {
         this.usage = Objects.requireNonNull(usage, "CommandPathway cannot be null");
-        this.flagTrie = buildFlagTrie();
+        this.aliasTrie = buildAliasTrie();
     }
 
     @Override
     public void insertFlag(FlagArgument<S> flagArgumentData) {
         registeredFlagArguments.add(flagArgumentData);
-        flagTrie.insert(flagArgumentData.getName(), flagArgumentData);
-        for (String alias : flagArgumentData.flagData().aliases()) {
-            flagTrie.insert(alias, flagArgumentData);
+        primaryByName.put(flagArgumentData.getName(), flagArgumentData);
+        registerAliases(flagArgumentData);
+    }
+
+    /**
+     * Single-name flags ({@code @Switch("ip")} with no additional aliases)
+     * are accepted under both {@code -ip} and {@code --ip} (permissive).
+     * Multi-name flags ({@code @Switch({"silent", "s"})}) follow the strict
+     * convention: primary uses {@code --silent}, only additional aliases
+     * combine under {@code -s}.
+     */
+    private void registerAliases(FlagArgument<S> flagArgumentData) {
+        List<String> additionalAliases = flagArgumentData.flagData().aliases();
+        if (additionalAliases.isEmpty()) {
+            aliasTrie.insert(flagArgumentData.getName(), flagArgumentData);
+            return;
+        }
+        for (String alias : additionalAliases) {
+            if (alias.equals(flagArgumentData.getName())) {
+                continue;
+            }
+            aliasTrie.insert(alias, flagArgumentData);
         }
     }
 
+    /**
+     * <p>Distinguishes by prefix:
+     * <ul>
+     *   <li>{@code --name} — primary flag name lookup. Exact match only,
+     *       NOT combinable (long form).</li>
+     *   <li>{@code -aliases} — greedy alias trie. Combinable: {@code -abc}
+     *       resolves to whichever aliases the trie can chain.</li>
+     * </ul>
+     * Inline {@code =value} suffix is stripped via
+     * {@link Patterns#withoutFlagSign}.</p>
+     */
     @Override
     public Set<FlagArgument<S>> extract(String rawInput) throws CommandException {
         if (rawInput == null || rawInput.isEmpty()) {
             return Collections.emptySet();
         }
 
-        return parseFlags(Patterns.withoutFlagSign(rawInput));
+        boolean longForm = Patterns.isDoubleFlag(rawInput);
+        String name = Patterns.withoutFlagSign(rawInput);
+        if (name.isEmpty()) {
+            return Collections.emptySet();
+        }
+        if (longForm) {
+            FlagArgument<S> primary = primaryByName.get(name);
+            if (primary == null) {
+                throw new ArgumentParseException(ResponseKey.UNKNOWN_FLAG, name);
+            }
+            return new LinkedHashSet<>(List.of(primary));
+        }
+        return parseAliasChain(name);
     }
 
     @Override
@@ -54,13 +97,14 @@ final class FlagExtractorImpl<S extends CommandSource> implements FlagExtractor<
     }
 
     /**
-     * Builds a Trie containing all flag aliases for efficient lookup.
-     * Each alias maps to its corresponding FlagData.
+     * Builds a Trie containing only flag ALIASES (excluding primary names).
+     * Each alias maps to its owning FlagArgument. Aliases are the
+     * combinable short-form keys; primary names are looked up separately
+     * via {@link #primaryByName}.
      */
-    private FlagTrie<S> buildFlagTrie() {
+    private FlagTrie<S> buildAliasTrie() {
         FlagTrie<S> trie = new FlagTrie<>();
 
-        // Get all flags from CommandPathway and build the trie
         Set<FlagArgument<S>> allFlagArguments = usage.getArguments()
                                                  .stream()
                                                  .filter(Argument::isFlag)
@@ -68,11 +112,16 @@ final class FlagExtractorImpl<S extends CommandSource> implements FlagExtractor<
                                                  .collect(Collectors.toSet());
 
         for (FlagArgument<S> flagArgumentData : allFlagArguments) {
-            // Add primary flag name
-            trie.insert(flagArgumentData.getName(), flagArgumentData);
-
-            // Add all aliases
-            for (String alias : flagArgumentData.flagData().aliases()) {
+            primaryByName.put(flagArgumentData.getName(), flagArgumentData);
+            List<String> additionalAliases = flagArgumentData.flagData().aliases();
+            if (additionalAliases.isEmpty()) {
+                trie.insert(flagArgumentData.getName(), flagArgumentData);
+                continue;
+            }
+            for (String alias : additionalAliases) {
+                if (alias.equals(flagArgumentData.getName())) {
+                    continue;
+                }
                 trie.insert(alias, flagArgumentData);
             }
         }
@@ -81,28 +130,28 @@ final class FlagExtractorImpl<S extends CommandSource> implements FlagExtractor<
     }
 
     /**
-     * Parses the input string using a greedy longest-match algorithm.
-     * This ensures that longer aliases are matched before shorter ones.
+     * Combines aliases via greedy longest-match. {@code -abc} where
+     * {@code a}, {@code b}, {@code c} are registered aliases yields three
+     * resolved flags. Unmatched characters surface as
+     * {@link ResponseKey#UNKNOWN_FLAG}.
      */
-    private Set<FlagArgument<S>> parseFlags(String input) throws CommandException {
+    private Set<FlagArgument<S>> parseAliasChain(String input) throws CommandException {
         Set<FlagArgument<S>> extractedFlagArguments = new LinkedHashSet<>(3);
         List<String> unmatchedParts = new ArrayList<>();
 
         int position = 0;
         while (position < input.length()) {
-            MatchResult<S> match = flagTrie.findLongestMatch(input, position);
+            MatchResult<S> match = aliasTrie.findLongestMatch(input, position);
 
             if (match.isFound()) {
                 extractedFlagArguments.add(match.flagArgumentData());
                 position += match.matchLength();
             } else {
-                // Collect unmatched character for error reporting
                 unmatchedParts.add(String.valueOf(input.charAt(position)));
                 position++;
             }
         }
 
-        // Throw exception if there are unmatched parts
         if (!unmatchedParts.isEmpty()) {
             throw new ArgumentParseException(ResponseKey.UNKNOWN_FLAG, input);
         }

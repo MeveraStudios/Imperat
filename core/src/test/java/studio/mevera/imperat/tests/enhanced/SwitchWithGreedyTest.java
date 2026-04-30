@@ -63,7 +63,7 @@ class SwitchWithGreedyTest extends EnhancedBaseImperatTest {
         @DisplayName("Switch using full name: 'announce -urgent Server restarting soon'")
         void switchFullNameBeforeGreedy() {
             assertThat(execute(AnnounceCommand.class, cfg -> {
-            }, "announce -urgent Server restarting soon"))
+            }, "announce --urgent Server restarting soon"))
                     .isSuccessful()
                     .hasSwitchEnabled("urgent")
                     .hasSwitchDisabled("pin")
@@ -192,7 +192,7 @@ class SwitchWithGreedyTest extends EnhancedBaseImperatTest {
         @DisplayName("Full name switches: 'shout -loud -bold Warning everyone' → both enabled")
         void fullNameSwitches() {
             assertThat(execute(ShoutCommand.class, cfg -> {
-            }, "shout -loud -bold Warning everyone"))
+            }, "shout --loud --bold Warning everyone"))
                     .isSuccessful()
                     .hasSwitchEnabled("loud")
                     .hasSwitchEnabled("bold")

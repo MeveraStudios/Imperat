@@ -254,23 +254,50 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         }
 
         for (ProjectedFlag<S> projectedFlag : scope.flags()) {
-            for (String alias : projectedFlag.aliases()) {
-                LiteralArgumentBuilder<BS> flagLiteral = LiteralArgumentBuilder.literal("-" + alias);
-                flagLiteral.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
-                executor(flagLiteral);
+            // Primary name → `--<name>` literal. Long form, NOT combinable.
+            String primary = projectedFlag.name();
+            registerFlagLiteral(command, projectedFlag, "--" + primary, primary, parentBuilder);
 
-                if (!projectedFlag.isSwitch()) {
-                    RequiredArgumentBuilder<BS, String> valueBuilder =
-                            RequiredArgumentBuilder.argument(alias + "_value", StringArgumentType.string());
-                    valueBuilder.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
-                    valueBuilder.suggests(createFlagValueProvider(command, projectedFlag));
-                    executor(valueBuilder);
-                    flagLiteral.then(valueBuilder);
+            List<String> aliases = projectedFlag.aliases();
+            // ProjectedFlag.aliases() carries primary at index 0 + additional
+            // aliases. Single-entry = no additional aliases; treat the flag as
+            // permissive (also accept `-<primary>`). Multi-entry = strict
+            // convention: only non-primary aliases get the short form.
+            boolean hasOnlyPrimary = aliases.size() == 1;
+            if (hasOnlyPrimary) {
+                registerFlagLiteral(command, projectedFlag, "-" + primary, primary, parentBuilder);
+            } else {
+                for (String alias : aliases) {
+                    if (alias.equals(primary)) {
+                        continue;
+                    }
+                    registerFlagLiteral(command, projectedFlag, "-" + alias, alias, parentBuilder);
                 }
-
-                parentBuilder.then(flagLiteral.build());
             }
         }
+    }
+
+    private <BS> void registerFlagLiteral(
+            Command<S> command,
+            ProjectedFlag<S> projectedFlag,
+            String literalName,
+            String suffixForValueArg,
+            ArgumentBuilder<BS, ?> parentBuilder
+    ) {
+        LiteralArgumentBuilder<BS> flagLiteral = LiteralArgumentBuilder.literal(literalName);
+        flagLiteral.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
+        executor(flagLiteral);
+
+        if (!projectedFlag.isSwitch()) {
+            RequiredArgumentBuilder<BS, String> valueBuilder =
+                    RequiredArgumentBuilder.argument(suffixForValueArg + "_value", StringArgumentType.string());
+            valueBuilder.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
+            valueBuilder.suggests(createFlagValueProvider(command, projectedFlag));
+            executor(valueBuilder);
+            flagLiteral.then(valueBuilder);
+        }
+
+        parentBuilder.then(flagLiteral.build());
     }
 
     private @NotNull <BS> com.mojang.brigadier.suggestion.SuggestionProvider<BS> createFlagValueProvider(
