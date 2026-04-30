@@ -1,5 +1,6 @@
 package studio.mevera.imperat.backend.modern;
 
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
@@ -46,8 +47,16 @@ public final class ModernPaperBrigadierManager extends BaseBrigadierManager<Bukk
     public @NotNull com.mojang.brigadier.arguments.ArgumentType<?> getArgumentType(
             @NotNull Argument<BukkitCommandSource> imperatArgument) {
         var type = imperatArgument.type();
+
         if (type instanceof PaperBukkitArgumentType<?, ?> paperType) {
             return paperType.nativeType();
+        }
+        // Generic Paper-native bridge: any Imperat-side ArgumentType that
+        // implements PaperNativeAware contributes its Brigadier-native
+        // counterpart for client coloring + native autocomplete, while
+        // keeping its custom server-side parse logic.
+        if (type instanceof studio.mevera.imperat.backend.modern.argument.PaperNativeAware aware) {
+            return aware.paperNativeType();
         }
         return getStringArgType(imperatArgument);
     }
@@ -94,5 +103,28 @@ public final class ModernPaperBrigadierManager extends BaseBrigadierManager<Bukk
                                      : "";
         List<String> aliases = new ArrayList<>(command.aliases());
         registrar.register(node, description.isEmpty() ? null : description, aliases);
+    }
+
+    /**
+     * Routes suggestions to the Paper-native type for any Imperat-side
+     * argument that opted into {@link
+     * studio.mevera.imperat.backend.modern.argument.PaperNativeAware}.
+     * Without this override, the base class would emit
+     * Imperat-tree-derived completions for the parameter; the native type
+     * already produces richer client-aware ones (selector char menu,
+     * filter keys, type cycling for entity selectors; block-state keys
+     * for blockState; etc.) so we delegate directly.
+     */
+    @Override
+    protected @NotNull <BS> SuggestionProvider<BS> createSuggestionProvider(
+            Command<BukkitCommandSource> command,
+            Argument<BukkitCommandSource> parameter
+    ) {
+        if (parameter.type() instanceof studio.mevera.imperat.backend.modern.argument.PaperNativeAware aware) {
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            com.mojang.brigadier.arguments.ArgumentType nativeType = aware.paperNativeType();
+            return (ctx, builder) -> nativeType.listSuggestions(ctx, builder);
+        }
+        return super.createSuggestionProvider(command, parameter);
     }
 }

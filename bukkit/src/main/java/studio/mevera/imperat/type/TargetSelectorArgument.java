@@ -25,7 +25,7 @@ import studio.mevera.imperat.selector.field.operators.OperatorField;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSource, TargetSelector> {
+public class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSource, TargetSelector> {
 
     private final static char PARAMETER_START = '[';
     private final static char PARAMETER_END = ']';

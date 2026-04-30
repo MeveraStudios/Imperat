@@ -17,11 +17,11 @@ import studio.mevera.imperat.responses.BukkitResponseKey;
 
 import java.util.List;
 
-public class PaperPlayerArgument extends SimpleArgumentType<BukkitCommandSource, Player> {
+public class PlayerArgument extends SimpleArgumentType<BukkitCommandSource, Player> {
 
     private final PlayerSuggestionProvider SUGGESTION_RESOLVER = new PlayerSuggestionProvider();
 
-    public PaperPlayerArgument() {
+    public PlayerArgument() {
         super();
     }
 

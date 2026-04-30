@@ -17,11 +17,11 @@ import studio.mevera.imperat.responses.BukkitResponseKey;
 import java.util.Arrays;
 import java.util.List;
 
-public class PaperOfflinePlayerArgument extends SimpleArgumentType<BukkitCommandSource, OfflinePlayer> {
+public class OfflinePlayerArgument extends SimpleArgumentType<BukkitCommandSource, OfflinePlayer> {
 
     private final OfflinePlayerSuggestionProvider SUGGESTION_RESOLVER = new OfflinePlayerSuggestionProvider();
 
-    public PaperOfflinePlayerArgument() {
+    public OfflinePlayerArgument() {
         super();
     }
 

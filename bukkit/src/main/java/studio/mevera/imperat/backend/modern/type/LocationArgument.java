@@ -16,14 +16,14 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 
-public class PaperLocationArgument extends GreedyArgumentType<BukkitCommandSource, Location> {
+public class LocationArgument extends GreedyArgumentType<BukkitCommandSource, Location> {
 
     private static final String SINGLE_STRING_SEPARATOR = ";";
     private static final String SELF_LOCATION_SYMBOL = "~";
 
     private final ArgumentType<BukkitCommandSource, Double> doubleParser;
 
-    public PaperLocationArgument() {
+    public LocationArgument() {
         super();
         doubleParser = ArgumentTypes.numeric(Double.class);
     }

@@ -10,9 +10,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.backend.modern.type.PaperLocationArgument;
-import studio.mevera.imperat.backend.modern.type.PaperOfflinePlayerArgument;
-import studio.mevera.imperat.backend.modern.type.PaperPlayerArgument;
+import studio.mevera.imperat.backend.modern.type.LocationArgument;
+import studio.mevera.imperat.backend.modern.type.OfflinePlayerArgument;
+import studio.mevera.imperat.backend.modern.type.PaperTargetSelectorArgument;
+import studio.mevera.imperat.backend.modern.type.PlayerArgument;
+import studio.mevera.imperat.selector.TargetSelector;
 
 import java.util.UUID;
 
@@ -38,18 +40,24 @@ public final class PaperArgumentMappings {
         // Player → name-based Imperat-side argument (mirror of legacy
         // bukkit module). Suggestion provider returns online player names
         // via Imperat's customSuggestions path.
-        config.registerArgType(Player.class, new PaperPlayerArgument());
+        config.registerArgType(Player.class, new PlayerArgument());
 
         // OfflinePlayer kept on the legacy name-based path (Paper's
         // playerProfiles selector returns PlayerProfile, not OfflinePlayer,
         // and most plugin code wants the bukkit OfflinePlayer view).
-        config.registerArgType(OfflinePlayer.class, new PaperOfflinePlayerArgument());
+        config.registerArgType(OfflinePlayer.class, new OfflinePlayerArgument());
 
         // Location → legacy multi-token name-based parser (kept for
         // callers using the bukkit-style "world;x;y;z" form). Plugin
         // authors who want selector-style positions can register the
         // FinePosition mapping themselves at use-site.
-        config.registerArgType(Location.class, new PaperLocationArgument());
+        config.registerArgType(Location.class, new LocationArgument());
+
+        // TargetSelector → Paper-native-aware variant. Server-side parsing
+        // stays in the legacy TargetSelectorArgument; client gets
+        // ArgumentTypes.entities() for native @e[...] coloring +
+        // autocomplete via the PaperNativeAware bridge.
+        config.registerArgType(TargetSelector.class, new PaperTargetSelectorArgument());
 
         // Identity-resolved native types — eagerly call ArgumentTypes.X()
         // which can throw under test mocks (MockBukkit's

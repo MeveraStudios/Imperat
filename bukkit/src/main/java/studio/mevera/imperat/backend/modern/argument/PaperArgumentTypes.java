@@ -74,6 +74,27 @@ public final class PaperArgumentTypes {
         });
     }
 
+    /**
+     * {@link studio.mevera.imperat.selector.TargetSelector} — wraps Paper's
+     * native multi-entity selector resolver so user methods can declare a
+     * {@code TargetSelector} parameter and receive the same iterable
+     * abstraction as the legacy bukkit {@link studio.mevera.imperat.type.TargetSelectorArgument}
+     * exposes, while still benefiting from Mojang client-native selector
+     * autocomplete (cycling through {@code @p}, {@code @a}, etc.).
+     */
+    public static PaperArgumentType<EntitySelectorArgumentResolver, studio.mevera.imperat.selector.TargetSelector> targetSelector() {
+        return PaperArgumentType.of(ArgumentTypes.entities(), (resolver, stack) -> {
+            try {
+                List<Entity> resolved = resolver.resolve(stack);
+                return studio.mevera.imperat.selector.TargetSelector.of(
+                        studio.mevera.imperat.selector.SelectionType.UNKNOWN, resolved);
+            } catch (Throwable ex) {
+                return studio.mevera.imperat.selector.TargetSelector.empty();
+            }
+        });
+
+    }
+
     /** Single-player selector — picks first match. */
     public static PaperArgumentType<PlayerSelectorArgumentResolver, Player> player() {
         return PaperArgumentType.of(ArgumentTypes.player(), (resolver, stack) -> {

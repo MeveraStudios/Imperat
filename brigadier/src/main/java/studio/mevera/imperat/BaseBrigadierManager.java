@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
-import studio.mevera.imperat.command.Description;
 import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.suggestions.CompletionArg;
@@ -416,17 +415,17 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         };
     }
 
-    private @NotNull <BS> SuggestionProvider<BS> createSuggestionProvider(
+    protected @NotNull <BS> SuggestionProvider<BS> createSuggestionProvider(
             Command<S> command,
             Argument<S> parameter
     ) {
+
         return (context, builder) -> {
             SuggestionContext<S> ctx = createSuggestionContext(command, context.getSource(), context.getInput());
             CompletionArg arg = ctx.getArgToComplete();
 
             String paramFormat = parameter.format();
-            Description desc = parameter.getDescription();
-            Message tooltip = new LiteralMessage(paramFormat + (desc.isEmpty() ? "" : " - " + desc.getValue()));
+            Message tooltip = new LiteralMessage(paramFormat);
 
             // Realign suggestions to the actual arg-token start so the
             // client renders them at the cursor instead of overwriting
