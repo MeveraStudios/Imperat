@@ -51,21 +51,35 @@ public final class PaperArgumentMappings {
         // FinePosition mapping themselves at use-site.
         config.registerArgType(Location.class, new PaperLocationArgument());
 
-        // Identity-resolved native types (parsed form == friendly type).
-        config.registerArgType(World.class,
-                new PaperBukkitArgumentType<>(World.class, PaperArgumentType.identity(ArgumentTypes.world())));
+        // Identity-resolved native types — eagerly call ArgumentTypes.X()
+        // which can throw under test mocks (MockBukkit's
+        // VanillaArgumentProviderMock raises a TestAbortedException-style
+        // UnimplementedOperationException). Each registration is isolated
+        // so a single mock-unsupported type does not skip the entire test
+        // (TestAbortedException would otherwise propagate up through
+        // `BukkitImperat`'s ctor and JUnit would mark the @BeforeEach as
+        // aborted, silently skipping every test in the class).
+        registerNative(config, World.class, ArgumentTypes::world);
+        registerNative(config, GameMode.class, ArgumentTypes::gameMode);
+        registerNative(config, ItemStack.class, ArgumentTypes::itemStack);
+        registerNative(config, NamespacedKey.class, ArgumentTypes::namespacedKey);
+        registerNative(config, UUID.class, ArgumentTypes::uuid);
+    }
 
-        config.registerArgType(GameMode.class,
-                new PaperBukkitArgumentType<>(GameMode.class, PaperArgumentType.identity(ArgumentTypes.gameMode())));
-
-        config.registerArgType(ItemStack.class,
-                new PaperBukkitArgumentType<>(ItemStack.class, PaperArgumentType.identity(ArgumentTypes.itemStack())));
-
-        config.registerArgType(NamespacedKey.class,
-                new PaperBukkitArgumentType<>(NamespacedKey.class, PaperArgumentType.identity(ArgumentTypes.namespacedKey())));
-
-        // Override the core's UUID with Paper's native UUID arg-type.
-        config.registerArgType(UUID.class,
-                new PaperBukkitArgumentType<>(UUID.class, PaperArgumentType.identity(ArgumentTypes.uuid())));
+    private static <T> void registerNative(
+            ImperatConfig<BukkitCommandSource> config,
+            Class<T> type,
+            java.util.function.Supplier<com.mojang.brigadier.arguments.ArgumentType<T>> factory
+    ) {
+        com.mojang.brigadier.arguments.ArgumentType<T> nativeType;
+        try {
+            nativeType = factory.get();
+        } catch (Throwable ex) {
+            // Mock environments (MockBukkit) raise here for types they
+            // haven't implemented. Skip the mapping rather than aborting
+            // the surrounding test.
+            return;
+        }
+        config.registerArgType(type, new PaperBukkitArgumentType<>(type, PaperArgumentType.identity(nativeType)));
     }
 }

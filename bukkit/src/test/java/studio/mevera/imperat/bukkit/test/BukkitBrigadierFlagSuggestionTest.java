@@ -52,7 +52,7 @@ class BukkitBrigadierFlagSuggestionTest {
         var suggestions = complete("flagtest ");
 
         assertEquals(4, suggestions.size());
-        assertTrue(suggestions.containsAll(List.of("play", "mix", "-scenario", "-sc")));
+        assertTrue(suggestions.containsAll(List.of("play", "mix", "--scenario", "-sc")));
     }
 
     @Test
@@ -70,7 +70,7 @@ class BukkitBrigadierFlagSuggestionTest {
         var suggestions = complete("flagtest play ");
 
         assertEquals(2, suggestions.size());
-        assertTrue(suggestions.containsAll(List.of("-scenario", "-sc")));
+        assertTrue(suggestions.containsAll(List.of("--scenario", "-sc")));
     }
 
     @Test
@@ -85,14 +85,14 @@ class BukkitBrigadierFlagSuggestionTest {
     @Test
     @DisplayName("Should apply flag value suggestions without replacing the flag input")
     void testBrigadierAppliesFlagValueSuggestionAtValueOffset() {
-        String input = "flagtest play -scenario ";
+        String input = "flagtest play --scenario ";
         Suggestion suggestion = completeSuggestions(input)
                                         .stream()
                                         .filter(candidate -> candidate.getText().equals("kindergarten"))
                                         .findFirst()
                                         .orElseThrow();
 
-        assertEquals("flagtest play -scenario kindergarten", suggestion.apply(input));
+        assertEquals("flagtest play --scenario kindergarten", suggestion.apply(input));
     }
 
     @Test
@@ -101,7 +101,7 @@ class BukkitBrigadierFlagSuggestionTest {
         var suggestions = complete("flagtest mix player ");
 
         assertEquals(2, suggestions.size());
-        assertTrue(suggestions.containsAll(List.of("-scenario", "-sc")));
+        assertTrue(suggestions.containsAll(List.of("--scenario", "-sc")));
     }
 
     @Test
