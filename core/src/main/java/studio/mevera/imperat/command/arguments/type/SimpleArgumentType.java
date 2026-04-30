@@ -16,6 +16,14 @@ import java.lang.reflect.Type;
  * {@link #parse(CommandContext, Argument, String)} — sparing the implementer
  * any cursor handling.
  *
+ * <p><b>Parser tier marker.</b> {@code Node#parseArgument} dispatches on
+ * three tiers — Simple (fixed-arity), Greedy (drain), and Complex (custom
+ * variable-arity). Extending {@code SimpleArgumentType} opts in to the
+ * fixed-arity tier; the runtime {@code instanceof} check selects
+ * {@code collectFixedTokens} for budget collection. Custom types that need
+ * variable-arity should extend {@link ArgumentType} directly (Complex tier),
+ * or {@link GreedyArgumentType} for drain semantics.</p>
+ *
  * <p>The default arity is one token (the overwhelming majority of types:
  * numerics, booleans, enums, names, IDs, single-word semantics). Pass a
  * different value via {@link #SimpleArgumentType(int)} (or its overloads) to

@@ -288,22 +288,32 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
      * allocated to it, then commits the cursor's actual consumption back to
      * {@code inputStream}.
      *
-     * <p>Token budget construction differs by argument shape:
+     * <p>Three-tier token budget dispatch by argument shape:
      * <ul>
-     *   <li>Greedy → {@link #collectGreedyTokens} applies reservation,
-     *       type-discrimination yield, and inline flag extraction.</li>
-     *   <li>Non-greedy → up to {@link ArgumentType#getNumberOfParametersToConsume}
-     *       tokens are pulled from the stream.</li>
+     *   <li><b>Tier 1 — Simple ({@link SimpleArgumentType}).</b> Fixed token
+     *       count from {@link ArgumentType#getNumberOfParametersToConsume}.
+     *       Pre-collected via {@link #collectFixedTokens}.</li>
+     *   <li><b>Tier 2 — Greedy.</b> {@link #collectGreedyTokens} applies
+     *       reservation, type-discrimination yield, and inline flag
+     *       extraction. Type expected to consume the full budget.</li>
+     *   <li><b>Tier 3 — Complex.</b> Any custom {@link ArgumentType} that is
+     *       neither Simple nor Greedy. The framework drains all remaining
+     *       tokens into the budget via {@link #collectComplexTokens} and lets
+     *       the type's {@link ArgumentType#parse} consume an
+     *       implementation-defined prefix; the cursor's post-parse position
+     *       is the authoritative consumption count.</li>
      * </ul></p>
      *
      * <p>Rollback policy:
      * <ul>
      *   <li>On a thrown {@link Throwable}: roll {@code inputStream} fully back
-     *       to its position before this method ran. The cursor's snapshot
-     *       protocol means partial advancement leaks nothing.</li>
-     *   <li>On success: advance {@code inputStream} by the number of tokens
-     *       the type actually consumed via the cursor (which may be fewer than
-     *       the budget for variable-arity types).</li>
+     *       to its position before this method ran.</li>
+     *   <li>On success for Tier 1 / Tier 3: roll {@code inputStream} forward
+     *       by exactly {@code cursor.position()} tokens, returning the unused
+     *       budget suffix to the stream for downstream arguments.</li>
+     *   <li>On success for Tier 2 (greedy): leave {@code inputStream} where
+     *       greedy pre-collection placed it — drain semantics imply the type
+     *       owned the full budget.</li>
      * </ul></p>
      */
     private ParseResult<S> parseArgument(
@@ -313,9 +323,15 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
     ) {
         int beforeIndex = inputStream.getRawIndex();
         boolean greedy = isGreedyArgument(argument);
-        List<String> tokens = greedy
-                                      ? collectGreedyTokens(argument, inputStream, flagSink)
-                                      : collectFixedTokens(argument, inputStream);
+        boolean complex = !greedy && isComplexArgument(argument);
+        List<String> tokens;
+        if (greedy) {
+            tokens = collectGreedyTokens(argument, inputStream, flagSink);
+        } else if (complex) {
+            tokens = collectComplexTokens(inputStream);
+        } else {
+            tokens = collectFixedTokens(argument, inputStream);
+        }
 
         if (tokens.isEmpty()) {
             inputStream.setRawIndex(beforeIndex);
@@ -334,10 +350,10 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
 
             int consumedTokenCount = probe.position();
             if (!greedy) {
-                // Fixed-arity: roll inputStream back by the unused budget so
-                // the next argument sees those tokens. (Greedy types are
-                // expected to consume the full budget; their pre-collection
-                // already left {@code inputStream} at the right place.)
+                // Tier 1 / Tier 3: roll inputStream forward by exactly the
+                // tokens the type consumed; unused budget tokens flow back to
+                // the stream for the next argument. (Greedy / Tier 2 keeps
+                // its pre-collected position — drain semantics.)
                 inputStream.setRawIndex(beforeIndex + consumedTokenCount);
             }
 
@@ -428,6 +444,24 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
     }
 
     /**
+     * Tier-3 (complex / variable-arity) budget collection. Drains every
+     * remaining token from the stream into the budget. The argument type's
+     * {@link ArgumentType#parse} consumes an implementation-defined prefix
+     * via the cursor; {@link #parseArgument} rolls the unused suffix back
+     * to {@code inputStream} based on {@code cursor.position()} after parse.
+     */
+    private List<String> collectComplexTokens(RawInputStream<S> inputStream) {
+        if (!inputStream.hasNext()) {
+            return List.of();
+        }
+        List<String> collected = new ArrayList<>();
+        while (inputStream.hasNext()) {
+            collected.add(inputStream.next());
+        }
+        return collected;
+    }
+
+    /**
      * Attempts to bind {@code rawFlagInput} as one or more registered flags
      * for this node's pathway, consuming a value token from {@code inputStream}
      * if any of the matched flags is a value flag (not a switch).
@@ -482,6 +516,17 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
 
     private boolean isGreedyArgument(Argument<S> argument) {
         return argument.isGreedy() || argument.type().isGreedy(argument);
+    }
+
+    /**
+     * Tier-3 detector: an {@link ArgumentType} that is neither
+     * {@link SimpleArgumentType} nor greedy — a custom variable-arity type
+     * whose token consumption is decided at parse time by the cursor's
+     * post-parse position. {@link #parseArgument} drains all remaining
+     * stream tokens into the budget for these.
+     */
+    private boolean isComplexArgument(Argument<S> argument) {
+        return !(argument.type() instanceof studio.mevera.imperat.command.arguments.type.SimpleArgumentType<?, ?>);
     }
 
     /**
