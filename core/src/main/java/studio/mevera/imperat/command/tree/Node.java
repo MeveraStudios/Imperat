@@ -127,19 +127,13 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
      * still pick it up). Used by {@link #parseArgument(RawInputStream)} for normal
      * nodes and by the tree directly for the synthetic root traversal.
      *
-     * <p>When {@link studio.mevera.imperat.ImperatConfig#handleExecutionMiddleOptionalSkipping()
-     * smart optional skipping} is enabled and the next optional cannot accept the
-     * current token, this method probes subsequent optionals (in declaration order)
-     * for one that does. Skipped optionals are simply omitted from
-     * {@code parseResultMap} — the execution-context drain materialises their
-     * declared defaults later, so the tree remains the single source of truth for
-     * the chain and the drain stays a pure projection.</p>
+     * <p>Optional binding is strict positional: the first optional that
+     * cannot type-parse the next token causes the loop to exit, leaving
+     * remaining tokens for children/siblings. Skipped optionals get
+     * defaulted by the execution-context drain. Middle-positioned optionals
+     * are not supported — pathway construction enforces tail-only optionals.</p>
      */
     public void parseOptionalsAndFlags(RawInputStream<S> inputStream, Map<String, ParseResult<S>> parseResultMap) {
-        boolean smartSkippingEnabled = inputStream.getContext()
-                                               .imperatConfig()
-                                               .handleExecutionMiddleOptionalSkipping();
-
         int optionalCursor = 0;
         while (inputStream.hasNext()) {
             String peek = inputStream.next();
@@ -165,15 +159,6 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
                 inputStream.backward();
             }
 
-            // Obligation skipping: if binding the next optional would leave too
-            // few tokens for downstream required arguments, skip it (the drain
-            // materialises its declared default) and try the optional after it.
-            // Mirrors {@code OptionalArgumentHandler#calculateObligationToSkip}.
-            while (optionalCursor < optionals.size()
-                           && mustSkipForDownstream(inputStream)) {
-                optionalCursor++;
-            }
-
             if (optionalCursor >= optionals.size()) {
                 // No optional left to bind: hand the token back to children/siblings.
                 break;
@@ -184,53 +169,15 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             ParseResult<S> headResult = this.parseArgument(head, inputStream);
 
             if (!headResult.isFailureScore() || head.isCommand()) {
-                // Clean bind: keep the result and advance to the next optional slot.
                 parseResultMap.put(head.getName(), headResult);
                 optionalCursor++;
                 continue;
             }
 
-            // Head failed type-parse. Roll the cursor back so probes start fresh
-            // on the same token we just rejected.
+            // Head failed type-parse — strict positional binding leaves the
+            // token for children/siblings.
             inputStream.setRawIndex(beforeProbe);
-
-            if (!smartSkippingEnabled) {
-                // Strict positional binding (config-disabled smart skipping):
-                // leave the token for children/siblings, matching the legacy
-                // linear "break on failed optional" semantics.
-                break;
-            }
-
-            // Smart skipping: probe subsequent optionals in declaration order.
-            // The first one whose type accepts the token wins; intervening
-            // optionals are silently skipped and defaulted by the drain. This
-            // replaces OptionalArgumentHandler#findBestDownstreamMatch but
-            // performed during the tree walk so the resulting ParsedNode is
-            // canonical.
-            Argument<S> matched = null;
-            ParseResult<S> matchedResult = null;
-            int matchedIndex = -1;
-            for (int probe = optionalCursor + 1; probe < optionals.size(); probe++) {
-                Argument<S> candidate = optionals.get(probe);
-                ParseResult<S> candidateResult = this.parseArgument(candidate, inputStream);
-                if (!candidateResult.isFailureScore() || candidate.isCommand()) {
-                    matched = candidate;
-                    matchedResult = candidateResult;
-                    matchedIndex = probe;
-                    break;
-                }
-                inputStream.setRawIndex(beforeProbe);
-            }
-
-            if (matched == null) {
-                // No downstream optional accepts this token either — leave it
-                // for children/siblings, exactly as the legacy linear loop did.
-                inputStream.setRawIndex(beforeProbe);
-                break;
-            }
-
-            parseResultMap.put(matched.getName(), matchedResult);
-            optionalCursor = matchedIndex + 1;
+            break;
         }
     }
 
@@ -548,45 +495,6 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             return arg;
         }
         return null;
-    }
-
-    /**
-     * Returns {@code true} if binding the next available token to an optional
-     * at this node would leave too few raws for the downstream required
-     * arguments. The caller should skip the optional (the drain will materialise
-     * its declared default) and either try the next optional or hand the token
-     * back to children. Mirrors the legacy
-     * {@code OptionalArgumentHandler#calculateObligationToSkip}.
-     *
-     * <p>Reservation does not apply when this node already terminates a
-     * <em>user-defined</em> pathway (see {@link #hasUserExecutableTerminal()}):
-     * in that case the user can stop the command at this node, so downstream
-     * descent is one alternative rather than mandatory. The carve-out
-     * intentionally ignores synthetic empty-default terminals attached to the
-     * root by the tree builder — those exist for every command and would
-     * otherwise disable obligation skipping everywhere.</p>
-     */
-    private boolean mustSkipForDownstream(RawInputStream<S> stream) {
-        if (hasUserExecutableTerminal()) {
-            return false;
-        }
-        int rawsAvailable = stream.size() - (stream.getRawIndex() + 1);
-        int reserve = countReservedRawsForDownstream();
-        return rawsAvailable <= reserve;
-    }
-
-    /**
-     * Whether any of this node's terminal pathways was registered with a
-     * concrete user method (as opposed to the synthetic empty default attached
-     * by the tree builder). Mirrors {@code SuperCommandTree#hasExecutableTerminal}.
-     */
-    private boolean hasUserExecutableTerminal() {
-        for (CommandPathway<S> pathway : terminalPathways) {
-            if (pathway.getMethodElement() != null) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

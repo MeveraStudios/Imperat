@@ -126,12 +126,55 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
             if (param.isFlag()) {
                 addFlag(param.asFlagParameter());
             } else {
+                if (param.isRequired() && hasOptionalNonFlagArgument()) {
+                    throw new IllegalArgumentException(
+                            "Cannot add required argument '" + param.getName()
+                                    + "' after optional argument(s). Middle-positioned positional"
+                                    + " optionals are not supported — convert to a flag (e.g. --"
+                                    + param.getName() + " <value>) or move all optionals to the tail."
+                    );
+                }
                 arguments.add(param);
                 if (param.isRequired()) {
                     this.permissionsData.append(param.getPermissionsData());
                 }
             }
         }
+    }
+
+    private boolean hasOptionalNonFlagArgument() {
+        for (var arg : arguments) {
+            if (!arg.isFlag() && arg.isOptional()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public List<Argument<S>> getRequiredArguments() {
+        List<Argument<S>> required = new ArrayList<>(arguments.size());
+        for (var arg : arguments) {
+            if (arg.isFlag()) {
+                continue;
+            }
+            if (arg.isOptional()) {
+                break;
+            }
+            required.add(arg);
+        }
+        return required;
+    }
+
+    @Override
+    public List<Argument<S>> getTailOptionalArguments() {
+        List<Argument<S>> optionals = new ArrayList<>();
+        for (var arg : arguments) {
+            if (!arg.isFlag() && arg.isOptional()) {
+                optionals.add(arg);
+            }
+        }
+        return optionals;
     }
 
     /**

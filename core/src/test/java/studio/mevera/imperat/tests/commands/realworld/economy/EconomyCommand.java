@@ -27,8 +27,8 @@ public class EconomyCommand {
         public void addCurrency(
                 final TestCommandSource source,
                 final TestPlayer player,
-                final @Default("gold") Currency currency,
-                final BigDecimal amount
+                final BigDecimal amount,
+                final @Default("gold") Currency currency
         ) {
             System.out.println("Currency= " + currency.getName() +
                                        ", amount= " + amount.toPlainString());

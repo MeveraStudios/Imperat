@@ -1,7 +1,6 @@
 package studio.mevera.imperat.tests;
 
 import static studio.mevera.imperat.tests.commands.TestCommands.CHAINED_SUBCOMMANDS_CMD;
-import static studio.mevera.imperat.tests.commands.TestCommands.MULTIPLE_OPTIONAL_CMD;
 
 import studio.mevera.imperat.annotations.base.AnnotationFactory;
 import studio.mevera.imperat.annotations.types.RootCommand;
@@ -15,7 +14,6 @@ import studio.mevera.imperat.tests.commands.ExceptionHandlerTestCmd;
 import studio.mevera.imperat.tests.commands.FailCmd;
 import studio.mevera.imperat.tests.commands.KingdomChatCommand;
 import studio.mevera.imperat.tests.commands.MethodPermissionCommand;
-import studio.mevera.imperat.tests.commands.MultipleOptionals;
 import studio.mevera.imperat.tests.commands.MultipleVariantsCmd;
 import studio.mevera.imperat.tests.commands.MyCustomAnnotation;
 import studio.mevera.imperat.tests.commands.OptionalArgCommand;
@@ -86,14 +84,12 @@ public class ImperatTestGlobals {
                                                       .argType(BigDecimal.class, new BigDecimalParamType())
                                                       .argType(Currency.class, new CurrencyParamType())
                                                       .argType(ThrowingValue.class, new ThrowingArgumentType())
-                                                      .handleMiddleOptionalArgSkipping(true)
                                                       .contextArgumentProvider(new TypeWrap<CommandHelp<TestCommandSource>>() {
                                                       }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
                                                       .contextArgumentProvider(new TypeWrap<CommandContext<TestCommandSource>>() {
                                                       }.getType(), (ctx, pe) -> ctx)
                                                       .contextArgumentProvider(PlayerData.class, new PlayerDataContextArgumentResolver())
                                                       .contextArgumentProvider(SomeData.class, new SomeDataCR())
-                                                      .handleMiddleOptionalArgSkipping(true)
                                                       .overlapOptionalParameterSuggestions(true)
                                                       .exceptionHandler(CustomException.class, (exc, ctx) -> {
                                                           System.out.println("CustomException occurred: " + exc.getMessage());
@@ -116,9 +112,7 @@ public class ImperatTestGlobals {
         IMPERAT.registerCommand(ThrowingParseCommand.class);
         IMPERAT.registerCommand(ReqCmd.class);
         IMPERAT.registerCommand(MultipleVariantsCmd.class);
-        IMPERAT.registerSimpleCommand(MULTIPLE_OPTIONAL_CMD);
         IMPERAT.registerSimpleCommand(CHAINED_SUBCOMMANDS_CMD);
-        IMPERAT.registerCommand(MultipleOptionals.class);
         System.out.println("GROUPCMD");
         IMPERAT.registerCommand(AnnotatedGroupCommand.class);
         IMPERAT.registerCommand(OptionalArgCommand.class);

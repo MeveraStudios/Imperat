@@ -142,16 +142,6 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     }
 
     @Override
-    public boolean handleExecutionMiddleOptionalSkipping() {
-        return behaviorSettings.handleExecutionMiddleOptionalSkipping();
-    }
-
-    @Override
-    public void setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean toggle) {
-        behaviorSettings.setHandleExecutionMiddleOptionalSkipping(toggle);
-    }
-
-    @Override
     public ImperatConfig<S> setCommandParsingMode(CommandParsingMode mode) {
         behaviorSettings.setParsingMode(mode);
         return this;

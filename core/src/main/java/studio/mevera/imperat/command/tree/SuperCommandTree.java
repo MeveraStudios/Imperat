@@ -90,28 +90,21 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     }
 
     /**
-     * Walks the pathway's PERSONAL arguments (excluding inherited flags), creating
-     * or reusing child nodes keyed by argument name. Optional arguments are
-     * accumulated onto the preceding required node; trailing optionals attach to
-     * the last required node reached.
+     * Walks the pathway's required arguments to build the tree spine, then
+     * attaches the pathway's tail optionals to the leaf. The pathway invariant
+     * (no optional before required) is enforced in
+     * {@link CommandPathway#addArguments}, so this method does not need to
+     * track interleaving.
      */
     @Override
     public void parseUsage(@NotNull CommandPathway<S> usage) {
         Node<S> current = root;
-        List<Argument<S>> pendingOptionals = new ArrayList<>();
 
-        for (Argument<S> arg : usage.getArguments()) {
-            if (arg.isFlag()) {
-                continue; // flags belong to the pathway's FlagExtractor
-            }
-            if (arg.isOptional()) {
-                pendingOptionals.add(arg);
-                continue;
-            }
-            attachOptionals(current, pendingOptionals);
-            pendingOptionals.clear();
-
-            Node<S> child = current.children.stream().filter((n) -> n.main.getName().equals(arg.getName())).findFirst().orElse(null);
+        for (Argument<S> arg : usage.getRequiredArguments()) {
+            Node<S> child = current.children.stream()
+                    .filter((n) -> n.main.getName().equals(arg.getName()))
+                    .findFirst()
+                    .orElse(null);
             if (child == null) {
                 child = new Node<>(current, usage, arg);
                 current.children.add(child);
@@ -119,7 +112,7 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
             }
             current = child;
         }
-        attachOptionals(current, pendingOptionals);
+        attachOptionals(current, usage.getTailOptionalArguments());
         current.addTerminalPathway(usage);
     }
 

@@ -173,6 +173,23 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
     List<Argument<S>> getArguments();
 
     /**
+     * Required (non-flag) positional arguments in declaration order. The
+     * pathway invariant guarantees these all appear BEFORE any optional
+     * arguments — middle-positioned optionals are rejected at
+     * {@link #addArguments} time.
+     */
+    @org.jetbrains.annotations.NotNull
+    List<Argument<S>> getRequiredArguments();
+
+    /**
+     * Tail (non-flag) positional optional arguments in declaration order.
+     * Always appear AFTER every required argument. Empty when the usage has
+     * no positional optionals.
+     */
+    @org.jetbrains.annotations.NotNull
+    List<Argument<S>> getTailOptionalArguments();
+
+    /**
      * The pre-defined syntax examples for this usage.
      * @return the pre-defined examples for this {@link CommandPathway}
      */

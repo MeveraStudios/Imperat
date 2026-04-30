@@ -422,16 +422,6 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
     }
 
     /**
-     * Refer to {@link ImperatConfig#setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean)}
-     * @param toggle the toggle for this option
-     * @return whether this option is enabled or not.
-     */
-    public B handleMiddleOptionalArgSkipping(boolean toggle) {
-        config.setHandleExecutionConsecutiveOptionalArgumentsSkip(toggle);
-        return (B) this;
-    }
-
-    /**
      * Sets the instance factory used for creating instances of classes
      * during command processing and dependency resolution.
      *

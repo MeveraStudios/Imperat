@@ -45,11 +45,6 @@ public final class ExecutionConfig<S extends CommandSource> {
         return this;
     }
 
-    public ExecutionConfig<S> handleMiddleOptionalArgSkipping(boolean toggle) {
-        config.setHandleExecutionConsecutiveOptionalArgumentsSkip(toggle);
-        return this;
-    }
-
     public ExecutionConfig<S> parsingMode(CommandParsingMode mode) {
         config.setCommandParsingMode(mode);
         return this;

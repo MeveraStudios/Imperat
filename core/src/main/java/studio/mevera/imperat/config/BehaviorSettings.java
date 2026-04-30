@@ -15,7 +15,6 @@ public final class BehaviorSettings<S extends CommandSource> {
 
     private CommandParsingMode parsingMode = CommandParsingMode.JAVA;
     private boolean overlapOptionalParameterSuggestions = false;
-    private boolean handleExecutionMiddleOptionalSkipping = false;
     private String commandPrefix = "/";
 
     public CommandParsingMode parsingMode() {
@@ -32,14 +31,6 @@ public final class BehaviorSettings<S extends CommandSource> {
 
     public void setOverlapOptionalParameterSuggestions(boolean enabled) {
         this.overlapOptionalParameterSuggestions = enabled;
-    }
-
-    public boolean handleExecutionMiddleOptionalSkipping() {
-        return handleExecutionMiddleOptionalSkipping;
-    }
-
-    public void setHandleExecutionMiddleOptionalSkipping(boolean enabled) {
-        this.handleExecutionMiddleOptionalSkipping = enabled;
     }
 
     public String commandPrefix() {

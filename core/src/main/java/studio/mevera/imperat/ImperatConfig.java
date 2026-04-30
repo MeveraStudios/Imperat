@@ -142,31 +142,6 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
     void setOptionalParameterSuggestionOverlap(boolean enabled);
 
     /**
-     * <p>
-     * Whether to handle the skipping of consecutive optional argument <b>during execution</b>
-     * For example if you have `/test [a] [b]` where parameter 'a' is of type String
-     * and parameter 'b' is of type Integer.
-     * if you enter `/test 1` while this option is enabled, it would handle this and assign
-     * the parameter 'b' to the value that suits its type.
-     * with no respect for the order of optional arguments.
-     * <p>
-     * Else if the option is disabled, the command tree will respect the declaration order
-     * of the optional arguments, leaving an unbindable token for downstream nodes/siblings
-     * (matching the legacy linear-bind behaviour).
-     *
-     *
-     * @return Whether to handle the skipping of consecutive optional argument
-     * <b>DURING EXECUTION</b>.
-     */
-    boolean handleExecutionMiddleOptionalSkipping();
-
-    /**
-     * Refer to {@link #handleExecutionMiddleOptionalSkipping()} to know about this option.
-     * @param toggle whether to toggle the handling of middle optional skipping
-     */
-    void setHandleExecutionConsecutiveOptionalArgumentsSkip(boolean toggle);
-
-    /**
      * Checks whether the valueType has
      * a registered context-resolver
      *

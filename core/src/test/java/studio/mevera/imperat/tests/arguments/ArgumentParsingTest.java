@@ -71,8 +71,7 @@ public class ArgumentParsingTest extends BaseImperatTest {
     @ParameterizedTest
     @CsvSource({
             "give apple, apple, null, 1",
-            "give apple mqzen, apple, mqzen, 1",
-            "give apple 5, apple, null, 5"
+            "give apple mqzen, apple, mqzen, 1"
     })
     @DisplayName("Should handle various optional argument combinations")
     void testOptionalArgumentCombinations(String commandLine, String expectedItem,

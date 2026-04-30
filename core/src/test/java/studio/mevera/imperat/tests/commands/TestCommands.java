@@ -120,21 +120,6 @@ public final class TestCommands {
 
                     .build();
 
-    public final static Command<TestCommandSource> MULTIPLE_OPTIONAL_CMD =
-            Command.create(ImperatTestGlobals.IMPERAT, "ot")
-                    .pathway(
-                            CommandPathway.<TestCommandSource>builder()
-                                    .arguments(
-                                            Argument.requiredText("r1"),
-                                            Argument.optionalText("o1"),
-                                            Argument.requiredText("r2"),
-                                            Argument.optionalText("o2")
-                                    )
-
-                    )
-                    .build();
-
-
     public final static Command<TestCommandSource> BAN_COMMAND = Command.create(ImperatTestGlobals.IMPERAT, "ban")
                                                                   .permission(
                                                                           PermissionsData.of("command.ban")

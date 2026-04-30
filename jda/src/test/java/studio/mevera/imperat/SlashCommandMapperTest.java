@@ -32,8 +32,8 @@ class SlashCommandMapperTest {
                                                     .pathway(CommandPathway.<JdaCommandSource>builder()
                                                                      .arguments(
                                                                     Argument.requiredText("first"),
-                                                                    Argument.optionalText("middle"),
                                                                     Argument.requiredInt("count"),
+                                                                    Argument.optionalText("middle"),
                                                                     Argument.optionalText("trail")
                                                             )
                                                             .execute((source, ctx) -> {
@@ -54,7 +54,7 @@ class SlashCommandMapperTest {
 
         SlashCommandMapper.Invocation invocation = mapping.invocationFor(null, null);
         Assertions.assertThat(invocation.optionOrder())
-                .containsExactly("first", "middle", "count", "trail");
+                .containsExactly("first", "count", "middle", "trail");
     }
 
     @Test
