@@ -3,7 +3,9 @@ package studio.mevera.imperat.backend.modern.type;
 import com.mojang.brigadier.arguments.ArgumentType;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.backend.modern.argument.PaperNativeAware;
+import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.type.TargetSelectorArgument;
 
 /**
@@ -22,5 +24,19 @@ public final class PaperTargetSelectorArgument extends TargetSelectorArgument im
     @Override
     public @NotNull ArgumentType<?> paperNativeType() {
         return ArgumentTypes.entities();
+    }
+
+    /**
+     * Override Imperat's default suggestion provider so the tree suggester
+     * (plain CommandMap fallback, async-tab path) emits the SAME
+     * selector-aware completions the modern Paper backend serves through
+     * Brigadier. Without this the parent {@link TargetSelectorArgument}
+     * would emit its own selector char menu only — bridge to Mojang's
+     * native pipeline for richer autocomplete (filter keys, type cycling,
+     * etc.).
+     */
+    @Override
+    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
+        return bridgedSuggestionProvider();
     }
 }

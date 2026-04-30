@@ -2,6 +2,8 @@ package studio.mevera.imperat.backend.modern.argument;
 
 import com.mojang.brigadier.arguments.ArgumentType;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.BukkitCommandSource;
+import studio.mevera.imperat.providers.SuggestionProvider;
 
 /**
  * Marker SPI for Imperat-side
@@ -34,4 +36,22 @@ public interface PaperNativeAware {
      * still goes through the implementing Imperat-side {@code ArgumentType}.
      */
     @NotNull ArgumentType<?> paperNativeType();
+
+    /**
+     * Imperat-side suggestion provider that bridges into the native type's
+     * {@link ArgumentType#listSuggestions} pipeline. Implementations can
+     * return this from
+     * {@link studio.mevera.imperat.command.arguments.type.ArgumentType#getSuggestionProvider()}
+     * so the Imperat tree suggester emits the SAME completions the modern
+     * Paper backend would emit through Brigadier — keeps the plain
+     * fallback / async-tab paths consistent with native rendering.
+     *
+     * <p>Default implementation routes through
+     * {@link PaperBrigadierSuggestionBridge#bridge}; override only if a
+     * non-Brigadier suggestion source is needed.</p>
+     */
+    default @NotNull SuggestionProvider<BukkitCommandSource> bridgedSuggestionProvider() {
+        return (suggestionContext, argument) ->
+                       PaperBrigadierSuggestionBridge.bridge(suggestionContext, paperNativeType());
+    }
 }
