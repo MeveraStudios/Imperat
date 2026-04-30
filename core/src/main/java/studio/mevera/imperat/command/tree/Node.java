@@ -7,6 +7,7 @@ import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.command.arguments.FlagArgument;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.Cursor;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
 import studio.mevera.imperat.command.flags.FlagExtractor;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
@@ -128,7 +129,7 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
         return new ParsedNode<>(this, parseResultMap);
     }
 
-    private void drainLeadingFlags(RawInputStream<S> inputStream, Map<String, ParseResult<S>> sink) {
+    private void drainLeadingFlags(RawInputStream<S> inputStream, Map<String, ParseResult<S>> sink) throws CommandException {
         while (inputStream.hasNext()) {
             String peek = inputStream.next();
             if (!Patterns.isInputFlag(peek)) {
@@ -157,7 +158,7 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
      * defaulted by the execution-context drain. Middle-positioned optionals
      * are not supported — pathway construction enforces tail-only optionals.</p>
      */
-    public void parseOptionalsAndFlags(RawInputStream<S> inputStream, Map<String, ParseResult<S>> parseResultMap) {
+    public void parseOptionalsAndFlags(RawInputStream<S> inputStream, Map<String, ParseResult<S>> parseResultMap) throws CommandException {
         int optionalCursor = 0;
         while (inputStream.hasNext()) {
             String peek = inputStream.next();
@@ -176,13 +177,20 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
                             valueTokens = FlagValueDrain.drain(inputStream, needed);
                         }
                         for (var extractedFlag : extracted) {
+                            String key = extractedFlag.getName();
+                            if (parseResultMap.containsKey(key)) {
+                                throw new studio.mevera.imperat.exception.DuplicateFlagException(key);
+                            }
                             parseResultMap.put(
-                                    extractedFlag.getName(),
+                                    key,
                                     this.parseFlagArgument(extractedFlag, peek, valueTokens, inputStream)
                             );
                         }
                         continue;
                     }
+                } catch (studio.mevera.imperat.exception.DuplicateFlagException dup) {
+                    // Hard user error — propagate, don't fall back to "treat as positional".
+                    throw dup;
                 } catch (CommandException ignored) {
                     // Not a registered flag for this pathway: treat as normal token.
                 }
@@ -244,7 +252,7 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
         }
     }
 
-    private ParseResult<S> parseArgument(Argument<S> argument, RawInputStream<S> inputStream) {
+    private ParseResult<S> parseArgument(Argument<S> argument, RawInputStream<S> inputStream) throws CommandException {
         return parseArgument(argument, inputStream, null);
     }
 
@@ -299,7 +307,7 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             Argument<S> argument,
             RawInputStream<S> inputStream,
             @Nullable Map<String, ParseResult<S>> flagSink
-    ) {
+    ) throws CommandException {
         int beforeIndex = inputStream.getRawIndex();
         boolean greedy = isGreedyArgument(argument);
         boolean complex = !greedy && isComplexArgument(argument);
@@ -371,7 +379,7 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             Argument<S> argument,
             RawInputStream<S> inputStream,
             @Nullable Map<String, ParseResult<S>> flagSink
-    ) {
+    ) throws CommandException {
         int limit = argument.greedyLimit();
         Argument<S> nextDownstream = nextDiscriminatingArgument();
         boolean nextCanDiscriminate = canDiscriminate(nextDownstream);
@@ -453,7 +461,7 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
             String rawFlagInput,
             RawInputStream<S> inputStream,
             Map<String, ParseResult<S>> flagSink
-    ) {
+    ) throws CommandException {
         try {
             var extracted = extractFlagFromAnyPathway(rawFlagInput);
             if (extracted.isEmpty()) {
@@ -468,12 +476,21 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
                 valueTokens = FlagValueDrain.drain(inputStream, needed);
             }
             for (var extractedFlag : extracted) {
+                String key = extractedFlag.getName();
+                if (flagSink.containsKey(key)) {
+                    throw new studio.mevera.imperat.exception.DuplicateFlagException(key);
+                }
                 flagSink.put(
-                        extractedFlag.getName(),
+                        key,
                         this.parseFlagArgument(extractedFlag, rawFlagInput, valueTokens, inputStream)
                 );
             }
             return true;
+        } catch (studio.mevera.imperat.exception.DuplicateFlagException dup) {
+            // Surface as a hard error — the framework's
+            // CommandExceptionHandler<DuplicateFlagException> chain will
+            // present a proper "flag supplied more than once" message.
+            throw dup;
         } catch (CommandException ignored) {
             return false;
         }
@@ -491,6 +508,24 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
      * lookups against an empty {@link #originalPathway} extractor would
      * silently fail even though the flag IS reachable from this node's
      * terminal pathway.</p>
+     *
+     * <p><b>TODO (deferred):</b> the multi-extractor situation is a
+     * symptom — the deeper fix is to make subcommand attachment unify
+     * the FlagExtractor instance across the synthetic default pathway
+     * and the @Execute-derived terminal pathway, so a Node has exactly
+     * one authoritative extractor. Two viable approaches:
+     * <ul>
+     *   <li>{@code parseSubTree} re-keys the grafted root's
+     *       {@code originalPathway} to the subcommand's terminal pathway.</li>
+     *   <li>Synthetic default pathways share a FlagExtractor by reference
+     *       with their terminal siblings via a shared registry.</li>
+     * </ul>
+     * Both touch {@link SuperCommandTree} / {@code Command} construction.
+     * Edge case to mind when fixing: nodes with multiple terminal
+     * pathways defining the SAME flag name with different value types —
+     * the current first-match-wins fallback returns whichever pathway
+     * was registered first. Document as "don't shadow flag names across
+     * pathway scopes" until the unification lands.</p>
      */
     private java.util.Set<FlagArgument<S>> extractFlagFromAnyPathway(String rawFlagInput) throws CommandException {
         try {

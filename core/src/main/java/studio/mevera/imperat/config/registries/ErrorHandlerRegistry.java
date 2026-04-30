@@ -103,6 +103,11 @@ public final class ErrorHandlerRegistry<S extends CommandSource> {
             context.source().error(message);
         });
 
+        register(studio.mevera.imperat.exception.DuplicateFlagException.class, (exception, context) -> {
+            context.source().error("Flag '" + exception.getFlagName()
+                                           + "' was supplied more than once. Each flag may only appear once per command.");
+        });
+
         register(ResponseException.class, (exception, context) -> {
             var response = responseRegistry.getResponse(exception.getResponseKey());
             if (response != null) {

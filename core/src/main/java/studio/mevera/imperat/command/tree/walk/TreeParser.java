@@ -119,6 +119,10 @@ public final class TreeParser<S extends CommandSource> {
         ParsedNode<S> parsed;
         try {
             parsed = node.parseArgument(stream);
+        } catch (studio.mevera.imperat.exception.DuplicateFlagException dup) {
+            // Hard user error — must surface to the dispatcher, not get
+            // silently swallowed by the tree-walker's "try-this-branch" loop.
+            throw dup;
         } catch (Throwable t) {
             stream.setRawIndex(saved);
             return;
