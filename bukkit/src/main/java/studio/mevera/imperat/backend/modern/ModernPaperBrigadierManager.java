@@ -53,6 +53,36 @@ public final class ModernPaperBrigadierManager extends BaseBrigadierManager<Bukk
     }
 
     /**
+     * Modern Paper opts out of the inline-flag catch-all sibling.
+     *
+     * <p>Two failed paths walked first:
+     * <ul>
+     *   <li>Raw {@link studio.mevera.imperat.InlineFlagArgumentType}: rejected by Paper's
+     *       {@code Commands} registrar with
+     *       "Custom unknown argument type was passed, should be wrapped
+     *       inside a CustomArgumentType".</li>
+     *   <li>Wrapped via {@code CustomArgumentType} with
+     *       {@code greedyString} as native: registers, but the greedy
+     *       native sent to the client confuses Brigadier's client-side
+     *       tree-walk for completions — sibling nodes never collect
+     *       suggestions because the client thinks {@code <flag>}
+     *       consumes the rest of input.</li>
+     * </ul></p>
+     *
+     * <p>No vanilla native type accepts {@code =} in single-token form
+     * AND leaves siblings reachable for client-side completion. Skip the
+     * node here. Inline {@code -flag=value} renders red on modern Paper,
+     * but completions still flow via the
+     * {@link BaseBrigadierManager}-level positional-suggester wrapper
+     * (delegates to the Imperat tree), and execution succeeds via the
+     * {@code UnknownCommandEvent} fallback in {@code BukkitImperat}.</p>
+     */
+    @Override
+    protected com.mojang.brigadier.arguments.@org.jetbrains.annotations.Nullable ArgumentType<?> inlineFlagArgumentType() {
+        return null;
+    }
+
+    /**
      * Builds the Brigadier node tree for {@code command} and registers it
      * with Paper's {@link Commands} registrar (captured during the
      * {@code COMMANDS} lifecycle event).

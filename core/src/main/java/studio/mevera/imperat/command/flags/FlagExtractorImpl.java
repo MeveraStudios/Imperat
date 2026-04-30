@@ -97,6 +97,14 @@ final class FlagExtractorImpl<S extends CommandSource> implements FlagExtractor<
             }
             return new LinkedHashSet<>(List.of(primary));
         }
+        // Permissive single-dash: primary name match wins over alias-chain
+        // parse so multi-name flags accept `-force` (not just `--force`/`-f`).
+        // Combining (`-abc`) only kicks in when the full token is NOT a
+        // primary name — most-specific-match-first semantics.
+        FlagArgument<S> primary = primaryByName.get(name);
+        if (primary != null) {
+            return new LinkedHashSet<>(List.of(primary));
+        }
         return parseAliasChain(name);
     }
 

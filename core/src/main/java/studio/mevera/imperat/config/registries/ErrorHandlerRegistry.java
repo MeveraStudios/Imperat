@@ -44,19 +44,13 @@ public final class ErrorHandlerRegistry<S extends CommandSource> {
     }
 
     private static @Nullable String formatPermissionHolder(@Nullable PermissionHolder holder) {
-        if (holder == null) {
-            return null;
-        }
-        if (holder instanceof CommandPathway<?> pathway) {
-            return pathway.formatted();
-        }
-        if (holder instanceof Command<?> command) {
-            return command.getName();
-        }
-        if (holder instanceof studio.mevera.imperat.command.arguments.Argument<?> argument) {
-            return argument.format();
-        }
-        return holder.toString();
+        return switch (holder) {
+            case null -> null;
+            case CommandPathway<?> pathway -> pathway.formatted();
+            case Command<?> command -> command.getName();
+            case studio.mevera.imperat.command.arguments.Argument<?> argument -> argument.format();
+            default -> holder.toString();
+        };
     }
 
     public <T extends Throwable> void register(@NotNull Class<T> type, @NotNull CommandExceptionHandler<T, S> handler) {

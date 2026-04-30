@@ -178,7 +178,7 @@ public class BukkitCommandSource implements AdventureCommandSource {
      */
     @Override
     public void error(final String message) {
-        this.reply(ChatColor.RED + message);
+        this.reply(ChatColor.DARK_RED + "ERROR: " + ChatColor.RED + message);
     }
 
     /**

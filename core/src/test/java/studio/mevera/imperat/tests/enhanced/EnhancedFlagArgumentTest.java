@@ -137,6 +137,38 @@ class EnhancedFlagArgumentTest extends EnhancedBaseImperatTest {
         }
     }
 
+    @RootCommand("fly")
+    public static final class FlyOptionalAfterValueFlagCommand {
+
+        @Execute
+        public void exec(
+                TestCommandSource source,
+                @studio.mevera.imperat.annotations.types.Optional
+                @Suggest({"alpha", "beta", "gamma"})
+                String target,
+                @Flag("force")
+                @Suggest({"true", "false"})
+                Boolean force
+        ) {
+        }
+    }
+
+    @RootCommand("flymulti")
+    public static final class FlyMultiAliasFlagCommand {
+
+        @Execute
+        public void exec(
+                TestCommandSource source,
+                @studio.mevera.imperat.annotations.types.Optional
+                @Suggest({"alpha", "beta", "gamma"})
+                String target,
+                @Flag({"force", "f"})
+                @Suggest({"true", "false"})
+                Boolean force
+        ) {
+        }
+    }
+
     @RootCommand("example3")
     public static final class MixedRootFlagAndSubcommandCommand {
 
@@ -320,6 +352,51 @@ class EnhancedFlagArgumentTest extends EnhancedBaseImperatTest {
 
             Assertions.assertThat(suggestions)
                     .containsExactlyInAnyOrder("play", "mix", "-scenario", "-sc");
+        }
+
+        @Test
+        @DisplayName("Should suggest pending optional positional after consuming a value flag at root")
+        void testOptionalPositionalSuggestedAfterValueFlagConsumed() {
+            var suggestions = tabComplete(FlyOptionalAfterValueFlagCommand.class, cfg -> {
+            }, "fly -force true ");
+
+            Assertions.assertThat(suggestions)
+                    .containsExactlyInAnyOrder("alpha", "beta", "gamma");
+        }
+
+        @Test
+        @DisplayName("Permissive: should accept multi-name flag's primary under single dash '-name'")
+        void testPermissiveMultiNamePrimaryUnderSingleDash() {
+            ExecutionResult<TestCommandSource> result = execute(
+                    FlyMultiAliasFlagCommand.class,
+                    cfg -> {
+                    },
+                    "flymulti -force true"
+            );
+
+            assertThat(result)
+                    .isSuccessful()
+                    .hasFlagValue("force", true);
+        }
+
+        @Test
+        @DisplayName("Permissive: should suggest pending optional after consuming multi-name flag via single dash")
+        void testPermissiveOptionalAfterMultiNameSingleDashFlag() {
+            var suggestions = tabComplete(FlyMultiAliasFlagCommand.class, cfg -> {
+            }, "flymulti -force true ");
+
+            Assertions.assertThat(suggestions)
+                    .containsExactlyInAnyOrder("alpha", "beta", "gamma");
+        }
+
+        @Test
+        @DisplayName("Should suggest flag values for partial inline assignment '-flag='")
+        void testInlineFlagValueCompletionViaEqualsSign() {
+            var suggestions = tabComplete(FlyOptionalAfterValueFlagCommand.class, cfg -> {
+            }, "fly -force=");
+
+            Assertions.assertThat(suggestions)
+                    .contains("-force=true", "-force=false");
         }
 
         @Test

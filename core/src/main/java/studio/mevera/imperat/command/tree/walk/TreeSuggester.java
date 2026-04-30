@@ -97,6 +97,20 @@ public final class TreeSuggester<S extends CommandSource> {
             return Collections.emptyList();
         }
 
+        // Inline assignment partial: user typed `-name=` or `-name=partial`
+        // — suggest the flag's value-token completions formatted as
+        // `-name=<value>` so the client renders one continuous token.
+        // This is the SINGLE-NODE flag completion path: the inline form is
+        // structurally one token, so it cannot be served by the two-step
+        // walk that handles space-separated `-name <value>`.
+        List<String> commandChain = commandChainFromParsedPath(best.chain());
+        List<String> inlineSuggestions = collectInlineFlagValueSuggestions(
+                context, currentNode, commandChain, prefix
+        );
+        if (inlineSuggestions != null) {
+            return inlineSuggestions;
+        }
+
         FlagArgument<S> flagValueTarget = findFlagValueTarget(context, best.chain());
         if (flagValueTarget != null) {
             return filterByPrefix(collectFlagValueSuggestions(context, flagValueTarget), prefix);
@@ -104,9 +118,51 @@ public final class TreeSuggester<S extends CommandSource> {
 
         List<String> suggestions = new ArrayList<>();
         addArgumentSuggestions(context, currentParsed, currentNode, suggestions);
-        List<String> commandChain = commandChainFromParsedPath(best.chain());
         addFlagNameSuggestions(context, currentNode, commandChain, resolveUsedFlags(best.chain()), suggestions);
         return filterByPrefix(suggestions, prefix);
+    }
+
+    /**
+     * Returns inline-flag-value suggestions if {@code prefix} is a partial
+     * inline assignment ({@code -name=} or {@code -name=partial}); otherwise
+     * {@code null} so the normal completion flow runs. Each emitted entry is
+     * the full token the client should commit (e.g. {@code -force=true}), so
+     * Brigadier-flavoured clients render the replace-range over the entire
+     * partial token.
+     */
+    private @Nullable List<String> collectInlineFlagValueSuggestions(
+            SuggestionContext<S> context,
+            Node<S> currentNode,
+            List<String> commandChain,
+            String prefix
+    ) {
+        if (prefix.indexOf('=') < 0 || !Patterns.isInputFlag(prefix)) {
+            return null;
+        }
+        int eq = prefix.indexOf('=');
+        String head = prefix.substring(0, eq);   // `-name` or `--name`
+        String valuePartial = prefix.substring(eq + 1);
+
+        FlagArgument<S> flag = resolveFlagInScopes(
+                context, effectivePathways(currentNode, commandChain), head
+        );
+        if (flag == null || flag.isSwitch()) {
+            return Collections.emptyList();
+        }
+
+        List<String> values = collectFlagValueSuggestions(context, flag);
+        List<String> formatted = new ArrayList<>(values.size());
+        String tokenHead = head + "=";
+        for (String value : values) {
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
+            if (valuePartial.isEmpty()
+                        || value.regionMatches(true, 0, valuePartial, 0, valuePartial.length())) {
+                formatted.add(tokenHead + value);
+            }
+        }
+        return formatted;
     }
 
     private boolean hasBlankGap(ArgumentInput fullInput, int completionIndex) {

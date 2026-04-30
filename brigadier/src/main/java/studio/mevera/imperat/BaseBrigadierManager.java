@@ -151,21 +151,100 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             ArgumentBuilder<BS, ?> parentBuilder,
             int optionalIndex
     ) {
+        appendContinuations(rootCommand, scope, parentBuilder, optionalIndex, null);
+    }
+
+    private <BS> void appendContinuations(
+            Command<S> rootCommand,
+            ProjectedNode<S> scope,
+            ArgumentBuilder<BS, ?> parentBuilder,
+            int optionalIndex,
+            @Nullable ProjectedFlag<S> excludedFlag
+    ) {
         // Order matters for Brigadier: optional + child literals BEFORE the
         // catch-all greedy flag fallback so the parse picks the more
         // specific path first. With the fallback registered first, an empty
         // input parsed cleanly into the greedy node and the client never
         // saw the optional's suggestions.
-        appendOptionalContinuation(rootCommand, scope, parentBuilder, optionalIndex);
+        appendOptionalContinuation(rootCommand, scope, parentBuilder, optionalIndex, excludedFlag);
         appendChildContinuations(rootCommand, scope, parentBuilder);
-        appendFlagFallback(rootCommand, scope, parentBuilder);
+        appendFlagFallback(rootCommand, scope, parentBuilder, excludedFlag);
+        // Catch-all sibling for the inline `-name=value` form. Stock
+        // StringArgumentType halts at `=` so the bare positional sibling
+        // leaves `=value` orphaned and the client renders red. This node
+        // consumes the WHOLE inline-flag token so the parse succeeds
+        // (green) — suggestions delegate back to the Imperat tree.
+        appendInlineFlagSibling(rootCommand, scope, parentBuilder);
+    }
+
+    /**
+     * Catch-all sibling per scope: a {@code <flag>} required-argument node
+     * whose custom {@link InlineFlagArgumentType} consumes a whole
+     * {@code -name=value} token. Falls through to other siblings for
+     * non-flag input. Suggestions delegate to Imperat's tree suggester
+     * (which formats inline values via the same single-node logic).
+     */
+    private <BS> void appendInlineFlagSibling(
+            Command<S> rootCommand,
+            ProjectedNode<S> scope,
+            ArgumentBuilder<BS, ?> parentBuilder
+    ) {
+        if (scope.flags().isEmpty()) {
+            return;
+        }
+        com.mojang.brigadier.arguments.ArgumentType<?> inlineFlagType = inlineFlagArgumentType();
+        if (inlineFlagType == null) {
+            // Backend opted out (e.g. modern Paper before a CustomArgumentType
+            // wrapper is wired up). Inline `=`-form will render red on the
+            // client, but completions still flow through the
+            // sibling-positional suggester wrapper that delegates to the
+            // Imperat tree.
+            return;
+        }
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        RequiredArgumentBuilder<BS, ?> inlineFlagBuilder =
+                (RequiredArgumentBuilder) RequiredArgumentBuilder.argument("flag", inlineFlagType);
+        inlineFlagBuilder.requires((obj) -> {
+            S source = wrapCommandSource(obj);
+            if (rootCommand.isIgnoringACPerms()) {
+                return true;
+            }
+            // Show this catch-all whenever ANY flag in the scope is visible
+            // — fine-grained filtering happens in the suggestion provider.
+            for (ProjectedFlag<S> flag : scope.flags()) {
+                if (isFlagVisible(rootCommand, flag, source)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        inlineFlagBuilder.suggests(createInlineFlagSuggestionProvider(rootCommand));
+        executor(inlineFlagBuilder);
+        parentBuilder.then(inlineFlagBuilder.build());
+    }
+
+    private @NotNull <BS> com.mojang.brigadier.suggestion.SuggestionProvider<BS>
+    createInlineFlagSuggestionProvider(Command<S> command) {
+        return (context, builder) -> {
+            SuggestionContext<S> ctx = createSuggestionContext(command, context.getSource(), context.getInput());
+            CompletionArg arg = ctx.getArgToComplete();
+            var alignedBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
+            for (String suggestion : command.tree().tabComplete(ctx)) {
+                if (suggestion == null || suggestion.isEmpty()) {
+                    continue;
+                }
+                alignedBuilder.suggest(suggestion);
+            }
+            return alignedBuilder.buildFuture();
+        };
     }
 
     private <BS> void appendOptionalContinuation(
             Command<S> rootCommand,
             ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder,
-            int optionalIndex
+            int optionalIndex,
+            @Nullable ProjectedFlag<S> excludedFlag
     ) {
         List<Argument<S>> optionals = scope.optionalArguments();
         if (optionalIndex >= optionals.size()) {
@@ -179,7 +258,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         optionalBuilder.suggests(createSuggestionProvider(rootCommand, optional));
         executor(optionalBuilder);
 
-        appendContinuations(rootCommand, scope, optionalBuilder, optionalIndex + 1);
+        appendContinuations(rootCommand, scope, optionalBuilder, optionalIndex + 1, excludedFlag);
         parentBuilder.then(optionalBuilder);
     }
 
@@ -247,38 +326,41 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
     private <BS> void appendFlagFallback(
             Command<S> command,
             ProjectedNode<S> scope,
-            ArgumentBuilder<BS, ?> parentBuilder
+            ArgumentBuilder<BS, ?> parentBuilder,
+            @Nullable ProjectedFlag<S> excludedFlag
     ) {
         if (scope.flags().isEmpty()) {
             return;
         }
 
         for (ProjectedFlag<S> projectedFlag : scope.flags()) {
-            // Primary name → `--<name>` literal. Long form, NOT combinable.
+            // Skip the just-consumed flag when re-emitting siblings under a
+            // flag's value/switch node. Stops infinite recursion AND prevents
+            // suggesting a flag that DuplicateFlagException would reject at
+            // parse time.
+            if (excludedFlag != null && projectedFlag == excludedFlag) {
+                continue;
+            }
+            // Permissive: `--<primary>` AND `-<primary>` both register, plus
+            // `-<alias>` for each non-primary alias. Mirrors FlagExtractor's
+            // single-dash primary fallback so client autocomplete shows the
+            // same forms the parser accepts.
             String primary = projectedFlag.name();
-            registerFlagLiteral(command, projectedFlag, "--" + primary, primary, parentBuilder);
+            registerFlagLiteral(command, scope, projectedFlag, "--" + primary, primary, parentBuilder);
+            registerFlagLiteral(command, scope, projectedFlag, "-" + primary, primary, parentBuilder);
 
-            List<String> aliases = projectedFlag.aliases();
-            // ProjectedFlag.aliases() carries primary at index 0 + additional
-            // aliases. Single-entry = no additional aliases; treat the flag as
-            // permissive (also accept `-<primary>`). Multi-entry = strict
-            // convention: only non-primary aliases get the short form.
-            boolean hasOnlyPrimary = aliases.size() == 1;
-            if (hasOnlyPrimary) {
-                registerFlagLiteral(command, projectedFlag, "-" + primary, primary, parentBuilder);
-            } else {
-                for (String alias : aliases) {
-                    if (alias.equals(primary)) {
-                        continue;
-                    }
-                    registerFlagLiteral(command, projectedFlag, "-" + alias, alias, parentBuilder);
+            for (String alias : projectedFlag.aliases()) {
+                if (alias.equals(primary)) {
+                    continue;
                 }
+                registerFlagLiteral(command, scope, projectedFlag, "-" + alias, alias, parentBuilder);
             }
         }
     }
 
     private <BS> void registerFlagLiteral(
             Command<S> command,
+            ProjectedNode<S> scope,
             ProjectedFlag<S> projectedFlag,
             String literalName,
             String suffixForValueArg,
@@ -294,7 +376,18 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             valueBuilder.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
             valueBuilder.suggests(createFlagValueProvider(command, projectedFlag));
             executor(valueBuilder);
+            // Attach the same scope continuations (optionals, child commands,
+            // OTHER flags) to the value node so the client keeps offering
+            // suggestions after `-flag <value>` instead of dead-ending.
+            // Self-exclusion via `projectedFlag` prevents re-suggesting the
+            // just-consumed flag (DuplicateFlagException would reject it at
+            // parse time anyway).
+            appendContinuations(command, scope, valueBuilder, 0, projectedFlag);
             flagLiteral.then(valueBuilder);
+        } else {
+            // Switch — no value child. Attach continuations directly to the
+            // literal so siblings still complete after `-switch`.
+            appendContinuations(command, scope, flagLiteral, 0, projectedFlag);
         }
 
         parentBuilder.then(flagLiteral.build());
@@ -343,6 +436,26 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             // dropped client-side because their replace-range is wrong.
             var alignedBuilder = builder.createOffset(resolveSuggestionStart(context.getInput(), arg));
             String prefix = arg.isEmpty() ? "" : arg.value().toLowerCase();
+
+            // Inline-flag partial (`-name=` / `-name=partial`) is structurally
+            // a single token, so it falls into whichever ArgumentNode parses
+            // any string — usually a sibling positional. The positional's
+            // own suggester has no idea how to complete a flag value, so we
+            // delegate to Imperat's tree suggester which DOES handle the
+            // inline form natively (single-node flag completion).
+            String currentToken = arg.value();
+            if (currentToken != null
+                        && currentToken.indexOf('=') >= 0
+                        && studio.mevera.imperat.util.Patterns.isInputFlag(currentToken)) {
+                List<String> inline = command.tree().tabComplete(ctx);
+                for (String suggestion : inline) {
+                    if (suggestion == null || suggestion.isEmpty()) {
+                        continue;
+                    }
+                    alignedBuilder.suggest(suggestion, tooltip);
+                }
+                return alignedBuilder.buildFuture();
+            }
 
             return dispatcher.config().getParameterSuggestionResolver(parameter).provideAsynchronously(ctx, parameter)
                            .thenCompose((results) -> {
@@ -425,6 +538,19 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         });
     }
 
+
+    /**
+     * Argument type for the inline-flag catch-all sibling node. Default is
+     * the platform-agnostic {@link InlineFlagArgumentType}. Backends whose
+     * underlying registrar rejects raw Brigadier types (e.g. modern Paper's
+     * {@code Commands} API requires {@code CustomArgumentType} wrappers)
+     * MUST override to return a wrapped instance — or {@code null} to skip
+     * registering the inline-flag sibling and accept red coloring on the
+     * client side for inline {@code =}-form input.
+     */
+    protected @Nullable com.mojang.brigadier.arguments.ArgumentType<?> inlineFlagArgumentType() {
+        return new InlineFlagArgumentType();
+    }
 
     protected StringArgumentType getStringArgType(Argument<S> parameter) {
         if (parameter.isGreedy()) {
