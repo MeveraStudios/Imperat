@@ -11,7 +11,6 @@ import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextArgumentProviderFactory;
 import studio.mevera.imperat.command.ContextArgumentProviderRegistry;
 import studio.mevera.imperat.command.ReturnResolverRegistry;
-import studio.mevera.imperat.command.SourceProviderRegistry;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
@@ -31,9 +30,9 @@ import studio.mevera.imperat.exception.InvalidSyntaxException;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderRegistry;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.DependencySupplier;
-import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.Preconditions;
@@ -57,7 +56,6 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     // --- Registries (one per concern) ---------------------------------
     private final ArgumentTypeRegistry<S> argumentTypeRegistry;
     private final ContextArgumentProviderRegistry<S> contextArgumentProviderRegistry;
-    private final SourceProviderRegistry<S> sourceProviderRegistry;
     private final ReturnResolverRegistry<S> returnResolverRegistry;
     private final ResponseRegistry responseRegistry;
     private final PlaceholderRegistry placeholderRegistry;
@@ -99,10 +97,30 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     // --- Optional ------------------------------------------------------
     private @Nullable Object coroutineScope;
 
-    ImperatConfigImpl() {
+    /**
+     * Class token for the canonical source type. Required so that
+     * {@link Imperat#canBeSender(Type)} can compare method-parameter
+     * types against the user-declared source class instead of the
+     * erased {@code CommandSource} bound. Provided by
+     * {@code ConfigBuilder} at construction time.
+     */
+    private final @NotNull Class<S> sourceClass;
+
+    /**
+     * Bidirectional mapper between the platform-native source and the
+     * canonical {@code S}. Defaults to identity (suitable when {@code S}
+     * is the platform source itself). Replaced by the user's mapper
+     * via {@link #setSourceMapper}. Stored as a raw type because
+     * {@link CommandSourceMapper}'s {@code S extends P} bound doesn't
+     * compose with wildcard storage; callers cast at use site.
+     */
+    @SuppressWarnings({"rawtypes"})
+    private @NotNull CommandSourceMapper sourceMapper = CommandSourceMapper.identity();
+
+    ImperatConfigImpl(@NotNull Class<S> sourceClass) {
+        this.sourceClass = sourceClass;
         this.contextArgumentProviderRegistry = ContextArgumentProviderRegistry.createDefault();
         this.argumentTypeRegistry = ArgumentTypeRegistry.createDefault();
-        this.sourceProviderRegistry = SourceProviderRegistry.createDefault();
         this.returnResolverRegistry = ReturnResolverRegistry.createDefault();
         this.responseRegistry = ResponseRegistry.createDefault();
         this.placeholderRegistry = PlaceholderRegistry.createDefault();
@@ -113,13 +131,28 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
         this.dependencyRegistry = new DependencyRegistry();
         this.contextFactory = ContextFactory.defaultFactory();
         this.errorDispatcher = new CommandErrorDispatcher<>(errorHandlerRegistry);
-
-        this.registerSourceProvider(CommandSource.class, (source, ctx) -> source);
     }
 
     // ------------------------------------------------------------------
     // Behaviour scalars (delegated to BehaviorSettings)
     // ------------------------------------------------------------------
+
+    @Override
+    public @NotNull Class<S> sourceClass() {
+        return sourceClass;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public @NotNull CommandSourceMapper sourceMapper() {
+        return sourceMapper;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public void setSourceMapper(@NotNull CommandSourceMapper mapper) {
+        this.sourceMapper = mapper;
+    }
 
     @Override
     public String commandPrefix() {
@@ -306,19 +339,8 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     }
 
     // ------------------------------------------------------------------
-    // SourceProvider / ReturnResolver registries
+    // ReturnResolver registry
     // ------------------------------------------------------------------
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public @Nullable <R> SourceProvider<S, R> getSourceProviderFor(Type type) {
-        return (SourceProvider<S, R>) sourceProviderRegistry.getData(type).orElse(null);
-    }
-
-    @Override
-    public <R> void registerSourceProvider(Type type, SourceProvider<S, R> sourceProvider) {
-        sourceProviderRegistry.setData(type, sourceProvider);
-    }
 
     @Override
     @SuppressWarnings("unchecked")

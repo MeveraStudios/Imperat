@@ -17,6 +17,7 @@ import studio.mevera.imperat.backend.capability.RegistrationCapability;
 import studio.mevera.imperat.backend.modern.ModernPaperBrigadierManager;
 import studio.mevera.imperat.backend.modern.argument.PaperArgumentMappings;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,14 +36,16 @@ import java.util.List;
  *
  * @since 4.0.0
  */
-public final class ModernPaperRegistration implements RegistrationCapability {
+public final class ModernPaperRegistration<S extends BukkitCommandSource> implements RegistrationCapability<S> {
 
-    private final List<Command<BukkitCommandSource>> pending = new ArrayList<>();
-    private BukkitImperat owner;
+    private final List<Command<S>> pending = new ArrayList<>();
+    private BukkitImperat<S> owner;
     private Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
-    private ModernPaperBrigadierManager brigadierManager;
+    private ModernPaperBrigadierManager<S> brigadierManager;
     private @Nullable Commands registrar;
+    @SuppressWarnings("rawtypes")
+    private CommandSourceMapper mapper;
 
     /** Reflective instantiation entrypoint — wiring happens in {@link #initialize}. */
     public ModernPaperRegistration() {
@@ -50,12 +53,13 @@ public final class ModernPaperRegistration implements RegistrationCapability {
 
     @Override
     public void initialize(@NotNull Plugin plugin,
-            @NotNull BukkitImperat imperat,
+            @NotNull BukkitImperat<S> imperat,
             @NotNull AdventureProvider<CommandSender> adventureProvider) {
         this.owner = imperat;
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
-        this.brigadierManager = new ModernPaperBrigadierManager(imperat);
+        this.brigadierManager = new ModernPaperBrigadierManager<>(imperat);
+        this.mapper = imperat.config().sourceMapper();
         registerLifecycleHook();
     }
 
@@ -64,7 +68,7 @@ public final class ModernPaperRegistration implements RegistrationCapability {
             LifecycleEventManager<Plugin> manager = plugin.getLifecycleManager();
             manager.registerEventHandler(LifecycleEvents.COMMANDS, event -> {
                 this.registrar = event.registrar();
-                for (Command<BukkitCommandSource> cmd : pending) {
+                for (Command<S> cmd : pending) {
                     brigadierManager.register(registrar, cmd);
                 }
                 pending.clear();
@@ -79,7 +83,7 @@ public final class ModernPaperRegistration implements RegistrationCapability {
     }
 
     @Override
-    public void registerCommand(@NotNull Command<BukkitCommandSource> command) {
+    public void registerCommand(@NotNull Command<S> command) {
         if (registrar != null) {
             // Lifecycle event already fired — register immediately.
             brigadierManager.register(registrar, command);
@@ -89,22 +93,25 @@ public final class ModernPaperRegistration implements RegistrationCapability {
     }
 
     @Override
-    public @NotNull BukkitCommandSource wrapSender(@NotNull Object sender) {
+    @SuppressWarnings("unchecked")
+    public @NotNull S wrapSender(@NotNull Object sender) {
         if (sender instanceof CommandSourceStack stack) {
             // Paper-specific stack carries selector-resolver context — keep
             // the stack reference on the wrapped source so downstream
             // resolvers (entity/position) can use it.
-            return new BukkitCommandSource(stack.getSender(), adventureProvider, stack);
+            BukkitCommandSource platform = new BukkitCommandSource(stack.getSender(), adventureProvider, stack);
+            return (S) mapper.wrap(platform);
         }
         if (sender instanceof CommandSender plain) {
-            return SenderWrappers.plain(plain, adventureProvider);
+            return (S) mapper.wrap(SenderWrappers.plain(plain, adventureProvider));
         }
         throw SenderWrappers.reject(sender, "CommandSourceStack or CommandSender");
     }
 
     @Override
-    public void applyArgumentTypeDefaults(@NotNull ImperatConfig<BukkitCommandSource> config) {
-        PaperArgumentMappings.applyDefaults(config);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void applyArgumentTypeDefaults(@NotNull ImperatConfig<S> config) {
+        PaperArgumentMappings.applyDefaults((ImperatConfig) config);
     }
 
     @Override

@@ -12,7 +12,6 @@ import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
-import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.TypeWrap;
@@ -128,35 +127,6 @@ public sealed interface ResolverRegistrar<S extends CommandSource> permits Imper
     @Nullable
     SuggestionProvider<S> getSuggestionProviderForType(Type type);
 
-
-    /**
-     * Fetches the {@link SourceProvider} from an internal registry.
-     *
-     * @param type the target source valueType
-     * @param <R>  the new source valueType parameter
-     * @return the {@link SourceProvider} for specific valueType
-     */
-    <R> @Nullable SourceProvider<S, R> getSourceProviderFor(Type type);
-
-    /**
-     * Registers the {@link SourceProvider} into an internal registry
-     *
-     * @param type           the target source valueType
-     * @param sourceProvider the source resolver to register
-     * @param <R>            the new source valueType parameter
-     */
-    default <R> void registerSourceProvider(TypeWrap<R> type, SourceProvider<S, R> sourceProvider) {
-        registerSourceProvider(type.getType(), sourceProvider);
-    }
-
-    /**
-     * Registers the {@link SourceProvider} into an internal registry
-     *
-     * @param type           the target source valueType
-     * @param sourceProvider the source resolver to register
-     * @param <R>            the new source valueType parameter
-     */
-    <R> void registerSourceProvider(Type type, SourceProvider<S, R> sourceProvider);
 
     /**
      * Fetches the {@link ReturnResolver} from an internal registry.

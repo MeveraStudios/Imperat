@@ -27,21 +27,25 @@ import studio.mevera.imperat.command.Command;
  *
  * @since 4.0.0
  */
-public interface BukkitBackend {
+public interface BukkitBackend<S extends BukkitCommandSource> {
 
     /**
      * Register a fully-built Imperat command with the host platform.
      * Called from {@code BukkitImperat#registerSimpleCommand} after the core
      * has populated its internal command tree.
      */
-    void registerCommand(@NotNull Command<BukkitCommandSource> command);
+    void registerCommand(@NotNull Command<S> command);
 
     /**
-     * Wrap a platform-supplied sender object into a {@link BukkitCommandSource}.
-     * Modern backend may receive a Paper {@code CommandSourceStack}; legacy
-     * backend always receives a {@code CommandSender}.
+     * Wrap a platform-supplied sender object into the canonical source
+     * type {@code S}. Implementations build the platform-native
+     * {@link BukkitCommandSource} via existing logic (Adventure-aware,
+     * stack-aware) then lift it to {@code S} via the configured
+     * {@link studio.mevera.imperat.providers.CommandSourceMapper}.
+     * Modern backend may receive a Paper {@code CommandSourceStack};
+     * legacy backend always receives a {@code CommandSender}.
      */
-    @NotNull BukkitCommandSource wrapSender(@NotNull Object sender);
+    @NotNull S wrapSender(@NotNull Object sender);
 
     /**
      * Apply argument-type defaults to the supplied config. Called once during
@@ -49,7 +53,7 @@ public interface BukkitBackend {
      * registers Paper-native types with client-side suggestions, legacy registers
      * the existing name-based bukkit types.
      */
-    void applyArgumentTypeDefaults(@NotNull ImperatConfig<BukkitCommandSource> config);
+    void applyArgumentTypeDefaults(@NotNull ImperatConfig<S> config);
 
     /**
      * Backend-specific shutdown hook — closes any resources the backend owns.

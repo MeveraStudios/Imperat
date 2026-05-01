@@ -1,95 +1,66 @@
 package studio.mevera.imperat;
 
 import net.minestom.server.ServerProcess;
-import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.ConsoleSender;
 import net.minestom.server.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.exception.UnknownPlayerException;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.responses.MinestomResponseKey;
 import studio.mevera.imperat.util.TypeWrap;
 
-/**
- * Configuration builder for MinestomImperat instances.
- * This builder provides a fluent API for configuring and customizing the behavior
- * of Imperat commands in a Minestom server environment.
- *
- * <p>The builder automatically sets up:</p>
- * <ul>
- *   <li>Minestom-specific source resolvers for type-safe command source handling</li>
- *   <li>Exception handlers for common Minestom scenarios</li>
- *   <li>CommandContext resolvers for dependency injection</li>
- *   <li>Integration with Minestom's modern architecture</li>
- * </ul>
- *
- * <p>Usage Example:</p>
- * <pre>{@code
- * MinestomImperat imperat = MinestomImperat.builder(serverProcess)
- *     .build();
- * }</pre>
- *
- * @author Imperat Framework
- * @see MinestomImperat
- * @since 1.0
- */
-public final class MinestomConfigBuilder extends ConfigBuilder<MinestomCommandSource, MinestomImperat, MinestomConfigBuilder> {
+public class MinestomConfigBuilder<S extends MinestomCommandSource>
+        extends ConfigBuilder<S, MinestomImperat<S>, MinestomConfigBuilder<S>> {
 
     private final ServerProcess serverProcess;
 
-    /**
-     * Package-private constructor used by MinestomImperat.builder().
-     *
-     * @param serverProcess the Minestom ServerProcess instance
-     */
-    MinestomConfigBuilder(@NotNull ServerProcess serverProcess) {
+    MinestomConfigBuilder(
+            @NotNull ServerProcess serverProcess,
+            Class<S> sourceClass,
+            CommandSourceMapper<MinestomCommandSource, S> mapper
+    ) {
+        super(sourceClass);
         this.serverProcess = serverProcess;
+        config.setSourceMapper(mapper);
         this.permissionChecker((src, perm) -> perm == null || src.isConsole());
         registerDefaultResolvers();
         addThrowableHandlers();
         registerContextResolvers();
     }
 
-    /**
-     * Registers context resolvers for automatic dependency injection in commands.
-     * This allows command methods to receive Minestom-specific objects as parameters.
-     */
     private void registerContextResolvers() {
-        config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<MinestomCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> ctx
-        );
-        config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<MinestomCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> CommandHelp.create(ctx)
-        );
+        deferredDefaults.add(cfg -> {
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(ExecutionContext.class, sourceClass).getType(),
+                    (ctx, paramElement) -> ctx
+            );
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(CommandHelp.class, sourceClass).getType(),
+                    (ctx, paramElement) -> CommandHelp.create(ctx)
+            );
+        });
 
-        // Enhanced context resolvers similar to Velocity
         config.registerContextArgumentProvider(ServerProcess.class, (ctx, paramElement) -> serverProcess);
     }
 
-    /**
-     * Registers source resolvers for type-safe command source handling.
-     * This enables automatic casting and validation of command sources.
-     */
     private void registerDefaultResolvers() {
-        config.registerSourceProvider(CommandSender.class, (minestomSource, ctx) -> minestomSource.origin());
-
-        // Enhanced source resolver for console similar to Velocity
-        config.registerSourceProvider(AdventureCommandSource.class, (minestomSource, ctx) -> minestomSource);
-        config.registerSourceProvider(ConsoleSender.class, (minestomSource, ctx) -> {
-            if (!minestomSource.isConsole()) {
+        // v4: SourceProviderRegistry deleted. ConsoleSender / Player gating
+        // moves to ContextArgumentProvider — assignability handles
+        // CommandSender / AdventureCommandSource directly via covariance
+        // through `S extends MinestomCommandSource`.
+        config.registerContextArgumentProvider(ConsoleSender.class, (ctx, p) -> {
+            MinestomCommandSource source = ctx.source();
+            if (!source.isConsole()) {
                 throw ResponseException.of(MinestomResponseKey.ONLY_CONSOLE);
             }
-            return (ConsoleSender) minestomSource.origin();
+            return (ConsoleSender) source.origin();
         });
 
-        config.registerSourceProvider(Player.class, (source, ctx) -> {
+        config.registerContextArgumentProvider(Player.class, (ctx, p) -> {
+            MinestomCommandSource source = ctx.source();
             if (source.isConsole()) {
                 throw ResponseException.of(MinestomResponseKey.ONLY_PLAYER);
             }
@@ -97,10 +68,6 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomCommandSo
         });
     }
 
-    /**
-     * Registers exception handlers for common Minestom command scenarios.
-     * This provides user-friendly error messages for various error conditions.
-     */
     private void addThrowableHandlers() {
         config.setErrorHandler(
                 UnknownPlayerException.class,
@@ -108,13 +75,9 @@ public final class MinestomConfigBuilder extends ConfigBuilder<MinestomCommandSo
         );
     }
 
-    /**
-     * Builds the configured MinestomImperat instance.
-     *
-     * @return a new MinestomImperat instance with the specified configuration
-     */
     @Override
-    public @NotNull MinestomImperat build() {
-        return new MinestomImperat(serverProcess, config);
+    public @NotNull MinestomImperat<S> build() {
+        materializeDeferredDefaults();
+        return new MinestomImperat<>(serverProcess, config);
     }
 }

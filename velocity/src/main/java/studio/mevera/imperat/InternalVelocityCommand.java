@@ -9,14 +9,14 @@ import studio.mevera.imperat.util.StringUtils;
 
 import java.util.List;
 
-final class InternalVelocityCommand<P> implements SimpleCommand {
+final class InternalVelocityCommand<P, S extends VelocityCommandSource> implements SimpleCommand {
 
-    private final VelocityImperat<P> imperat;
-    private final Command<VelocityCommandSource> command;
+    private final VelocityImperat<P, S> imperat;
+    private final Command<S> command;
 
     private final CommandMeta meta;
 
-    InternalVelocityCommand(VelocityImperat<P> imperat, Command<VelocityCommandSource> command, CommandManager commandManager) {
+    InternalVelocityCommand(VelocityImperat<P, S> imperat, Command<S> command, CommandManager commandManager) {
         this.imperat = imperat;
         this.command = command;
         this.meta = createMeta(commandManager);

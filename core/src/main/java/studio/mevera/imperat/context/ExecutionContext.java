@@ -3,7 +3,6 @@ package studio.mevera.imperat.context;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.ImperatConfig;
 import studio.mevera.imperat.annotations.types.Context;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
@@ -118,7 +117,6 @@ public interface ExecutionContext<S extends CommandSource> extends CommandContex
      * @param type the target type class
      * @return the resolved source, never {@code null}
      * @throws CommandException if resolution fails
-     * @see ImperatConfig#getSourceProviderFor(Type) (Type)
      */
     <R> @NotNull R provideSource(Type type) throws CommandException;
 

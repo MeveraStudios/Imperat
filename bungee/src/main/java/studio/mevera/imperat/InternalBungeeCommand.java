@@ -5,14 +5,14 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import studio.mevera.imperat.command.Command;
 
 
-final class InternalBungeeCommand extends net.md_5.bungee.api.plugin.Command implements TabExecutor {
+final class InternalBungeeCommand<S extends BungeeCommandSource> extends net.md_5.bungee.api.plugin.Command implements TabExecutor {
 
-    private final BungeeImperat bungeeCommandDispatcher;
-    private final Command<BungeeCommandSource> bungeeCommand;
+    private final BungeeImperat<S> bungeeCommandDispatcher;
+    private final Command<S> bungeeCommand;
 
     InternalBungeeCommand(
-            BungeeImperat commandDispatcher,
-            Command<BungeeCommandSource> bungeeCommand
+            BungeeImperat<S> commandDispatcher,
+            Command<S> bungeeCommand
     ) {
         super(
                 bungeeCommand.getName(),

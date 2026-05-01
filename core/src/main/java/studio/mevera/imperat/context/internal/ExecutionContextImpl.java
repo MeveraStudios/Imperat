@@ -121,13 +121,36 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
     @Override
     @SuppressWarnings("unchecked")
     public <R> @NotNull R provideSource(Type type) throws CommandException {
-        if (!imperatConfig.hasSourceResolver(type)) {
-            throw new IllegalArgumentException("Found no SourceProvider for valueType `" + type.getTypeName() + "`");
+        // v4 source-resolution: with the user's S being canonical,
+        // derived source views are reachable via assignability against
+        // the live source instance — no SourceProviderRegistry indirection.
+        // For unrelated types fall through to the ContextArgumentProvider
+        // registry so user-defined domain contexts still work.
+        if (type instanceof Class<?> clazz) {
+            S source = this.source();
+            if (clazz.isInstance(source)) {
+                return (R) source;
+            }
+            // Platform-derived view via origin() — covers Player /
+            // OfflinePlayer / ConsoleCommandSender / CommandSender on
+            // bukkit, ProxiedPlayer on bungee, etc.
+            Object origin = source.origin();
+            if (origin != null && clazz.isInstance(origin)) {
+                return (R) origin;
+            }
         }
-        var sourceResolver = imperatConfig.getSourceProviderFor(type);
-        assert sourceResolver != null;
-
-        return (R) sourceResolver.resolve(this.source(), this);
+        // Fall through: maybe the user registered a ContextArgumentProvider
+        // for this type (the new SPI for source-derived domain types).
+        var ctxProvider = imperatConfig.getContextArgumentProvider(type);
+        if (ctxProvider != null) {
+            R resolved = (R) ctxProvider.provide(this, null);
+            if (resolved != null) {
+                return resolved;
+            }
+        }
+        throw new IllegalArgumentException(
+                "Cannot derive source view of type `" + type.getTypeName()
+                        + "` from canonical source `" + this.source().getClass().getName() + "`");
     }
 
     @Override

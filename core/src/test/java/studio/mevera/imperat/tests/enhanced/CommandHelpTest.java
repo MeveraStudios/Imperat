@@ -24,8 +24,10 @@ public class CommandHelpTest extends EnhancedBaseImperatTest {
 
     @BeforeEach
     void setupImperat() {
+        // v4: TestCommandSource IS the canonical S — no source-provider
+        // registration needed. CommandHelp parameter still gets injected
+        // via the type-literal-keyed ContextArgumentProvider below.
         imperat = TestImperatConfig.builder()
-                          .sourceProvider(TestCommandSource.class, (source, ctx) -> source)
                           .contextArgumentProvider(new TypeWrap<CommandHelp<TestCommandSource>>() {
                           }.getType(), (ctx, pe) -> CommandHelp.create(ctx))
                           .build();

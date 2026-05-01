@@ -5,11 +5,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-public final class AsyncTabListener implements Listener {
+public final class AsyncTabListener<S extends BukkitCommandSource> implements Listener {
 
-    private final BukkitImperat imperat;
+    private final BukkitImperat<S> imperat;
 
-    public AsyncTabListener(BukkitImperat imperat) {
+    public AsyncTabListener(BukkitImperat<S> imperat) {
         this.imperat = imperat;
     }
 
@@ -20,7 +20,7 @@ public final class AsyncTabListener implements Listener {
             commandLine = commandLine.substring(1);
         }
 
-        BukkitCommandSource src = imperat.wrapSender(event.getSender());
+        S src = imperat.wrapSender(event.getSender());
 
         var autocompletedResults = imperat.autoComplete(src, commandLine).join();
         if (autocompletedResults.isEmpty()) {

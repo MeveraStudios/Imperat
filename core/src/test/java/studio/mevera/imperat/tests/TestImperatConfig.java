@@ -6,7 +6,7 @@ import studio.mevera.imperat.ConfigBuilder;
 public final class TestImperatConfig extends ConfigBuilder<TestCommandSource, TestImperat, TestImperatConfig> {
 
     public TestImperatConfig() {
-        super();
+        super(TestCommandSource.class);
     }
 
     public static TestImperatConfig builder() {

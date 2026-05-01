@@ -25,7 +25,12 @@ public class ContextResolvingTest extends EnhancedBaseImperatTest {
     @DisplayName("Should parse non-first parameters from input even when their type also has a source resolver")
     void testSourceResolvedTypeAfterFirstParameterStillParsesAsArgument() {
         var res = execute(SourceResolvedArgumentCommand.class, cfg -> {
-            cfg.registerSourceProvider(TestPlayer.class, (source, ctx) -> new TestPlayer("source"));
+            // v4: SourceProviderRegistry deleted — domain-typed source views
+            // come from ContextArgumentProvider instead. This regression test
+            // verifies that an arg-type registered for the same Java type
+            // takes precedence at parse-position-1+ over the context-derived
+            // form (which is now opt-in via ContextArgumentProvider).
+            cfg.registerContextArgumentProvider(TestPlayer.class, (ctx, p) -> new TestPlayer("source"));
             cfg.registerArgType(TestPlayer.class, new TestPlayerParamType());
         }, "srcarg target123");
 

@@ -148,18 +148,18 @@ final class SyntaxDataLoader {
         };
     }
 
-    static @NotNull CommandCondition loadCondition(MinestomImperat imperat, CommandPathway<MinestomCommandSource> usage) {
+    static @NotNull CommandCondition loadCondition(MinestomImperat imperat, CommandPathway usage) {
         return (sender, _) -> imperat.config().getPermissionChecker().hasPermission(imperat.wrapSender(sender), usage);
     }
 
     static <T> Argument<?>[] loadArguments(
             MinestomImperat imperat,
-            CommandPathway<MinestomCommandSource> usage
+            CommandPathway usage
     ) {
         Argument<?>[] args = new Argument[usage.size()];
-        List<studio.mevera.imperat.command.arguments.Argument<MinestomCommandSource>> parameters = usage.getArguments();
+        List<studio.mevera.imperat.command.arguments.Argument> parameters = usage.getArguments();
         for (int i = 0; i < parameters.size(); i++) {
-            studio.mevera.imperat.command.arguments.Argument<MinestomCommandSource> parameter = parameters.get(i);
+            studio.mevera.imperat.command.arguments.Argument parameter = parameters.get(i);
             Argument<T> minestomArg = (Argument<T>) argFromParameter(imperat, parameter);
             minestomArg.setSuggestionCallback((sender, context, suggestion) -> {
                 String in = context.getInput();
@@ -167,7 +167,9 @@ final class SyntaxDataLoader {
                     in = in.substring(1);
                 }
                 var source = imperat.wrapSender(sender);
-                for (var completion : imperat.autoComplete(source, in).join()) {
+                @SuppressWarnings("unchecked")
+                List<String> completions = (List<String>) imperat.autoComplete(source, in).join();
+                for (String completion : completions) {
                     suggestion.addEntry(new SuggestionEntry(completion));
                 }
             });
@@ -177,7 +179,7 @@ final class SyntaxDataLoader {
     }
 
     private static Argument<?> argFromParameter(MinestomImperat imperat,
-            studio.mevera.imperat.command.arguments.Argument<MinestomCommandSource> parameter) {
+            studio.mevera.imperat.command.arguments.Argument parameter) {
         var type = parameter.valueType();
         var id = parameter.getName();
 

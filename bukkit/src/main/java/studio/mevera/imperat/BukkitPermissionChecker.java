@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.permissions.PermissionChecker;
 
-public final class BukkitPermissionChecker implements PermissionChecker<BukkitCommandSource> {
+public final class BukkitPermissionChecker<S extends BukkitCommandSource> implements PermissionChecker<S> {
 
 
     /**
@@ -14,7 +14,7 @@ public final class BukkitPermissionChecker implements PermissionChecker<BukkitCo
      */
     @Override
     public boolean hasPermission(
-            @NotNull BukkitCommandSource source,
+            @NotNull S source,
             @Nullable String permission
     ) {
         if (permission == null || permission.isEmpty()) {

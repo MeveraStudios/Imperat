@@ -15,7 +15,6 @@ import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
 import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
-import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.arguments.types.Coord;
 import com.hypixel.hytale.server.core.command.system.arguments.types.IntCoord;
@@ -40,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.ResponseException;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.responses.HytaleResponseKey;
 import studio.mevera.imperat.type.HytaleArgumentType;
 import studio.mevera.imperat.type.LocationArgument;
@@ -47,7 +47,8 @@ import studio.mevera.imperat.type.PlayerArgument;
 import studio.mevera.imperat.type.WorldArgument;
 import studio.mevera.imperat.util.TypeWrap;
 
-public final class HytaleConfigBuilder extends ConfigBuilder<HytaleCommandSource, HytaleImperat, HytaleConfigBuilder> {
+public class HytaleConfigBuilder<S extends HytaleCommandSource>
+        extends ConfigBuilder<S, HytaleImperat<S>, HytaleConfigBuilder<S>> {
 
     private static final HytaleArgumentType.Data<?>[] HYTALE_ARGUMENT_TYPES = {
             //TODO we should add exceptions(and their providers) for each type of data eventually.
@@ -144,8 +145,10 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleCommandSource
 
     private final JavaPlugin plugin;
 
-    HytaleConfigBuilder(JavaPlugin plugin) {
+    HytaleConfigBuilder(JavaPlugin plugin, Class<S> sourceClass, CommandSourceMapper<HytaleCommandSource, S> mapper) {
+        super(sourceClass);
         this.plugin = plugin;
+        config.setSourceMapper(mapper);
         this.permissionChecker((src, perm) -> {
             if (perm == null || src.isConsole()) {
                 return true;
@@ -163,16 +166,16 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleCommandSource
      * This allows command methods to receive Minestom-specific objects as parameters.
      */
     private void registerContextResolvers() {
-        config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<HytaleCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> ctx
-        );
-        config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<HytaleCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> CommandHelp.create(ctx)
-        );
+        deferredDefaults.add(cfg -> {
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(ExecutionContext.class, sourceClass).getType(),
+                    (ctx, paramElement) -> ctx
+            );
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(CommandHelp.class, sourceClass).getType(),
+                    (ctx, paramElement) -> CommandHelp.create(ctx)
+            );
+        });
 
         config.registerContextArgumentProvider(JavaPlugin.class, (ctx, paramElement) -> plugin);
     }
@@ -182,23 +185,27 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleCommandSource
      * This enables automatic casting and validation of command sources.
      */
     private void registerDefaultSourceResolvers() {
-        config.registerSourceProvider(CommandSender.class, (hytaleSource, ctx) -> hytaleSource.origin());
-
-        config.registerSourceProvider(ConsoleSender.class, (hytaleSource, ctx) -> {
-            if (!hytaleSource.isConsole()) {
+        // v4: SourceProviderRegistry deleted. Gating-aware Player /
+        // PlayerRef / ConsoleSender views move to ContextArgumentProvider.
+        // CommandSender resolves via assignability (it IS the origin).
+        config.registerContextArgumentProvider(ConsoleSender.class, (ctx, p) -> {
+            HytaleCommandSource source = ctx.source();
+            if (!source.isConsole()) {
                 throw ResponseException.of(HytaleResponseKey.ONLY_CONSOLE);
             }
-            return (ConsoleSender) hytaleSource.origin();
+            return (ConsoleSender) source.origin();
         });
 
-        config.registerSourceProvider(Player.class, (source, ctx) -> {
+        config.registerContextArgumentProvider(Player.class, (ctx, p) -> {
+            HytaleCommandSource source = ctx.source();
             if (source.isConsole()) {
                 throw ResponseException.of(HytaleResponseKey.ONLY_PLAYER);
             }
             return source.as(Player.class);
         });
 
-        config.registerSourceProvider(PlayerRef.class, (source, ctx) -> {
+        config.registerContextArgumentProvider(PlayerRef.class, (ctx, p) -> {
+            HytaleCommandSource source = ctx.source();
             if (source.isConsole()) {
                 throw ResponseException.of(HytaleResponseKey.ONLY_PLAYER);
             }
@@ -206,14 +213,14 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleCommandSource
         });
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void registerDefaultParamTypes() {
-        config.registerArgType(Location.class, new LocationArgument());
-        config.registerArgType(PlayerRef.class, new PlayerArgument());
-        config.registerArgType(World.class, new WorldArgument());
+        config.registerArgType(Location.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new LocationArgument());
+        config.registerArgType(PlayerRef.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument());
+        config.registerArgType(World.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new WorldArgument());
 
-        // Registerall other types
         for (HytaleArgumentType.Data<?> data : HYTALE_ARGUMENT_TYPES) {
-            config.registerArgType(data.type(), new HytaleArgumentType<>(data));
+            config.registerArgType(data.type(), (studio.mevera.imperat.command.arguments.type.ArgumentType) new HytaleArgumentType<>(data));
         }
 
     }
@@ -445,7 +452,8 @@ public final class HytaleConfigBuilder extends ConfigBuilder<HytaleCommandSource
     }
 
     @Override
-    public @NotNull HytaleImperat build() {
-        return new HytaleImperat(plugin, config);
+    public @NotNull HytaleImperat<S> build() {
+        materializeDeferredDefaults();
+        return new HytaleImperat<>(plugin, config);
     }
 }

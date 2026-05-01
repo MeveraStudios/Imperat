@@ -1,6 +1,5 @@
 package studio.mevera.imperat;
 
-import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
@@ -9,54 +8,32 @@ import com.velocitypowered.api.proxy.config.ProxyConfig;
 import com.velocitypowered.api.proxy.server.ServerInfo;
 import com.velocitypowered.api.util.ProxyVersion;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.ResponseException;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.responses.VelocityResponseKey;
 import studio.mevera.imperat.type.PlayerArgument;
 import studio.mevera.imperat.type.ServerInfoArgument;
 import studio.mevera.imperat.util.TypeWrap;
 
-/**
- * Configuration builder for VelocityImperat instances.
- * This builder provides a fluent API for configuring and customizing the behavior
- * of Imperat commands in a Velocity proxy environment.
- *
- * <p>The builder automatically sets up:</p>
- * <ul>
- *   <li>Velocity-specific parameter types (Player, ServerInfo)</li>
- *   <li>Exception handlers for common Velocity scenarios</li>
- *   <li>CommandSource resolvers for type-safe command source handling</li>
- *   <li>CommandContext resolvers for dependency injection</li>
- * </ul>
- *
- * <p>Usage Example:</p>
- * <pre>{@code
- * VelocityImperat<MyPlugin> imperat = VelocityImperat.builder(plugin, proxyServer)
- *     .build();
- * }</pre>
- *
- * @param <P> the plugin class type
- * @since 1.0
- * @author Imperat Framework
- * @see VelocityImperat
- */
-public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocityCommandSource, VelocityImperat<P>, VelocityConfigBuilder<P>> {
+public class VelocityConfigBuilder<P, S extends VelocityCommandSource>
+        extends ConfigBuilder<S, VelocityImperat<P, S>, VelocityConfigBuilder<P, S>> {
 
     private final P plugin;
     private final ProxyServer proxyServer;
 
-    /**
-     * Package-private constructor used by VelocityImperat.builder().
-     *
-     * @param plugin the plugin instance
-     * @param proxyServer the ProxyServer instance
-     */
-    VelocityConfigBuilder(@NotNull P plugin, @NotNull ProxyServer proxyServer) {
+    VelocityConfigBuilder(
+            @NotNull P plugin,
+            @NotNull ProxyServer proxyServer,
+            Class<S> sourceClass,
+            CommandSourceMapper<VelocityCommandSource, S> mapper
+    ) {
+        super(sourceClass);
         this.plugin = plugin;
         this.proxyServer = proxyServer;
+        config.setSourceMapper(mapper);
         this.permissionChecker((src, perm) -> {
             if (perm == null || src.isConsole()) {
                 return true;
@@ -67,24 +44,19 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocityComman
         registerSourceResolvers();
         registerArgumentTypes();
         registerContextResolvers();
-
     }
 
-    /**
-     * Registers context resolvers for automatic dependency injection in commands.
-     * This allows command methods to receive Velocity-specific objects as parameters.
-     */
     private void registerContextResolvers() {
-        config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<VelocityCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> ctx
-        );
-        config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<VelocityCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> CommandHelp.create(ctx)
-        );
+        deferredDefaults.add(cfg -> {
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(ExecutionContext.class, sourceClass).getType(),
+                    (ctx, paramElement) -> ctx
+            );
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(CommandHelp.class, sourceClass).getType(),
+                    (ctx, paramElement) -> CommandHelp.create(ctx)
+            );
+        });
 
         config.registerContextArgumentProvider(ProxyConfig.class, (ctx, paramElement) -> proxyServer.getConfiguration());
         config.registerContextArgumentProvider(ProxyVersion.class, (ctx, paramElement) -> proxyServer.getVersion());
@@ -103,48 +75,38 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocityComman
                 () -> new IllegalStateException("Cannot get plugin container")));
     }
 
-    /**
-     * Registers source resolvers for type-safe command source handling.
-     * This enables automatic casting and validation of command sources.
-     */
     private void registerSourceResolvers() {
-        config.registerSourceProvider(AdventureCommandSource.class, (velocitySource, ctx) -> velocitySource);
-        config.registerSourceProvider(ConsoleCommandSource.class, (velocitySource, ctx) -> {
-            if (!velocitySource.isConsole()) {
-                throw ResponseException.of(VelocityResponseKey.ONLY_CONSOLE);
-            }
-            return velocitySource.asConsole();
-        });
-
-        config.registerSourceProvider(CommandSource.class, (velocitySource, ctx) -> velocitySource.origin());
-
-        config.registerSourceProvider(Player.class, (source, ctx) -> {
+        // v4: SourceProviderRegistry deleted. Cross-source-type @Execute
+        // params resolve via assignability. Player / ConsoleCommandSource
+        // gating goes through ContextArgumentProvider.
+        config.registerContextArgumentProvider(Player.class, (ctx, p) -> {
+            VelocityCommandSource source = ctx.source();
             if (source.isConsole()) {
                 throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER);
             }
             return source.asPlayer();
         });
+        config.registerContextArgumentProvider(ConsoleCommandSource.class, (ctx, p) -> {
+            VelocityCommandSource source = ctx.source();
+            if (!source.isConsole()) {
+                throw ResponseException.of(VelocityResponseKey.ONLY_CONSOLE);
+            }
+            return source.asConsole();
+        });
     }
 
-    /**
-     * Registers responses for common Velocity command scenarios.
-     * This provides user-friendly error messages for various error conditions.
-     */
     private void registerVelocityResponses() {
         this.visit(ImperatConfig::getResponseRegistry, responseRegistry -> {
             responseRegistry.registerResponse(
                     VelocityResponseKey.ONLY_PLAYER,
                     () -> "Only players can do this!"
             );
-
             responseRegistry.registerResponse(
                     VelocityResponseKey.ONLY_CONSOLE,
                     () -> "Only console can do this!"
             );
-
             registerInputResponse(responseRegistry, VelocityResponseKey.UNKNOWN_PLAYER,
                     "A player with the name '%input%' doesn't seem to be online");
-
             registerInputResponse(responseRegistry, VelocityResponseKey.UNKNOWN_SERVER,
                     "A server with the name '%input%' doesn't seem to exist");
         });
@@ -156,25 +118,17 @@ public final class VelocityConfigBuilder<P> extends ConfigBuilder<VelocityComman
                 () -> message,
                 "input"
         );
-
     }
 
-    /**
-     * Registers parameter types for Velocity-specific objects.
-     * This enables commands to accept Players, ServerInfo, etc. as parameters.
-     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void registerArgumentTypes() {
-        config.registerArgType(Player.class, new PlayerArgument(proxyServer));
-        config.registerArgType(ServerInfo.class, new ServerInfoArgument(proxyServer));
+        config.registerArgType(Player.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument(proxyServer));
+        config.registerArgType(ServerInfo.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new ServerInfoArgument(proxyServer));
     }
 
-    /**
-     * Builds the configured VelocityImperat instance.
-     *
-     * @return a new VelocityImperat instance with the specified configuration
-     */
     @Override
-    public @NotNull VelocityImperat<P> build() {
+    public @NotNull VelocityImperat<P, S> build() {
+        materializeDeferredDefaults();
         return new VelocityImperat<>(plugin, proxyServer, this.config);
     }
 }

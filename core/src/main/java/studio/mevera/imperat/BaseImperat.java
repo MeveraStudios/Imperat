@@ -19,7 +19,6 @@ import studio.mevera.imperat.events.types.CommandPreRegistrationEvent;
 import studio.mevera.imperat.exception.AmbiguousCommandException;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.Preconditions;
-import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.priority.Priority;
 
 import java.lang.annotation.Annotation;
@@ -118,7 +117,20 @@ public abstract class BaseImperat<S extends CommandSource> implements Imperat<S>
 
     @Override
     public boolean canBeSender(Type type) {
-        return TypeWrap.of(CommandSource.class).isSupertypeOf(type);
+        // The user's canonical source class lives at config().sourceClass();
+        // a method parameter qualifies as a sender iff it's a Class that
+        // BOTH (a) is a CommandSource itself and (b) is assignable from
+        // the user's S — covers `S` exactly + all its supertypes up to
+        // CommandSource. With this widening, custom-source plugins can
+        // declare their own type as the sender param and reflective
+        // param-resolution recognizes it.
+        if (!(type instanceof Class<?> clazz)) {
+            return false;
+        }
+        if (!CommandSource.class.isAssignableFrom(clazz)) {
+            return false;
+        }
+        return clazz.isAssignableFrom(config.sourceClass());
     }
 
     /**

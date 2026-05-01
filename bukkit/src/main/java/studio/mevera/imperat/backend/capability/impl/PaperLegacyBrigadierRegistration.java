@@ -22,6 +22,7 @@ import studio.mevera.imperat.backend.capability.BukkitCapability;
 import studio.mevera.imperat.backend.capability.RegistrationCapability;
 import studio.mevera.imperat.backend.modern.BukkitBrigadierManager;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.type.LocationArgument;
 import studio.mevera.imperat.type.OfflinePlayerArgument;
@@ -47,7 +48,7 @@ import java.util.Map;
  * @since 4.0.0
  */
 @SuppressWarnings("all")
-public final class PaperLegacyBrigadierRegistration implements RegistrationCapability {
+public final class PaperLegacyBrigadierRegistration<S extends BukkitCommandSource> implements RegistrationCapability<S> {
 
     /**
      * Pending Brigadier nodes keyed by lowercase command name. Filled by
@@ -57,22 +58,24 @@ public final class PaperLegacyBrigadierRegistration implements RegistrationCapab
      */
     private final Map<String, LiteralCommandNode<BukkitBrigadierCommandSource>> pendingNodes =
             new HashMap<>();
-    private BukkitImperat owner;
+    private BukkitImperat<S> owner;
     private Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
-    private BukkitBrigadierManager brigadierManager;
+    private BukkitBrigadierManager<S> brigadierManager;
+    private CommandSourceMapper mapper;
 
     public PaperLegacyBrigadierRegistration() {
     }
 
     @Override
     public void initialize(@NotNull Plugin plugin,
-            @NotNull BukkitImperat imperat,
+            @NotNull BukkitImperat<S> imperat,
             @NotNull AdventureProvider<CommandSender> adventureProvider) {
         this.owner = imperat;
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
-        this.brigadierManager = new BukkitBrigadierManager(imperat);
+        this.brigadierManager = new BukkitBrigadierManager<>(imperat);
+        this.mapper = imperat.config().sourceMapper();
 
         plugin.getServer().getPluginManager().registerEvents(new Listener() {
             @EventHandler(priority = EventPriority.MONITOR)
@@ -87,16 +90,10 @@ public final class PaperLegacyBrigadierRegistration implements RegistrationCapab
     }
 
     @Override
-    public void registerCommand(@NotNull Command<BukkitCommandSource> command) {
-        // Phase 1: register via CommandMap so Bukkit's dispatcher knows
-        // the command exists (and can route execute() / fall back if the
-        // Brigadier hookup misses for any reason).
-        InternalBukkitCommand internalCmd = new InternalBukkitCommand(owner, command);
+    public void registerCommand(@NotNull Command<S> command) {
+        InternalBukkitCommand<S> internalCmd = new InternalBukkitCommand<>(owner, command);
         BukkitUtil.COMMAND_MAP.register(plugin.getName(), internalCmd);
 
-        // Phase 2: stash the Brigadier-built node — the
-        // CommandRegisteredEvent listener swaps it in when Paper fires
-        // the event for this command.
         LiteralCommandNode<BukkitBrigadierCommandSource> node =
                 brigadierManager.parseCommandIntoNode(command);
         pendingNodes.put(command.getName().toLowerCase(Locale.ROOT), node);
@@ -106,26 +103,26 @@ public final class PaperLegacyBrigadierRegistration implements RegistrationCapab
     }
 
     @Override
-    public @NotNull BukkitCommandSource wrapSender(@NotNull Object sender) {
+    public @NotNull S wrapSender(@NotNull Object sender) {
         if (sender instanceof BukkitBrigadierCommandSource brig) {
-            return SenderWrappers.plain(brig.getBukkitSender(), adventureProvider);
+            return (S) mapper.wrap(SenderWrappers.plain(brig.getBukkitSender(), adventureProvider));
         }
         if (sender instanceof CommandSender plain) {
-            return SenderWrappers.plain(plain, adventureProvider);
+            return (S) mapper.wrap(SenderWrappers.plain(plain, adventureProvider));
         }
         throw SenderWrappers.reject(sender, "BukkitBrigadierCommandSource or CommandSender");
     }
 
     @Override
-    public void applyArgumentTypeDefaults(@NotNull ImperatConfig<BukkitCommandSource> config) {
+    public void applyArgumentTypeDefaults(@NotNull ImperatConfig<S> config) {
         // Legacy Paper Brigadier has no stable native Java→Brigadier
         // mapping API equivalent to modern Paper's ArgumentTypes. Fall
         // back to the name-based bukkit types — tab suggestions still
         // arrive via Imperat's customSuggestions over Brigadier.
-        config.registerArgType(Player.class, new PlayerArgument());
-        config.registerArgType(OfflinePlayer.class, new OfflinePlayerArgument());
-        config.registerArgType(Location.class, new LocationArgument());
-        config.registerArgType(TargetSelector.class, new TargetSelectorArgument());
+        config.registerArgType(Player.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument());
+        config.registerArgType(OfflinePlayer.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new OfflinePlayerArgument());
+        config.registerArgType(Location.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new LocationArgument());
+        config.registerArgType(TargetSelector.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new TargetSelectorArgument());
     }
 
     @Override

@@ -8,64 +8,21 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.exception.ResponseException;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.responses.VelocityResponseKey;
 import studio.mevera.imperat.type.PlayerArgument;
 
 import java.util.concurrent.ExecutorService;
 
-/**
- * Main Imperat implementation for Velocity proxy servers.
- * This class serves as the primary entry point for integrating the Imperat command framework
- * with Velocity proxy servers. It provides command registration, execution, and management
- * specifically tailored for Velocity's architecture.
- *
- * <p>Key Features:</p>
- * <ul>
- *   <li>Seamless integration with Velocity's command system</li>
- *   <li>Automatic command registration and unregistration</li>
- *   <li>Built-in parameter types for Velocity objects (Players, ServerInfo, etc.)</li>
- *   <li>Exception handling for Velocity-specific scenarios</li>
- *   <li>Support for both synchronous and asynchronous command execution</li>
- * </ul>
- *
- * <p>Usage Example:</p>
- * <pre>{@code
- * public class MyPlugin {
- *     private VelocityImperat<MyPlugin> imperat;
- *
- *     @Subscribe
- *     public void onProxyInitialization(ProxyInitializeEvent event) {
- *         imperat = VelocityImperat.builder(this, proxyServer)
- *             .build();
- *
- *         imperat.registerCommand(MyCommand.class);
- *     }
- * }
- * }</pre>
- *
- * @param <P> the plugin class type that owns this Imperat instance
- * @since 1.0
- * @author Imperat Framework
- * @see VelocityConfigBuilder
- * @see VelocityCommandSource
- */
-public final class VelocityImperat<P> extends BaseImperat<VelocityCommandSource> {
+public final class VelocityImperat<P, S extends VelocityCommandSource> extends BaseImperat<S> {
 
     private final P plugin;
     private final ProxyServer proxyServer;
 
-    /**
-     * Package-private constructor used by VelocityConfigBuilder.
-     * Use {@link #builder(Object, ProxyServer)} to create instances.
-     *
-     * @param plugin the plugin instance
-     * @param proxyServer the ProxyServer instance
-     * @param config the Imperat configuration
-     */
     VelocityImperat(
             @NotNull P plugin,
             @NotNull ProxyServer proxyServer,
-            @NotNull ImperatConfig<VelocityCommandSource> config
+            @NotNull ImperatConfig<S> config
     ) {
         super(config);
         this.plugin = plugin;
@@ -73,25 +30,24 @@ public final class VelocityImperat<P> extends BaseImperat<VelocityCommandSource>
         registerDefaultResolvers();
     }
 
-    /**
-     * Creates a new configuration builder for VelocityImperat.
-     * This is the recommended way to create and configure a VelocityImperat instance.
-     *
-     * @param <P> the plugin class type
-     * @param plugin the plugin instance that will own this Imperat instance
-     * @param proxyServer the Velocity ProxyServer instance
-     * @return a new VelocityConfigBuilder for further configuration
-     */
-    public static <P> VelocityConfigBuilder<P> builder(@NotNull P plugin, @NotNull ProxyServer proxyServer) {
-        return new VelocityConfigBuilder<>(plugin, proxyServer);
+    public static <P> VelocityConfigBuilder<P, VelocityCommandSource> builder(@NotNull P plugin, @NotNull ProxyServer proxyServer) {
+        return new VelocityConfigBuilder<>(plugin, proxyServer, VelocityCommandSource.class, CommandSourceMapper.identity());
     }
 
-    private void registerDefaultResolvers() {
-        // Register Player and other source/value resolvers
-        config.registerArgType(Player.class, new PlayerArgument(proxyServer));
+    public static <P, S extends VelocityCommandSource> VelocityConfigBuilder<P, S> builder(
+            @NotNull P plugin, @NotNull ProxyServer proxyServer, Class<S> sourceClass, CommandSourceMapper<VelocityCommandSource, S> mapper
+    ) {
+        return new VelocityConfigBuilder<>(plugin, proxyServer, sourceClass, mapper);
+    }
 
-        // Register source resolver for Player
-        config.registerSourceProvider(Player.class, (source, ctx) -> {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void registerDefaultResolvers() {
+        config.registerArgType(Player.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument(proxyServer));
+
+        // Player as method param resolved via ContextArgumentProvider
+        // (gating-aware) — replaces the deleted SourceProvider chain.
+        config.registerContextArgumentProvider(Player.class, (ctx, p) -> {
+            VelocityCommandSource source = ctx.source();
             if (source.isConsole()) {
                 throw ResponseException.of(VelocityResponseKey.ONLY_PLAYER);
             }
@@ -100,11 +56,11 @@ public final class VelocityImperat<P> extends BaseImperat<VelocityCommandSource>
     }
 
     @Override
-    public void registerSimpleCommand(Command<VelocityCommandSource> command) {
+    public void registerSimpleCommand(Command<S> command) {
         super.registerSimpleCommand(command);
         CommandManager manager = proxyServer.getCommandManager();
         try {
-            InternalVelocityCommand<P> internalCmd = new InternalVelocityCommand<>(this, command, manager);
+            InternalVelocityCommand<P, S> internalCmd = new InternalVelocityCommand<>(this, command, manager);
             manager.register(internalCmd.getMeta(), internalCmd);
         } catch (Exception ex) {
             config.handleExecutionError(ex, null, VelocityImperat.class, "registerCommand");
@@ -135,12 +91,18 @@ public final class VelocityImperat<P> extends BaseImperat<VelocityCommandSource>
     }
 
     @Override
-    public VelocityCommandSource createDummySender() {
-        return new VelocityCommandSource(proxyServer.getConsoleCommandSource());
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public S createDummySender() {
+        VelocityCommandSource platform = new VelocityCommandSource(proxyServer.getConsoleCommandSource());
+        CommandSourceMapper mapper = config().sourceMapper();
+        return (S) mapper.wrap(platform);
     }
 
     @Override
-    public VelocityCommandSource wrapSender(Object sender) {
-        return new VelocityCommandSource((CommandSource) sender);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public S wrapSender(Object sender) {
+        VelocityCommandSource platform = new VelocityCommandSource((CommandSource) sender);
+        CommandSourceMapper mapper = config().sourceMapper();
+        return (S) mapper.wrap(platform);
     }
 }

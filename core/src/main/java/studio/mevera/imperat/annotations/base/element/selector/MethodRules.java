@@ -11,6 +11,7 @@ import studio.mevera.imperat.util.TypeUtility;
 import studio.mevera.imperat.util.TypeWrap;
 
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 
 public interface MethodRules {
@@ -36,8 +37,18 @@ public interface MethodRules {
                                                        if (parameterElement == null) {
                                                            return false;
                                                        }
-                                                       return imperat.canBeSender(parameterElement.getType())
-                                                                      || imperat.config().hasSourceResolver(parameterElement.getType());
+                                                       // v4: `canBeSender` covers S + its CommandSource
+                                                       // supertypes. For types like `Player` /
+                                                       // `OfflinePlayer` that are derived-source views
+                                                       // (the user wants `@Execute void cmd(Player p, ...)`),
+                                                       // they must opt in via a ContextArgumentProvider
+                                                       // — those resolve at param-injection time via
+                                                       // ExecutionContextImpl.provideSource. Recognising
+                                                       // them here lets the rule keep the @Execute method
+                                                       // valid.
+                                                       Type t = parameterElement.getType();
+                                                       return imperat.canBeSender(t)
+                                                                      || imperat.config().getContextArgumentProvider(t) != null;
                                                    })
                                                    .build();
 

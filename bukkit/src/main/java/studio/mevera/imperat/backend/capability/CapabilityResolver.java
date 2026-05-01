@@ -2,6 +2,7 @@ package studio.mevera.imperat.backend.capability;
 
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.util.ImperatDebugger;
 
 import java.util.Map;
@@ -53,12 +54,13 @@ public final class CapabilityResolver {
     private CapabilityResolver() {
     }
 
-    public static @NotNull RegistrationCapability resolve(@NotNull Plugin plugin) {
+    @SuppressWarnings("unchecked")
+    public static <S extends BukkitCommandSource> @NotNull RegistrationCapability<S> resolve(@NotNull Plugin plugin) {
         BukkitClassProbe probe = BukkitClassProbe.forPlugin(plugin);
         for (BukkitCapability capability : PRIORITY_CHAIN) {
             if (capability.capable(probe)) {
                 ImperatDebugger.debug("[imperat] resolved registration capability: " + capability);
-                return loadImpl(capability, probe.classLoader());
+                return (RegistrationCapability<S>) loadImpl(capability, probe.classLoader());
             }
         }
         // PLAIN_COMMAND_MAP is always capable, so this is unreachable —
@@ -67,6 +69,7 @@ public final class CapabilityResolver {
                                                 + "PLAIN_COMMAND_MAP fallback is supposed to be always-capable");
     }
 
+    @SuppressWarnings("rawtypes")
     private static @NotNull RegistrationCapability loadImpl(
             @NotNull BukkitCapability capability,
             @NotNull ClassLoader classLoader

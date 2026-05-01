@@ -6,12 +6,12 @@ import static studio.mevera.imperat.SyntaxDataLoader.loadExecutor;
 
 import net.minestom.server.command.builder.Command;
 
-final class InternalMinestomCommand extends Command {
+final class InternalMinestomCommand<S extends MinestomCommandSource> extends Command {
 
-    MinestomImperat imperat;
-    studio.mevera.imperat.command.Command<MinestomCommandSource> imperatCommand;
+    MinestomImperat<S> imperat;
+    studio.mevera.imperat.command.Command<S> imperatCommand;
 
-    InternalMinestomCommand(MinestomImperat imperat, studio.mevera.imperat.command.Command<MinestomCommandSource> imperatCommand) {
+    InternalMinestomCommand(MinestomImperat<S> imperat, studio.mevera.imperat.command.Command<S> imperatCommand) {
         super(imperatCommand.getName(), imperatCommand.aliases().toArray(new String[0]));
         this.imperat = imperat;
         this.imperatCommand = imperatCommand;
@@ -25,10 +25,9 @@ final class InternalMinestomCommand extends Command {
 
         this.setDefaultExecutor(loadExecutor(imperat));
 
-        // Register this command's own dedicated syntaxes (local pathways)
         for (var usage : imperatCommand.getDedicatedPathways()) {
             if (usage.isDefault()) {
-                continue; // default is handled by setDefaultExecutor
+                continue;
             }
             addConditionalSyntax(
                     loadCondition(imperat, usage),
@@ -37,9 +36,8 @@ final class InternalMinestomCommand extends Command {
             );
         }
 
-        // Recursively register subcommands as nested Minestom commands
         for (var sub : imperatCommand.getSubCommands()) {
-            addSubcommand(new InternalMinestomCommand(imperat, sub));
+            addSubcommand(new InternalMinestomCommand<>(imperat, sub));
         }
     }
 

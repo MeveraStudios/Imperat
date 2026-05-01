@@ -1,6 +1,5 @@
 plugins {
     id("com.gradleup.shadow") version "8.3.9"
-    kotlin("jvm") version "2.3.0"
 }
 
 repositories {
@@ -102,6 +101,3 @@ tasks.test {
     })
 }
 
-kotlin {
-    jvmToolchain(21)
-}

@@ -27,23 +27,23 @@ import studio.mevera.imperat.command.arguments.Argument;
  *
  * @since 4.0.0
  */
-public final class BukkitBrigadierManager extends BaseBrigadierManager<BukkitCommandSource> {
+public final class BukkitBrigadierManager<S extends BukkitCommandSource> extends BaseBrigadierManager<S> {
 
-    private final BukkitImperat bukkitImperat;
+    private final BukkitImperat<S> bukkitImperat;
 
-    public BukkitBrigadierManager(@NotNull BukkitImperat bukkitImperat) {
+    public BukkitBrigadierManager(@NotNull BukkitImperat<S> bukkitImperat) {
         super(bukkitImperat);
         this.bukkitImperat = bukkitImperat;
     }
 
     @Override
-    public BukkitCommandSource wrapCommandSource(Object commandSource) {
+    public S wrapCommandSource(Object commandSource) {
         return bukkitImperat.wrapSender(commandSource);
     }
 
     @Override
     public @NotNull com.mojang.brigadier.arguments.ArgumentType<?> getArgumentType(
-            @NotNull Argument<BukkitCommandSource> imperatArgument
+            @NotNull Argument<S> imperatArgument
     ) {
         return getStringArgType(imperatArgument);
     }

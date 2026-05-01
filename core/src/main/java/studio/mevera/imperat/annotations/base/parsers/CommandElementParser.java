@@ -600,7 +600,12 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
 
     private boolean isSenderParameter(ParameterElement param) {
         Type type = param.getElement().getParameterizedType();
-        return imperat.canBeSender(type) || config.hasSourceResolver(type);
+        // v4: a parameter qualifies as sender if the framework can either
+        // (a) treat it as the canonical source S / its CommandSource
+        // supertypes, OR (b) derive it from the source via a registered
+        // ContextArgumentProvider (gating-aware Player / OfflinePlayer /
+        // ConsoleCommandSender / domain types).
+        return imperat.canBeSender(type) || config.getContextArgumentProvider(type) != null;
     }
 
     private Command<S> loadPathwayShortcut(

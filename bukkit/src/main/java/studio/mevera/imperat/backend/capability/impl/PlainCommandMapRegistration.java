@@ -15,6 +15,7 @@ import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.backend.capability.BukkitCapability;
 import studio.mevera.imperat.backend.capability.RegistrationCapability;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.type.LocationArgument;
 import studio.mevera.imperat.type.OfflinePlayerArgument;
@@ -35,44 +36,53 @@ import studio.mevera.imperat.type.TargetSelectorArgument;
  *
  * @since 4.0.0
  */
-public final class PlainCommandMapRegistration implements RegistrationCapability {
+public final class PlainCommandMapRegistration<S extends BukkitCommandSource> implements RegistrationCapability<S> {
 
-    private BukkitImperat owner;
+    private BukkitImperat<S> owner;
     private Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
+    @SuppressWarnings("rawtypes")
+    private CommandSourceMapper mapper;
 
     public PlainCommandMapRegistration() {
     }
 
     @Override
     public void initialize(@NotNull Plugin plugin,
-            @NotNull BukkitImperat imperat,
+            @NotNull BukkitImperat<S> imperat,
             @NotNull AdventureProvider<CommandSender> adventureProvider) {
         this.owner = imperat;
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
+        this.mapper = imperat.config().sourceMapper();
     }
 
     @Override
-    public void registerCommand(@NotNull Command<BukkitCommandSource> command) {
-        InternalBukkitCommand internalCmd = new InternalBukkitCommand(owner, command);
+    public void registerCommand(@NotNull Command<S> command) {
+        InternalBukkitCommand<S> internalCmd = new InternalBukkitCommand<>(owner, command);
         BukkitUtil.COMMAND_MAP.register(plugin.getName(), internalCmd);
     }
 
     @Override
-    public @NotNull BukkitCommandSource wrapSender(@NotNull Object sender) {
+    @SuppressWarnings("unchecked")
+    public @NotNull S wrapSender(@NotNull Object sender) {
         if (sender instanceof CommandSender plain) {
-            return SenderWrappers.plain(plain, adventureProvider);
+            BukkitCommandSource platform = SenderWrappers.plain(plain, adventureProvider);
+            return (S) mapper.wrap(platform);
         }
         throw SenderWrappers.reject(sender, "CommandSender (plain command-map backend)");
     }
 
     @Override
-    public void applyArgumentTypeDefaults(@NotNull ImperatConfig<BukkitCommandSource> config) {
-        config.registerArgType(Player.class, new PlayerArgument());
-        config.registerArgType(OfflinePlayer.class, new OfflinePlayerArgument());
-        config.registerArgType(Location.class, new LocationArgument());
-        config.registerArgType(TargetSelector.class, new TargetSelectorArgument());
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void applyArgumentTypeDefaults(@NotNull ImperatConfig<S> config) {
+        // Argument types are typed against the platform `BukkitCommandSource`
+        // — covariance via `S extends BukkitCommandSource` lets these be
+        // registered against the user's S without rewriting their bodies.
+        config.registerArgType(Player.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument());
+        config.registerArgType(OfflinePlayer.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new OfflinePlayerArgument());
+        config.registerArgType(Location.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new LocationArgument());
+        config.registerArgType(TargetSelector.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new TargetSelectorArgument());
     }
 
     @Override

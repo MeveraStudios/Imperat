@@ -13,15 +13,15 @@ import java.util.Collections;
 import java.util.List;
 
 @ApiStatus.Internal
-public final class InternalBukkitCommand extends org.bukkit.command.Command implements PluginIdentifiableCommand {
+public final class InternalBukkitCommand<S extends BukkitCommandSource> extends org.bukkit.command.Command implements PluginIdentifiableCommand {
 
-    public final @NotNull Command<BukkitCommandSource> imperatCommand;
+    public final @NotNull Command<S> imperatCommand;
     @NotNull
-    private final BukkitImperat dispatcher;
+    private final BukkitImperat<S> dispatcher;
 
     public InternalBukkitCommand(
-            final @NotNull BukkitImperat dispatcher,
-            final @NotNull Command<BukkitCommandSource> imperatCommand
+            final @NotNull BukkitImperat<S> dispatcher,
+            final @NotNull Command<S> imperatCommand
     ) {
         super(
                 imperatCommand.getName(),
@@ -51,7 +51,7 @@ public final class InternalBukkitCommand extends org.bukkit.command.Command impl
     public boolean execute(@NotNull CommandSender sender,
             @NotNull String label,
             String[] raw) {
-        BukkitCommandSource source = dispatcher.wrapSender(sender);
+        S source = dispatcher.wrapSender(sender);
         dispatcher.execute(source, this.imperatCommand, label, raw);
         return true;
     }
@@ -67,7 +67,7 @@ public final class InternalBukkitCommand extends org.bukkit.command.Command impl
             //we will tab complete from the async tab completion event
             return Collections.emptyList();
         }
-        BukkitCommandSource source = dispatcher.wrapSender(sender);
+        S source = dispatcher.wrapSender(sender);
         StringBuilder builder = new StringBuilder(alias).append(" ");
         for (String arg : args) {
             builder.append(arg).append(" ");

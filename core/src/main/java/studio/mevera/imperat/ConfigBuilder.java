@@ -17,13 +17,14 @@ import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.DependencySupplier;
-import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.Response;
 import studio.mevera.imperat.responses.ResponseKey;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -40,8 +41,44 @@ import java.util.function.Supplier;
 public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S>, B extends ConfigBuilder<S, I, B>> {
 
     protected final ImperatConfig<S> config;
-    protected ConfigBuilder() {
-        config = new ImperatConfigImpl<>();
+
+    /**
+     * Default-deferred registrations populated during subclass-builder
+     * construction and drained inside {@link #build()} <b>after</b> the
+     * source-mapper has been set. This staging is required because some
+     * default registrations key by parameterized type literals
+     * ({@code ExecutionContext<S>}, {@code CommandHelp<S>}); building those
+     * keys before {@code S} is fully resolved would silently miss lookups
+     * for user-supplied custom source types. See
+     * {@link #materializeDeferredDefaults()}.
+     */
+    protected final List<Consumer<ImperatConfig<S>>> deferredDefaults = new ArrayList<>();
+
+    /**
+     * The class token for the canonical source type {@code S}. Required
+     * because Java erases generics — without it {@link Imperat#canBeSender(Type)}
+     * cannot decide whether a method parameter is the user-declared
+     * source class. Subclass builders pass this in.
+     */
+    protected final Class<S> sourceClass;
+
+    protected ConfigBuilder(@NotNull Class<S> sourceClass) {
+        this.sourceClass = sourceClass;
+        this.config = new ImperatConfigImpl<>(sourceClass);
+    }
+
+    /**
+     * Drains {@link #deferredDefaults} into the config. Subclass builders
+     * MUST call this from their {@link #build()} implementation after
+     * the mapper has been finalised but before constructing the
+     * platform's {@code Imperat} instance — every consumer captures the
+     * mapper / sourceClass via closure and runs once at that point.
+     */
+    protected final void materializeDeferredDefaults() {
+        for (Consumer<ImperatConfig<S>> action : deferredDefaults) {
+            action.accept(config);
+        }
+        deferredDefaults.clear();
     }
 
     /**
@@ -354,25 +391,6 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
      */
     public B defaultSuggestionProvider(@NotNull SuggestionProvider<S> suggestionProvider) {
         config.setDefaultSuggestionProvider(suggestionProvider);
-        return (B) this;
-    }
-
-    /**
-     * Registers a {@link SourceProvider} for a specific type to resolve command sources.
-     *
-     * @param <R>            the resulting type resolved by the source resolver
-     * @param type           the type of the source to be resolved
-     * @param sourceProvider the source resolver instance that converts the source
-     * @return the current {@link ConfigBuilder} instance for method chaining
-     */
-    // CommandSource Resolver
-    public <R> B sourceProvider(Type type, SourceProvider<S, R> sourceProvider) {
-        config.registerSourceProvider(type, sourceProvider);
-        return (B) this;
-    }
-
-    public B sourceProviders(Consumer<SourceProvidersConfig<S>> consumer) {
-        consumer.accept(new SourceProvidersConfig<>(config));
         return (B) this;
     }
 

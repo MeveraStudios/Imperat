@@ -5,70 +5,21 @@ import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.StringUtils;
 
 import java.util.HashSet;
 
-/**
- * Main Imperat implementation for BungeeCord proxy servers.
- * This class serves as the primary entry point for integrating the Imperat command framework
- * with BungeeCord proxy networks, providing cross-server command management capabilities.
- *
- * <p>Key Features:</p>
- * <ul>
- *   <li>Full integration with BungeeCord's command system</li>
- *   <li>Adventure API support for rich text messaging</li>
- *   <li>Built-in parameter types for BungeeCord objects (ProxiedPlayer, ServerInfo)</li>
- *   <li>Cross-server player management commands</li>
- *   <li>Automatic command registration and cleanup</li>
- *   <li>Legacy BaseComponent support for backward compatibility</li>
- * </ul>
- *
- * <p>Usage Example:</p>
- * <pre>{@code
- * public class MyBungeePlugin extends Plugin {
- *     private BungeeImperat imperat;
- *
- *     @Override
- *     public void onEnable() {
- *         imperat = BungeeImperat.builder(this)
- *             .build();
- *
- *         imperat.registerCommand(MyCommand.class);
- *     }
- *
- *     @Override
- *     public void onDisable() {
- *         if (imperat != null) {
- *             imperat.shutdownPlatform();
- *         }
- *     }
- * }
- * }</pre>
- *
- * @author Imperat Framework
- * @see BungeeConfigBuilder
- * @see BungeeCommandSource
- * @since 1.0
- */
-public final class BungeeImperat extends BaseImperat<BungeeCommandSource> {
+public final class BungeeImperat<S extends BungeeCommandSource> extends BaseImperat<S> {
 
     private final Plugin plugin;
     private final AdventureProvider<CommandSender> adventureProvider;
 
-    /**
-     * Package-private constructor used by BungeeConfigBuilder.
-     * Use {@link #builder(Plugin)} to create instances.
-     *
-     * @param plugin            the plugin instance
-     * @param adventureProvider the Adventure provider for rich text messaging
-     * @param config            the Imperat configuration
-     */
     BungeeImperat(
             Plugin plugin,
             @NotNull AdventureProvider<CommandSender> adventureProvider,
-            ImperatConfig<BungeeCommandSource> config
+            ImperatConfig<S> config
     ) {
         super(config);
         this.plugin = plugin;
@@ -76,26 +27,25 @@ public final class BungeeImperat extends BaseImperat<BungeeCommandSource> {
         ImperatDebugger.setLogger(plugin.getLogger());
     }
 
-    /**
-     * Creates a new configuration builder for BungeeImperat.
-     * This is the recommended way to create and configure a BungeeImperat instance.
-     *
-     * @param plugin the plugin instance that will own this Imperat instance
-     * @return a new BungeeConfigBuilder for further configuration
-     */
-    public static BungeeConfigBuilder builder(Plugin plugin) {
-        return new BungeeConfigBuilder(plugin, null);
+    public static BungeeConfigBuilder<BungeeCommandSource> builder(Plugin plugin) {
+        return new BungeeConfigBuilder<>(plugin, BungeeCommandSource.class, CommandSourceMapper.identity(), null);
+    }
+
+    public static <S extends BungeeCommandSource> BungeeConfigBuilder<S> builder(
+            Plugin plugin, Class<S> sourceClass, CommandSourceMapper<BungeeCommandSource, S> mapper
+    ) {
+        return new BungeeConfigBuilder<>(plugin, sourceClass, mapper, null);
     }
 
     @Override
-    public void registerSimpleCommand(Command<BungeeCommandSource> command) {
+    public void registerSimpleCommand(Command<S> command) {
         super.registerSimpleCommand(command);
-        plugin.getProxy().getPluginManager().registerCommand(plugin, new InternalBungeeCommand(this, command));
+        plugin.getProxy().getPluginManager().registerCommand(plugin, new InternalBungeeCommand<>(this, command));
     }
 
     @Override
     public void unregisterCommand(String name) {
-        Command<BungeeCommandSource> imperatCmd = getCommand(name);
+        Command<S> imperatCmd = getCommand(name);
         super.unregisterCommand(name);
         if (imperatCmd == null) {
             return;
@@ -111,13 +61,19 @@ public final class BungeeImperat extends BaseImperat<BungeeCommandSource> {
     }
 
     @Override
-    public BungeeCommandSource createDummySender() {
-        return new BungeeCommandSource(adventureProvider, plugin.getProxy().getConsole());
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public S createDummySender() {
+        BungeeCommandSource platform = new BungeeCommandSource(adventureProvider, plugin.getProxy().getConsole());
+        CommandSourceMapper mapper = config().sourceMapper();
+        return (S) mapper.wrap(platform);
     }
 
     @Override
-    public BungeeCommandSource wrapSender(Object sender) {
-        return new BungeeCommandSource(adventureProvider, (CommandSender) sender);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public S wrapSender(Object sender) {
+        BungeeCommandSource platform = new BungeeCommandSource(adventureProvider, (CommandSender) sender);
+        CommandSourceMapper mapper = config().sourceMapper();
+        return (S) mapper.wrap(platform);
     }
 
     @Override

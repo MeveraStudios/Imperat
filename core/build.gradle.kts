@@ -208,3 +208,17 @@ tasks.register<Test>("functionalTest") {
 kotlin {
     jvmToolchain(21)
 }
+
+// Strip kotlin runtime from the shaded all-jar even though core has
+// .kt sources — kotlin-stdlib + reflect + coroutines-core are
+// `compileOnly` deps (the user's host environment supplies them at
+// runtime), so they should never end up bundled. Without these
+// exclusions Shadow inherits the implicit `implementation` dep that
+// the kotlin("jvm") plugin adds and bloats the jar by ~1MB.
+tasks.shadowJar {
+    exclude("kotlin/**")
+    exclude("META-INF/kotlin-stdlib*")
+    exclude("META-INF/*.kotlin_module")
+    exclude("META-INF/versions/**/kotlin/**")
+    exclude("kotlinx/**")
+}

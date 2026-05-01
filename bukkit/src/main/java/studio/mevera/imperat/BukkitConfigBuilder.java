@@ -7,13 +7,13 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.adventure.CastingAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.ResponseException;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 import studio.mevera.imperat.util.TypeWrap;
 import studio.mevera.imperat.util.reflection.Reflections;
@@ -49,17 +49,21 @@ import java.util.List;
  * @see BukkitImperat
  * @since 1.0
  */
-public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource, BukkitImperat, BukkitConfigBuilder> {
+public class BukkitConfigBuilder<S extends BukkitCommandSource>
+        extends ConfigBuilder<S, BukkitImperat<S>, BukkitConfigBuilder<S>> {
 
-    private final static BukkitPermissionChecker DEFAULT_PERMISSION_RESOLVER = new BukkitPermissionChecker();
+    private final static BukkitPermissionChecker<?> DEFAULT_PERMISSION_RESOLVER = new BukkitPermissionChecker<>();
 
     private final Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
     private boolean setOverrideBrigadierMessaging = true;
 
-    BukkitConfigBuilder(Plugin plugin) {
+    @SuppressWarnings({"unchecked", "rawtypes"}) BukkitConfigBuilder(Plugin plugin, Class<S> sourceClass,
+            CommandSourceMapper<BukkitCommandSource, S> mapper) {
+        super(sourceClass);
         this.plugin = plugin;
-        config.setPermissionResolver(DEFAULT_PERMISSION_RESOLVER);
+        config.setSourceMapper(mapper);
+        config.setPermissionResolver((BukkitPermissionChecker) DEFAULT_PERMISSION_RESOLVER);
         registerBukkitResponses();
         registerSourceResolvers();
         registerContextResolvers();
@@ -80,38 +84,49 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
     }
 
     private void registerContextResolvers() {
-        config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<BukkitCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> ctx
-        );
-        config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<BukkitCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> CommandHelp.create(ctx)
-        );
+        // Type-literal-keyed registrations parameterized over S MUST be
+        // deferred until build() — the mapper / sourceClass might still
+        // change before the user calls build(). Building the type literal
+        // eagerly here would freeze it to the wrong S.
+        deferredDefaults.add(cfg -> {
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(ExecutionContext.class, sourceClass).getType(),
+                    (ctx, paramElement) -> ctx
+            );
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(CommandHelp.class, sourceClass).getType(),
+                    (ctx, paramElement) -> CommandHelp.create(ctx)
+            );
+        });
 
-        // Enhanced context resolvers similar to Velocity
+        // Plugin / Server are raw-class-keyed — no S parametrization, eager is fine
         config.registerContextArgumentProvider(Plugin.class, (ctx, paramElement) -> plugin);
         config.registerContextArgumentProvider(Server.class, (ctx, paramElement) -> plugin.getServer());
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceProvider(AdventureCommandSource.class, (bukkitSource, ctx) -> bukkitSource);
-        config.registerSourceProvider(CommandSender.class, (bukkitSource, ctx) -> bukkitSource.origin());
-        config.registerSourceProvider(ConsoleCommandSender.class, (bukkitSource, ctx) -> {
-            var origin = bukkitSource.origin();
+        // v4: SourceProviderRegistry deleted. Cross-source-type @Execute
+        // params resolve via ExecutionContextImpl.provideSource(Type) ->
+        // assignability against the canonical S + its origin(). With
+        // S extends BukkitCommandSource, declaring `Player` / `CommandSender`
+        // / `ConsoleCommandSender` parameters works automatically because
+        // they're assignable from `s.origin()` (or s itself for
+        // CommandSender). Domain-specific `@Execute void cmd(Player p)`
+        // throws when `s` is console — that gating moves to the
+        // ContextArgumentProvider below.
+        config.registerContextArgumentProvider(Player.class, (ctx, p) -> {
+            BukkitCommandSource s = ctx.source();
+            if (s.isConsole()) {
+                throw ResponseException.of(BukkitResponseKey.ONLY_PLAYER);
+            }
+            return s.asPlayer();
+        });
+        config.registerContextArgumentProvider(ConsoleCommandSender.class, (ctx, p) -> {
+            var origin = ctx.source().origin();
             if (!(origin instanceof ConsoleCommandSender console)) {
                 throw ResponseException.of(BukkitResponseKey.ONLY_CONSOLE);
             }
             return console;
-        });
-
-        config.registerSourceProvider(Player.class, (source, ctx) -> {
-            if (source.isConsole()) {
-                throw ResponseException.of(BukkitResponseKey.ONLY_PLAYER);
-            }
-            return source.asPlayer();
         });
     }
 
@@ -138,7 +153,7 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
         });
     }
 
-    public BukkitConfigBuilder setAdventureProvider(AdventureProvider<CommandSender> adventureProvider) {
+    public BukkitConfigBuilder<S> setAdventureProvider(AdventureProvider<CommandSender> adventureProvider) {
         this.adventureProvider = adventureProvider;
         return this;
     }
@@ -148,17 +163,20 @@ public final class BukkitConfigBuilder extends ConfigBuilder<BukkitCommandSource
      * and reroute hidden-by-permissions cases through Imperat's exception pipeline.
      * No effect on the legacy backend. Default: {@code true}.
      */
-    public BukkitConfigBuilder setOverrideBrigadierMessaging(boolean enabled) {
+    public BukkitConfigBuilder<S> setOverrideBrigadierMessaging(boolean enabled) {
         this.setOverrideBrigadierMessaging = enabled;
         return this;
     }
 
     @Override
-    public @NotNull BukkitImperat build() {
+    public @NotNull BukkitImperat<S> build() {
         if (this.adventureProvider == null) {
             this.adventureProvider = this.loadAdventure();
         }
-        return new BukkitImperat(plugin, adventureProvider, this.config, setOverrideBrigadierMessaging);
+        // Drain deferred defaults AFTER mapper is set — the mapper might
+        // have been swapped by the user's `.source(...)` call.
+        materializeDeferredDefaults();
+        return new BukkitImperat<>(plugin, adventureProvider, this.config, setOverrideBrigadierMessaging);
     }
 
     @SuppressWarnings("ConstantConditions")

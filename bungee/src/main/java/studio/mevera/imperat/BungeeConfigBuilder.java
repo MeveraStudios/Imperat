@@ -7,7 +7,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.adventure.AdventureCommandSource;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.adventure.BungeeAdventure;
 import studio.mevera.imperat.adventure.EmptyAdventure;
@@ -15,6 +14,7 @@ import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.providers.BungeePermissionChecker;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.responses.BungeeResponseKey;
 import studio.mevera.imperat.type.ProxiedPlayerArgument;
 import studio.mevera.imperat.type.ServerInfoArgument;
@@ -46,17 +46,26 @@ import studio.mevera.imperat.util.reflection.Reflections;
  * @see BungeeImperat
  * @since 1.0
  */
-public final class BungeeConfigBuilder extends ConfigBuilder<BungeeCommandSource, BungeeImperat, BungeeConfigBuilder> {
+public class BungeeConfigBuilder<S extends BungeeCommandSource>
+        extends ConfigBuilder<S, BungeeImperat<S>, BungeeConfigBuilder<S>> {
 
+    @SuppressWarnings("rawtypes")
     private final static BungeePermissionChecker DEFAULT_PERMISSION_RESOLVER = new BungeePermissionChecker();
     private final Plugin plugin;
 
     private AdventureProvider<CommandSender> adventureProvider;
 
-    BungeeConfigBuilder(Plugin plugin, @Nullable AdventureProvider<CommandSender> adventureProvider) {
+    @SuppressWarnings({"unchecked", "rawtypes"}) BungeeConfigBuilder(
+            Plugin plugin,
+            Class<S> sourceClass,
+            CommandSourceMapper<BungeeCommandSource, S> mapper,
+            @Nullable AdventureProvider<CommandSender> adventureProvider
+    ) {
+        super(sourceClass);
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
-        config.setPermissionResolver(DEFAULT_PERMISSION_RESOLVER);
+        config.setSourceMapper(mapper);
+        config.setPermissionResolver((BungeePermissionChecker) DEFAULT_PERMISSION_RESOLVER);
         registerBungeeResponses();
         registerSourceResolvers();
         registerValueResolvers();
@@ -64,16 +73,18 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeCommandSource
     }
 
     private void registerContextResolvers() {
-        config.registerContextArgumentProvider(
-                new TypeWrap<ExecutionContext<BungeeCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> ctx
-        );
-        config.registerContextArgumentProvider(
-                new TypeWrap<CommandHelp<BungeeCommandSource>>() {
-                }.getType(),
-                (ctx, paramElement) -> CommandHelp.create(ctx)
-        );
+        // Type-literal-keyed defaults deferred until build() so the
+        // sourceClass token is correct at lookup time.
+        deferredDefaults.add(cfg -> {
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(ExecutionContext.class, sourceClass).getType(),
+                    (ctx, paramElement) -> ctx
+            );
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(CommandHelp.class, sourceClass).getType(),
+                    (ctx, paramElement) -> CommandHelp.create(ctx)
+            );
+        });
 
         // Enhanced context resolvers similar to Velocity
         config.registerContextArgumentProvider(Plugin.class, (ctx, paramElement) -> plugin);
@@ -100,9 +111,12 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeCommandSource
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceProvider(AdventureCommandSource.class, (bungeeSource, ctx) -> bungeeSource);
-        config.registerSourceProvider(CommandSender.class, (bungeeSource, ctx) -> bungeeSource.origin());
-        config.registerSourceProvider(ProxiedPlayer.class, (source, ctx) -> {
+        // v4: SourceProviderRegistry deleted. Cross-source-type @Execute
+        // params resolve via assignability against the canonical S
+        // (or its origin()) plus the ContextArgumentProvider below for
+        // the gating-required ProxiedPlayer view.
+        config.registerContextArgumentProvider(ProxiedPlayer.class, (ctx, p) -> {
+            BungeeCommandSource source = ctx.source();
             if (source.isConsole()) {
                 throw ResponseException.of(BungeeResponseKey.ONLY_PLAYER);
             }
@@ -136,17 +150,18 @@ public final class BungeeConfigBuilder extends ConfigBuilder<BungeeCommandSource
 
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void registerValueResolvers() {
-        config.registerArgType(ProxiedPlayer.class, new ProxiedPlayerArgument());
-        // Enhanced parameter types similar to Velocity
-        config.registerArgType(ServerInfo.class, new ServerInfoArgument());
+        config.registerArgType(ProxiedPlayer.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new ProxiedPlayerArgument());
+        config.registerArgType(ServerInfo.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new ServerInfoArgument());
     }
 
     @Override
-    public @NotNull BungeeImperat build() {
+    public @NotNull BungeeImperat<S> build() {
         if (this.adventureProvider == null) {
             this.adventureProvider = this.loadAdventure();
         }
-        return new BungeeImperat(plugin, adventureProvider, this.config);
+        materializeDeferredDefaults();
+        return new BungeeImperat<>(plugin, adventureProvider, this.config);
     }
 }

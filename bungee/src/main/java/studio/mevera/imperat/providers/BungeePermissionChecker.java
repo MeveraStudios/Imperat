@@ -5,11 +5,11 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.BungeeCommandSource;
 import studio.mevera.imperat.permissions.PermissionChecker;
 
-public class BungeePermissionChecker implements PermissionChecker<BungeeCommandSource> {
+public class BungeePermissionChecker<S extends BungeeCommandSource> implements PermissionChecker<S> {
 
     @Override
     public boolean hasPermission(
-            @NotNull BungeeCommandSource source,
+            @NotNull S source,
             @Nullable String permission
     ) {
         if (source.isConsole() || permission == null) {

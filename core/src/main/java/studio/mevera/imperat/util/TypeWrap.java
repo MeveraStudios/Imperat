@@ -61,7 +61,7 @@ public abstract class TypeWrap<T> {
 
     }
 
-    public static <S extends CommandSource> TypeWrap<?> ofParameterized(Type rawClass, Type... genericTypes) {
+    public static TypeWrap<?> ofParameterized(Type rawClass, Type... genericTypes) {
         if (!(rawClass instanceof Class<?> clazz)) {
             throw new IllegalArgumentException("Raw class must be a class.");
         }

@@ -9,21 +9,22 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.NoDMSException;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.responses.JdaResponseKey;
 import studio.mevera.imperat.type.MemberArgument;
 import studio.mevera.imperat.type.RoleArgument;
 import studio.mevera.imperat.type.UserArgument;
 import studio.mevera.imperat.util.TypeWrap;
 
-/**
- * Configuration builder for {@link JdaImperat}.
- */
-public final class JdaConfigBuilder extends ConfigBuilder<JdaCommandSource, JdaImperat, JdaConfigBuilder> {
+public class JdaConfigBuilder<S extends JdaCommandSource>
+        extends ConfigBuilder<S, JdaImperat<S>, JdaConfigBuilder<S>> {
 
     private final JDA jda;
 
-    JdaConfigBuilder(@NotNull JDA jda) {
+    JdaConfigBuilder(@NotNull JDA jda, Class<S> sourceClass, CommandSourceMapper<JdaCommandSource, S> mapper) {
+        super(sourceClass);
         this.jda = jda;
+        config.setSourceMapper(mapper);
         registerContextResolvers();
         registerSourceResolvers();
         registerArgumentTypes();
@@ -33,45 +34,45 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaCommandSource, JdaI
     }
 
     private void registerContextResolvers() {
-        config.registerContextArgumentProvider(new TypeWrap<ExecutionContext<JdaCommandSource>>() {
-        }.getType(), (ctx, param) -> ctx);
-        config.registerContextArgumentProvider(new TypeWrap<CommandHelp<JdaCommandSource>>() {
-        }.getType(), (ctx, param) -> CommandHelp.create(ctx));
+        deferredDefaults.add(cfg -> {
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(ExecutionContext.class, sourceClass).getType(),
+                    (ctx, param) -> ctx
+            );
+            cfg.registerContextArgumentProvider(
+                    TypeWrap.ofParameterized(CommandHelp.class, sourceClass).getType(),
+                    (ctx, param) -> CommandHelp.create(ctx)
+            );
+        });
         config.registerContextArgumentProvider(SlashCommandInteractionEvent.class, (ctx, param) -> ctx.source().origin());
         config.registerContextArgumentProvider(JDA.class, (ctx, param) -> jda);
         config.registerContextArgumentProvider(Guild.class, (ctx, param) -> ctx.source().origin().getGuild());
     }
 
     private void registerSourceResolvers() {
-        config.registerSourceProvider(Member.class, (source, ctx) -> {
-            Member member = source.member();
+        // v4: SourceProviderRegistry deleted. Member / User come from
+        // ContextArgumentProvider so DM-only / member-only gating still
+        // works.
+        config.registerContextArgumentProvider(Member.class, (ctx, p) -> {
+            Member member = ctx.source().member();
             if (member == null) {
                 throw new NoDMSException();
             }
             return member;
         });
-        config.registerSourceProvider(User.class, (source, ctx) -> source.user());
+        config.registerContextArgumentProvider(User.class, (ctx, p) -> ctx.source().user());
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void registerArgumentTypes() {
-        config.registerArgType(Member.class, new RoleArgument());
-        config.registerArgType(User.class, new UserArgument(jda));
-        config.registerArgType(Member.class, new MemberArgument());
+        config.registerArgType(Member.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new RoleArgument());
+        config.registerArgType(User.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new UserArgument(jda));
+        config.registerArgType(Member.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new MemberArgument());
     }
 
     private void registerThrowableResolvers() {
-        //        config.setThrowableResolver(UnknownUserException.class, (ex, ctx) ->
-        //                                                                        ctx.source().error("User '" + ex.getIdentifier() + "' could not
-        //                                                                        be found")
-        //        );
-        //
-        //        config.setThrowableResolver(UnknownMemberException.class, (ex, ctx) ->
-        //                                                                          ctx.source().error("Member '" + ex.getIdentifier() + "' could
-        //                                                                          not be found")
-        //        );
-
         config.setErrorHandler(NoDMSException.class, (ex, ctx) ->
-                                                                  ctx.source().error(ex.getMessage())
+                                                             ctx.source().error(ex.getMessage())
         );
     }
 
@@ -84,7 +85,8 @@ public final class JdaConfigBuilder extends ConfigBuilder<JdaCommandSource, JdaI
     }
 
     @Override
-    public @NotNull JdaImperat build() {
-        return new JdaImperat(jda, config);
+    public @NotNull JdaImperat<S> build() {
+        materializeDeferredDefaults();
+        return new JdaImperat<>(jda, config);
     }
 }

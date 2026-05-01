@@ -14,6 +14,7 @@ import studio.mevera.imperat.backend.capability.BukkitCapability;
 import studio.mevera.imperat.backend.capability.CapabilityResolver;
 import studio.mevera.imperat.backend.capability.RegistrationCapability;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.StringUtils;
 
@@ -61,17 +62,17 @@ import java.util.Map;
  * @see BukkitConfigBuilder
  * @see BukkitCommandSource
  */
-public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
+public final class BukkitImperat<S extends BukkitCommandSource> extends BaseImperat<S> {
 
     private final Plugin plugin;
     private final AdventureProvider<CommandSender> adventureProvider;
-    private final RegistrationCapability backend;
+    private final RegistrationCapability<S> backend;
     private Map<String, org.bukkit.command.Command> bukkitCommands = new HashMap<>();
 
     @SuppressWarnings("unchecked") BukkitImperat(
             Plugin plugin,
             AdventureProvider<CommandSender> adventureProvider,
-            ImperatConfig<BukkitCommandSource> config,
+            ImperatConfig<S> config,
             boolean rewriteUnknownCommandMessage
     ) {
         super(config);
@@ -158,6 +159,26 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
         return label.isEmpty() ? null : label.toLowerCase();
     }
 
+    /**
+     * Default-source builder. The canonical {@code S} is the platform's
+     * own {@link BukkitCommandSource} and the mapper is the identity.
+     */
+    public static BukkitConfigBuilder<BukkitCommandSource> builder(Plugin plugin) {
+        return new BukkitConfigBuilder<>(plugin, BukkitCommandSource.class, CommandSourceMapper.identity());
+    }
+
+    /**
+     * Custom-source builder — both the source class token AND the mapper
+     * are required at construction. There is no half-configured state:
+     * either the user supplies both pieces (custom path) or neither
+     * (default path via {@link #builder(Plugin)}).
+     */
+    public static <S extends BukkitCommandSource> BukkitConfigBuilder<S> builder(
+            Plugin plugin, Class<S> sourceClass, CommandSourceMapper<BukkitCommandSource, S> mapper
+    ) {
+        return new BukkitConfigBuilder<>(plugin, sourceClass, mapper);
+    }
+
     private void registerUnknownCommandListener() {
         plugin.getServer().getPluginManager().registerEvents(new Listener() {
             @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -170,7 +191,7 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
                 if (label == null) {
                     return;
                 }
-                Command<BukkitCommandSource> imperatCommand = getCommand(label);
+                Command<S> imperatCommand = getCommand(label);
                 if (imperatCommand == null) {
                     return;
                 }
@@ -180,19 +201,8 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
         }, plugin);
     }
 
-    /**
-     * Creates a new configuration builder for BukkitImperat.
-     * Brigadier integration is auto-wired based on the runtime — no toggle.
-     *
-     * @param plugin the plugin instance that will own this Imperat instance
-     * @return a new BukkitConfigBuilder for further configuration
-     */
-    public static BukkitConfigBuilder builder(Plugin plugin) {
-        return new BukkitConfigBuilder(plugin);
-    }
-
     /** @return the active backend (modern Paper, legacy Paper, Commodore, or plain CommandMap). */
-    public BukkitBackend backend() {
+    public BukkitBackend<S> backend() {
         return backend;
     }
 
@@ -202,8 +212,15 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
     }
 
     @Override
-    public BukkitCommandSource createDummySender() {
-        return new BukkitCommandSource(Bukkit.getConsoleSender(), adventureProvider);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public S createDummySender() {
+        BukkitCommandSource platform = new BukkitCommandSource(Bukkit.getConsoleSender(), adventureProvider);
+        // Lift via the user's mapper so a dummy sender produced for
+        // tree-only phases (parse-without-source, suggestion previews,
+        // help printers) is the same canonical type the rest of the
+        // framework operates on.
+        CommandSourceMapper mapper = config().sourceMapper();
+        return (S) mapper.wrap(platform);
     }
 
     /**
@@ -216,7 +233,7 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
      * @return the wrapped command source
      */
     @Override
-    public BukkitCommandSource wrapSender(Object sender) {
+    public S wrapSender(Object sender) {
         return backend.wrapSender(sender);
     }
 
@@ -237,12 +254,12 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
      * @param command the command to register
      */
     @Override
-    public void registerSimpleCommand(Command<BukkitCommandSource> command) {
+    public void registerSimpleCommand(Command<S> command) {
         super.registerSimpleCommand(command);
         backend.registerCommand(command);
     }
 
-    public void updateCommand(Command<BukkitCommandSource> command) {
+    public void updateCommand(Command<S> command) {
         registerSimpleCommand(command);
     }
 
@@ -253,7 +270,7 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
      */
     @Override
     public void unregisterCommand(String name) {
-        Command<BukkitCommandSource> imperatCmd = getCommand(name);
+        Command<S> imperatCmd = getCommand(name);
         super.unregisterCommand(name);
 
         if (imperatCmd == null) {

@@ -5,125 +5,65 @@ import net.minestom.server.ServerProcess;
 import net.minestom.server.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 
 import java.util.List;
 
-/**
- * Main Imperat implementation for Minestom servers.
- * This class serves as the primary entry point for integrating the Imperat command framework
- * with Minestom servers, providing modern Minecraft server command management capabilities.
- *
- * <p>Key Features:</p>
- * <ul>
- *   <li>Full integration with Minestom's command system</li>
- *   <li>Native Adventure API support for rich text messaging</li>
- *   <li>Modern Minecraft server architecture support</li>
- *   <li>High-performance command execution</li>
- *   <li>Built-in parameter types for Minestom objects</li>
- *   <li>Automatic command registration and cleanup</li>
- * </ul>
- *
- * <p>Usage Example:</p>
- * <pre>{@code
- * public class MyMinestomServer {
- *     private MinestomImperat imperat;
- *
- *     public void initialize(ServerProcess serverProcess) {
- *         imperat = MinestomImperat.builder(serverProcess)
- *             .build();
- *
- *         imperat.registerCommand(MyCommand.class);
- *     }
- * }
- * }</pre>
- *
- * @since 1.0
- * @author Imperat Framework
- * @see MinestomConfigBuilder
- * @see MinestomCommandSource
- */
-public final class MinestomImperat extends BaseImperat<MinestomCommandSource> {
+public final class MinestomImperat<S extends MinestomCommandSource> extends BaseImperat<S> {
 
     private final ServerProcess serverProcess;
 
-    /**
-     * Package-private constructor used by MinestomConfigBuilder.
-     * Use {@link #builder(ServerProcess)} to create instances.
-     *
-     * @param serverProcess the Minestom ServerProcess instance
-     * @param config the Imperat configuration
-     */
-    MinestomImperat(@NotNull ServerProcess serverProcess, @NotNull ImperatConfig<MinestomCommandSource> config) {
+    MinestomImperat(@NotNull ServerProcess serverProcess, @NotNull ImperatConfig<S> config) {
         super(config);
         this.serverProcess = serverProcess;
         SyntaxDataLoader.migrateToImperatTypeData(this);
     }
 
-    /**
-     * Creates a new configuration builder for MinestomImperat.
-     * This is the recommended way to create and configure a MinestomImperat instance.
-     *
-     * @param serverProcess the Minestom ServerProcess instance
-     * @return a new MinestomConfigBuilder for further configuration
-     */
-    public static MinestomConfigBuilder builder(@NotNull ServerProcess serverProcess) {
-        return new MinestomConfigBuilder(serverProcess);
+    public static MinestomConfigBuilder<MinestomCommandSource> builder(@NotNull ServerProcess serverProcess) {
+        return new MinestomConfigBuilder<>(serverProcess, MinestomCommandSource.class, CommandSourceMapper.identity());
     }
 
-    /**
-     * Gets the platform object for this implementation.
-     * For Minestom, this returns the ServerProcess.
-     *
-     * @return the Minestom ServerProcess instance
-     */
+    public static <S extends MinestomCommandSource> MinestomConfigBuilder<S> builder(
+            @NotNull ServerProcess serverProcess, Class<S> sourceClass, CommandSourceMapper<MinestomCommandSource, S> mapper
+    ) {
+        return new MinestomConfigBuilder<>(serverProcess, sourceClass, mapper);
+    }
+
     @Override
     public ServerProcess getPlatform() {
         return serverProcess;
     }
 
-    /**
-     * Shuts down the platform
-     */
     @Override
     public void shutdownPlatform() {
         serverProcess.stop();
     }
 
     @Override
-    public MinestomCommandSource createDummySender() {
-        return new MinestomCommandSource(MinecraftServer.getCommandManager().getConsoleSender());
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public S createDummySender() {
+        MinestomCommandSource platform = new MinestomCommandSource(MinecraftServer.getCommandManager().getConsoleSender());
+        CommandSourceMapper mapper = config().sourceMapper();
+        return (S) mapper.wrap(platform);
     }
 
-    /**
-     * Wraps the sender into a built-in command-sender valueType
-     *
-     * @param sender the sender's actual value
-     * @return the wrapped command-sender valueType
-     */
     @Override
-    public MinestomCommandSource wrapSender(Object sender) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public S wrapSender(Object sender) {
         if (!(sender instanceof CommandSender commandSender)) {
             throw new IllegalArgumentException("platform sender is not of valueType `" + CommandSender.class.getName() + "`");
         }
-        return new MinestomCommandSource(commandSender);
+        MinestomCommandSource platform = new MinestomCommandSource(commandSender);
+        CommandSourceMapper mapper = config().sourceMapper();
+        return (S) mapper.wrap(platform);
     }
 
-    /**
-     * Registering a command into the dispatcher
-     *
-     * @param command the command to register
-     */
     @Override
-    public void registerSimpleCommand(Command<MinestomCommandSource> command) {
+    public void registerSimpleCommand(Command<S> command) {
         super.registerSimpleCommand(command);
-        MinecraftServer.getCommandManager().register(new InternalMinestomCommand(this, command));
+        MinecraftServer.getCommandManager().register(new InternalMinestomCommand<>(this, command));
     }
 
-    /**
-     * Unregisters a command from the internal registry
-     *
-     * @param name the name of the command to unregister
-     */
     @Override
     public void unregisterCommand(String name) {
         super.unregisterCommand(name);

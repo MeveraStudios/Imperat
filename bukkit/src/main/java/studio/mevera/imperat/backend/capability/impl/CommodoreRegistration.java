@@ -20,6 +20,7 @@ import studio.mevera.imperat.backend.modern.BukkitBrigadierManager;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.commodore.Commodore;
 import studio.mevera.imperat.commodore.CommodoreProvider;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.type.LocationArgument;
 import studio.mevera.imperat.type.OfflinePlayerArgument;
@@ -46,31 +47,34 @@ import studio.mevera.imperat.type.TargetSelectorArgument;
  *
  * @since 4.0.0
  */
-public final class CommodoreRegistration implements RegistrationCapability {
+public final class CommodoreRegistration<S extends BukkitCommandSource> implements RegistrationCapability<S> {
 
-    private BukkitImperat owner;
+    private BukkitImperat<S> owner;
     private Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
     private @Nullable Commodore<org.bukkit.command.Command> commodore;
-    private BukkitBrigadierManager brigadierManager;
+    private BukkitBrigadierManager<S> brigadierManager;
+    @SuppressWarnings("rawtypes")
+    private CommandSourceMapper mapper;
 
     public CommodoreRegistration() {
     }
 
     @Override
     public void initialize(@NotNull Plugin plugin,
-            @NotNull BukkitImperat imperat,
+            @NotNull BukkitImperat<S> imperat,
             @NotNull AdventureProvider<CommandSender> adventureProvider) {
         this.owner = imperat;
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
         this.commodore = CommodoreProvider.getCommodore(imperat);
-        this.brigadierManager = new BukkitBrigadierManager(imperat);
+        this.brigadierManager = new BukkitBrigadierManager<>(imperat);
+        this.mapper = imperat.config().sourceMapper();
     }
 
     @Override
-    public void registerCommand(@NotNull Command<BukkitCommandSource> command) {
-        InternalBukkitCommand internalCmd = new InternalBukkitCommand(owner, command);
+    public void registerCommand(@NotNull Command<S> command) {
+        InternalBukkitCommand<S> internalCmd = new InternalBukkitCommand<>(owner, command);
         BukkitUtil.COMMAND_MAP.register(plugin.getName(), internalCmd);
 
         if (commodore == null) {
@@ -81,27 +85,29 @@ public final class CommodoreRegistration implements RegistrationCapability {
     }
 
     @Override
-    public @NotNull BukkitCommandSource wrapSender(@NotNull Object sender) {
+    @SuppressWarnings("unchecked")
+    public @NotNull S wrapSender(@NotNull Object sender) {
         if (sender instanceof CommandSender plain) {
-            return SenderWrappers.plain(plain, adventureProvider);
+            return (S) mapper.wrap(SenderWrappers.plain(plain, adventureProvider));
         }
         // Commodore hands NMS sources to the Brigadier predicate — defer
         // to its wrapper to convert back to Bukkit's CommandSender.
         if (commodore != null) {
             CommandSender wrapped = commodore.wrapNMSCommandSource(sender);
             if (wrapped != null) {
-                return SenderWrappers.plain(wrapped, adventureProvider);
+                return (S) mapper.wrap(SenderWrappers.plain(wrapped, adventureProvider));
             }
         }
         throw SenderWrappers.reject(sender, "CommandSender or NMS source");
     }
 
     @Override
-    public void applyArgumentTypeDefaults(@NotNull ImperatConfig<BukkitCommandSource> config) {
-        config.registerArgType(Player.class, new PlayerArgument());
-        config.registerArgType(OfflinePlayer.class, new OfflinePlayerArgument());
-        config.registerArgType(Location.class, new LocationArgument());
-        config.registerArgType(TargetSelector.class, new TargetSelectorArgument());
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void applyArgumentTypeDefaults(@NotNull ImperatConfig<S> config) {
+        config.registerArgType(Player.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument());
+        config.registerArgType(OfflinePlayer.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new OfflinePlayerArgument());
+        config.registerArgType(Location.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new LocationArgument());
+        config.registerArgType(TargetSelector.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new TargetSelectorArgument());
     }
 
     @Override

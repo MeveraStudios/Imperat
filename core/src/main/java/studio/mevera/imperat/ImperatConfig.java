@@ -20,6 +20,7 @@ import studio.mevera.imperat.exception.CommandExceptionHandler;
 import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.placeholders.PlaceholderResolver;
+import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.DependencySupplier;
 
@@ -50,6 +51,35 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
     String commandPrefix();
 
     void setCommandPrefix(String cmdPrefix);
+
+    /**
+     * Class token for the canonical source type {@code S}. Captured at
+     * builder-construction time. Required by reflective param-resolution
+     * paths that compare {@code @Execute} method parameters against the
+     * user-declared source class.
+     */
+    @NotNull Class<S> sourceClass();
+
+    /**
+     * Bidirectional mapper between the platform-native source and the
+     * canonical {@code S}. Default-path builders install
+     * {@link CommandSourceMapper#identity()}; custom-source plugins
+     * install their own via {@code .source(...)}.
+     *
+     * <p>Returned as a raw {@link CommandSourceMapper} because the
+     * {@code S extends P} bound on the interface is incompatible with
+     * wildcard storage across generic erasure. Callers cast to their
+     * expected platform type.</p>
+     */
+    @SuppressWarnings("rawtypes")
+    @NotNull CommandSourceMapper sourceMapper();
+
+    /**
+     * Sets the source mapper. Called by the platform-specific
+     * {@code ConfigBuilder} when the user chains {@code .source(...)}.
+     */
+    @SuppressWarnings("rawtypes")
+    void setSourceMapper(@NotNull CommandSourceMapper mapper);
 
     /**
      * @return the printer used for unhandled throwables
@@ -257,10 +287,6 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      * @param type the type
      */
     <T> @Nullable T resolveDependency(Type type);
-
-    default boolean hasSourceResolver(Type wrap) {
-        return getSourceProviderFor(wrap) != null;
-    }
 
     /**
      * Registers a new {@link CommandExceptionHandler} for the specified valueType of throwable.
