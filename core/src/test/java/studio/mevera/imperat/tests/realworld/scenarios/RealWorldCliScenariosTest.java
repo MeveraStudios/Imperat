@@ -28,7 +28,7 @@ final class RealWorldCliScenariosTest {
     @BeforeAll
     static void registerAll() {
         imperat = TestImperatConfig.builder().build();
-        imperat.registerCommand(GitCommitCmd.class);
+        imperat.registerCommand(RealGitCommand.class);
         imperat.registerCommand(DockerRunCmd.class);
         imperat.registerCommand(NpmInstallCmd.class);
         imperat.registerCommand(CurlCmd.class);
@@ -52,10 +52,10 @@ final class RealWorldCliScenariosTest {
     void gitCommitAmendNoVerify() {
         ExecutionResult<TestCommandSource> r = exec("git commit -m fix-bug --amend --no-verify");
         assertFalse(r.hasFailed(), "exec failed: " + r.getError());
-        assertEquals("fix-bug", GitCommitCmd.LAST_MESSAGE);
-        assertTrue(GitCommitCmd.LAST_AMEND);
-        assertTrue(GitCommitCmd.LAST_NO_VERIFY);
-        assertFalse(GitCommitCmd.LAST_ALL);
+        assertEquals("fix-bug", RealGitCommand.LAST_MESSAGE);
+        assertTrue(RealGitCommand.LAST_AMEND);
+        assertTrue(RealGitCommand.LAST_NO_VERIFY);
+        assertFalse(RealGitCommand.LAST_ALL);
     }
 
     @Test
@@ -63,9 +63,9 @@ final class RealWorldCliScenariosTest {
     void gitCommitInlineEqualsAndAlias() {
         ExecutionResult<TestCommandSource> r = exec("git commit --message=initial -a");
         assertFalse(r.hasFailed(), "exec failed: " + r.getError());
-        assertEquals("initial", GitCommitCmd.LAST_MESSAGE);
-        assertTrue(GitCommitCmd.LAST_ALL);
-        assertFalse(GitCommitCmd.LAST_AMEND);
+        assertEquals("initial", RealGitCommand.LAST_MESSAGE);
+        assertTrue(RealGitCommand.LAST_ALL);
+        assertFalse(RealGitCommand.LAST_AMEND);
     }
 
     // ----- 2. docker run ---------------------------------------------

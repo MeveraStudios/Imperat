@@ -125,7 +125,15 @@ final class ParameterParser<S extends CommandSource> {
                 argument, param
         );
 
-        if (TypeUtility.isNumericType(TypeWrap.of(param.getType()))) {
+        // Skip NumericArgumentDecorator when the argument is a flag —
+        // the decorator extends InputArgument but doesn't implement
+        // FlagArgument, so wrapping a numeric @Flag would break every
+        // downstream `asFlagParameter()` cast site (FlagExtractor,
+        // pathway flag list, parser, suggester). @Range on numeric
+        // flags is unsupported as a result; a flag's value-type can
+        // still parse the input, just without compile-time range
+        // validation. Use a custom ArgumentType for that if needed.
+        if (TypeUtility.isNumericType(TypeWrap.of(param.getType())) && !argument.isFlag()) {
             Range rangeAnn = param.getAnnotation(Range.class);
             NumericRange numericRange = rangeAnn != null ? NumericRange.of(rangeAnn.min(), rangeAnn.max()) : NumericRange.empty();
             return NumericArgumentDecorator.decorate(
