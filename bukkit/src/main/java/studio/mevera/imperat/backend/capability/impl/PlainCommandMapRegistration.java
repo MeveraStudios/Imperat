@@ -62,11 +62,9 @@ public final class PlainCommandMapRegistration implements RegistrationCapability
     @Override
     public @NotNull BukkitCommandSource wrapSender(@NotNull Object sender) {
         if (sender instanceof CommandSender plain) {
-            return new BukkitCommandSource(plain, adventureProvider);
+            return SenderWrappers.plain(plain, adventureProvider);
         }
-        throw new IllegalArgumentException(
-                "Cannot wrap sender of type " + sender.getClass().getName()
-                        + " — expected CommandSender (plain command-map backend)");
+        throw SenderWrappers.reject(sender, "CommandSender (plain command-map backend)");
     }
 
     @Override

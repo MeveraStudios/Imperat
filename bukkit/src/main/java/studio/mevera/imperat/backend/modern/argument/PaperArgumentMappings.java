@@ -10,11 +10,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.ImperatConfig;
-import studio.mevera.imperat.backend.modern.type.LocationArgument;
-import studio.mevera.imperat.backend.modern.type.OfflinePlayerArgument;
 import studio.mevera.imperat.backend.modern.type.PaperTargetSelectorArgument;
-import studio.mevera.imperat.backend.modern.type.PlayerArgument;
 import studio.mevera.imperat.selector.TargetSelector;
+import studio.mevera.imperat.type.LocationArgument;
+import studio.mevera.imperat.type.OfflinePlayerArgument;
+import studio.mevera.imperat.type.PlayerArgument;
 
 import java.util.UUID;
 

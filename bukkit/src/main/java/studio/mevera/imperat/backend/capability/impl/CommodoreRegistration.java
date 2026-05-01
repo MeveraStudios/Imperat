@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import studio.mevera.imperat.BaseBrigadierManager;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.BukkitImperat;
 import studio.mevera.imperat.BukkitUtil;
@@ -17,8 +16,8 @@ import studio.mevera.imperat.InternalBukkitCommand;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.backend.capability.BukkitCapability;
 import studio.mevera.imperat.backend.capability.RegistrationCapability;
+import studio.mevera.imperat.backend.modern.BukkitBrigadierManager;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.commodore.Commodore;
 import studio.mevera.imperat.commodore.CommodoreProvider;
 import studio.mevera.imperat.selector.TargetSelector;
@@ -53,7 +52,7 @@ public final class CommodoreRegistration implements RegistrationCapability {
     private Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
     private @Nullable Commodore<org.bukkit.command.Command> commodore;
-    private CommodoreBrigadierManager brigadierManager;
+    private BukkitBrigadierManager brigadierManager;
 
     public CommodoreRegistration() {
     }
@@ -66,7 +65,7 @@ public final class CommodoreRegistration implements RegistrationCapability {
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
         this.commodore = CommodoreProvider.getCommodore(imperat);
-        this.brigadierManager = new CommodoreBrigadierManager(imperat);
+        this.brigadierManager = new BukkitBrigadierManager(imperat);
     }
 
     @Override
@@ -84,19 +83,17 @@ public final class CommodoreRegistration implements RegistrationCapability {
     @Override
     public @NotNull BukkitCommandSource wrapSender(@NotNull Object sender) {
         if (sender instanceof CommandSender plain) {
-            return new BukkitCommandSource(plain, adventureProvider);
+            return SenderWrappers.plain(plain, adventureProvider);
         }
         // Commodore hands NMS sources to the Brigadier predicate — defer
         // to its wrapper to convert back to Bukkit's CommandSender.
         if (commodore != null) {
             CommandSender wrapped = commodore.wrapNMSCommandSource(sender);
             if (wrapped != null) {
-                return new BukkitCommandSource(wrapped, adventureProvider);
+                return SenderWrappers.plain(wrapped, adventureProvider);
             }
         }
-        throw new IllegalArgumentException(
-                "Cannot wrap sender of type " + sender.getClass().getName()
-                        + " — expected CommandSender or NMS source");
+        throw SenderWrappers.reject(sender, "CommandSender or NMS source");
     }
 
     @Override
@@ -124,22 +121,4 @@ public final class CommodoreRegistration implements RegistrationCapability {
         return BukkitCapability.COMMODORE_BRIGADIER;
     }
 
-    /** Brigadier tree builder for the Commodore path — uses raw Object as native source. */
-    private final class CommodoreBrigadierManager extends BaseBrigadierManager<BukkitCommandSource> {
-
-        private CommodoreBrigadierManager(@NotNull BukkitImperat dispatcher) {
-            super(dispatcher);
-        }
-
-        @Override
-        public BukkitCommandSource wrapCommandSource(Object commandSource) {
-            return CommodoreRegistration.this.wrapSender(commandSource);
-        }
-
-        @Override
-        public @NotNull com.mojang.brigadier.arguments.ArgumentType<?> getArgumentType(
-                @NotNull Argument<BukkitCommandSource> imperatArgument) {
-            return getStringArgType(imperatArgument);
-        }
-    }
 }

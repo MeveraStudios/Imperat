@@ -91,14 +91,15 @@ public final class ModernPaperRegistration implements RegistrationCapability {
     @Override
     public @NotNull BukkitCommandSource wrapSender(@NotNull Object sender) {
         if (sender instanceof CommandSourceStack stack) {
+            // Paper-specific stack carries selector-resolver context — keep
+            // the stack reference on the wrapped source so downstream
+            // resolvers (entity/position) can use it.
             return new BukkitCommandSource(stack.getSender(), adventureProvider, stack);
         }
         if (sender instanceof CommandSender plain) {
-            return new BukkitCommandSource(plain, adventureProvider);
+            return SenderWrappers.plain(plain, adventureProvider);
         }
-        throw new IllegalArgumentException(
-                "Cannot wrap sender of type " + sender.getClass().getName()
-                        + " — expected CommandSourceStack or CommandSender");
+        throw SenderWrappers.reject(sender, "CommandSourceStack or CommandSender");
     }
 
     @Override

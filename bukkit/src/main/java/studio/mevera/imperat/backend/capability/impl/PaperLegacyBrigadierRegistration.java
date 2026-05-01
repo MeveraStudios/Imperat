@@ -12,7 +12,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
-import studio.mevera.imperat.BaseBrigadierManager;
 import studio.mevera.imperat.BukkitCommandSource;
 import studio.mevera.imperat.BukkitImperat;
 import studio.mevera.imperat.BukkitUtil;
@@ -21,8 +20,8 @@ import studio.mevera.imperat.InternalBukkitCommand;
 import studio.mevera.imperat.adventure.AdventureProvider;
 import studio.mevera.imperat.backend.capability.BukkitCapability;
 import studio.mevera.imperat.backend.capability.RegistrationCapability;
+import studio.mevera.imperat.backend.modern.BukkitBrigadierManager;
 import studio.mevera.imperat.command.Command;
-import studio.mevera.imperat.command.arguments.Argument;
 import studio.mevera.imperat.selector.TargetSelector;
 import studio.mevera.imperat.type.LocationArgument;
 import studio.mevera.imperat.type.OfflinePlayerArgument;
@@ -61,7 +60,7 @@ public final class PaperLegacyBrigadierRegistration implements RegistrationCapab
     private BukkitImperat owner;
     private Plugin plugin;
     private AdventureProvider<CommandSender> adventureProvider;
-    private LegacyBrigadierManager brigadierManager;
+    private BukkitBrigadierManager brigadierManager;
 
     public PaperLegacyBrigadierRegistration() {
     }
@@ -73,7 +72,7 @@ public final class PaperLegacyBrigadierRegistration implements RegistrationCapab
         this.owner = imperat;
         this.plugin = plugin;
         this.adventureProvider = adventureProvider;
-        this.brigadierManager = new LegacyBrigadierManager(imperat);
+        this.brigadierManager = new BukkitBrigadierManager(imperat);
 
         plugin.getServer().getPluginManager().registerEvents(new Listener() {
             @EventHandler(priority = EventPriority.MONITOR)
@@ -109,14 +108,12 @@ public final class PaperLegacyBrigadierRegistration implements RegistrationCapab
     @Override
     public @NotNull BukkitCommandSource wrapSender(@NotNull Object sender) {
         if (sender instanceof BukkitBrigadierCommandSource brig) {
-            return new BukkitCommandSource(brig.getBukkitSender(), adventureProvider);
+            return SenderWrappers.plain(brig.getBukkitSender(), adventureProvider);
         }
         if (sender instanceof CommandSender plain) {
-            return new BukkitCommandSource(plain, adventureProvider);
+            return SenderWrappers.plain(plain, adventureProvider);
         }
-        throw new IllegalArgumentException(
-                "Cannot wrap sender of type " + sender.getClass().getName()
-                        + " — expected BukkitBrigadierCommandSource or CommandSender");
+        throw SenderWrappers.reject(sender, "BukkitBrigadierCommandSource or CommandSender");
     }
 
     @Override
@@ -148,22 +145,4 @@ public final class PaperLegacyBrigadierRegistration implements RegistrationCapab
         return BukkitCapability.PAPER_LEGACY_BRIGADIER;
     }
 
-    /** Brigadier tree builder typed against Paper's legacy source class. */
-    private final class LegacyBrigadierManager extends BaseBrigadierManager<BukkitCommandSource> {
-
-        private LegacyBrigadierManager(@NotNull BukkitImperat dispatcher) {
-            super(dispatcher);
-        }
-
-        @Override
-        public BukkitCommandSource wrapCommandSource(Object commandSource) {
-            return PaperLegacyBrigadierRegistration.this.wrapSender(commandSource);
-        }
-
-        @Override
-        public @NotNull com.mojang.brigadier.arguments.ArgumentType<?> getArgumentType(
-                @NotNull Argument<BukkitCommandSource> imperatArgument) {
-            return getStringArgType(imperatArgument);
-        }
-    }
 }
