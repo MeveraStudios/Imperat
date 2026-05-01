@@ -4,7 +4,7 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import io.papermc.paper.command.brigadier.argument.ArgumentTypes;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.BukkitCommandSource;
-import studio.mevera.imperat.backend.modern.argument.PaperNativeAware;
+import studio.mevera.imperat.backend.modern.argument.PaperNativeArgumentType;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.type.TargetSelectorArgument;
 
@@ -19,10 +19,10 @@ import studio.mevera.imperat.type.TargetSelectorArgument;
  *
  * @since 4.0.0 (Paper module)
  */
-public final class PaperTargetSelectorArgument extends TargetSelectorArgument implements PaperNativeAware {
+public final class PaperTargetSelectorArgument extends TargetSelectorArgument implements PaperNativeArgumentType {
 
     @Override
-    public @NotNull ArgumentType<?> paperNativeType() {
+    public @NotNull ArgumentType<?> nativeType() {
         return ArgumentTypes.entities();
     }
 

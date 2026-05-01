@@ -29,7 +29,8 @@ import java.lang.reflect.Type;
  *
  * @since 4.0.0 (Paper module)
  */
-public class PaperBukkitArgumentType<N, T> extends ArgumentType<BukkitCommandSource, T> {
+public class PaperBukkitArgumentType<N, T> extends ArgumentType<BukkitCommandSource, T>
+        implements PaperNativeArgumentType {
 
     private final PaperArgumentType<N, T> paperType;
 
@@ -81,6 +82,7 @@ public class PaperBukkitArgumentType<N, T> extends ArgumentType<BukkitCommandSou
     }
 
     /** Native Paper Brigadier type — used by the registrar to wire client-side suggestions. */
+    @Override
     public @NotNull com.mojang.brigadier.arguments.ArgumentType<N> nativeType() {
         return paperType.nativeType();
     }
