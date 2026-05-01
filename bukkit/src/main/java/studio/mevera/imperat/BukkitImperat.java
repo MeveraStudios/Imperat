@@ -106,14 +106,49 @@ public final class BukkitImperat extends BaseImperat<BukkitCommandSource> {
             registerUnknownCommandListener();
         }
 
-        // AsyncTabCompleteEvent listener — defensive fallback for headless
-        // test harnesses (MockBukkit) and any path where Brigadier dispatch
-        // doesn't reach the suggestion request. Brigadier is async by
-        // default on real servers; this listener is harmless when it
-        // never fires.
-        if (Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION) {
+        // AsyncTabCompleteEvent listener — registered ONLY on the plain
+        // CommandMap backend, where Brigadier ISN'T producing native
+        // suggestions and the listener's flat Imperat-tree output is the
+        // only path to tab completion. On Brigadier-capable backends
+        // (modern Paper, legacy Paper, Commodore) this event also fires
+        // AFTER Brigadier populates completions; the listener's
+        // {@code event.setCompletions(...)} + {@code setHandled(true)}
+        // would overwrite native selector menus, filter keys, and other
+        // rich client-side autocomplete with our flat list. Gating on
+        // capability keeps the two paths mutually exclusive.
+        if (Version.SUPPORTS_PAPER_ASYNC_TAB_COMPLETION
+                    && backend.kind() == BukkitCapability.PLAIN_COMMAND_MAP) {
             plugin.getServer().getPluginManager().registerEvents(new AsyncTabListener(this), plugin);
         }
+
+        registerAutoCleanupListener();
+    }
+
+    /**
+     * Auto-unregisters Imperat commands when the owning plugin is disabled.
+     * Bukkit's {@link org.bukkit.command.CommandMap} doesn't unregister
+     * plugin-scoped entries on plugin disable — without this listener,
+     * a hot-reload or {@code /reload} leaves orphan command entries that
+     * either ghost on the next enable or trip the registration's
+     * "command already registered" path. Mirrors the standard
+     * {@code PluginDisableEvent} cleanup pattern other command frameworks
+     * use.
+     *
+     * <p>Calls {@link #unregisterAllCommands()} + {@link #shutdownPlatform()}
+     * — both are safe to call again from the user's {@code onDisable}
+     * (registry is empty after the first run; backend's
+     * {@code adventureProvider.close()} is null-guarded).</p>
+     */
+    private void registerAutoCleanupListener() {
+        plugin.getServer().getPluginManager().registerEvents(new Listener() {
+            @EventHandler(priority = EventPriority.HIGHEST)
+            public void onPluginDisable(org.bukkit.event.server.PluginDisableEvent event) {
+                if (event.getPlugin() == plugin) {
+                    unregisterAllCommands();
+                    shutdownPlatform();
+                }
+            }
+        }, plugin);
     }
 
     private static String stripLabel(@NotNull String commandLine) {
