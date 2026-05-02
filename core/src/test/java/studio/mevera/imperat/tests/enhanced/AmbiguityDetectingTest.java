@@ -40,13 +40,14 @@ public class AmbiguityDetectingTest extends EnhancedBaseImperatTest {
     }
 
     @Test
-    @DisplayName("v4: Two optional parameters with same type (String) — bind positionally, NOT ambiguous")
-    void testTwoTailOptionalSameTypeAcceptedInV4() {
-        // v4: tail optionals bind in declaration order. `parseOptionalsAndFlags`
-        // walks them left-to-right and assigns the next token to the next slot.
-        // No type-driven dispatch, no clash. Real-CLI shape:
-        // `git tag <name> [commit]` / `docker run [image] [cmd...]`.
-        IMPERAT.registerCommand(AmbiguousSameTypeOptional.class);
+    @DisplayName("Should detect ambiguity: Two optional parameters with same type (String)")
+    void testAmbiguousSameTypeOptional() {
+        try {
+            IMPERAT.registerCommand(AmbiguousSameTypeOptional.class);
+            Assertions.fail("Expected AmbiguousCommandException to be thrown");
+        } catch (AmbiguousCommandException ex) {
+            // Expected exception
+        }
     }
 
     @Test
@@ -61,9 +62,14 @@ public class AmbiguityDetectingTest extends EnhancedBaseImperatTest {
     }
 
     @Test
-    @DisplayName("v4: Three optional parameters with same type — bind positionally, NOT ambiguous")
-    void testThreeTailOptionalsAcceptedInV4() {
-        IMPERAT.registerCommand(AmbiguousThreeOptional.class);
+    @DisplayName("Should detect ambiguity: Three optional parameters with same type")
+    void testAmbiguousThreeOptional() {
+        try {
+            IMPERAT.registerCommand(AmbiguousThreeOptional.class);
+            Assertions.fail("Expected AmbiguousCommandException to be thrown");
+        } catch (AmbiguousCommandException ex) {
+            // Expected exception
+        }
     }
 
     @Test
@@ -78,9 +84,14 @@ public class AmbiguityDetectingTest extends EnhancedBaseImperatTest {
     }
 
     @Test
-    @DisplayName("v4: Four optional booleans — bind positionally, NOT ambiguous")
-    void testFourTailOptionalBooleansAcceptedInV4() {
-        IMPERAT.registerCommand(AmbiguousFourOptionalBooleans.class);
+    @DisplayName("Should detect ambiguity: Four optional booleans")
+    void testAmbiguousFourOptionalBooleans() {
+        try {
+            IMPERAT.registerCommand(AmbiguousFourOptionalBooleans.class);
+            Assertions.fail("Expected AmbiguousCommandException to be thrown");
+        } catch (AmbiguousCommandException ex) {
+            // Expected exception
+        }
     }
 
     // ==================== INVALID GREEDY COMMANDS ====================

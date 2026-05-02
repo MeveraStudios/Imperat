@@ -73,14 +73,6 @@ final class AmbiguityChecker {
             if (argument.isCommand() || isGreedyArgument(argument)) {
                 continue;
             }
-            // Flags / switches bind by name (not position), live in their
-            // own keyspace, and never clash with positional siblings — exclude
-            // them from the ambiguity counts entirely. Counting them in
-            // optionalCount inflates the metric and would falsely flag the
-            // common "<positional> + N flags" shape as all-optional clash.
-            if (argument.isFlag()) {
-                continue;
-            }
 
             if (argument.isRequired()) {
                 requiredCount++;
@@ -98,19 +90,12 @@ final class AmbiguityChecker {
             return AmbiguityResult.failure();
         }
 
-        // v4: tail optionals bind strictly positionally — `parseOptionalsAndFlags`
-        // walks them in declaration order, the first that type-parses takes the
-        // token, the rest fall through. Two consecutive `[String]` optionals
-        // (e.g. `git tag <name> [commit]`, `docker run [image] [cmd...]`) are
-        // therefore NOT ambiguous at parse time. Only the all-required case
-        // remains a real clash — multiple required siblings at the same node
-        // depth genuinely overlap. The historical optional-only branch was a
-        // v3 carry-over from the now-removed "middle non-flag optional matching"
-        // path; under v4's strict positional binding it produces false positives.
         boolean allRequired = requiredCount == checkedArguments;
+        boolean allOptional = optionalCount == checkedArguments;
+        boolean allSameNature = allRequired || allOptional;
         return new AmbiguityResult(
                 formats,
-                allRequired,
+                allSameNature,
                 types.size() < checkedArguments,
                 priorities.size() < checkedArguments
         );

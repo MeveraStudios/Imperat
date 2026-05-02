@@ -228,7 +228,7 @@ public final class RealGitCommand {
     }
 
     // ============================================================
-    // git push [<remote>] [<branch>] [--force] [--tags] [-u/--set-upstream]
+    // git push <remote> [<branch>] [--force] [--tags] [-u/--set-upstream]
     // ============================================================
     @SubCommand("push")
     public static final class Push {
@@ -236,7 +236,7 @@ public final class RealGitCommand {
         @Execute
         public void run(
                 TestCommandSource sender,
-                @Optional @Default("origin") String remote,
+                String remote,
                 @Optional String branch,
                 @Switch({"force", "f"}) Boolean force,
                 @Switch("tags") Boolean tags,
@@ -251,7 +251,7 @@ public final class RealGitCommand {
     }
 
     // ============================================================
-    // git pull [<remote>] [<branch>] [--rebase] [--ff-only]
+    // git pull <remote> [<branch>] [--rebase] [--ff-only]
     // ============================================================
     @SubCommand("pull")
     public static final class Pull {
@@ -259,7 +259,7 @@ public final class RealGitCommand {
         @Execute
         public void run(
                 TestCommandSource sender,
-                @Optional @Default("origin") String remote,
+                String remote,
                 @Optional String branch,
                 @Switch("rebase") Boolean rebase,
                 @Switch("ff-only") Boolean ffOnly
@@ -380,7 +380,7 @@ public final class RealGitCommand {
     }
 
     // ============================================================
-    // git diff [<from>] [<to>] [--staged] [--name-only]
+    // git diff <from> [<to>] [--staged] [--name-only]
     // ============================================================
     @SubCommand("diff")
     public static final class Diff {
@@ -388,7 +388,7 @@ public final class RealGitCommand {
         @Execute
         public void run(
                 TestCommandSource sender,
-                @Optional String from,
+                String from,
                 @Optional String to,
                 @Switch("staged") Boolean staged,
                 @Switch("name-only") Boolean nameOnly
@@ -430,7 +430,7 @@ public final class RealGitCommand {
         @Execute
         public void run(
                 TestCommandSource sender,
-                @Optional String name,
+                String name,
                 @Optional String commit,
                 @Flag({"message", "m"}) String message,
                 @Switch({"delete", "d"}) Boolean delete,
@@ -445,8 +445,7 @@ public final class RealGitCommand {
     }
 
     // ============================================================
-    // git remote [<action>] [<name>] [<url-or-target>...]
-    // - git remote                       (lists remotes)
+    // git remote <action> [<name>] [<url-or-target>...]
     // - git remote add <name> <url>
     // - git remote remove <name>
     // - git remote rename <old> <new>
@@ -457,7 +456,7 @@ public final class RealGitCommand {
         @Execute
         public void run(
                 TestCommandSource sender,
-                @Optional @Default("list") String action,
+                String action,
                 @Optional String name,
                 @Optional @Greedy String urlOrTarget
         ) {
