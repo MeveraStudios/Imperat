@@ -12,6 +12,7 @@ import studio.mevera.imperat.context.ArgumentTypeRegistry;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
+import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.TypeWrap;
@@ -53,6 +54,32 @@ public sealed interface ResolverRegistrar<S extends CommandSource> permits Imper
      * @param <T>      the valueType of value being resolved from context
      */
     <T> void registerContextArgumentProvider(Type type, @NotNull ContextArgumentProvider<S, T> resolver);
+
+    /**
+     * Registers a {@link SourceProvider} for a derived view of the canonical
+     * source. Consulted by
+     * {@link studio.mevera.imperat.context.ExecutionContext#provideSource(Type)}
+     * after the {@code S}-identity fast path and before the
+     * {@code source.origin()}-based default. Returning {@code null} from
+     * the provider falls through to the origin path.
+     *
+     * @param type     the derived view type
+     * @param provider the provider that materialises the view from the
+     *                 live source instance
+     * @param <R>      the derived view type
+     */
+    <R> void registerSourceProvider(@NotNull Type type, @NotNull SourceProvider<S, R> provider);
+
+    /**
+     * Fetches the {@link SourceProvider} registered for the given derived
+     * view type, or {@code null} if no provider is registered.
+     *
+     * @param type the derived view type
+     * @param <R>  the derived view type
+     * @return the registered provider, or {@code null}
+     */
+    @Nullable
+    <R> SourceProvider<S, R> getSourceProvider(@NotNull Type type);
 
 
     /**

@@ -17,6 +17,7 @@ import studio.mevera.imperat.permissions.PermissionChecker;
 import studio.mevera.imperat.placeholders.Placeholder;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.DependencySupplier;
+import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.Response;
 import studio.mevera.imperat.responses.ResponseKey;
@@ -334,6 +335,47 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
 
     public B contextArguments(Consumer<ContextArgumentsConfig<S>> consumer) {
         consumer.accept(new ContextArgumentsConfig<>(config));
+        return (B) this;
+    }
+
+    /**
+     * Registers a {@link SourceProvider} that materialises a derived view of
+     * the canonical source on {@code @Execute} dispatch. Use this to override
+     * how a specific parameter type is produced from the live source — for
+     * example, mapping {@code Player} to an Adventure-aware audience, or
+     * exposing a domain-specific projection of the source state.
+     *
+     * <p>Resolution precedence: an {@code S}-identity match wins, then the
+     * registered {@code SourceProvider} runs, then the
+     * {@code source.origin()}-based default fires, then the
+     * {@link ContextArgumentProvider} registry. Returning {@code null} from
+     * the provider falls through to the origin default — useful for
+     * conditional overrides.</p>
+     *
+     * @param type     the derived view type
+     * @param provider the provider that materialises the view from the
+     *                 live source instance
+     * @param <R>      the derived view type
+     * @return this builder for chaining
+     */
+    public <R> B sourceProvider(Class<R> type, SourceProvider<S, R> provider) {
+        config.registerSourceProvider(type, provider);
+        return (B) this;
+    }
+
+    /**
+     * Type-overload for {@link #sourceProvider(Class, SourceProvider)} that
+     * accepts a {@link Type} (e.g. a parameterised type built via
+     * {@code TypeWrap}). Same precedence rules apply.
+     *
+     * @param type     the derived view type
+     * @param provider the provider that materialises the view from the
+     *                 live source instance
+     * @param <R>      the derived view type
+     * @return this builder for chaining
+     */
+    public <R> B sourceProvider(Type type, SourceProvider<S, R> provider) {
+        config.registerSourceProvider(type, provider);
         return (B) this;
     }
 

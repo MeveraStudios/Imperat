@@ -602,10 +602,14 @@ public class CommandElementParser<S extends CommandSource> extends CommandClassP
         Type type = param.getElement().getParameterizedType();
         // v4: a parameter qualifies as sender if the framework can either
         // (a) treat it as the canonical source S / its CommandSource
-        // supertypes, OR (b) derive it from the source via a registered
-        // ContextArgumentProvider (gating-aware Player / OfflinePlayer /
-        // ConsoleCommandSender / domain types).
-        return imperat.canBeSender(type) || config.getContextArgumentProvider(type) != null;
+        // supertypes, (b) derive it from the source via a registered
+        // SourceProvider (explicit per-type override), or (c) resolve it
+        // through a ContextArgumentProvider (domain types). Both (b) and
+        // (c) materialise at param-injection time via
+        // ExecutionContextImpl.provideSource.
+        return imperat.canBeSender(type)
+                       || config.getSourceProvider(type) != null
+                       || config.getContextArgumentProvider(type) != null;
     }
 
     private Command<S> loadPathwayShortcut(

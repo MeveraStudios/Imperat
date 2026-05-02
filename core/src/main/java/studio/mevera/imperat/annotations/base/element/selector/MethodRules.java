@@ -41,13 +41,15 @@ public interface MethodRules {
                                                        // supertypes. For types like `Player` /
                                                        // `OfflinePlayer` that are derived-source views
                                                        // (the user wants `@Execute void cmd(Player p, ...)`),
-                                                       // they must opt in via a ContextArgumentProvider
-                                                       // — those resolve at param-injection time via
+                                                       // they opt in via a SourceProvider or a
+                                                       // ContextArgumentProvider — both resolve at
+                                                       // param-injection time via
                                                        // ExecutionContextImpl.provideSource. Recognising
-                                                       // them here lets the rule keep the @Execute method
-                                                       // valid.
+                                                       // either registration here lets the rule keep
+                                                       // the @Execute method valid.
                                                        Type t = parameterElement.getType();
                                                        return imperat.canBeSender(t)
+                                                                      || imperat.config().getSourceProvider(t) != null
                                                                       || imperat.config().getContextArgumentProvider(t) != null;
                                                    })
                                                    .build();

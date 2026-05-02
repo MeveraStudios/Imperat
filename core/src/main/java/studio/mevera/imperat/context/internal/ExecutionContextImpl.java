@@ -121,26 +121,36 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
     @Override
     @SuppressWarnings("unchecked")
     public <R> @NotNull R provideSource(Type type) throws CommandException {
-        // v4 source-resolution: with the user's S being canonical,
-        // derived source views are reachable via assignability against
-        // the live source instance — no SourceProviderRegistry indirection.
-        // For unrelated types fall through to the ContextArgumentProvider
-        // registry so user-defined domain contexts still work.
-        if (type instanceof Class<?> clazz) {
-            S source = this.source();
-            if (clazz.isInstance(source)) {
-                return (R) source;
+        // v4 source-resolution chain (in precedence order):
+        //   1. S-identity / supertype-of-S — fast pass-through, no allocation
+        //   2. Registered SourceProvider — explicit user override
+        //   3. source.origin() instance check — platform-derived default
+        //      (Player / OfflinePlayer / ConsoleCommandSender / CommandSender
+        //      on bukkit, ProxiedPlayer on bungee, etc.)
+        //   4. ContextArgumentProvider registry — user-defined domain types
+        //   5. Throw — type is unreachable from current source
+        //
+        // A SourceProvider returning null falls through to step 3. This is
+        // intentional: it lets users register conditional overrides that
+        // delegate to the default path when their custom logic doesn't
+        // apply.
+        S source = this.source();
+        if (type instanceof Class<?> clazz && clazz.isInstance(source)) {
+            return (R) source;
+        }
+        var sourceProvider = imperatConfig.<R>getSourceProvider(type);
+        if (sourceProvider != null) {
+            R resolved = sourceProvider.provide(source);
+            if (resolved != null) {
+                return resolved;
             }
-            // Platform-derived view via origin() — covers Player /
-            // OfflinePlayer / ConsoleCommandSender / CommandSender on
-            // bukkit, ProxiedPlayer on bungee, etc.
+        }
+        if (type instanceof Class<?> clazz) {
             Object origin = source.origin();
             if (origin != null && clazz.isInstance(origin)) {
                 return (R) origin;
             }
         }
-        // Fall through: maybe the user registered a ContextArgumentProvider
-        // for this type (the new SPI for source-derived domain types).
         var ctxProvider = imperatConfig.getContextArgumentProvider(type);
         if (ctxProvider != null) {
             R resolved = (R) ctxProvider.provide(this, null);
@@ -150,7 +160,7 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
         }
         throw new IllegalArgumentException(
                 "Cannot derive source view of type `" + type.getTypeName()
-                        + "` from canonical source `" + this.source().getClass().getName() + "`");
+                        + "` from canonical source `" + source.getClass().getName() + "`");
     }
 
     @Override

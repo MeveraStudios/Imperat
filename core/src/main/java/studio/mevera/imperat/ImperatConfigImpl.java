@@ -33,6 +33,7 @@ import studio.mevera.imperat.placeholders.PlaceholderRegistry;
 import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.providers.ContextArgumentProvider;
 import studio.mevera.imperat.providers.DependencySupplier;
+import studio.mevera.imperat.providers.SourceProvider;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.ResponseRegistry;
 import studio.mevera.imperat.util.Preconditions;
@@ -40,6 +41,8 @@ import studio.mevera.imperat.util.Preconditions;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -116,6 +119,19 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
      */
     @SuppressWarnings({"rawtypes"})
     private @NotNull CommandSourceMapper sourceMapper = CommandSourceMapper.identity();
+
+    /**
+     * Per-type {@link studio.mevera.imperat.providers.SourceProvider}
+     * registry. Plugin authors register a provider per derived type to
+     * customize how that type is materialized from the canonical source
+     * during {@code @Execute} dispatch. Consulted at step 2 of
+     * {@code ExecutionContextImpl.provideSource(Type)} — between the
+     * S-identity fast path and the {@code source.origin()}-based default.
+     * If absent, resolution falls through to origin then to
+     * {@code ContextArgumentProvider}. Type-keyed to match the
+     * {@code ContextArgumentProvider} registry shape.
+     */
+    private final Map<Type, SourceProvider<S, ?>> sourceProviders = new HashMap<>();
 
     ImperatConfigImpl(@NotNull Class<S> sourceClass) {
         this.sourceClass = sourceClass;
@@ -336,6 +352,23 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     @Override
     public <T> void registerContextArgumentProvider(Type type, @NotNull ContextArgumentProvider<S, T> resolver) {
         contextArgumentProviderRegistry.registerProvider(type, resolver);
+    }
+
+    // ------------------------------------------------------------------
+    // SourceProvider registry
+    // ------------------------------------------------------------------
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> @Nullable SourceProvider<S, R> getSourceProvider(@NotNull Type type) {
+        return (SourceProvider<S, R>) sourceProviders.get(type);
+    }
+
+    @Override
+    public <R> void registerSourceProvider(@NotNull Type type, @NotNull SourceProvider<S, R> provider) {
+        Preconditions.notNull(type, "type");
+        Preconditions.notNull(provider, "provider");
+        sourceProviders.put(type, provider);
     }
 
     // ------------------------------------------------------------------
