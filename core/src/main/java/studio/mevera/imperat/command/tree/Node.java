@@ -214,8 +214,15 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
                 continue;
             }
 
-            // Head failed type-parse — strict positional binding leaves the
-            // token for children/siblings.
+            // Head failed type-parse. Record the failed result before
+            // resetting/breaking so the tree walker has access to the
+            // captured error — without this the failure vanishes and the
+            // dispatcher only sees a generic InvalidSyntax even though
+            // the parse rejection has a specific reason.
+            // Strict positional binding still leaves the token for
+            // children/siblings to attempt — they may succeed and
+            // produce a clean candidate that outranks this failed one.
+            parseResultMap.put(head.getName(), headResult);
             inputStream.setRawIndex(beforeProbe);
             break;
         }

@@ -147,7 +147,7 @@ final class ImperatExecutor<S extends CommandSource> {
         imperat.publishEvent(postProcessEvent);
 
         if (!postProcessEvent.isCancelled()) {
-            ImperatDebugger.debug("Executing command '%s' for source '%s'", command.getName(), source);
+            ImperatDebugger.debug("Executing command '%s' for source '%s'", command.getName(), source.name());
             detectedPathway.execute(imperat, source, executionContext);
             return ExecutionResult.of(executionContext, context);
         }

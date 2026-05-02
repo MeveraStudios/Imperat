@@ -17,6 +17,7 @@ import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.util.ImperatDebugger;
 import studio.mevera.imperat.util.StringUtils;
+import studio.mevera.imperat.util.reflection.Reflections;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -102,8 +103,14 @@ public final class BukkitImperat<S extends BukkitCommandSource> extends BaseImpe
 
         // Permission-denied rewrite via UnknownCommandEvent is independent
         // of registration backend — wired here so all Bukkit-flavoured
-        // backends benefit when the option is enabled.
-        if (rewriteUnknownCommandMessage) {
+        // backends benefit when the option is enabled. UnknownCommandEvent
+        // was added in 1.13 (CB/Spigot/Paper); on 1.8.x–1.12.x the class
+        // doesn't exist and PluginManager.registerEvents reflects on the
+        // listener's @EventHandler methods at registration time, throwing
+        // NoClassDefFoundError. Gate the registration on runtime class
+        // presence so legacy servers boot the plugin instead of crashing.
+        if (rewriteUnknownCommandMessage
+                    && Reflections.findClass("org.bukkit.event.command.UnknownCommandEvent")) {
             registerUnknownCommandListener();
         }
 

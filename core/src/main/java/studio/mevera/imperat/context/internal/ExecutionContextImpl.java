@@ -348,8 +348,19 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
             return;
         }
 
-        if (result.getError() != null && !arg.isOptional()) {
-            throw result.getError();
+        if (result.getError() != null) {
+            // Required arg with a captured error → always surface.
+            // Optional arg → surface only if the user actually supplied
+            // input for this slot. The result's input field carries the
+            // joined tokens the type tried to parse; a non-empty value
+            // means the user intentionally wrote something here and the
+            // type rejected it. Silently swapping in the default would
+            // mask a real user error. Empty-input optionals (slot not
+            // provided) keep the legacy "use default" behaviour.
+            boolean inputProvided = result.getInput() != null && !result.getInput().isEmpty();
+            if (!arg.isOptional() || inputProvided) {
+                throw result.getError();
+            }
         }
         Object value = result.getParsedValue();
         if (value == null && arg.isOptional()) {

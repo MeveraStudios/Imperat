@@ -5,6 +5,7 @@ import com.destroystokyo.paper.event.brigadier.CommandRegisteredEvent;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,6 +29,7 @@ import studio.mevera.imperat.type.LocationArgument;
 import studio.mevera.imperat.type.OfflinePlayerArgument;
 import studio.mevera.imperat.type.PlayerArgument;
 import studio.mevera.imperat.type.TargetSelectorArgument;
+import studio.mevera.imperat.type.WorldArgument;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -122,6 +124,7 @@ public final class PaperLegacyBrigadierRegistration<S extends BukkitCommandSourc
         config.registerArgType(Player.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument());
         config.registerArgType(OfflinePlayer.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new OfflinePlayerArgument());
         config.registerArgType(Location.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new LocationArgument());
+        config.registerArgType(World.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new WorldArgument());
         config.registerArgType(TargetSelector.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new TargetSelectorArgument());
     }
 
