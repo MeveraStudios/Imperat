@@ -14,6 +14,8 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.providers.SuggestionProvider;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,8 +26,29 @@ import java.util.List;
  * <p>Resolution: looks up the world by exact name via {@link Bukkit#getWorld(String)};
  * throws {@link BukkitResponseKey#UNKNOWN_WORLD} on miss. Suggestions are the
  * names of every loaded world.</p>
+ *
+ * <h3>Cross-version safety</h3>
+ *
+ * <p>Modern Paper extracted {@code World#getName()} into a
+ * {@code WorldInfo} superinterface. {@code javac} compiled against that
+ * API emits {@code invokeinterface WorldInfo.getName} for any direct
+ * call or method reference — which crashes with
+ * {@code NoClassDefFoundError: org/bukkit/generator/WorldInfo} on legacy
+ * Spigot 1.8.x where {@code WorldInfo} doesn't exist. The suggester
+ * uses a reflective invoke so the call site never binds
+ * to {@code WorldInfo} at the bytecode level. The reflective handle is
+ * resolved once at class init and cached.</p>
  */
 public class WorldArgument extends SimpleArgumentType<BukkitCommandSource, World> {
+
+    /**
+     * Cached {@code World#getName()} handle. Looked up once via
+     * {@code World.class.getMethod} so the bytecode never references
+     * {@code WorldInfo} directly. {@code null} on platforms where the
+     * method is unavailable (defensive — should never trip on any real
+     * Bukkit derivative).
+     */
+    private static final Method GET_NAME = lookupGetName();
 
     private final WorldSuggestionProvider SUGGESTION_RESOLVER = new WorldSuggestionProvider();
 
@@ -48,11 +71,43 @@ public class WorldArgument extends SimpleArgumentType<BukkitCommandSource, World
         return SUGGESTION_RESOLVER;
     }
 
+    private static Method lookupGetName() {
+        try {
+            return World.class.getMethod("getName");
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Reflective {@code World#getName()} call. Avoids any bytecode-level
+     * reference to {@code WorldInfo} that {@code javac} would otherwise
+     * emit when compiled against the modern Paper API.
+     */
+    private static String safeGetName(World world) {
+        if (GET_NAME == null) {
+            return null;
+        }
+        try {
+            return (String) GET_NAME.invoke(world);
+        } catch (ReflectiveOperationException e) {
+            return null;
+        }
+    }
+
     private final static class WorldSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
 
         @Override
         public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument) {
-            return Bukkit.getWorlds().stream().map(World::getName).toList();
+            List<World> worlds = Bukkit.getWorlds();
+            List<String> names = new ArrayList<>(worlds.size());
+            for (World world : worlds) {
+                String name = safeGetName(world);
+                if (name != null) {
+                    names.add(name);
+                }
+            }
+            return names;
         }
     }
 }
