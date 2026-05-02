@@ -39,7 +39,7 @@ import java.util.List;
  * to {@code WorldInfo} at the bytecode level. The reflective handle is
  * resolved once at class init and cached.</p>
  */
-public class WorldArgument extends SimpleArgumentType<BukkitCommandSource, World> {
+public class WorldArgument<S extends BukkitCommandSource> extends SimpleArgumentType<S, World> {
 
     /**
      * Cached {@code World#getName()} handle. Looked up once via
@@ -50,14 +50,14 @@ public class WorldArgument extends SimpleArgumentType<BukkitCommandSource, World
      */
     private static final Method GET_NAME = lookupGetName();
 
-    private final WorldSuggestionProvider SUGGESTION_RESOLVER = new WorldSuggestionProvider();
+    private final WorldSuggestionProvider<S> SUGGESTION_RESOLVER = new WorldSuggestionProvider<>();
 
     public WorldArgument() {
         super();
     }
 
     @Override
-    public World parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument, @NotNull String input)
+    public World parse(@NotNull CommandContext<S> context, @NonNull Argument<S> argument, @NotNull String input)
             throws CommandException {
         World world = Bukkit.getWorld(input);
         if (world == null) {
@@ -67,7 +67,7 @@ public class WorldArgument extends SimpleArgumentType<BukkitCommandSource, World
     }
 
     @Override
-    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
+    public SuggestionProvider<S> getSuggestionProvider() {
         return SUGGESTION_RESOLVER;
     }
 
@@ -95,10 +95,10 @@ public class WorldArgument extends SimpleArgumentType<BukkitCommandSource, World
         }
     }
 
-    private final static class WorldSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
+    private final static class WorldSuggestionProvider<S extends BukkitCommandSource> implements SuggestionProvider<S> {
 
         @Override
-        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument) {
+        public List<String> provide(SuggestionContext<S> context, Argument<S> argument) {
             List<World> worlds = Bukkit.getWorlds();
             List<String> names = new ArrayList<>(worlds.size());
             for (World world : worlds) {

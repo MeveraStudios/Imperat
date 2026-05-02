@@ -104,13 +104,12 @@ public final class CommodoreRegistration<S extends BukkitCommandSource> implemen
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public void applyArgumentTypeDefaults(@NotNull ImperatConfig<S> config) {
-        config.registerArgType(Player.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument());
-        config.registerArgType(OfflinePlayer.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new OfflinePlayerArgument());
-        config.registerArgType(Location.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new LocationArgument());
-        config.registerArgType(World.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new WorldArgument());
-        config.registerArgType(TargetSelector.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new TargetSelectorArgument());
+        config.registerArgType(Player.class, new PlayerArgument<S>());
+        config.registerArgType(OfflinePlayer.class, new OfflinePlayerArgument<S>());
+        config.registerArgType(Location.class, new LocationArgument<S>());
+        config.registerArgType(World.class, new WorldArgument<S>());
+        config.registerArgType(TargetSelector.class, new TargetSelectorArgument<S>());
     }
 
     @Override

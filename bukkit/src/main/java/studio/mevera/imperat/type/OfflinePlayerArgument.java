@@ -17,17 +17,22 @@ import studio.mevera.imperat.responses.BukkitResponseKey;
 import java.util.Arrays;
 import java.util.List;
 
-public class OfflinePlayerArgument extends SimpleArgumentType<BukkitCommandSource, OfflinePlayer> {
+/**
+ * Server-side resolver for {@link OfflinePlayer} parameters. Generic
+ * over the canonical source type {@code S} so custom-source plugins can
+ * register cleanly without raw casts.
+ */
+public class OfflinePlayerArgument<S extends BukkitCommandSource> extends SimpleArgumentType<S, OfflinePlayer> {
 
 
-    private final PlayerSuggestionProvider playerSuggestionResolver = new PlayerSuggestionProvider();
+    private final PlayerSuggestionProvider<S> playerSuggestionResolver = new PlayerSuggestionProvider<>();
 
     public OfflinePlayerArgument() {
         super();
     }
 
     @Override
-    public OfflinePlayer parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument,
+    public OfflinePlayer parse(@NotNull CommandContext<S> context, @NonNull Argument<S> argument,
             @NotNull String input) throws CommandException {
         if (input.length() > 16) {
             throw new ArgumentParseException(BukkitResponseKey.UNKNOWN_OFFLINE_PLAYER, input);
@@ -36,11 +41,11 @@ public class OfflinePlayerArgument extends SimpleArgumentType<BukkitCommandSourc
     }
 
     @Override
-    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
+    public SuggestionProvider<S> getSuggestionProvider() {
         return playerSuggestionResolver;
     }
 
-    private final static class PlayerSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
+    private final static class PlayerSuggestionProvider<S extends BukkitCommandSource> implements SuggestionProvider<S> {
 
         /**
          * @param context   the context for suggestions
@@ -48,7 +53,7 @@ public class OfflinePlayerArgument extends SimpleArgumentType<BukkitCommandSourc
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument) {
+        public List<String> provide(SuggestionContext<S> context, Argument<S> argument) {
             return Arrays.stream(Bukkit.getOfflinePlayers())
                            .map(OfflinePlayer::getName)
                            .toList();

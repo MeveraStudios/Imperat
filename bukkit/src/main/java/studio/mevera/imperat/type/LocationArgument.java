@@ -16,12 +16,12 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.ResponseException;
 import studio.mevera.imperat.responses.BukkitResponseKey;
 
-public class LocationArgument extends GreedyArgumentType<BukkitCommandSource, Location> {
+public class LocationArgument<S extends BukkitCommandSource> extends GreedyArgumentType<S, Location> {
 
     private final static String SINGLE_STRING_SEPARATOR = ";";
     private final static String SELF_LOCATION_SYMBOL = "~";
 
-    private final ArgumentType<BukkitCommandSource, Double> doubleParser;
+    private final ArgumentType<S, Double> doubleParser;
 
     public LocationArgument() {
         super();
@@ -29,7 +29,7 @@ public class LocationArgument extends GreedyArgumentType<BukkitCommandSource, Lo
     }
 
     @Override
-    public Location parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument,
+    public Location parse(@NotNull CommandContext<S> context, @NonNull Argument<S> argument,
             @NotNull String input) throws CommandException {
         // Parse from a single string (semicolon-separated)
         String[] split = input.split(SINGLE_STRING_SEPARATOR);

@@ -25,12 +25,12 @@ import studio.mevera.imperat.selector.field.operators.OperatorField;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSource, TargetSelector> {
+public class TargetSelectorArgument<S extends BukkitCommandSource> extends SimpleArgumentType<S, TargetSelector> {
 
     private final static char PARAMETER_START = '[';
     private final static char PARAMETER_END = ']';
 
-    private final SuggestionProvider<BukkitCommandSource> suggestionProvider;
+    private final SuggestionProvider<S> suggestionProvider;
 
     public TargetSelectorArgument() {
         super();
@@ -38,7 +38,7 @@ public class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSour
                 .filter(type -> type != SelectionType.UNKNOWN)
                 .map(SelectionType::id)
                 .forEach((id) -> suggestions.add(SelectionType.MENTION_CHARACTER + id));
-        suggestionProvider = new TargetSelectorSuggestionProvider();
+        suggestionProvider = new TargetSelectorSuggestionProvider<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -102,8 +102,8 @@ public class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSour
 
     @Override
     public TargetSelector parse(
-            @NotNull CommandContext<BukkitCommandSource> context,
-            @NotNull Argument<BukkitCommandSource> argument,
+            @NotNull CommandContext<S> context,
+            @NotNull Argument<S> argument,
             @NotNull String input
     ) throws CommandException {
         if (input.isEmpty()) {
@@ -117,6 +117,15 @@ public class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSour
             }
             return TargetSelector.of(SelectionType.UNKNOWN, target);
         }
+
+        // The selector helper utilities (SelectionParameterInput, SelectionType,
+        // EntityCondition) are typed against BukkitCommandSource. The user's S
+        // extends BukkitCommandSource, so the source instance + every call
+        // chained off it is reachable; the generics narrowing is purely a
+        // compile-time formality. Erase to a raw context for the helper calls
+        // — runtime erasure makes this a no-op.
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        CommandContext<BukkitCommandSource> bukkitContext = (CommandContext) context;
 
         if (Version.isOrOver(1, 13, 0)) {
             // 1.13+: delegate to vanilla's selector dispatcher.
@@ -139,13 +148,13 @@ public class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSour
         if (parameterized) {
             stream.skip(); // consume PARAMETER_START
             String params = stream.collectUntil(PARAMETER_END);
-            inputParameters = SelectionParameterInput.parseAll(params, input, context);
+            inputParameters = SelectionParameterInput.parseAll(params, input, bukkitContext);
         }
 
-        List<Entity> entities = type.getTargetEntities(context);
+        List<Entity> entities = type.getTargetEntities(bukkitContext);
         List<Entity> selected = new ArrayList<>();
 
-        EntityCondition entityPredicted = getEntityPredicate(inputParameters, context);
+        EntityCondition entityPredicted = getEntityPredicate(inputParameters, bukkitContext);
         for (Entity entity : entities) {
             if (entityPredicted.test(context.source(), entity)) {
                 selected.add(entity);
@@ -162,11 +171,11 @@ public class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSour
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
+    public SuggestionProvider<S> getSuggestionProvider() {
         return suggestionProvider;
     }
 
-    private final class TargetSelectorSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
+    private final class TargetSelectorSuggestionProvider<TS extends BukkitCommandSource> implements SuggestionProvider<TS> {
 
         /**
          * @param context   the context for suggestions
@@ -175,8 +184,8 @@ public class TargetSelectorArgument extends SimpleArgumentType<BukkitCommandSour
          */
         @Override
         public List<String> provide(
-                SuggestionContext<BukkitCommandSource> context,
-                Argument<BukkitCommandSource> argument
+                SuggestionContext<TS> context,
+                Argument<TS> argument
         ) {
             List<String> completions = new ArrayList<>(suggestions);
             Bukkit.getOnlinePlayers().stream().

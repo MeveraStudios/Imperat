@@ -19,7 +19,7 @@ import studio.mevera.imperat.type.TargetSelectorArgument;
  *
  * @since 4.0.0 (Paper module)
  */
-public final class PaperTargetSelectorArgument extends TargetSelectorArgument implements PaperNativeArgumentType {
+public final class PaperTargetSelectorArgument extends TargetSelectorArgument<BukkitCommandSource> implements PaperNativeArgumentType {
 
     @Override
     public @NotNull ArgumentType<?> nativeType() {

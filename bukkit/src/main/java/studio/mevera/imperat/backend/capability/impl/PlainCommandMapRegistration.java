@@ -76,16 +76,15 @@ public final class PlainCommandMapRegistration<S extends BukkitCommandSource> im
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public void applyArgumentTypeDefaults(@NotNull ImperatConfig<S> config) {
-        // Argument types are typed against the platform `BukkitCommandSource`
-        // — covariance via `S extends BukkitCommandSource` lets these be
-        // registered against the user's S without rewriting their bodies.
-        config.registerArgType(Player.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new PlayerArgument());
-        config.registerArgType(OfflinePlayer.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new OfflinePlayerArgument());
-        config.registerArgType(Location.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new LocationArgument());
-        config.registerArgType(World.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new WorldArgument());
-        config.registerArgType(TargetSelector.class, (studio.mevera.imperat.command.arguments.type.ArgumentType) new TargetSelectorArgument());
+        // The premade types are now generic over `<S extends BukkitCommandSource>`
+        // so they parameterise cleanly against the user's canonical source type
+        // — no raw casts needed for any of them.
+        config.registerArgType(Player.class, new PlayerArgument<S>());
+        config.registerArgType(OfflinePlayer.class, new OfflinePlayerArgument<S>());
+        config.registerArgType(Location.class, new LocationArgument<S>());
+        config.registerArgType(World.class, new WorldArgument<S>());
+        config.registerArgType(TargetSelector.class, new TargetSelectorArgument<S>());
     }
 
     @Override

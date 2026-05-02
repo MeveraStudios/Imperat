@@ -17,16 +17,23 @@ import studio.mevera.imperat.responses.BukkitResponseKey;
 
 import java.util.List;
 
-public class PlayerArgument extends SimpleArgumentType<BukkitCommandSource, Player> {
+/**
+ * Server-side resolver for {@link Player} parameters. Generic over the
+ * canonical source type {@code S} so custom-source plugins can register
+ * the type cleanly against their own {@code S} without raw casts —
+ * {@code S} is bounded by {@link BukkitCommandSource} so all the
+ * platform calls (e.g. {@code asPlayer()}) are reachable directly.
+ */
+public class PlayerArgument<S extends BukkitCommandSource> extends SimpleArgumentType<S, Player> {
 
-    private final PlayerSuggestionProvider SUGGESTION_RESOLVER = new PlayerSuggestionProvider();
+    private final PlayerSuggestionProvider<S> SUGGESTION_RESOLVER = new PlayerSuggestionProvider<>();
 
     public PlayerArgument() {
         super();
     }
 
     @Override
-    public Player parse(@NotNull CommandContext<BukkitCommandSource> context, @NonNull Argument<BukkitCommandSource> argument, @NotNull String input)
+    public Player parse(@NotNull CommandContext<S> context, @NonNull Argument<S> argument, @NotNull String input)
             throws CommandException {
         if (input.equalsIgnoreCase("me") || input.equalsIgnoreCase("~")) {
             if (context.source().isConsole()) {
@@ -47,11 +54,11 @@ public class PlayerArgument extends SimpleArgumentType<BukkitCommandSource, Play
      * @return the suggestion resolver for generating suggestions based on the parameter type.
      */
     @Override
-    public SuggestionProvider<BukkitCommandSource> getSuggestionProvider() {
+    public SuggestionProvider<S> getSuggestionProvider() {
         return SUGGESTION_RESOLVER;
     }
 
-    private final static class PlayerSuggestionProvider implements SuggestionProvider<BukkitCommandSource> {
+    private final static class PlayerSuggestionProvider<S extends BukkitCommandSource> implements SuggestionProvider<S> {
 
         /**
          * @param context   the context for suggestions
@@ -59,7 +66,7 @@ public class PlayerArgument extends SimpleArgumentType<BukkitCommandSource, Play
          * @return the auto-completed suggestions of the current argument
          */
         @Override
-        public List<String> provide(SuggestionContext<BukkitCommandSource> context, Argument<BukkitCommandSource> argument) {
+        public List<String> provide(SuggestionContext<S> context, Argument<S> argument) {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         }
     }
