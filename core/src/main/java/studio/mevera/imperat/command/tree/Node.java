@@ -434,6 +434,19 @@ public sealed class Node<S extends CommandSource> implements Prioritizable permi
         while (inputStream.hasNext() && collected.size() < toConsume) {
             collected.add(inputStream.next());
         }
+        // Multi-token fixed-arity types ({@link SimpleArgumentType} with
+        // {@code numberOfParameters > 1}) throw a raw IllegalArgumentException
+        // on under-budget input ("expected N tokens but cursor has M").
+        // That message is plumbing — surfacing it as a parse-derived error
+        // would leak a stack-trace-grade phrase to the user instead of
+        // letting the dispatcher's standard InvalidSyntax fallback fire
+        // with the proper closest-usage hint. Treat under-budget here as
+        // "this branch did not match" — empty token list short-circuits
+        // {@code parseArgument} into the synthetic-failure path which
+        // {@code execute} swallows by design.
+        if (collected.size() < toConsume) {
+            return List.of();
+        }
         return collected;
     }
 

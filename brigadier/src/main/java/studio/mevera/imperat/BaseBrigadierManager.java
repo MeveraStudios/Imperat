@@ -94,10 +94,24 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             Command<S> rootCommand,
             ProjectedNode<S> projected
     ) {
+        Argument<S> main = projected.mainArgument();
+
+        // SimpleArgumentType / similar fixed-arity Imperat types declare
+        // their token count via {@code getNumberOfParametersToConsume}.
+        // Brigadier requires one node per consumed token for the client-side
+        // tree to render the input as N segments — a single Brigadier node
+        // would only consume the first whitespace-separated token and paint
+        // the rest grey/red. Detect the count and chain N-1 string-typed
+        // filler nodes after the head; the deepest node owns the executor
+        // and continuations so children/optionals/flags only surface after
+        // the user has typed all N tokens.
+        int tokenCount = tokenCountOf(main);
+        if (tokenCount > 1) {
+            return chainMultiTokenNode(rootCommand, projected, tokenCount);
+        }
+
         ArgumentBuilder<BS, ?> childBuilder = createBrigadierBuilder(rootCommand, projected);
         executor(childBuilder);
-
-        Argument<S> main = projected.mainArgument();
         if (!main.isCommand()) {
             ((RequiredArgumentBuilder<BS, ?>) childBuilder).suggests(
                     createSuggestionProvider(rootCommand, main)
@@ -106,6 +120,146 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
 
         appendContinuations(rootCommand, projected, childBuilder, 0);
         return childBuilder.build();
+    }
+
+    /**
+     * Splits {@code argument.format()} on whitespace after stripping the
+     * angle / square brackets ({@code <}, {@code >}, {@code [}, {@code ]})
+     * and returns the part names if and only if the count matches
+     * {@code expectedCount} exactly. {@code null} otherwise — callers fall
+     * back to the auto-generated {@code _partN} naming scheme.
+     *
+     * <p>Lets users opt into named multi-token Brigadier segments by
+     * authoring a {@code @Format} like {@code "<chunkX chunkZ>"} — the
+     * client then renders the chain as {@code <chunkX> <chunkZ>} instead
+     * of {@code <chunk> <chunk_part2>}.</p>
+     */
+    private @Nullable String[] derivePartNamesFromFormat(Argument<S> argument, int expectedCount) {
+        String format = argument.format();
+        if (format == null || format.isBlank()) {
+            return null;
+        }
+        String cleaned = format
+                                 .replace("<", "")
+                                 .replace(">", "")
+                                 .replace("[", "")
+                                 .replace("]", "")
+                                 .trim();
+        if (cleaned.isEmpty() || !cleaned.contains(" ")) {
+            return null;
+        }
+        String[] parts = cleaned.split("\\s+");
+        if (parts.length != expectedCount) {
+            return null;
+        }
+        for (String part : parts) {
+            if (part.isBlank()) {
+                return null;
+            }
+        }
+        return parts;
+    }
+
+    /**
+     * Returns the fixed-arity token count for {@code argument}, or {@code 1}
+     * for command literals, greedy types, and any type whose
+     * {@link studio.mevera.imperat.command.arguments.type.ArgumentType#getNumberOfParametersToConsume}
+     * throws — those don't fit the chain-of-nodes shape (greedy/complex
+     * types stay as a single Brigadier node and consume their own tokens
+     * server-side via {@link #executor}).
+     */
+    private int tokenCountOf(Argument<S> argument) {
+        if (argument.isCommand() || argument.isGreedy()) {
+            return 1;
+        }
+        try {
+            return Math.max(1, argument.type().getNumberOfParametersToConsume(argument));
+        } catch (Throwable ignored) {
+            return 1;
+        }
+    }
+
+    /**
+     * Builds the N-token chain for a fixed-arity positional argument:
+     * head node carrying the proper Brigadier {@code ArgumentType} +
+     * {@code tokenCount - 1} string-typed filler nodes. Each node is
+     * independently {@link #executor executable} so partial-input
+     * dispatch still routes through Imperat (the user gets a typed
+     * parse error rather than a Brigadier syntax fail). Suggestions on
+     * every node delegate to the same Imperat-side suggester so client
+     * autocomplete reads the same list at every segment. Only the
+     * DEEPEST node receives {@link #appendContinuations} — children,
+     * optionals, and flags reachable from the projected scope come
+     * after all N tokens, matching how Imperat's tree consumes them.
+     *
+     * <p>Per-segment naming: if {@link #derivePartNamesFromFormat}
+     * yields N parts the chain uses those (head → parts[0], filler[i]
+     * → parts[i+1]). Otherwise head keeps {@code argument.getName()}
+     * and fillers fall back to the auto-generated {@code _partN}
+     * scheme.</p>
+     */
+    private <BS> CommandNode<BS> chainMultiTokenNode(
+            Command<S> rootCommand,
+            ProjectedNode<S> projected,
+            int tokenCount
+    ) {
+        Argument<S> main = projected.mainArgument();
+        String[] partNames = derivePartNamesFromFormat(main, tokenCount);
+        java.util.function.Predicate<Object> visibility =
+                (obj) -> isNodeVisible(rootCommand, projected, wrapCommandSource(obj));
+
+        String headName = partNames != null ? partNames[0] : main.getName();
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        RequiredArgumentBuilder<BS, ?> head = (RequiredArgumentBuilder)
+                                                      RequiredArgumentBuilder.argument(headName, getArgumentType(main));
+        head.requires(visibility::test);
+        head.suggests(createSuggestionProvider(rootCommand, main));
+        executor(head);
+
+        ArgumentBuilder<BS, ?> deepest = appendStringTokenFillers(
+                rootCommand, main, head, tokenCount, visibility, partNames
+        );
+        appendContinuations(rootCommand, projected, deepest, 0);
+        return head.build();
+    }
+
+    /**
+     * Chains {@code tokenCount - 1} string-typed filler nodes after
+     * {@code head}, returning the deepest builder. Used by both the
+     * positional-arg path ({@link #chainMultiTokenNode}) and the
+     * optional-arg path ({@link #appendOptionalContinuation}) so
+     * fixed-arity Imperat types render with one Brigadier node per
+     * consumed token regardless of where they appear. Each filler
+     * shares the head's visibility predicate + the same Imperat-side
+     * suggester so autocomplete reads the same list at every segment.
+     *
+     * <p>Filler naming: if {@code partNames} is non-null filler {@code i}
+     * (1-indexed) uses {@code partNames[i]}. Otherwise the auto-generated
+     * {@code <argName>_part<i+1>} scheme is used.</p>
+     */
+    private <BS> ArgumentBuilder<BS, ?> appendStringTokenFillers(
+            Command<S> rootCommand,
+            Argument<S> argument,
+            ArgumentBuilder<BS, ?> head,
+            int tokenCount,
+            java.util.function.Predicate<Object> visibility,
+            @Nullable String[] partNames
+    ) {
+        ArgumentBuilder<BS, ?> deepest = head;
+        for (int i = 1; i < tokenCount; i++) {
+            String fillerName = partNames != null
+                                        ? partNames[i]
+                                        : argument.getName() + "_part" + (i + 1);
+            @SuppressWarnings({"rawtypes", "unchecked"})
+            RequiredArgumentBuilder<BS, ?> filler = (RequiredArgumentBuilder)
+                                                            RequiredArgumentBuilder.argument(fillerName, StringArgumentType.string());
+            filler.requires(visibility::test);
+            filler.suggests(createSuggestionProvider(rootCommand, argument));
+            executor(filler);
+            deepest.then(filler);
+            deepest = filler;
+        }
+        return deepest;
     }
 
     private <BS> ArgumentBuilder<BS, ?> createBrigadierBuilder(
@@ -251,13 +405,38 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         }
 
         Argument<S> optional = optionals.get(optionalIndex);
+        int tokenCount = tokenCountOf(optional);
+        String[] partNames = tokenCount > 1
+                                     ? derivePartNamesFromFormat(optional, tokenCount)
+                                     : null;
+        java.util.function.Predicate<Object> visibility =
+                (obj) -> isArgumentVisible(rootCommand, optional, scope.originalPathway(), wrapCommandSource(obj));
+
+        // Use the format-derived head name when available so multi-token
+        // optionals match their declared format ([chunkX chunkZ] →
+        // [chunkX]). Falls back to the argument's own name for the
+        // single-token case + the auto-generated {@code _partN} scheme
+        // when the format doesn't split evenly.
+        String headName = partNames != null ? partNames[0] : optional.getName();
         RequiredArgumentBuilder<BS, ?> optionalBuilder =
-                RequiredArgumentBuilder.argument(optional.getName(), getArgumentType(optional));
-        optionalBuilder.requires((obj) -> isArgumentVisible(rootCommand, optional, scope.originalPathway(), wrapCommandSource(obj)));
+                RequiredArgumentBuilder.argument(headName, getArgumentType(optional));
+        optionalBuilder.requires(visibility::test);
         optionalBuilder.suggests(createSuggestionProvider(rootCommand, optional));
         executor(optionalBuilder);
 
-        appendContinuations(rootCommand, scope, optionalBuilder, optionalIndex + 1, excludedFlag);
+        // Chain string-typed filler nodes for fixed-arity types whose
+        // {@code getNumberOfParametersToConsume} > 1, so multi-token
+        // optionals render as N segments client-side too. Continuation
+        // attaches to the deepest filler so the next optional / sibling
+        // arrives only after all N tokens.
+        ArgumentBuilder<BS, ?> deepest = tokenCount > 1
+                                                 ? appendStringTokenFillers(
+                rootCommand, optional, optionalBuilder,
+                tokenCount, visibility, partNames
+        )
+                                                 : optionalBuilder;
+
+        appendContinuations(rootCommand, scope, deepest, optionalIndex + 1, excludedFlag);
         parentBuilder.then(optionalBuilder);
     }
 
