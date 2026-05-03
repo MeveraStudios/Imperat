@@ -78,6 +78,38 @@ public final class TreeParser<S extends CommandSource> {
         return new CommandException(message, t);
     }
 
+    /**
+     * Factory for a {@link Failed} carrying a real parse-time error — i.e.
+     * something raised or captured by an {@code ArgumentType.parse} call,
+     * either thrown directly or stored on a {@link ParseResult}. These are
+     * the only failures {@link #execute(ExecutionContext, ArgumentInput) execute}
+     * surfaces directly: the user's exception handlers (response registry,
+     * error dispatcher) route them by type. Marked {@code synthetic=false}.
+     */
+    private Failed<S> parseFailed(CommandException error, int depth, Priority priority, int siblingIndex) {
+        return new Failed<>(error, depth, priority, siblingIndex, false);
+    }
+
+    /**
+     * Factory for a {@link Failed} carrying a structural / bookkeeping
+     * failure produced inside the walker — "subcommand literal did not
+     * match", "branch consumed input but produced no candidate", "no
+     * children to try", etc. These do NOT represent user-facing parse
+     * errors, so {@link #execute(ExecutionContext, ArgumentInput) execute}
+     * MUST NOT throw them. The walker returns an empty
+     * {@link CommandTreeMatch} and lets the dispatcher
+     * ({@code BaseImperat}/{@code ImperatExecutor}) synthesise the proper
+     * {@link studio.mevera.imperat.exception.InvalidSyntaxException} from
+     * the surrounding context (actual user input + closest pathway).
+     * Marked {@code synthetic=true} so the throw gate skips it and so
+     * {@link #pickWinner(List) pickWinner} prefers any parse-derived
+     * failure over it during tiebreak.
+     */
+    private Failed<S> syntheticFailed(String reason, int depth, Priority priority, int siblingIndex, Object... args) {
+        String message = args.length == 0 ? reason : String.format(reason, args);
+        return new Failed<>(new CommandException(message), depth, priority, siblingIndex, true);
+    }
+
     public @NotNull CommandTreeMatch<S> execute(ExecutionContext<S> context, @NotNull ArgumentInput input)
             throws CommandException {
         RawInputStream<S> stream = RawInputStream.newStream(context, input);
@@ -87,11 +119,14 @@ public final class TreeParser<S extends CommandSource> {
         List<ParsedNode<S>> path = new ArrayList<>();
         ExploreResult<S> outcome = traverse(root, stream, path, candidates, 0);
 
-        // Subtree could not produce a single viable candidate AND captured
-        // a concrete failure reason on the way down — surface that instead
-        // of falling through to the dispatcher's contextless InvalidSyntax
-        // fallback. This is the "throw the actual reason" half of the rule.
-        if (outcome instanceof Failed<S> failed && candidates.isEmpty()) {
+        // Surface the captured failure ONLY if it came from a real parse —
+        // i.e. raised or stored by an {@code ArgumentType.parse} call.
+        // Synthetic walker bookkeeping (subcommand literal mismatches,
+        // "no candidate emerged" structural failures) MUST fall through
+        // to the empty match path so the dispatcher synthesises the
+        // standard {@link studio.mevera.imperat.exception.InvalidSyntaxException}
+        // with the correct invalid-usage string and closest-pathway hint.
+        if (outcome instanceof Failed<S> failed && candidates.isEmpty() && !failed.synthetic()) {
             throw failed.error();
         }
 
@@ -134,6 +169,12 @@ public final class TreeParser<S extends CommandSource> {
     }
 
     private boolean isBetterFailure(Failed<S> a, Failed<S> b) {
+        // Parse-derived failures always beat synthetic walker bookkeeping
+        // — a real parse rejection carries user-meaningful information,
+        // a synthetic "branch did not match" is just structural noise.
+        if (a.synthetic() != b.synthetic()) {
+            return !a.synthetic();
+        }
         if (a.consumedDepth() != b.consumedDepth()) {
             return a.consumedDepth() > b.consumedDepth();
         }
@@ -169,43 +210,42 @@ public final class TreeParser<S extends CommandSource> {
             throw dup;
         } catch (CommandException ce) {
             // drainLeadingFlags / parseOptionalsAndFlags raised a typed
-            // command exception during the node's parse phase. Treat the
-            // whole branch as failed and let the parent decide whether a
-            // sibling can rescue.
+            // command exception during the node's parse phase. Parse-
+            // derived → eligible for direct surfacing if no sibling
+            // rescues.
             int depth = stream.getRawIndex() - saved;
             stream.setRawIndex(saved);
-            return new Failed<>(ce, depth, priorityOf(node), siblingIndex);
+            return parseFailed(ce, depth, priorityOf(node), siblingIndex);
         } catch (Throwable t) {
             // Unmarked exception (NumberFormatException, IllegalArgumentException,
-            // plugin-defined). Treat as "this branch did not fit" — same
-            // semantic as before, but carry the throwable so a parent with
-            // no other rescue still has SOMETHING to surface instead of a
-            // generic InvalidSyntax.
+            // plugin-defined). Parse-derived — the underlying type chose
+            // to throw this raw — so wrap as CommandException and surface
+            // through the same path as typed failures.
             int depth = stream.getRawIndex() - saved;
             stream.setRawIndex(saved);
-            return new Failed<>(wrapAsCommandException(t), depth, priorityOf(node), siblingIndex);
+            return parseFailed(wrapAsCommandException(t), depth, priorityOf(node), siblingIndex);
         }
         if (parsed == null) {
-            // Subcommand-literal mismatch (unacceptable parse). No concrete
-            // user error to attach; the parent will only surface this if
-            // every sibling also failed and no better candidate emerged.
+            // Subcommand-literal mismatch (unacceptable parse). Pure walker
+            // bookkeeping — no real parse error happened, just "this branch
+            // doesn't apply". Synthetic so {@code execute} skips throwing
+            // it; the dispatcher's own {@code InvalidSyntaxException}
+            // fallback handles the user-facing message.
             int depth = stream.getRawIndex() - saved;
             stream.setRawIndex(saved);
-            return new Failed<>(
-                    new CommandException("Subcommand '%s' did not match", node.getMainArgument().format()),
-                    depth, priorityOf(node), siblingIndex
-            );
+            return syntheticFailed("Subcommand '%s' did not match", depth, priorityOf(node), siblingIndex,
+                    node.getMainArgument().format());
         }
 
-        // Main parse may have stored a failure inside the ParsedNode without
-        // throwing (the legacy capture-and-defer behaviour). Detect that and
-        // treat as branch failure so the user-facing error reaches the
-        // surfacing path.
+        // Main parse stored a failure inside the ParsedNode without
+        // throwing (the capture-and-defer path). Parse-derived — same
+        // information shape as a thrown CommandException, just delivered
+        // via the result map.
         ParseResult<S> mainResult = parsed.getParseResults().get(node.getMainArgument().getName());
         if (mainResult != null && mainResult.isFailureScore() && mainResult.getError() != null) {
             int depth = stream.getRawIndex() - saved;
             stream.setRawIndex(saved);
-            return new Failed<>(
+            return parseFailed(
                     wrapAsCommandException(mainResult.getError()),
                     depth, priorityOf(node), siblingIndex
             );
@@ -220,16 +260,16 @@ public final class TreeParser<S extends CommandSource> {
             addExecutionCandidates(node, stream, path, candidates, afterParse, allowsLeafPartialCandidate(node));
             result = candidates.size() > candidateCountBefore
                              ? new Produced<>()
-                             : new Failed<>(
-                    new CommandException("Branch parsed but rejected by trailing-input filter"),
+                             : syntheticFailed(
+                    "Branch parsed but rejected by trailing-input filter",
                     afterParse - saved, priorityOf(node), siblingIndex
             );
         } else if (!stream.hasNext()) {
             addExecutionCandidates(node, stream, path, candidates, afterParse, true);
             result = candidates.size() > candidateCountBefore
                              ? new Produced<>()
-                             : new Failed<>(
-                    new CommandException("Branch reached end-of-input but admitted no pathway"),
+                             : syntheticFailed(
+                    "Branch reached end-of-input but admitted no pathway",
                     afterParse - saved, priorityOf(node), siblingIndex
             );
         } else {
@@ -274,9 +314,10 @@ public final class TreeParser<S extends CommandSource> {
         }
         if (childFailures.isEmpty()) {
             // No children, no candidates. Surface a structural failure so
-            // the parent has something to bubble.
-            return new Failed<>(
-                    new CommandException("No child branches were tried"),
+            // the parent has something to bubble. Synthetic — the dispatcher
+            // owns the user-facing message in this case.
+            return syntheticFailed(
+                    "No child branches were tried",
                     parentDepth, priorityOf(node), parentSiblingIndex
             );
         }
@@ -328,9 +369,10 @@ public final class TreeParser<S extends CommandSource> {
         } catch (studio.mevera.imperat.exception.DuplicateFlagException dup) {
             throw dup;
         } catch (CommandException ce) {
+            // Root-level parse threw — parse-derived, surface candidate.
             int depth = stream.getRawIndex() - rootSaved;
             stream.setRawIndex(rootSaved);
-            failures.add(new Failed<>(ce, depth, priorityOf(node), 0));
+            failures.add(parseFailed(ce, depth, priorityOf(node), 0));
             return decideRootOutcome(candidates, candidateCountBefore, failures, node);
         }
         int afterRootParse = stream.getRawIndex();
@@ -368,8 +410,11 @@ public final class TreeParser<S extends CommandSource> {
             return new Produced<>();
         }
         if (failures.isEmpty()) {
-            return new Failed<>(
-                    new CommandException("Root produced no candidates and no children were tried"),
+            // No candidates, no captured parse error. Pure walker
+            // bookkeeping — the dispatcher's InvalidSyntax fallback
+            // synthesises the proper user message.
+            return syntheticFailed(
+                    "Root produced no candidates and no children were tried",
                     0, priorityOf(rootNode), 0
             );
         }
@@ -418,12 +463,22 @@ public final class TreeParser<S extends CommandSource> {
      * @param registrationIndex  sibling index at the parent's children
      *                           ordering — final tiebreak, lower wins
      *                           (deterministic, first-registered)
+     * @param synthetic          {@code true} when the captured error was
+     *                           manufactured by the walker (subcommand
+     *                           mismatch, "no candidate emerged" etc.)
+     *                           rather than raised by an
+     *                           {@code ArgumentType.parse} call.
+     *                           Synthetic failures must NOT be thrown by
+     *                           {@link #execute(ExecutionContext, ArgumentInput) execute}
+     *                           and lose to parse-derived failures during
+     *                           {@link #pickWinner(List) winner selection}.
      */
     private record Failed<S extends CommandSource>(
             CommandException error,
             int consumedDepth,
             Priority priority,
-            int registrationIndex
+            int registrationIndex,
+            boolean synthetic
     ) implements ExploreResult<S> {
 
     }

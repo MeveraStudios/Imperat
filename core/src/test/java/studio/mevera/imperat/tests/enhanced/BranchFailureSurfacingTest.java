@@ -106,6 +106,42 @@ public class BranchFailureSurfacingTest extends EnhancedBaseImperatTest {
         Assertions.assertThat(wrappedAsExpected).isTrue();
     }
 
+    // ===== Structural failures throw EXACTLY InvalidSyntaxException ===============
+
+    @Test
+    @DisplayName("Wrong argument structure (extra trailing input on a no-arg command) throws exactly InvalidSyntaxException")
+    void testWrongArgThrowsExactlyInvalidSyntax() {
+        // `/noargs` accepts no arguments. Typing `/noargs extra` is a
+        // structural mismatch — the trailing-input filter rejects every
+        // candidate pathway, no parse error gets captured, the walker
+        // returns a synthetic Failed, and {@code execute} swallows it so
+        // the dispatcher's own InvalidSyntax fallback fires with the
+        // correct invalid-usage + closest-pathway hint.
+        ExecutionResult<TestCommandSource> result = execute(
+                NoArgsCommand.class, cfg -> {
+                }, "noargs extra");
+
+        Assertions.assertThat(result.hasFailed()).isTrue();
+        Assertions.assertThat(result.getError())
+                .isExactlyInstanceOf(InvalidSyntaxException.class);
+    }
+
+    @Test
+    @DisplayName("Unknown subcommand throws exactly InvalidSyntaxException")
+    void testUnknownSubcommandThrowsExactlyInvalidSyntax() {
+        // `/parent foo` is the only registered subcommand.
+        // `/parent unknownsub` triggers a subcommand-literal mismatch —
+        // pure walker bookkeeping, synthetic Failed, swallowed by
+        // {@code execute}, surfaced by the dispatcher as InvalidSyntax.
+        ExecutionResult<TestCommandSource> result = execute(
+                ParentWithSubCommand.class, cfg -> {
+                }, "parent unknownsub");
+
+        Assertions.assertThat(result.hasFailed()).isTrue();
+        Assertions.assertThat(result.getError())
+                .isExactlyInstanceOf(InvalidSyntaxException.class);
+    }
+
     // ===== Fixtures ==============================================================
 
     public record StrictValue(String raw) {
@@ -178,6 +214,28 @@ public class BranchFailureSurfacingTest extends EnhancedBaseImperatTest {
         @Execute
         public void execute(TestCommandSource source, SlotMismatchValue value) {
             source.reply("got " + value.raw());
+        }
+    }
+
+    @RootCommand("noargs")
+    public static final class NoArgsCommand {
+
+        @Execute
+        public void execute(TestCommandSource source) {
+            source.reply("ran");
+        }
+    }
+
+    @RootCommand("parent")
+    public static final class ParentWithSubCommand {
+
+        @studio.mevera.imperat.annotations.types.SubCommand("foo")
+        public static final class Foo {
+
+            @Execute
+            public void execute(TestCommandSource source) {
+                source.reply("foo");
+            }
         }
     }
 }
