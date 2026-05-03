@@ -56,11 +56,15 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
     static <S extends CommandSource> String format(@Nullable String label, CommandPathway<S> usage) {
         Preconditions.notNull(usage, "usage");
         StringBuilder builder = new StringBuilder(label == null ? "" : label);
-        if (label != null) {
+        List<Argument<S>> params = usage.getArgumentsWithFlags();
+        // Only insert the label-args separator when both sides exist —
+        // avoids a trailing space for label-only output (no-arg
+        // subcommand pathways where {@code formatted()} renders just
+        // the subcommand-chain prefix).
+        if (label != null && !params.isEmpty()) {
             builder.append(' ');
         }
 
-        List<Argument<S>> params = usage.getArgumentsWithFlags();
         int i = 0;
         for (Argument<S> parameter : params) {
             builder.append(parameter.format());
@@ -86,6 +90,16 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
     }
 
     @Nullable MethodElement getMethodElement();
+
+    /**
+     * The command this pathway is registered against. Set during
+     * {@link Command#addPathway(CommandPathway)} so the default
+     * {@link #formatted()} implementation can build a subcommand-chain
+     * prefix even when the pathway has zero positional arguments. May be
+     * {@code null} for legacy / programmatically-built pathways that
+     * never went through {@code addPathway}.
+     */
+    @Nullable Command<S> getOwningCommand();
 
     /**
      * Retrieves the flag extractor instance for parsing command flags from input strings.
@@ -306,20 +320,29 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
     }
 
     default String formatted() {
-        List<Argument<S>> arguments = getArgumentsWithFlags();
-        if (!arguments.isEmpty() && !arguments.get(0).isCommand()) {
-            Command<S> owner = arguments.get(0).getParent();
-            if (owner != null && owner.hasParent()) {
-                List<String> prefixes = new ArrayList<>();
-                Command<S> current = owner;
-                while (current != null && current.hasParent()) {
-                    prefixes.add(0, current.getName());
-                    current = current.getParent();
-                }
+        // Prefer the explicit owning command (set during addPathway) so
+        // subcommand-chain prefixes are reachable even when the pathway
+        // has zero positional arguments. Fall back to arguments[0].getParent()
+        // for programmatically-built pathways that bypassed
+        // {@code Command.addPathway}.
+        Command<S> owner = getOwningCommand();
+        if (owner == null) {
+            List<Argument<S>> arguments = getArgumentsWithFlags();
+            if (!arguments.isEmpty() && !arguments.get(0).isCommand()) {
+                owner = arguments.get(0).getParent();
+            }
+        }
 
-                if (!prefixes.isEmpty()) {
-                    return format(String.join(" ", prefixes), this);
-                }
+        if (owner != null && owner.hasParent()) {
+            List<String> prefixes = new ArrayList<>();
+            Command<S> current = owner;
+            while (current != null && current.hasParent()) {
+                prefixes.add(0, current.getName());
+                current = current.getParent();
+            }
+
+            if (!prefixes.isEmpty()) {
+                return format(String.join(" ", prefixes), this);
             }
         }
         return format((String) null, this);
@@ -458,6 +481,13 @@ public sealed interface CommandPathway<S extends CommandSource> extends Iterable
             impl.setPermissionData(permission);
             impl.describe(description);
             impl.setCooldown(cooldown);
+            // Stamp owner so {@link CommandPathway#formatted()} can derive
+            // a subcommand-chain prefix even when the pathway has zero
+            // positional arguments. {@code addPathway} also sets it again
+            // for safety, but doing it here covers callers that build a
+            // pathway and reach for {@code formatted()} before
+            // {@code addPathway} runs.
+            impl.setOwningCommand(command);
 
             // Then set personal parameters (these are used for tree building)
             impl.addArguments(

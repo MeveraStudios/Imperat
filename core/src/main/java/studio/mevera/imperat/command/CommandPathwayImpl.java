@@ -48,6 +48,19 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
     private final @Nullable MethodElement methodElement;
     private @Nullable CooldownRecord cooldown = null;
 
+    /**
+     * The command this pathway was registered against — set by
+     * {@link Command#addPathway(CommandPathway)} during registration.
+     * Allows the default {@link CommandPathway#formatted() formatted()}
+     * implementation to derive a subcommand-chain prefix even when the
+     * pathway has zero positional arguments (e.g. a no-arg
+     * {@code @Execute} on a {@code @SubCommand} class). Without this the
+     * inference falls back to {@code arguments[0].getParent()} which is
+     * unreachable when the argument list is empty, and the closest-usage
+     * hint loses the subcommand chain.
+     */
+    private @Nullable Command<S> owningCommand;
+
 
     CommandPathwayImpl(@Nullable MethodElement methodElement, @NotNull CommandExecution<S> execution) {
         this.methodElement = methodElement;
@@ -55,6 +68,15 @@ final class CommandPathwayImpl<S extends CommandSource> implements CommandPathwa
         this.cooldownHandler = CooldownHandler.createDefault(this);
         this.commandCoordinator = null;
         this.flagExtractor = FlagExtractor.createNative(this);
+    }
+
+    @Override
+    public @Nullable Command<S> getOwningCommand() {
+        return owningCommand;
+    }
+
+    void setOwningCommand(@Nullable Command<S> command) {
+        this.owningCommand = command;
     }
 
     @Override

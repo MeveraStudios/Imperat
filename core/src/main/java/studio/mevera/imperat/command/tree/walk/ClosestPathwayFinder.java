@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.tree.CommandTreeMatch;
 import studio.mevera.imperat.command.tree.Node;
-import studio.mevera.imperat.command.tree.ParsedNode;
 import studio.mevera.imperat.context.CommandContext;
 import studio.mevera.imperat.context.CommandSource;
 
@@ -35,16 +34,36 @@ public final class ClosestPathwayFinder<S extends CommandSource> {
 
     public @NotNull CommandPathway<S> find(CommandContext<S> context, CommandTreeMatch<S> treeMatch) {
         var parsedNodesList = treeMatch.parsedNodes();
-        if (parsedNodesList.isEmpty()) {
-            return treeMatch.pathway() != null
-                           ? treeMatch.pathway()
-                           : richestPathway(root);
-        }
-        ParsedNode<S> node = parsedNodesList.get(parsedNodesList.size() - 1);
-        CommandPathway<S> pathway = richestPathway(node.getDelegate());
 
-        List<Node<S>> path = traverse(new ArrayList<>(), node.getDelegate(), context);
-        return path.isEmpty() ? pathway : richestPathway(path.get(path.size() - 1));
+        // The match's top-level pathway hint is only authoritative when
+        // there's NO parse history to walk — once parsed nodes exist the
+        // deepest delegate is more informative than the match's top-level
+        // pick. Short-circuiting on a non-null {@code treeMatch.pathway()}
+        // regardless of parse state regresses every closest-usage scenario
+        // where the validation that throws (e.g. validatePresenceOfRequired)
+        // attaches a shallow candidate-default pathway to the match
+        // instead of a leaf one.
+        if (parsedNodesList.isEmpty() && treeMatch.pathway() != null) {
+            return treeMatch.pathway();
+        }
+
+        // Pick a starting node for the descent. With parsed nodes present
+        // we resume from the deepest delegate — historical, well-tested
+        // behaviour every closest-usage test relies on. When the parse
+        // history is empty AND no top-level pathway hint is attached
+        // (e.g. unknown subcommand under a parent that has children, where
+        // the new {@code TreeParser} surfaces a synthetic failure and
+        // returns an empty {@link CommandTreeMatch}), walk from root so
+        // the descent still finds a registered descendant pathway. Without
+        // it we'd hand back root's bare default and the user would see
+        // "/parent" instead of "/parent foo".
+        Node<S> startingNode = parsedNodesList.isEmpty()
+                                       ? root
+                                       : parsedNodesList.get(parsedNodesList.size() - 1).getDelegate();
+
+        CommandPathway<S> fallback = richestPathway(startingNode);
+        List<Node<S>> path = traverse(new ArrayList<>(), startingNode, context);
+        return path.isEmpty() ? fallback : richestPathway(path.get(path.size() - 1));
     }
 
     private List<Node<S>> traverse(List<Node<S>> path, Node<S> node, CommandContext<S> context) {

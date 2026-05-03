@@ -313,6 +313,17 @@ final class CommandImpl<S extends CommandSource> implements Command<S> {
      */
     @Override
     public void addPathway(CommandPathway<S> usage) {
+        // Stamp the owning command on the pathway so the default
+        // {@link CommandPathway#formatted()} can build a subcommand-chain
+        // prefix even when the pathway has zero positional arguments
+        // (e.g. {@code @Execute void run(Source s)} on a {@code @SubCommand}).
+        // Without this stamp the inference falls back to
+        // {@code arguments[0].getParent()} which is unreachable when the
+        // argument list is empty, and the closest-usage hint loses the
+        // subcommand chain.
+        if (usage instanceof CommandPathwayImpl<S> impl) {
+            impl.setOwningCommand(this);
+        }
         tree.parseUsage(usage);
         if (usage.isDefault()) {
             this.defaultPathway = usage;

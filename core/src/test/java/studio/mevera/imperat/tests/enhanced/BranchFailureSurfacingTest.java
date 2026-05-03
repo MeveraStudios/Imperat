@@ -231,7 +231,6 @@ public class BranchFailureSurfacingTest extends EnhancedBaseImperatTest {
 
         @studio.mevera.imperat.annotations.types.SubCommand("foo")
         public static final class Foo {
-
             @Execute
             public void execute(TestCommandSource source) {
                 source.reply("foo");
