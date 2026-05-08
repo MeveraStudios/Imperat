@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 final class AmbiguityChecker {
@@ -28,7 +30,7 @@ final class AmbiguityChecker {
     }
 
     private static <S extends CommandSource> void checkAmbiguity(Command<S> rootCommand, Node<S> node) {
-        AmbiguityResult result = checkIsNodeAmbiguous(node);
+        AmbiguityResult result = checkIsNodeAmbiguous(rootCommand.imperat(), node);
         if (result.isAmbiguous()) {
             throw new AmbiguousCommandException(rootCommand, node, result.argumentFormats());
         }
@@ -38,7 +40,10 @@ final class AmbiguityChecker {
         }
     }
 
-    private static <S extends CommandSource> AmbiguityResult checkIsNodeAmbiguous(@NotNull Node<S> node) {
+    private static <S extends CommandSource> AmbiguityResult checkIsNodeAmbiguous(
+            @NotNull Imperat<S> imperat,
+            @NotNull Node<S> node
+    ) {
         if (node.isGreedy()) {
             boolean hasTrailingArguments = !node.isLeaf() || !node.getOptionalArguments().isEmpty();
             boolean isUnlimitedGreedy = node.getMainArgument().greedyLimit() == -1;
@@ -53,12 +58,39 @@ final class AmbiguityChecker {
         for (Node<S> child : node.getChildren()) {
             siblingArguments.add(child.getMainArgument());
         }
-        siblingArguments.addAll(node.getOptionalArguments());
 
-        if (siblingArguments.isEmpty()) {
-            return AmbiguityResult.failure();
+        if (imperat.config().isStrictAmbiguityResolutionEnabled()) {
+            AmbiguityResult siblingResult = detectAmbiguity(siblingArguments);
+            if (siblingResult.isAmbiguous()) {
+                return siblingResult;
+            }
+            return detectOptionalPathwayAmbiguity(node);
+        } else {
+            siblingArguments.addAll(node.getOptionalArguments());
+
+            if (siblingArguments.isEmpty()) {
+                return AmbiguityResult.failure();
+            }
+            return detectAmbiguity(siblingArguments);
         }
-        return detectAmbiguity(siblingArguments);
+    }
+
+    private static <S extends CommandSource> AmbiguityResult detectOptionalPathwayAmbiguity(@NotNull Node<S> node) {
+        Map<Integer, List<Argument<S>>> optionalsByPosition = new LinkedHashMap<>();
+        for (var pathway : node.getTerminalPathways()) {
+            List<Argument<S>> optionals = pathway.getTailOptionalArguments();
+            for (int i = 0; i < optionals.size(); i++) {
+                optionalsByPosition.computeIfAbsent(i, ignored -> new ArrayList<>()).add(optionals.get(i));
+            }
+        }
+
+        for (List<Argument<S>> positionalAlternatives : optionalsByPosition.values()) {
+            AmbiguityResult result = detectAmbiguity(positionalAlternatives);
+            if (result.isAmbiguous()) {
+                return result;
+            }
+        }
+        return AmbiguityResult.failure();
     }
 
     private static <S extends CommandSource> AmbiguityResult detectAmbiguity(Collection<? extends Argument<S>> arguments) {

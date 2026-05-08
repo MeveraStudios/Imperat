@@ -223,6 +223,84 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
     <T> ContextArgumentProviderFactory<S, T> getContextArgumentProviderFactory(Type resolvingContextType);
 
     /**
+     * Determines whether strict ambiguity validation is enabled for command registration.
+     *
+     * <p>When enabled ({@code true}), Imperat performs aggressive ambiguity checks
+     * during command tree construction and registration. Commands that contain
+     * potentially conflicting parsing pathways will fail registration with an
+     * {@link studio.mevera.imperat.exception.AmbiguousCommandException}.
+     *
+     * <p>This includes validation such as:
+     * <ul>
+     *   <li>Sibling argument conflicts with overlapping priorities or value types</li>
+     *   <li>Optional parameter pathway overlaps</li>
+     *   <li>Greedy arguments followed by additional parameters</li>
+     *   <li>Conflicting optional parsing branches</li>
+     * </ul>
+     *
+     * <p>When disabled ({@code false}), Imperat skips strict ambiguity validation,
+     * allowing potentially overlapping command pathways to coexist. This can be
+     * useful for experimental parsers, advanced custom argument resolvers, or
+     * intentionally flexible command structures.
+     *
+     * <p><strong>Warning:</strong> Disabling strict ambiguity resolution may result
+     * in undefined parsing behavior if multiple arguments can consume the same input
+     * token sequence.
+     *
+     * <p>This setting only affects registration-time validation and does not change
+     * the runtime parser implementation itself.
+     *
+     * <p>Enabled by default.
+     *
+     * @return {@code true} if strict ambiguity validation is enabled,
+     *         {@code false} otherwise
+     * @see #setStrictAmbiguityResolution(boolean)
+     * @see studio.mevera.imperat.exception.AmbiguousCommandException
+     */
+    boolean isStrictAmbiguityResolutionEnabled();
+
+    /**
+     * Enables or disables strict ambiguity validation during command registration.
+     *
+     * <p>Strict ambiguity resolution ensures that command pathways remain
+     * deterministic and free from overlapping parsing patterns. When enabled,
+     * Imperat validates command structures and rejects ambiguous pathways before
+     * they can be registered.
+     *
+     * <p>Disabling this setting allows more permissive command trees and may be
+     * useful when:
+     * <ul>
+     *   <li>Using custom argument types with non-standard parsing behavior</li>
+     *   <li>Experimenting with overlapping optional parameters</li>
+     *   <li>Building advanced fallback parsing systems</li>
+     *   <li>Temporarily bypassing validation during development</li>
+     * </ul>
+     *
+     * <p><strong>Example:</strong>
+     * <pre>{@code
+     * config.setStrictAmbiguityResolution(false);
+     *
+     * // Potentially overlapping pathways become allowed:
+     * // /command <player>
+     * // /command <offline-player>
+     * }</pre>
+     *
+     * <p><strong>Warning:</strong> Disabling strict ambiguity validation may cause
+     * commands to parse unpredictably if multiple arguments match the same input.
+     * It is recommended to keep this enabled unless the command structure is fully
+     * controlled and intentionally designed for overlap.
+     *
+     * <p>Enabled by default.
+     *
+     * @param enabled {@code true} to enforce strict ambiguity validation,
+     *                {@code false} to allow potentially ambiguous pathways
+     * @return this config instance
+     * @see #isStrictAmbiguityResolutionEnabled()
+     * @see studio.mevera.imperat.exception.AmbiguousCommandException
+     */
+    ImperatConfig<S> setStrictAmbiguityResolution(boolean enabled);
+
+    /**
      * @return {@link PermissionChecker} for the dispatcher
      */
     PermissionChecker<S> getPermissionChecker();

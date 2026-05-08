@@ -18,6 +18,7 @@ public final class BehavioralOptionRegistry<S extends CommandSource> extends Reg
     public BehavioralOptionRegistry() {
         this.registerOption(BehaviouralOptionKey.PARSING_MODE, CommandParsingMode.class, CommandParsingMode.JAVA, CommandParsingMode.JAVA);
         this.registerOption(BehaviouralOptionKey.OVERLAP_OPTIONALS_ARGUMENTS_SUGGESTIONS, Boolean.class, false, false);
+        this.registerOption(BehaviouralOptionKey.STRICT_AMBIGUITY_RESOLUTION, Boolean.class, true, true);
         this.registerOption(BehaviouralOptionKey.COMMAND_PREFIX, String.class, "/", "/");
     }
 
@@ -26,7 +27,7 @@ public final class BehavioralOptionRegistry<S extends CommandSource> extends Reg
     }
 
     public <T> void registerOption(BehaviouralOptionKey key, Class<T> valueType, T value, T defaultValue) {
-        this.setData(key, new BehaviouralOption<T>(key, valueType, value, defaultValue));
+        this.setData(key, new BehaviouralOption<>(key, valueType, value, defaultValue));
     }
 
     @SuppressWarnings("unchecked")

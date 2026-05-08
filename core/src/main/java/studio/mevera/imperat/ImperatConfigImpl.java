@@ -205,6 +205,17 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
         return behavioralOptionRegistry.getOptionValue(BehaviouralOptionKey.PARSING_MODE);
     }
 
+    @Override
+    public boolean isStrictAmbiguityResolutionEnabled() {
+        return behavioralOptionRegistry.getOptionValue(BehaviouralOptionKey.STRICT_AMBIGUITY_RESOLUTION);
+    }
+
+    @Override
+    public ImperatConfig<S> setStrictAmbiguityResolution(boolean enabled) {
+        behavioralOptionRegistry.setOption(BehaviouralOptionKey.STRICT_AMBIGUITY_RESOLUTION, enabled);
+        return this;
+    }
+
     // ------------------------------------------------------------------
     // Strategy slots
     // ------------------------------------------------------------------
