@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -190,7 +191,9 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
             }
             return new Registry<>(argument.getName(), parsedArgument, LinkedHashMap::new);
         });
-        allResolvedArgs.setData(argument.getName(), parsedArgument);
+        if (!argument.isCommand()) {
+            allResolvedArgs.setData(argument.getName(), parsedArgument);
+        }
     }
 
 
@@ -300,14 +303,20 @@ final class ExecutionContextImpl<S extends CommandSource> extends ContextImpl<S>
             return;
         }
 
+        // Dedup by argument identity, not name: a subcommand literal and a sibling
+        // positional arg can legitimately share a name (e.g. @SubCommand("warp") with
+        // a Warp positional named "warp"), but they are distinct Argument instances.
+        // Name-based dedup would silently drop the positional's parse result.
         Set<String> resolvedNames = new HashSet<>();
+        Set<Argument<S>> appliedArgs = Collections.newSetFromMap(new IdentityHashMap<>());
         for (ParsedNode<S> parsedNode : parsedNodes) {
             for (ParseResult<S> result : parsedNode.getParseResults().values()) {
                 Argument<S> arg = result.getArgument();
-                if (!resolvedNames.add(arg.getName())) {
+                if (!appliedArgs.add(arg)) {
                     continue;
                 }
                 applyParseResult(arg, result);
+                resolvedNames.add(arg.getName());
             }
         }
 
