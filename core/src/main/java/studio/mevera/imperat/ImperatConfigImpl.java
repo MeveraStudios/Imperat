@@ -16,7 +16,8 @@ import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
 import studio.mevera.imperat.command.suggestions.AutoCompleterFactory;
 import studio.mevera.imperat.command.suggestions.NativeAutoCompleterFactory;
-import studio.mevera.imperat.config.BehaviorSettings;
+import studio.mevera.imperat.config.BehavioralOptionRegistry;
+import studio.mevera.imperat.config.BehaviouralOptionKey;
 import studio.mevera.imperat.config.CommandErrorDispatcher;
 import studio.mevera.imperat.config.CoroutineSupport;
 import studio.mevera.imperat.config.registries.AnnotationReplacerRegistry;
@@ -49,7 +50,7 @@ import java.util.Optional;
 
 /**
  * Concrete {@link ImperatConfig} backed by per-concern registries plus a
- * {@link BehaviorSettings} bag for scalar flags. The class is intentionally
+ * {@link BehavioralOptionRegistry} bag for scalar flags. The class is intentionally
  * thin: each interface method delegates to either a registry or a strategy
  * field, so there is exactly one place to look when modifying behaviour for
  * a given concern.
@@ -69,7 +70,7 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     private final DependencyRegistry dependencyRegistry;
 
     // --- Settings + dispatcher ----------------------------------------
-    private final BehaviorSettings<S> behaviorSettings = new BehaviorSettings<>();
+    private final BehavioralOptionRegistry<S> behavioralOptionRegistry = new BehavioralOptionRegistry<>();
     private final CommandErrorDispatcher<S> errorDispatcher;
 
     // --- Pluggable strategies (1:1 user-overridable singletons) -------
@@ -153,7 +154,7 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     }
 
     // ------------------------------------------------------------------
-    // Behaviour scalars (delegated to BehaviorSettings)
+    // Behaviour scalars (delegated to BehavioralOptionRegistry)
     // ------------------------------------------------------------------
 
     @Override
@@ -175,33 +176,33 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
 
     @Override
     public String commandPrefix() {
-        return behaviorSettings.commandPrefix();
+        return behavioralOptionRegistry.getOptionValue(BehaviouralOptionKey.COMMAND_PREFIX);
     }
 
     @Override
     public void setCommandPrefix(String cmdPrefix) {
-        behaviorSettings.setCommandPrefix(cmdPrefix);
+        behavioralOptionRegistry.setOption(BehaviouralOptionKey.COMMAND_PREFIX, cmdPrefix);
     }
 
     @Override
     public boolean isOptionalParameterSuggestionOverlappingEnabled() {
-        return behaviorSettings.isOverlapOptionalParameterSuggestions();
+        return behavioralOptionRegistry.getOptionValue(BehaviouralOptionKey.OVERLAP_OPTIONALS_ARGUMENTS_SUGGESTIONS);
     }
 
     @Override
     public void setOptionalParameterSuggestionOverlap(boolean enabled) {
-        behaviorSettings.setOverlapOptionalParameterSuggestions(enabled);
+        behavioralOptionRegistry.setOption(BehaviouralOptionKey.OVERLAP_OPTIONALS_ARGUMENTS_SUGGESTIONS, enabled);
     }
 
     @Override
     public ImperatConfig<S> setCommandParsingMode(CommandParsingMode mode) {
-        behaviorSettings.setParsingMode(mode);
+        behavioralOptionRegistry.setOption(BehaviouralOptionKey.PARSING_MODE, mode);
         return this;
     }
 
     @Override
     public CommandParsingMode getCommandParsingMode() {
-        return behaviorSettings.parsingMode();
+        return behavioralOptionRegistry.getOptionValue(BehaviouralOptionKey.PARSING_MODE);
     }
 
     // ------------------------------------------------------------------
