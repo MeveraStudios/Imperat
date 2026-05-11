@@ -14,6 +14,8 @@ import studio.mevera.imperat.command.ReturnResolverRegistry;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
+import studio.mevera.imperat.command.suggestions.AutoCompleterFactory;
+import studio.mevera.imperat.command.suggestions.NativeAutoCompleterFactory;
 import studio.mevera.imperat.config.BehaviorSettings;
 import studio.mevera.imperat.config.CommandErrorDispatcher;
 import studio.mevera.imperat.config.CoroutineSupport;
@@ -76,6 +78,7 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     private @NotNull SuggestionProvider<S> defaultSuggestionProvider =
             (context, input) -> Collections.emptyList();
     private InstanceFactory<S> instanceFactory = InstanceFactory.defaultFactory();
+    private AutoCompleterFactory<S> autoCompleterFactory = new NativeAutoCompleterFactory<>(false);
     private CommandCoordinator<S> commandCoordinator = CommandCoordinator.sync();
     private ThrowablePrinter throwablePrinter = ThrowablePrinter.simple();
     private EventBus eventBus = EventBus.createDummy();
@@ -243,6 +246,16 @@ final class ImperatConfigImpl<S extends CommandSource> implements ImperatConfig<
     @Override
     public void setInstanceFactory(InstanceFactory<S> factory) {
         this.instanceFactory = factory;
+    }
+
+    @Override
+    public AutoCompleterFactory<S> getAutoCompleterFactory() {
+        return autoCompleterFactory;
+    }
+
+    @Override
+    public void setAutoCompleterFactory(AutoCompleterFactory<S> factory) {
+        this.autoCompleterFactory = factory;
     }
 
     @Override

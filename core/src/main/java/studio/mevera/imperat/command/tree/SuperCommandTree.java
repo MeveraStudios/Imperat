@@ -19,7 +19,6 @@ import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.context.SuggestionContext;
 import studio.mevera.imperat.exception.CommandException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -179,6 +178,11 @@ public final class SuperCommandTree<S extends CommandSource> implements CommandT
     @Override
     public @NotNull List<String> tabComplete(@NotNull SuggestionContext<S> context) {
         return suggester.tabComplete(context);
+    }
+
+    @Override
+    public @NotNull List<String> tabCompleteRaw(@NotNull SuggestionContext<S> context) {
+        return suggester.tabCompleteRaw(context);
     }
 
     @Override

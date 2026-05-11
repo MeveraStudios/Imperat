@@ -52,6 +52,24 @@ public final class TreeSuggester<S extends CommandSource> {
     }
 
     public @NotNull List<String> tabComplete(@NotNull SuggestionContext<S> context) {
+        return collectSuggestions(context, true);
+    }
+
+    /**
+     * Variant of {@link #tabComplete} that walks the tree identically but returns
+     * the full candidate list without applying the case-insensitive prefix filter
+     * normally used to narrow native completion. Intended for custom
+     * {@link studio.mevera.imperat.command.suggestions.AutoCompleter} implementations
+     * (e.g. fuzzy/substring matchers) that own their own filtering strategy.
+     */
+    public @NotNull List<String> tabCompleteRaw(@NotNull SuggestionContext<S> context) {
+        return collectSuggestions(context, false);
+    }
+
+    private @NotNull List<String> collectSuggestions(
+            @NotNull SuggestionContext<S> context,
+            boolean applyPrefixFilter
+    ) {
         ArgumentInput fullInput = context.arguments();
         int completionIndex = Math.max(0, context.getArgToComplete().index());
 
@@ -105,7 +123,7 @@ public final class TreeSuggester<S extends CommandSource> {
         // walk that handles space-separated `-name <value>`.
         List<String> commandChain = commandChainFromParsedPath(best.chain());
         List<String> inlineSuggestions = collectInlineFlagValueSuggestions(
-                context, currentNode, commandChain, prefix
+                context, currentNode, commandChain, prefix, applyPrefixFilter
         );
         if (inlineSuggestions != null) {
             return inlineSuggestions;
@@ -113,13 +131,14 @@ public final class TreeSuggester<S extends CommandSource> {
 
         FlagArgument<S> flagValueTarget = findFlagValueTarget(context, best.chain());
         if (flagValueTarget != null) {
-            return filterByPrefix(collectFlagValueSuggestions(context, flagValueTarget), prefix);
+            List<String> flagValues = collectFlagValueSuggestions(context, flagValueTarget);
+            return applyPrefixFilter ? filterByPrefix(flagValues, prefix) : flagValues;
         }
 
         List<String> suggestions = new ArrayList<>();
         addArgumentSuggestions(context, currentParsed, currentNode, suggestions);
         addFlagNameSuggestions(context, currentNode, commandChain, resolveUsedFlags(best.chain()), suggestions);
-        return filterByPrefix(suggestions, prefix);
+        return applyPrefixFilter ? filterByPrefix(suggestions, prefix) : suggestions;
     }
 
     /**
@@ -134,7 +153,8 @@ public final class TreeSuggester<S extends CommandSource> {
             SuggestionContext<S> context,
             Node<S> currentNode,
             List<String> commandChain,
-            String prefix
+            String prefix,
+            boolean applyValueFilter
     ) {
         if (prefix.indexOf('=') < 0 || !Patterns.isInputFlag(prefix)) {
             return null;
@@ -157,7 +177,8 @@ public final class TreeSuggester<S extends CommandSource> {
             if (value == null || value.isEmpty()) {
                 continue;
             }
-            if (valuePartial.isEmpty()
+            if (!applyValueFilter
+                        || valuePartial.isEmpty()
                         || value.regionMatches(true, 0, valuePartial, 0, valuePartial.length())) {
                 formatted.add(tokenHead + value);
             }
