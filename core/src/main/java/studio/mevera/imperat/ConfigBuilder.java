@@ -6,6 +6,7 @@ import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.ContextArgumentProviderFactory;
+import studio.mevera.imperat.command.suggestions.AutoCompleterFactory;
 import studio.mevera.imperat.command.arguments.type.ArgumentType;
 import studio.mevera.imperat.command.arguments.type.ArgumentTypeHandler;
 import studio.mevera.imperat.command.returns.ReturnResolver;
@@ -113,6 +114,18 @@ public abstract class ConfigBuilder<S extends CommandSource, I extends Imperat<S
      */
     public B contextFactory(ContextFactory<S> contextFactory) {
         config.setContextFactory(contextFactory);
+        return (B) this;
+    }
+
+    /**
+     * Sets the factory used to create an {@link studio.mevera.imperat.command.suggestions.AutoCompleter}
+     * for each registered command.
+     *
+     * @param factory the factory to use
+     * @return this builder instance for chaining
+     */
+    public B autoCompleterFactory(AutoCompleterFactory<S> factory) {
+        config.setAutoCompleterFactory(factory);
         return (B) this;
     }
 

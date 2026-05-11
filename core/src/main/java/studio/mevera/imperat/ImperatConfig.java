@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import studio.mevera.imperat.annotations.base.AnnotationReplacer;
 import studio.mevera.imperat.annotations.base.InstanceFactory;
 import studio.mevera.imperat.annotations.base.element.ParameterElement;
+import studio.mevera.imperat.command.suggestions.AutoCompleterFactory;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandCoordinator;
 import studio.mevera.imperat.command.CommandPathway;
@@ -328,6 +329,20 @@ public sealed interface ImperatConfig<S extends CommandSource> extends ResolverR
      * @param factory the instance factory to set
      */
     void setInstanceFactory(InstanceFactory<S> factory);
+
+    /**
+     * @return the factory used to create an {@link studio.mevera.imperat.command.suggestions.AutoCompleter}
+     * for each command
+     */
+    AutoCompleterFactory<S> getAutoCompleterFactory();
+
+    /**
+     * Sets the factory used to create an {@link studio.mevera.imperat.command.suggestions.AutoCompleter}
+     * for each command.
+     *
+     * @param factory the factory to set
+     */
+    void setAutoCompleterFactory(AutoCompleterFactory<S> factory);
 
     /**
      * @return the default global command coordinator

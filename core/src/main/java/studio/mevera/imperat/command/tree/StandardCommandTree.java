@@ -1673,6 +1673,32 @@ final class StandardCommandTree<S extends CommandSource> implements CommandTree<
                                    .toList();
     }
 
+    @Override
+    public @NotNull List<String> tabCompleteRaw(@NotNull SuggestionContext<S> context) {
+        if (!hasAutoCompletionPermission(context.source(), root)) {
+            return Collections.emptyList();
+        }
+
+        ensureNodeCaches();
+        if (hasBlankGapBeforeCursor(context)) {
+            return Collections.emptyList();
+        }
+
+        Map<Argument<S>, SuggestionProvider<S>> candidates = new LinkedHashMap<>();
+        collectMatchingChildren(root, 0, context, candidates);
+        collectRootOnlyFlagSuggestions(context, candidates);
+
+        List<String> list = new ArrayList<>();
+        for (var candidate : candidates.entrySet()) {
+            Argument<S> arg = candidate.getKey();
+            if (!hasAutoCompletionPermission(context.source(), arg)) {
+                continue;
+            }
+            list.addAll(candidate.getValue().provide(context, arg));
+        }
+        return list;
+    }
+
     private void collectRootOnlyFlagSuggestions(
             @NotNull SuggestionContext<S> context,
             @NotNull Map<Argument<S>, SuggestionProvider<S>> candidates

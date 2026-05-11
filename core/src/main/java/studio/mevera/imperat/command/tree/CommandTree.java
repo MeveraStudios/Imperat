@@ -83,6 +83,18 @@ public interface CommandTree<S extends CommandSource> {
     );
 
     /**
+     * Returns the full list of tab-completion candidates without applying any prefix filter.
+     * Intended for use by custom {@link studio.mevera.imperat.command.suggestions.AutoCompleter}
+     * implementations that apply their own filtering strategy (e.g. fuzzy matching).
+     *
+     * @param context the suggestion context
+     * @return the unfiltered list of candidates, never null
+     */
+    @NotNull List<String> tabCompleteRaw(
+            @NotNull SuggestionContext<S> context
+    );
+
+    /**
      * Queries the help system to retrieve a set of help entries that match the specified criteria.
      *
      * <p>This method searches through available help entries and returns those that satisfy
