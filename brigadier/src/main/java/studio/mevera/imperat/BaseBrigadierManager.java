@@ -25,8 +25,10 @@ import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Brigadier-tree builder backed by a {@link CommandTreeProjection}. The
@@ -304,7 +306,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             ArgumentBuilder<BS, ?> parentBuilder,
             int optionalIndex
     ) {
-        appendContinuations(rootCommand, scope, parentBuilder, optionalIndex, null);
+        appendContinuations(rootCommand, scope, parentBuilder, optionalIndex, Set.of());
     }
 
     private <BS> void appendContinuations(
@@ -312,16 +314,16 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder,
             int optionalIndex,
-            @Nullable ProjectedFlag<S> excludedFlag
+            Set<ProjectedFlag<S>> excludedFlags
     ) {
         // Order matters for Brigadier: optional + child literals BEFORE the
         // catch-all greedy flag fallback so the parse picks the more
         // specific path first. With the fallback registered first, an empty
         // input parsed cleanly into the greedy node and the client never
         // saw the optional's suggestions.
-        appendOptionalContinuation(rootCommand, scope, parentBuilder, optionalIndex, excludedFlag);
+        appendOptionalContinuation(rootCommand, scope, parentBuilder, optionalIndex, excludedFlags);
         appendChildContinuations(rootCommand, scope, parentBuilder);
-        appendFlagFallback(rootCommand, scope, parentBuilder, excludedFlag);
+        appendFlagFallback(rootCommand, scope, parentBuilder, excludedFlags);
         // Catch-all sibling for the inline `-name=value` form. Stock
         // StringArgumentType halts at `=` so the bare positional sibling
         // leaves `=value` orphaned and the client renders red. This node
@@ -397,7 +399,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder,
             int optionalIndex,
-            @Nullable ProjectedFlag<S> excludedFlag
+            Set<ProjectedFlag<S>> excludedFlags
     ) {
         List<Argument<S>> optionals = scope.optionalArguments();
         if (optionalIndex >= optionals.size()) {
@@ -436,7 +438,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         )
                                                  : optionalBuilder;
 
-        appendContinuations(rootCommand, scope, deepest, optionalIndex + 1, excludedFlag);
+        appendContinuations(rootCommand, scope, deepest, optionalIndex + 1, excludedFlags);
         parentBuilder.then(optionalBuilder);
     }
 
@@ -505,18 +507,18 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             Command<S> command,
             ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder,
-            @Nullable ProjectedFlag<S> excludedFlag
+            Set<ProjectedFlag<S>> excludedFlags
     ) {
         if (scope.flags().isEmpty()) {
             return;
         }
 
         for (ProjectedFlag<S> projectedFlag : scope.flags()) {
-            // Skip the just-consumed flag when re-emitting siblings under a
-            // flag's value/switch node. Stops infinite recursion AND prevents
-            // suggesting a flag that DuplicateFlagException would reject at
-            // parse time.
-            if (excludedFlag != null && projectedFlag == excludedFlag) {
+            // Skip already-consumed flags in this Brigadier path. A single
+            // excluded-flag check was insufficient: with N flags, each flag's
+            // continuation would register the other N-1, whose continuations
+            // register them back, causing unbounded mutual recursion.
+            if (excludedFlags.contains(projectedFlag)) {
                 continue;
             }
             // Permissive: `--<primary>` AND `-<primary>` both register, plus
@@ -524,14 +526,14 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             // single-dash primary fallback so client autocomplete shows the
             // same forms the parser accepts.
             String primary = projectedFlag.name();
-            registerFlagLiteral(command, scope, projectedFlag, "--" + primary, primary, parentBuilder);
-            registerFlagLiteral(command, scope, projectedFlag, "-" + primary, primary, parentBuilder);
+            registerFlagLiteral(command, scope, projectedFlag, "--" + primary, primary, parentBuilder, excludedFlags);
+            registerFlagLiteral(command, scope, projectedFlag, "-" + primary, primary, parentBuilder, excludedFlags);
 
             for (String alias : projectedFlag.aliases()) {
                 if (alias.equals(primary)) {
                     continue;
                 }
-                registerFlagLiteral(command, scope, projectedFlag, "-" + alias, alias, parentBuilder);
+                registerFlagLiteral(command, scope, projectedFlag, "-" + alias, alias, parentBuilder, excludedFlags);
             }
         }
     }
@@ -542,11 +544,15 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             ProjectedFlag<S> projectedFlag,
             String literalName,
             String suffixForValueArg,
-            ArgumentBuilder<BS, ?> parentBuilder
+            ArgumentBuilder<BS, ?> parentBuilder,
+            Set<ProjectedFlag<S>> excludedFlags
     ) {
         LiteralArgumentBuilder<BS> flagLiteral = LiteralArgumentBuilder.literal(literalName);
         flagLiteral.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
         executor(flagLiteral);
+
+        Set<ProjectedFlag<S>> nextExcluded = new HashSet<>(excludedFlags);
+        nextExcluded.add(projectedFlag);
 
         if (!projectedFlag.isSwitch()) {
             // Resolve the flag's value-type to a Brigadier-native type so
@@ -568,18 +574,12 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             SuggestionProvider<BS> nativeSugg = createNativeFlagValueSuggester(projectedFlag.flag());
             valueBuilder.suggests(nativeSugg != null ? nativeSugg : createFlagValueProvider(command, projectedFlag));
             executor(valueBuilder);
-            // Attach the same scope continuations (optionals, child commands,
-            // OTHER flags) to the value node so the client keeps offering
-            // suggestions after `-flag <value>` instead of dead-ending.
-            // Self-exclusion via `projectedFlag` prevents re-suggesting the
-            // just-consumed flag (DuplicateFlagException would reject it at
-            // parse time anyway).
-            appendContinuations(command, scope, valueBuilder, 0, projectedFlag);
+            appendContinuations(command, scope, valueBuilder, 0, nextExcluded);
             flagLiteral.then(valueBuilder);
         } else {
             // Switch — no value child. Attach continuations directly to the
             // literal so siblings still complete after `-switch`.
-            appendContinuations(command, scope, flagLiteral, 0, projectedFlag);
+            appendContinuations(command, scope, flagLiteral, 0, nextExcluded);
         }
 
         parentBuilder.then(flagLiteral.build());
