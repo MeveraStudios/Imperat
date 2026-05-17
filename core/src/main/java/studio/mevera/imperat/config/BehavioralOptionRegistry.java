@@ -49,6 +49,6 @@ public final class BehavioralOptionRegistry<S extends CommandSource> extends Reg
         if (option.isEmpty()) {
             throw new IllegalArgumentException("Option " + key + " not found");
         }
-        return (T) option.get();
+        return (T) option.get().value();
     }
 }
