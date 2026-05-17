@@ -60,18 +60,18 @@ final class AmbiguityChecker {
         }
 
         if (imperat.config().isStrictAmbiguityResolutionEnabled()) {
-            AmbiguityResult siblingResult = detectAmbiguity(siblingArguments);
-            if (siblingResult.isAmbiguous()) {
-                return siblingResult;
-            }
-            return detectOptionalPathwayAmbiguity(node);
-        } else {
             siblingArguments.addAll(node.getOptionalArguments());
 
             if (siblingArguments.isEmpty()) {
                 return AmbiguityResult.failure();
             }
             return detectAmbiguity(siblingArguments);
+        } else {
+            AmbiguityResult siblingResult = detectAmbiguity(siblingArguments);
+            if (siblingResult.isAmbiguous()) {
+                return siblingResult;
+            }
+            return detectOptionalPathwayAmbiguity(node);
         }
     }
 
