@@ -25,10 +25,8 @@ import studio.mevera.imperat.context.ArgumentInput;
 import studio.mevera.imperat.context.CommandSource;
 import studio.mevera.imperat.context.SuggestionContext;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 /**
  * Brigadier-tree builder backed by a {@link CommandTreeProjection}. The
@@ -75,10 +73,10 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
     @Override
     public @NotNull <BS> LiteralCommandNode<BS> parseCommandIntoNode(@NotNull Command<S> command) {
         CommandTreeProjection<S> projection = CommandTreeProjection.of(command);
-        return this.<BS>convertRoot(command, projection.root()).build();
+        return this.<BS>buildRoot(command, projection.root());
     }
 
-    private <BS> LiteralArgumentBuilder<BS> convertRoot(Command<S> rootCommand, ProjectedNode<S> root) {
+    private <BS> LiteralCommandNode<BS> buildRoot(Command<S> rootCommand, ProjectedNode<S> root) {
         Command<S> rootCmdLit = root.mainArgument().asCommand();
         LiteralArgumentBuilder<BS> builder = (LiteralArgumentBuilder<BS>)
                                                      literal(rootCmdLit.getName())
@@ -89,7 +87,9 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
                     });
         executor(builder);
         appendContinuations(rootCommand, root, builder, 0);
-        return builder;
+        LiteralCommandNode<BS> rootNode = (LiteralCommandNode<BS>) builder.build();
+        appendFlagsWithRedirects(rootCommand, root, rootNode);
+        return rootNode;
     }
 
     private <BS> CommandNode<BS> convertProjectedNode(
@@ -121,7 +121,9 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         }
 
         appendContinuations(rootCommand, projected, childBuilder, 0);
-        return childBuilder.build();
+        CommandNode<BS> scopeAnchor = childBuilder.build();
+        appendFlagsWithRedirects(rootCommand, projected, scopeAnchor);
+        return scopeAnchor;
     }
 
     /**
@@ -222,7 +224,15 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
                 rootCommand, main, head, tokenCount, visibility, partNames
         );
         appendContinuations(rootCommand, projected, deepest, 0);
-        return head.build();
+        CommandNode<BS> headNode = head.build();
+        // Walk the linear filler chain to find the deepest built node, then
+        // attach flags there so they redirect back to that scope anchor.
+        CommandNode<BS> deepestNode = headNode;
+        for (int i = 1; i < tokenCount; i++) {
+            deepestNode = deepestNode.getChildren().iterator().next();
+        }
+        appendFlagsWithRedirects(rootCommand, projected, deepestNode);
+        return headNode;
     }
 
     /**
@@ -293,12 +303,10 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
     }
 
     /**
-     * Adds — in order — the flag fallback (so {@code --flag} / unknown-flag
-     * input still dispatches into Imperat), the next nested optional
-     * continuation, and every child node. The flag fallback's suggestion
-     * provider reads from the projection's pre-resolved flag list, so we no
-     * longer round-trip through Imperat's auto-completer just to enumerate
-     * flag names.
+     * Adds optional continuations, child nodes, and the inline-flag catch-all
+     * to {@code parentBuilder}. Flags are NOT registered here — they are added
+     * post-build via {@link #appendFlagsWithRedirects} so they can redirect
+     * back to the already-built scope anchor node, avoiding factorial tree growth.
      */
     private <BS> void appendContinuations(
             Command<S> rootCommand,
@@ -306,29 +314,8 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             ArgumentBuilder<BS, ?> parentBuilder,
             int optionalIndex
     ) {
-        appendContinuations(rootCommand, scope, parentBuilder, optionalIndex, Set.of());
-    }
-
-    private <BS> void appendContinuations(
-            Command<S> rootCommand,
-            ProjectedNode<S> scope,
-            ArgumentBuilder<BS, ?> parentBuilder,
-            int optionalIndex,
-            Set<ProjectedFlag<S>> excludedFlags
-    ) {
-        // Order matters for Brigadier: optional + child literals BEFORE the
-        // catch-all greedy flag fallback so the parse picks the more
-        // specific path first. With the fallback registered first, an empty
-        // input parsed cleanly into the greedy node and the client never
-        // saw the optional's suggestions.
-        appendOptionalContinuation(rootCommand, scope, parentBuilder, optionalIndex, excludedFlags);
+        appendOptionalContinuation(rootCommand, scope, parentBuilder, optionalIndex);
         appendChildContinuations(rootCommand, scope, parentBuilder);
-        appendFlagFallback(rootCommand, scope, parentBuilder, excludedFlags);
-        // Catch-all sibling for the inline `-name=value` form. Stock
-        // StringArgumentType halts at `=` so the bare positional sibling
-        // leaves `=value` orphaned and the client renders red. This node
-        // consumes the WHOLE inline-flag token so the parse succeeds
-        // (green) — suggestions delegate back to the Imperat tree.
         appendInlineFlagSibling(rootCommand, scope, parentBuilder);
     }
 
@@ -398,8 +385,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
             Command<S> rootCommand,
             ProjectedNode<S> scope,
             ArgumentBuilder<BS, ?> parentBuilder,
-            int optionalIndex,
-            Set<ProjectedFlag<S>> excludedFlags
+            int optionalIndex
     ) {
         List<Argument<S>> optionals = scope.optionalArguments();
         if (optionalIndex >= optionals.size()) {
@@ -438,7 +424,7 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
         )
                                                  : optionalBuilder;
 
-        appendContinuations(rootCommand, scope, deepest, optionalIndex + 1, excludedFlags);
+        appendContinuations(rootCommand, scope, deepest, optionalIndex + 1);
         parentBuilder.then(optionalBuilder);
     }
 
@@ -482,107 +468,70 @@ public abstract non-sealed class BaseBrigadierManager<S extends CommandSource> i
     }
 
     /**
-     * Registers each scope flag as a pair of linked Brigadier nodes:
-     * <ul>
-     *   <li>A {@link LiteralArgumentBuilder literal} per alias
-     *       ({@code -force}, {@code -f}) — child of {@code parentBuilder}.</li>
-     *   <li>For value flags, a child {@link RequiredArgumentBuilder required arg}
-     *       holding the flag's input value, with its own suggestion
-     *       provider sourced from the flag's
-     *       {@link FlagArgument#inputSuggestionResolver()}.</li>
-     * </ul>
+     * Adds each scope flag as a literal child of {@code scopeAnchor} (the
+     * already-built scope node). Value flags carry a required-argument value
+     * child that redirects back to {@code scopeAnchor} after the value is
+     * consumed. Switches redirect the literal itself back to {@code scopeAnchor}.
      *
-     * <p>Switches expose only the literal — no value child. Both nodes carry
-     * an {@code executes} callback so partial input (e.g. {@code /fly -force}
-     * with no value) still dispatches into Imperat for proper error handling.
-     * Visibility on each node mirrors the framework's
-     * {@link #isFlagVisible(Command, ProjectedFlag, CommandSource)} check.</p>
-     *
-     * <p>Replaces the legacy single-node "greedy fallback" that confused
-     * Mojang's tab UI by competing with sibling positional args for the
-     * empty-input parse — proper Brigadier branches give the client a
-     * standard tree to render.</p>
+     * <p>The redirect creates a finite cycle in the Brigadier graph — after
+     * consuming any flag the parser returns to the scope anchor and can
+     * consume another flag or a positional arg. This gives correct multi-flag
+     * tab completion with O(N) nodes instead of the O(N!) tree that would
+     * result from recursively nesting flags inside each other's continuations.</p>
      */
-    private <BS> void appendFlagFallback(
+    private <BS> void appendFlagsWithRedirects(
             Command<S> command,
             ProjectedNode<S> scope,
-            ArgumentBuilder<BS, ?> parentBuilder,
-            Set<ProjectedFlag<S>> excludedFlags
+            CommandNode<BS> scopeAnchor
     ) {
         if (scope.flags().isEmpty()) {
             return;
         }
-
         for (ProjectedFlag<S> projectedFlag : scope.flags()) {
-            // Skip already-consumed flags in this Brigadier path. A single
-            // excluded-flag check was insufficient: with N flags, each flag's
-            // continuation would register the other N-1, whose continuations
-            // register them back, causing unbounded mutual recursion.
-            if (excludedFlags.contains(projectedFlag)) {
-                continue;
-            }
-            // Permissive: `--<primary>` AND `-<primary>` both register, plus
-            // `-<alias>` for each non-primary alias. Mirrors FlagExtractor's
-            // single-dash primary fallback so client autocomplete shows the
-            // same forms the parser accepts.
             String primary = projectedFlag.name();
-            registerFlagLiteral(command, scope, projectedFlag, "--" + primary, primary, parentBuilder, excludedFlags);
-            registerFlagLiteral(command, scope, projectedFlag, "-" + primary, primary, parentBuilder, excludedFlags);
-
+            addFlagWithRedirect(command, projectedFlag, "--" + primary, primary, scopeAnchor);
+            addFlagWithRedirect(command, projectedFlag, "-" + primary, primary, scopeAnchor);
             for (String alias : projectedFlag.aliases()) {
                 if (alias.equals(primary)) {
                     continue;
                 }
-                registerFlagLiteral(command, scope, projectedFlag, "-" + alias, alias, parentBuilder, excludedFlags);
+                addFlagWithRedirect(command, projectedFlag, "-" + alias, alias, scopeAnchor);
             }
         }
     }
 
-    private <BS> void registerFlagLiteral(
+    private <BS> void addFlagWithRedirect(
             Command<S> command,
-            ProjectedNode<S> scope,
             ProjectedFlag<S> projectedFlag,
             String literalName,
             String suffixForValueArg,
-            ArgumentBuilder<BS, ?> parentBuilder,
-            Set<ProjectedFlag<S>> excludedFlags
+            CommandNode<BS> scopeAnchor
     ) {
         LiteralArgumentBuilder<BS> flagLiteral = LiteralArgumentBuilder.literal(literalName);
         flagLiteral.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
         executor(flagLiteral);
 
-        Set<ProjectedFlag<S>> nextExcluded = new HashSet<>(excludedFlags);
-        nextExcluded.add(projectedFlag);
-
         if (!projectedFlag.isSwitch()) {
-            // Resolve the flag's value-type to a Brigadier-native type so
-            // client-side rendering matches whatever the input ArgumentType
-            // declares (selector charset for TargetSelector, NBT braces for
-            // ItemStack, etc.) — without this the value node is stuck on
-            // stock `StringArgumentType.string()` which halts at `[`/`=`/`@`
-            // and paints valid native syntax red.
             com.mojang.brigadier.arguments.ArgumentType<?> valueType =
                     getFlagValueArgumentType(projectedFlag.flag());
             @SuppressWarnings({"unchecked", "rawtypes"})
             RequiredArgumentBuilder<BS, ?> valueBuilder = (RequiredArgumentBuilder)
-                                                                  RequiredArgumentBuilder.argument(suffixForValueArg + "_value", valueType);
+                    RequiredArgumentBuilder.argument(suffixForValueArg + "_value", valueType);
             valueBuilder.requires((obj) -> isFlagVisible(command, projectedFlag, wrapCommandSource(obj)));
-            // Prefer the value-type's own native suggestions (selector
-            // filter keys, block-state keys, NBT path completions, etc.)
-            // when the backend exposes them. Falls back to the
-            // Imperat-side createFlagValueProvider for plain flags.
             SuggestionProvider<BS> nativeSugg = createNativeFlagValueSuggester(projectedFlag.flag());
             valueBuilder.suggests(nativeSugg != null ? nativeSugg : createFlagValueProvider(command, projectedFlag));
             executor(valueBuilder);
-            appendContinuations(command, scope, valueBuilder, 0, nextExcluded);
-            flagLiteral.then(valueBuilder);
+            // Redirect back to scope after value consumed — parser returns to
+            // scope anchor and can suggest more flags or positional args.
+            valueBuilder.redirect(scopeAnchor);
+            flagLiteral.then(valueBuilder.build());
         } else {
-            // Switch — no value child. Attach continuations directly to the
-            // literal so siblings still complete after `-switch`.
-            appendContinuations(command, scope, flagLiteral, 0, nextExcluded);
+            // Switch has no value — redirect the literal itself so the parser
+            // returns to scope anchor immediately after the switch is matched.
+            flagLiteral.redirect(scopeAnchor);
         }
 
-        parentBuilder.then(flagLiteral.build());
+        scopeAnchor.addChild(flagLiteral.build());
     }
 
     private @NotNull <BS> com.mojang.brigadier.suggestion.SuggestionProvider<BS> createFlagValueProvider(
