@@ -34,7 +34,7 @@ allprojects {
     }
 
     extra.apply {
-        val kyoriVersion = "5.0.0"
+        val kyoriVersion = "5.1.1"
         val kyoriPlatformVersion = "4.4.1"
 
         set("kyori", fun(module: String): String {
