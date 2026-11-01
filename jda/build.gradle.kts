@@ -4,10 +4,10 @@ repositories {
 
 dependencies {
     compileOnly(project(":core"))
-    compileOnly("net.dv8tion:JDA:6.1.1")
+    compileOnly("net.dv8tion:JDA:6.7.0")
 
     testImplementation(project(":core"))
-    testImplementation("net.dv8tion:JDA:6.1.1")
+    testImplementation("net.dv8tion:JDA:6.7.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation("org.mockito:mockito-core:5.8.0")
