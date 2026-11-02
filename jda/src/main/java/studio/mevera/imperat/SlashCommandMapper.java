@@ -3,6 +3,10 @@ package studio.mevera.imperat;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -175,6 +179,34 @@ final class SlashCommandMapper {
         return OptionType.STRING;
     }
 
+    private static List<ChannelType> mapChannelTypes(Argument<JdaCommandSource> parameter) {
+        return mapChannelTypes(parameter.wrappedType().getRawType());
+    }
+
+    private static List<ChannelType> mapChannelTypes(Class<?> raw) {
+        if (raw == null || !GuildChannel.class.isAssignableFrom(raw)) {
+            return List.of();
+        }
+
+        if (Category.class.isAssignableFrom(raw)) {
+            return List.of(ChannelType.CATEGORY);
+        }
+        if (TextChannel.class.isAssignableFrom(raw)) {
+            return List.of(ChannelType.TEXT);
+        }
+        if (VoiceChannel.class.isAssignableFrom(raw)) {
+            return List.of(ChannelType.VOICE);
+        }
+        return List.of();
+    }
+
+    private static List<ChannelType> mapFlagChannelTypes(FlagArgument<JdaCommandSource> flag) {
+        if (flag.flagData().inputType() == null) {
+            return List.of();
+        }
+        return mapChannelTypes(flag.flagData().inputType().wrappedType().getRawType());
+    }
+
     /**
      * Maps an Imperat flag onto a JDA option type. Switches always become
      * {@link OptionType#BOOLEAN}; value flags follow their declared input
@@ -232,16 +264,35 @@ final class SlashCommandMapper {
         private OptionType type;
         private String description;
         private boolean required;
+        private List<ChannelType> channelTypes;
 
-        private OptionSpec(String name, OptionType type, String description, boolean required) {
+        private OptionSpec(
+                String name,
+                OptionType type,
+                String description,
+                boolean required,
+                List<ChannelType> channelTypes
+        ) {
             this.name = name;
             this.type = type;
             this.description = description;
             this.required = required;
+            this.channelTypes = channelTypes;
         }
 
-        static OptionSpec from(String name, Argument<JdaCommandSource> parameter, OptionType type) {
-            return new OptionSpec(name, type, parameter.getDescription().getValueOrElse("N/A"), !parameter.isOptional());
+        static OptionSpec from(
+                String name,
+                Argument<JdaCommandSource> parameter,
+                OptionType type,
+                List<ChannelType> channelTypes
+        ) {
+            return new OptionSpec(
+                    name,
+                    type,
+                    parameter.getDescription().getValueOrElse("N/A"),
+                    !parameter.isOptional(),
+                    channelTypes
+            );
         }
 
         /**
@@ -249,12 +300,29 @@ final class SlashCommandMapper {
          * them by including the option, omitting it leaves the flag's
          * Imperat-side default in effect.
          */
-        static OptionSpec flagOption(String name, FlagArgument<JdaCommandSource> flag, OptionType type) {
-            return new OptionSpec(name, type, flag.getDescription().getValueOrElse("N/A"), false);
+        static OptionSpec flagOption(
+                String name,
+                FlagArgument<JdaCommandSource> flag,
+                OptionType type,
+                List<ChannelType> channelTypes
+        ) {
+            return new OptionSpec(
+                    name,
+                    type,
+                    flag.getDescription().getValueOrElse("N/A"),
+                    false,
+                    channelTypes
+            );
         }
 
         void merge(Argument<JdaCommandSource> parameter, OptionType resolvedType) {
             type = compatibleType(type, resolvedType);
+            if (!channelTypes.isEmpty()) {
+                List<ChannelType> otherChannelTypes = mapChannelTypes(parameter);
+                if (!channelTypes.equals(otherChannelTypes)) {
+                    channelTypes = List.of();
+                }
+            }
             description = description == null || description.isEmpty()
                                   ? parameter.getDescription().getValueOrElse("N/A")
                                   : description;
@@ -279,6 +347,10 @@ final class SlashCommandMapper {
 
         boolean required() {
             return required;
+        }
+
+        List<ChannelType> channelTypes() {
+            return channelTypes;
         }
 
         private OptionType compatibleType(OptionType first, OptionType other) {
@@ -325,7 +397,12 @@ final class SlashCommandMapper {
                 String optionName = parameter.getName().toLowerCase();
                 options.compute(optionName, (key, existing) -> {
                     if (existing == null) {
-                        return OptionSpec.from(optionName, parameter, mapOptionType(parameter));
+                        return OptionSpec.from(
+                                optionName,
+                                parameter,
+                                mapOptionType(parameter),
+                                mapChannelTypes(parameter)
+                        );
                     }
                     existing.merge(parameter, mapOptionType(parameter));
                     return existing;
@@ -352,7 +429,12 @@ final class SlashCommandMapper {
             for (FlagArgument<JdaCommandSource> flag : flags) {
                 String optionName = flag.getName().toLowerCase(Locale.ROOT);
                 options.computeIfAbsent(optionName,
-                        key -> OptionSpec.flagOption(optionName, flag, mapFlagOptionType(flag)));
+                        key -> OptionSpec.flagOption(
+                                optionName,
+                                flag,
+                                mapFlagOptionType(flag),
+                                mapFlagChannelTypes(flag)
+                        ));
             }
         }
 
@@ -364,6 +446,9 @@ final class SlashCommandMapper {
             for (OptionSpec spec : options.values()) {
                 invocationOrder.add(spec.name());
                 OptionData option = new OptionData(spec.type(), spec.name(), spec.description(), spec.required());
+                if (!spec.channelTypes().isEmpty()) {
+                    option.setChannelTypes(spec.channelTypes().toArray(ChannelType[]::new));
+                }
                 if (spec.required()) {
                     required.add(option);
                 } else {

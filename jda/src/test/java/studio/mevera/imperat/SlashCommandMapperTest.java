@@ -1,16 +1,25 @@
 package studio.mevera.imperat;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import org.assertj.core.api.Assertions;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.command.CommandPathway;
 import studio.mevera.imperat.command.arguments.Argument;
+import studio.mevera.imperat.command.arguments.type.SimpleArgumentType;
+import studio.mevera.imperat.context.CommandContext;
+import studio.mevera.imperat.exception.CommandException;
 
 import java.util.List;
 
@@ -136,5 +145,37 @@ class SlashCommandMapperTest {
         Assertions.assertThat(options)
                 .extracting(OptionData::isRequired)
                 .containsExactly(false, false);
+    }
+
+    @Test
+    void restrictsDiscordChannelOptionsToTheRequestedChannelType() {
+        assertChannelType(Category.class, ChannelType.CATEGORY);
+        assertChannelType(TextChannel.class, ChannelType.TEXT);
+        assertChannelType(VoiceChannel.class, ChannelType.VOICE);
+    }
+
+    private <T> void assertChannelType(Class<T> channelClass, ChannelType channelType) {
+        Command<JdaCommandSource> command = Command.create(imperat, "channel")
+                                                    .pathway(CommandPathway.<JdaCommandSource>builder()
+                                                                     .arguments(Argument.required(
+                                                                             "channel",
+                                                                             new SimpleArgumentType<JdaCommandSource, T>(channelClass) {
+                                                                                 @Override
+                                                                                 public T parse(
+                                                                                         @NotNull CommandContext<JdaCommandSource> context,
+                                                                                         @NotNull Argument<JdaCommandSource> argument,
+                                                                                         @NotNull String input
+                                                                                 ) throws CommandException {
+                                                                                     return null;
+                                                                                 }
+                                                                             }
+                                                                     ))
+                                                                     .execute((source, ctx) -> {
+                                                                     }))
+                                                    .build();
+
+        OptionData option = mapper.mapCommand(command).commandData().getOptions().get(0);
+        Assertions.assertThat(option.getType()).isEqualTo(OptionType.CHANNEL);
+        Assertions.assertThat(option.getChannelTypes()).containsExactly(channelType);
     }
 }
