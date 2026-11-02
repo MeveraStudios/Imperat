@@ -1,6 +1,7 @@
 package studio.mevera.imperat;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +13,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S> {
 
@@ -23,7 +23,8 @@ public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S>
     private final SlashCommandMapper slashCommandMapper = new SlashCommandMapper();
     @SuppressWarnings("rawtypes")
     private final Map<String, SlashCommandMapper.SlashMapping> slashMappings = new ConcurrentHashMap<>();
-    private final AtomicBoolean syncScheduled = new AtomicBoolean(false);
+    private final AtomicBoolean syncRequested = new AtomicBoolean(false);
+    private final AtomicBoolean syncRunning = new AtomicBoolean(false);
 
     @SuppressWarnings({"rawtypes", "unchecked"}) JdaImperat(@NotNull JDA jda, @NotNull ImperatConfig<S> config) {
         super(config);
@@ -80,6 +81,12 @@ public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S>
     }
 
     @Override
+    public void unregisterAllCommands() {
+        super.unregisterAllCommands();
+        scheduleSync();
+    }
+
+    @Override
     public JDA getPlatform() {
         return jda;
     }
@@ -111,19 +118,39 @@ public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S>
     }
 
     private void scheduleSync() {
-        if (syncScheduled.compareAndSet(false, true)) {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    syncCommands();
-                } finally {
-                    syncScheduled.set(false);
-                }
-            });
+        syncRequested.set(true);
+
+        if (syncRunning.compareAndSet(false, true)) {
+            startSyncWorker();
+        }
+    }
+
+    private void startSyncWorker() {
+        CompletableFuture.runAsync(this::drainSync)
+                .whenComplete((ignored, error) -> {
+                    if (error != null) {
+                        System.err.println("Failed to synchronize Discord commands: "
+                                + error.getMessage());
+                    }
+                });
+    }
+
+    private void drainSync() {
+        try {
+            while (syncRequested.getAndSet(false)) {
+                syncCommands().join();
+            }
+        } finally {
+            syncRunning.set(false);
+
+            if (syncRequested.get() && syncRunning.compareAndSet(false, true)) {
+                startSyncWorker();
+            }
         }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private void syncCommands() {
+    private CompletableFuture<Void> syncCommands() {
         List<SlashCommandMapper.SlashMapping> mappings = new java.util.ArrayList<>();
         for (Object cmd : getRegisteredCommands()) {
             mappings.add(slashCommandMapper.mapCommand((Command) cmd));
@@ -132,9 +159,42 @@ public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S>
         slashMappings.clear();
         mappings.forEach(mapping -> slashMappings.put(mapping.commandName(), mapping));
 
-        List<CommandData> data = mappings.stream()
-                                         .map(m -> m.commandData())
-                                         .collect(Collectors.toList());
-        jda.updateCommands().addCommands(data).queue();
+        List<? extends CommandData> data = mappings.stream()
+                                                   .map(SlashCommandMapper.SlashMapping::commandData)
+                                                   .toList();
+        return jda.updateCommands()
+                .addCommands(data)
+                .submit()
+                .thenAccept(commands -> System.out.println("Synchronized Discord commands: "
+                        + commands.stream()
+                                  .map(net.dv8tion.jda.api.interactions.commands.Command::getName)
+                                  .sorted()
+                                  .toList()))
+                .whenComplete((ignored, error) -> {
+                    if (error != null) {
+                        System.err.println("Failed to synchronize Discord commands: "
+                                + error.getMessage());
+                    }
+                });
+    }
+
+    /**
+     * Synchronizes the registered commands to a guild.
+     *
+     * @param guild the guild whose commands should be replaced
+     * @return a future completed when Discord has applied the command update
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public CompletableFuture<List<net.dv8tion.jda.api.interactions.commands.Command>> syncGuild(
+            Guild guild
+    ) {
+        List<CommandData> data = new java.util.ArrayList<>();
+        for (Object command : getRegisteredCommands()) {
+            data.add(slashCommandMapper.mapCommand((Command) command).commandData());
+        }
+
+        return guild.updateCommands()
+                .addCommands(data)
+                .submit();
     }
 }
