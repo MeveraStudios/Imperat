@@ -8,6 +8,13 @@ val baseVersion = "4.1.0"
 val releaseSnapshots = true
 val isSnapshot = System.getenv("SNAPSHOT_BUILD") == "true"
 val rootJavaVersion = 21
+val localPublicationTaskNames = setOf(
+    "publishToMavenLocal",
+    "publishCoreAndJdaToMavenLocal"
+)
+val isLocalPublication = gradle.startParameter.taskNames.any { taskName ->
+    taskName.substringAfterLast(':') in localPublicationTaskNames
+}
 
 tasks.register("printReleaseSnapshots") {
     doLast {
@@ -19,6 +26,12 @@ tasks.register("printVersion") {
     doLast {
         println("baseVersion=$baseVersion")
     }
+}
+
+tasks.register("publishCoreAndJdaToMavenLocal") {
+    group = "publishing"
+    description = "Publishes the core and jda modules to the local Maven repository."
+    dependsOn(":core:publishToMavenLocal", ":jda:publishToMavenLocal")
 }
 
 allprojects {
@@ -111,7 +124,7 @@ subprojects {
             }
         }
 
-        if (!gradle.startParameter.taskNames.any { it == "publishToMavenLocal" }
+        if (!isLocalPublication
             && (!isSnapshot || (isSnapshot && releaseSnapshots))) {
             publishToMavenCentral()
             signAllPublications()

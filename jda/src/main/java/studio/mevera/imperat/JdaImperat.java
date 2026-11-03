@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.Command;
 import studio.mevera.imperat.providers.CommandSourceMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -17,16 +18,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S> {
 
     private final JDA jda;
-    @SuppressWarnings("rawtypes")
     private final JdaSlashCommandListener listener;
-    @SuppressWarnings("rawtypes")
     private final SlashCommandMapper slashCommandMapper = new SlashCommandMapper();
-    @SuppressWarnings("rawtypes")
     private final Map<String, SlashCommandMapper.SlashMapping> slashMappings = new ConcurrentHashMap<>();
     private final AtomicBoolean syncRequested = new AtomicBoolean(false);
     private final AtomicBoolean syncRunning = new AtomicBoolean(false);
 
-    @SuppressWarnings({"rawtypes", "unchecked"}) JdaImperat(@NotNull JDA jda, @NotNull ImperatConfig<S> config) {
+    JdaImperat(@NotNull JDA jda, @NotNull ImperatConfig<S> config) {
         super(config);
         this.jda = jda;
         this.listener = new JdaSlashCommandListener(this);
@@ -112,7 +110,6 @@ public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S>
         return (S) mapper.wrap(platform);
     }
 
-    @SuppressWarnings("rawtypes")
     SlashCommandMapper.SlashMapping getSlashMapping(String name) {
         return slashMappings.get(name.toLowerCase());
     }
@@ -130,7 +127,7 @@ public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S>
                 .whenComplete((ignored, error) -> {
                     if (error != null) {
                         System.err.println("Failed to synchronize Discord commands: "
-                                + error.getMessage());
+                                                   + error.getMessage());
                     }
                 });
     }
@@ -149,33 +146,23 @@ public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S>
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private CompletableFuture<Void> syncCommands() {
-        List<SlashCommandMapper.SlashMapping> mappings = new java.util.ArrayList<>();
-        for (Object cmd : getRegisteredCommands()) {
-            mappings.add(slashCommandMapper.mapCommand((Command) cmd));
-        }
-
         slashMappings.clear();
-        mappings.forEach(mapping -> slashMappings.put(mapping.commandName(), mapping));
+        List<SlashCommandMapper.SlashMapping> mappings = new ArrayList<>();
+        for (Command<S> cmd : getRegisteredCommands()) {
+            SlashCommandMapper.SlashMapping mapping =
+                    slashCommandMapper.mapCommand((Command<JdaCommandSource>) cmd);
+            slashMappings.put(cmd.getName(), mapping);
+            mappings.add(mapping);
+        }
 
         List<? extends CommandData> data = mappings.stream()
                                                    .map(SlashCommandMapper.SlashMapping::commandData)
                                                    .toList();
         return jda.updateCommands()
-                .addCommands(data)
-                .submit()
-                .thenAccept(commands -> System.out.println("Synchronized Discord commands: "
-                        + commands.stream()
-                                  .map(net.dv8tion.jda.api.interactions.commands.Command::getName)
-                                  .sorted()
-                                  .toList()))
-                .whenComplete((ignored, error) -> {
-                    if (error != null) {
-                        System.err.println("Failed to synchronize Discord commands: "
-                                + error.getMessage());
-                    }
-                });
+                       .addCommands(data)
+                       .submit()
+                       .thenApply(ignored -> null);
     }
 
     /**
@@ -188,13 +175,13 @@ public final class JdaImperat<S extends JdaCommandSource> extends BaseImperat<S>
     public CompletableFuture<List<net.dv8tion.jda.api.interactions.commands.Command>> syncGuild(
             Guild guild
     ) {
-        List<CommandData> data = new java.util.ArrayList<>();
+        List<CommandData> data = new ArrayList<>();
         for (Object command : getRegisteredCommands()) {
             data.add(slashCommandMapper.mapCommand((Command) command).commandData());
         }
 
         return guild.updateCommands()
-                .addCommands(data)
-                .submit();
+                       .addCommands(data)
+                       .submit();
     }
 }
