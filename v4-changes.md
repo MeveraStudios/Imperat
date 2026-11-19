@@ -1,3 +1,18 @@
+# Imperat 4.1.0
+
+## JDA: text commands
+
+- Registered commands can also run from messages (`!ban @user 1d`): `JdaConfigBuilder.textCommands(JdaTextCommands)`. Off unless set.
+  - Prefixes per message (usually per server), a mention of the bot as a prefix, and custom trigger words (`JdaTextTriggerResolver`) that map to any command path (`"ticket staff"`). A command's own names and aliases can be switched off as triggers.
+  - The rest of the message is parsed like any text input, so subcommands, quotes, flags and greedy arguments work. Permissions are checked while executing, so a refusal reaches the `PermissionDeniedException` handler.
+  - Needs the `MESSAGE_CONTENT` intent (mentions of the bot work without it).
+- `JdaCommandSource` now comes from a slash command or a message. **Breaking:** `origin()` returns the `GenericEvent`; use `slashEvent()` (null for text) or `messageEvent()` (null for slash).
+  - New: `isSlash()`, `isMessage()`, `label()`, `commandPath()` (written like a slash command's full name for both), `guild()`, `channel()`, `message()`, `findUser/findMember/findRole` (from slash options or mentions, then the cache).
+  - Answering the same way for both: `send(MessageCreateData)` (public; replaces a slash command's "thinking…") and `sendPrivately(MessageCreateData)` (ephemeral for slash; for text, the configured `JdaPrivateReplier`).
+  - Discord only allows ephemeral messages as an answer to an interaction, so text commands answer privately with `JdaPrivateReplier.revealButton()` (default: a "Show" button whose click answers ephemerally, to the author only), `directMessage(fallback)` or `inChannel()`.
+- `SlashCommandInteractionEvent` and `MessageReceivedEvent` parameters throw `UnsupportedInvocationException` when the command ran the other way. `Guild` and `MessageChannel` parameters work for both.
+- `User`, `Member` and `Role` arguments accept every mention form and raw IDs, and find entities the command already carries before the cache.
+
 # Imperat 4.0.0
 
 The big ideas and useful changes from **3.6.0** to **4.0.0**:

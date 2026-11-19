@@ -11,6 +11,10 @@ import studio.mevera.imperat.exception.CommandException;
 import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.responses.JdaResponseKey;
 
+/**
+ * A Discord user, given as a mention ({@code <@id>}) or an ID. Users the command already carries
+ * (a slash option, a mention in the message) are found even when they are not cached.
+ */
 public final class UserArgument extends SimpleArgumentType<JdaCommandSource, User> {
 
     private final JDA jda;
@@ -22,12 +26,12 @@ public final class UserArgument extends SimpleArgumentType<JdaCommandSource, Use
     @Override
     public @NotNull User parse(@NotNull CommandContext<JdaCommandSource> context, @NotNull Argument<JdaCommandSource> argument, @NotNull String input)
             throws CommandException {
-        String userId = input.replaceAll("\\D", "");
-        String lookupId = userId.isEmpty() ? input : userId;
-        if (!lookupId.matches("\\d{17,20}")) {
+        long id = Snowflakes.parse(input);
+        if (id == 0) {
             throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, input);
         }
-        User user = jda.getUserById(lookupId);
+        JdaCommandSource source = context.source();
+        User user = source.origin() == null ? jda.getUserById(id) : source.findUser(id);
         if (user == null) {
             throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_USER, input);
         }

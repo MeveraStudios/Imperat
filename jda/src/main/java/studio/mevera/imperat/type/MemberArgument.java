@@ -11,24 +11,19 @@ import studio.mevera.imperat.exception.JdaArgumentParseException;
 import studio.mevera.imperat.exception.NoDMSException;
 import studio.mevera.imperat.responses.JdaResponseKey;
 
+/** A server member, given as a mention ({@code <@id>}) or an ID. */
 public final class MemberArgument extends SimpleArgumentType<JdaCommandSource, Member> {
 
     @Override
     public @NotNull Member parse(@NotNull CommandContext<JdaCommandSource> context, @NotNull Argument<JdaCommandSource> argument,
             @NotNull String correspondingInput) throws
             CommandException {
-        var guild = context.source().origin().getGuild();
-        if (guild == null) {
+        JdaCommandSource source = context.source();
+        if (source.guild() == null) {
             throw new NoDMSException();
         }
-
-        String memberId = correspondingInput.replaceAll("\\D", "");
-        String lookupId = memberId.isEmpty() ? correspondingInput : memberId;
-        if (!lookupId.matches("\\d{17,20}")) {
-            throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_MEMBER, correspondingInput);
-        }
-
-        Member member = guild.getMemberById(lookupId);
+        long id = Snowflakes.parse(correspondingInput);
+        Member member = id == 0 ? null : source.findMember(id);
         if (member == null) {
             throw new JdaArgumentParseException(JdaResponseKey.UNKNOWN_MEMBER, correspondingInput);
         }
