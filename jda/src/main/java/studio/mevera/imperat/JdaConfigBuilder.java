@@ -4,11 +4,14 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import studio.mevera.imperat.command.tree.help.CommandHelp;
 import studio.mevera.imperat.context.ExecutionContext;
 import studio.mevera.imperat.exception.NoDMSException;
+import studio.mevera.imperat.exception.UnsupportedInvocationException;
 import studio.mevera.imperat.providers.CommandSourceMapper;
 import studio.mevera.imperat.responses.JdaResponseKey;
 import studio.mevera.imperat.type.MemberArgument;
@@ -20,6 +23,7 @@ public class JdaConfigBuilder<S extends JdaCommandSource>
         extends ConfigBuilder<S, JdaImperat<S>, JdaConfigBuilder<S>> {
 
     private final JDA jda;
+    private JdaTextCommands textCommands;
 
     JdaConfigBuilder(@NotNull JDA jda, Class<S> sourceClass, CommandSourceMapper<JdaCommandSource, S> mapper) {
         super(sourceClass);
@@ -44,9 +48,23 @@ public class JdaConfigBuilder<S extends JdaCommandSource>
                     (ctx, param) -> CommandHelp.create(ctx)
             );
         });
-        config.registerContextArgumentProvider(SlashCommandInteractionEvent.class, (ctx, param) -> ctx.source().origin());
+        config.registerContextArgumentProvider(SlashCommandInteractionEvent.class, (ctx, param) -> {
+            SlashCommandInteractionEvent event = ctx.source().slashEvent();
+            if (event == null) {
+                throw new UnsupportedInvocationException("This command only works as a slash command.");
+            }
+            return event;
+        });
+        config.registerContextArgumentProvider(MessageReceivedEvent.class, (ctx, param) -> {
+            MessageReceivedEvent event = ctx.source().messageEvent();
+            if (event == null) {
+                throw new UnsupportedInvocationException("This command only works as a text command.");
+            }
+            return event;
+        });
         config.registerContextArgumentProvider(JDA.class, (ctx, param) -> jda);
-        config.registerContextArgumentProvider(Guild.class, (ctx, param) -> ctx.source().origin().getGuild());
+        config.registerContextArgumentProvider(Guild.class, (ctx, param) -> ctx.source().guild());
+        config.registerContextArgumentProvider(MessageChannel.class, (ctx, param) -> ctx.source().channel());
     }
 
     private void registerSourceResolvers() {
@@ -74,6 +92,9 @@ public class JdaConfigBuilder<S extends JdaCommandSource>
         config.setErrorHandler(NoDMSException.class, (ex, ctx) ->
                                                              ctx.source().error(ex.getMessage())
         );
+        config.setErrorHandler(UnsupportedInvocationException.class, (ex, ctx) ->
+                                                                             ctx.source().error(ex.getMessage())
+        );
     }
 
     private void registerDefaultResponses() {
@@ -84,9 +105,19 @@ public class JdaConfigBuilder<S extends JdaCommandSource>
         });
     }
 
+    /**
+     * Lets the commands also run from text messages ({@code !ban @user 1d}); off unless set.
+     *
+     * @see JdaTextCommands
+     */
+    public JdaConfigBuilder<S> textCommands(@NotNull JdaTextCommands textCommands) {
+        this.textCommands = java.util.Objects.requireNonNull(textCommands, "textCommands");
+        return this;
+    }
+
     @Override
     public @NotNull JdaImperat<S> build() {
         materializeDeferredDefaults();
-        return new JdaImperat<>(jda, config);
+        return new JdaImperat<>(jda, config, textCommands);
     }
 }
